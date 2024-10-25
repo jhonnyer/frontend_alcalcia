@@ -13,7 +13,11 @@ export const INVENTORY_ROUTES: Routes = [
     component: InventoryDetailComponent
   },
   {
-    path: 'create',
+    path: 'input',
+    component: InventoryFormComponent
+  },
+  {
+    path: 'output',
     component: InventoryFormComponent
   }
 ]

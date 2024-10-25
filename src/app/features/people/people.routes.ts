@@ -13,7 +13,11 @@ export const PEOPLE_ROUTES: Routes = [
     component: PeopleDetailComponent
   },
   {
-    path: 'form',
+    path: 'create',
+    component: PeopleFormComponent
+  },
+  {
+    path: 'update',
     component: PeopleFormComponent
   }
 ]

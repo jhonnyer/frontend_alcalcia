@@ -1,1 +1,30 @@
-<p>inventory-list works!</p>
+<div class="relative overflow-x-auto mt-4">
+  <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400" cdk-table recycleRows [dataSource]="dataSource">
+    <!-- Position Column -->
+    <ng-container cdkColumnDef="position">
+      <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> No. </th>
+      <td scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.position}} </td>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container cdkColumnDef="name">
+      <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> Name </th>
+      <td scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.name}} </td>
+    </ng-container>
+
+    <!-- Weight Column -->
+    <ng-container cdkColumnDef="weight">
+      <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> Weight </th>
+      <td scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.weight}} </td>
+    </ng-container>
+
+    <!-- Symbol Column -->
+    <ng-container cdkColumnDef="symbol">
+      <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> Symbol </th>
+      <td scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.symbol}} </td>
+    </ng-container>
+
+    <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
+    <tr cdk-row *cdkRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>

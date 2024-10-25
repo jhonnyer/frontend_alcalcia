@@ -25,3 +25,63 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+
+src/
+├── app/
+│   ├── core/                    # Funcionalidades core de la aplicación
+│   │   ├── guards/             
+│   │   │   └── auth.guard.ts
+│   │   ├── interceptors/
+│   │   │   └── token.interceptor.ts
+│   │   └── services/
+│   │       ├── auth.service.ts
+│   │       └── local-storage.service.ts
+│   │
+│   ├── shared/                  # Componentes y utilidades compartidas
+│   │   ├── components/
+│   │   │   ├── header/
+│   │   │   ├── sidebar/
+│   │   │   └── loader/
+│   │   ├── interfaces/
+│   │   └── utils/
+│   │
+│   ├── features/               # Módulos principales
+│   │   ├── auth/              # Módulo de autenticación
+│   │   │   ├── pages/
+│   │   │   │   ├── login/
+│   │   │   │   └── register/
+│   │   │   ├── interfaces/
+│   │   │   └── services/
+│   │   │
+│   │   ├── inventory/         # Módulo de inventario
+│   │   │   ├── pages/
+│   │   │   │   ├── inventory-list/
+│   │   │   │   ├── inventory-detail/
+│   │   │   │   └── inventory-form/
+│   │   │   ├── components/
+│   │   │   ├── interfaces/
+│   │   │   └── services/
+│   │   │
+│   │   └── people/           # Módulo de personas
+│   │       ├── pages/
+│   │       │   ├── people-list/
+│   │       │   ├── people-detail/
+│   │       │   └── people-form/
+│   │       ├── components/
+│   │       ├── interfaces/
+│   │       └── services/
+│   │
+│   ├── layouts/              # Layouts de la aplicación
+│   │   └── main-layout/
+│   │       ├── main-layout.component.ts
+│   │       ├── main-layout.component.html
+│   │       └── main-layout.component.css
+│   │
+│   ├── app.config.ts
+│   ├── app.component.ts
+│   └── app.routes.ts
+│
+├── assets/
+└── styles/
+    └── globals.css

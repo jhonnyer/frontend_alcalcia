@@ -7,6 +7,11 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     children: [
       {
+        path: '',
+        redirectTo: 'inventory',
+        pathMatch: 'full'
+      },
+      {
         path: 'inventory',
         loadChildren: () => import('./features/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES)
       },

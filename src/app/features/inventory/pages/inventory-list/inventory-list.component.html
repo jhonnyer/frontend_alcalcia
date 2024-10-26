@@ -1,30 +1,76 @@
+
 <div class="relative overflow-x-auto mt-4">
-  <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400" cdk-table recycleRows [dataSource]="dataSource">
-    <!-- Position Column -->
-    <ng-container cdkColumnDef="position">
-      <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> No. </th>
-      <td scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.position}} </td>
-    </ng-container>
+  @if(dataSource){
+    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400" cdk-table recycleRows [dataSource]="dataSource">
+      <!-- <tr cdk-header-row class="text-xs text-gray-700 uppercase bg-gray-50 " *cdkHeaderRowDef="columns"></tr>
+      <tr cdk-row class="bg-white border-b" [ngClass]="{'bg-red-200': row.price < 100}" *cdkRowDef="let row; columns: columns"></tr>
+      <tr cdk-footer-row class="text-xl text-gray-700 uppercase bg-gray-200 " *cdkFooterRowDef="columns"></tr> -->
 
-    <!-- Name Column -->
-    <ng-container cdkColumnDef="name">
-      <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> Name </th>
-      <td scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.name}} </td>
-    </ng-container>
+      <tr cdk-header-row *cdkHeaderRowDef="displayedColumns" class="text-xs text-gray-700 uppercase bg-gray-50"></tr>
+      <tr cdk-row *cdkRowDef="let row; columns: displayedColumns;" class="bg-white border-b text-gray-900"></tr>
 
-    <!-- Weight Column -->
-    <ng-container cdkColumnDef="weight">
-      <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> Weight </th>
-      <td scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.weight}} </td>
-    </ng-container>
+      <!-- codigo Column -->
+      <ng-container cdkColumnDef="codigo">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> codigo </th>
+        <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.codigo}} </td>
+      </ng-container>
 
-    <!-- Symbol Column -->
-    <ng-container cdkColumnDef="symbol">
-      <th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> Symbol </th>
-      <td scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.symbol}} </td>
-    </ng-container>
+      <!-- descripcion Column -->
+      <ng-container cdkColumnDef="descripcion">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> descripcion </th>
+        <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.descripcion}} </td>
+      </ng-container>
 
-    <tr cdk-header-row *cdkHeaderRowDef="displayedColumns"></tr>
-    <tr cdk-row *cdkRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
+      <!-- categoria Column -->
+      <ng-container cdkColumnDef="categoria">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> categoria </th>
+        <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.categoria}} </td>
+      </ng-container>
+
+      <!-- unidad_medida Column -->
+      <ng-container cdkColumnDef="unidad_medida">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> Unidad medida </th>
+        <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.unidad_medida}} </td>
+      </ng-container>
+
+      <!-- proveedor column -->
+      <ng-container cdkColumnDef="proveedor">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> proveedor </th>
+        <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.proveedor}} </td>
+      </ng-container>
+
+      <!-- fecha_ingreso column -->
+      <ng-container cdkColumnDef="fecha_ingreso">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> fecha_ingreso </th>
+        <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.fecha_ingreso}} </td>
+      </ng-container>
+
+      <!-- precio_unitario column -->
+      <ng-container cdkColumnDef="precio_unitario">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> precio_unitario </th>
+        <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.precio_unitario}} </td>
+      </ng-container>
+
+      <!-- stock_actual column -->
+      <ng-container cdkColumnDef="stock_actual">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> stock_actual </th>
+        <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.stock_actual}} </td>
+      </ng-container>
+
+      <!-- stock_minimo column -->
+      <ng-container cdkColumnDef="stock_minimo">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> stock_minimo </th>
+        <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.stock_minimo}} </td>
+      </ng-container>
+
+      <!-- ubicacion column -->
+      <ng-container cdkColumnDef="ubicacion">
+        <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> ubicacion </th>
+        <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.ubicacion}} </td>
+      </ng-container>
+
+
+    </table>
+  }
+
 </div>

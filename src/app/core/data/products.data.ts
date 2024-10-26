@@ -1,0 +1,122 @@
+export const productsList = [
+  {
+    "codigo": "PROD001",
+    "descripcion": "Bolsas de basura negras 50 unidades",
+    "categoria": "Limpieza",
+    "unidad_medida": "unidades",
+    "proveedor": "Empresa de Plásticos S.A.",
+    "fecha_ingreso": "2023-11-15",
+    "precio_unitario": 10.50,
+    "stock_actual": 100,
+    "stock_minimo": 20,
+    "ubicacion": "Almacén 1"
+  },
+  {
+    "codigo": "PROD002",
+    "descripcion": "Lámparas LED 10W",
+    "categoria": "Iluminación",
+    "unidad_medida": "unidades",
+    "proveedor": "Luminaria del Sur",
+    "fecha_ingreso": "2023-12-05",
+    "precio_unitario": 5.99,
+    "stock_actual": 50,
+    "stock_minimo": 10,
+    "ubicacion": "Almacén 2"
+  },
+  {
+    "codigo": "PROD003",
+    "descripcion": "Papel higiénico 4 rollos",
+    "categoria": "Higiene",
+    "unidad_medida": "paquetes",
+    "proveedor": "Papeles Nacionales",
+    "fecha_ingreso": "2024-01-10",
+    "precio_unitario": 3.25,
+    "stock_actual": 200,
+    "stock_minimo": 50,
+    "ubicacion": "Almacén 1"
+  },
+  {
+    "codigo": "PROD004",
+    "descripcion": "Detergente líquido 1L",
+    "categoria": "Limpieza",
+    "unidad_medida": "litros",
+    "proveedor": "Química Nacional",
+    "fecha_ingreso": "2024-02-01",
+    "precio_unitario": 4.99,
+    "stock_actual": 150,
+    "stock_minimo": 30,
+    "ubicacion": "Almacén 2"
+  },
+  {
+    "codigo": "PROD005",
+    "descripcion": "Jabón en polvo 1kg",
+    "categoria": "Limpieza",
+    "unidad_medida": "kg",
+    "proveedor": "Jabones del Valle",
+    "fecha_ingreso": "2024-02-15",
+    "precio_unitario": 2.80,
+    "stock_actual": 120,
+    "stock_minimo": 25,
+    "ubicacion": "Almacén 1"
+  },
+  {
+    "codigo": "PROD006",
+    "descripcion": "Bombillas incandescentes 60W",
+    "categoria": "Iluminación",
+    "unidad_medida": "unidades",
+    "proveedor": "Luminaria del Sur",
+    "fecha_ingreso": "2024-03-01",
+    "precio_unitario": 1.50,
+    "stock_actual": 30,
+    "stock_minimo": 5,
+    "ubicacion": "Almacén 3"
+  },
+  {
+    "codigo": "PROD007",
+    "descripcion": "Papel toalla 2 rollos",
+    "categoria": "Higiene",
+    "unidad_medida": "paquetes",
+    "proveedor": "Papeles Nacionales",
+    "fecha_ingreso": "2024-03-15",
+    "precio_unitario": 2.99,
+    "stock_actual": 180,
+    "stock_minimo": 40,
+    "ubicacion": "Almacén 1"
+  },
+  {
+    "codigo": "PROD008",
+    "descripcion": "Escoba y recogedor",
+    "categoria": "Limpieza",
+    "unidad_medida": "unidades",
+    "proveedor": "Útiles de Limpieza S.A.",
+    "fecha_ingreso": "2024-04-01",
+    "precio_unitario": 8.99,
+    "stock_actual": 50,
+    "stock_minimo": 15,
+    "ubicacion": "Almacén 2"
+  },
+  {
+    "codigo": "PROD009",
+    "descripcion": "Cepillo de dientes",
+    "categoria": "Higiene",
+    "unidad_medida": "unidades",
+    "proveedor": "Productos de Higiene S.A.",
+    "fecha_ingreso": "2024-04-15",
+    "precio_unitario": 1.25,
+    "stock_actual": 250,
+    "stock_minimo": 50,
+    "ubicacion": "Almacén 1"
+  },
+  {
+    "codigo": "PROD010",
+    "descripcion": "Pasta de dientes",
+    "categoria": "Higiene",
+    "unidad_medida": "unidades",
+    "proveedor": "Productos de Higiene S.A.",
+    "fecha_ingreso": "2024-05-01",
+    "precio_unitario": 2.50,
+    "stock_actual": 200,
+    "stock_minimo": 40,
+    "ubicacion": "Almacén 1"
+  }
+]

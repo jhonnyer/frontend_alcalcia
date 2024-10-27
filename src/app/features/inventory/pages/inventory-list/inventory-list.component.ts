@@ -1,19 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {CdkTableModule} from '@angular/cdk/table';
 import { productsList } from '../../../../core/data/products.data';
-
-export interface Products {
-  codigo: string;
-  descripcion: string;
-  categoria: string;
-  unidad_medida: string;
-  proveedor: string;
-  fecha_ingreso: string;
-  precio_unitario: number;
-  stock_actual: number;
-  stock_minimo: number;
-  ubicacion: string;
-}
+import { Products } from '../../interfaces/products.model';
 
 const ELEMENT_DATA: Products[] = productsList;
 

@@ -1,5 +1,5 @@
 
-<div class="relative overflow-x-auto mt-4">
+<div class="relative overflow-x-auto mt-4 flex flex-col">
   @if(dataSource){
     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400" cdk-table recycleRows [dataSource]="dataSource">
       <!-- <tr cdk-header-row class="text-xs text-gray-700 uppercase bg-gray-50 " *cdkHeaderRowDef="columns"></tr>
@@ -68,9 +68,13 @@
         <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-header-cell *cdkHeaderCellDef> ubicacion </th>
         <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-white" cdk-cell *cdkCellDef="let element"> {{element.ubicacion}} </td>
       </ng-container>
-
-
     </table>
   }
 
+
+  <div class="w-full flex my-5 items-center justify-end">
+    <button type="button" class="bg-gray-800 w-32 p-3 flex justify-center items-center rounded-2xl">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M640-640v-120H320v120h-80v-200h480v200h-80Zm-480 80h640-640Zm560 100q17 0 28.5-11.5T760-500q0-17-11.5-28.5T720-540q-17 0-28.5 11.5T680-500q0 17 11.5 28.5T720-460Zm-80 260v-160H320v160h320Zm80 80H240v-160H80v-240q0-51 35-85.5t85-34.5h560q51 0 85.5 34.5T880-520v240H720v160Zm80-240v-160q0-17-11.5-28.5T760-560H200q-17 0-28.5 11.5T160-520v160h80v-80h480v80h80Z"/></svg>
+    </button>
+  </div>
 </div>

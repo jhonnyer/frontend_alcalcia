@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import {CdkTableModule} from '@angular/cdk/table';
 import { productsList } from '../../../../core/data/products.data';
 import { Products } from '../../interfaces/products.model';
@@ -12,7 +12,7 @@ const ELEMENT_DATA: Products[] = productsList;
   templateUrl: './inventory-list.component.html',
   styleUrl: './inventory-list.component.scss'
 })
-export class InventoryListComponent implements OnInit{
+export class InventoryListComponent {
 
   displayedColumns: string[] = [
     'codigo',
@@ -24,11 +24,16 @@ export class InventoryListComponent implements OnInit{
     'precio_unitario',
     'stock_actual',
     'stock_minimo',
-    'ubicacion'
+    'ubicacion',
+    'controls'
   ]
   dataSource = ELEMENT_DATA;
 
-  ngOnInit(): void {
-    console.log('Tabla: ', this.dataSource);
+  delete(item: Products){
+    console.log("Eliminar: ", item)
+  }
+
+  update(item: Products){
+    console.log("update: ", item)
   }
 }

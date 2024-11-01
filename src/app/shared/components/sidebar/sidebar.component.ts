@@ -6,11 +6,12 @@ import { RouterLinkActive } from '@angular/router';
 import { ListInventoryComponent } from './components/list-inventory/list-inventory.component';
 import { ListBeneficiaryComponent } from './components/list-beneficiary/list-beneficiary.component';
 import { ListAuthComponent } from './components/list-auth/list-auth.component';
+import { ListHomeComponent } from './components/list-home/list-home.component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ListInventoryComponent, ListBeneficiaryComponent, ListAuthComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ListHomeComponent, ListInventoryComponent, ListBeneficiaryComponent, ListAuthComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })

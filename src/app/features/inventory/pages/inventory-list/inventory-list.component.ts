@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
-import {CdkTableModule} from '@angular/cdk/table';
+import { Component, inject, computed } from '@angular/core';
+import { CdkTableModule } from '@angular/cdk/table';
 import { productsList } from '../../../../core/data/products.data';
 import { Products } from '../../interfaces/products.model';
+import { SearchService } from '../../../../core/services/search.service';
 
 const ELEMENT_DATA: Products[] = productsList;
 
@@ -13,6 +14,8 @@ const ELEMENT_DATA: Products[] = productsList;
   styleUrl: './inventory-list.component.scss'
 })
 export class InventoryListComponent {
+  private searchService = inject(SearchService);
+  searchTerm = this.searchService.getSearchTerm();
 
   displayedColumns: string[] = [
     'codigo',
@@ -36,4 +39,15 @@ export class InventoryListComponent {
   update(item: Products){
     console.log("update: ", item)
   }
+
+  // Signal computado para filtrar elementos
+  filteredItems = computed(() => {
+    const searchTerm = this.searchService.getSearchTerm()().toLowerCase();
+    console.log(searchTerm);
+    this.dataSource.filter(item =>
+      item.codigo.toLowerCase().includes(searchTerm)
+    );
+    console.log(this.dataSource);
+
+  });
 }

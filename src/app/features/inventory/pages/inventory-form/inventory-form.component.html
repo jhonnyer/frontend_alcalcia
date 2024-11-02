@@ -1,1 +1,8 @@
-<p>inventory-form works!</p>
+<ul class="flex gap-5">
+  @for (task of filteredItems(); track task ) {
+    <li>
+      {{task.name}}
+    </li>
+  }
+</ul>
+

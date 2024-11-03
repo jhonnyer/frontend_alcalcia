@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { SearchService } from '../../../../core/services/search.service';
 
 @Component({
@@ -9,7 +9,6 @@ import { SearchService } from '../../../../core/services/search.service';
   styleUrl: './inventory-form.component.scss'
 })
 export class InventoryFormComponent {
-  filterTask= signal<'all' | 'pending' | 'completed'>('all');
 
   private items = [
     { id: 1, name: 'Elemento 1' },
@@ -17,11 +16,12 @@ export class InventoryFormComponent {
     { id: 3, name: 'Otro elemento' }
   ];
 
-  constructor(private searchService: SearchService) {}
+  // constructor(private searchService: SearchService) {}
+  private searchService = inject(SearchService);
 
   filteredItems = computed(() => {
     const searchTerm = this.searchService.getSearchTerm()().toLowerCase();
-    console.log("Busqueda ",searchTerm)
+    console.log("Busqueda filters ",searchTerm)
     return this.items.filter(item =>
       item.name.toLowerCase().includes(searchTerm)
     );

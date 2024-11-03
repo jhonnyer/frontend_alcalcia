@@ -1,8 +1,9 @@
-import { Component, inject, computed } from '@angular/core';
-import { CdkTableModule } from '@angular/cdk/table';
+import { Component, inject, computed, effect, OnInit, Injector } from '@angular/core';
+import { CdkTableModule, DataSource } from '@angular/cdk/table';
 import { productsList } from '../../../../core/data/products.data';
 import { Products } from '../../interfaces/products.model';
 import { SearchService } from '../../../../core/services/search.service';
+import { DataSourceInventory } from '../inventory-detail/data-source';
 
 const ELEMENT_DATA: Products[] = productsList;
 
@@ -13,9 +14,12 @@ const ELEMENT_DATA: Products[] = productsList;
   templateUrl: './inventory-list.component.html',
   styleUrl: './inventory-list.component.scss'
 })
-export class InventoryListComponent {
+export class InventoryListComponent implements OnInit{
+
+  data = new DataSourceInventory();
+  // constructor(private searchService: SearchService) {}
   private searchService = inject(SearchService);
-  searchTerm = this.searchService.getSearchTerm();
+  injector = inject(Injector);
 
   displayedColumns: string[] = [
     'codigo',
@@ -32,6 +36,18 @@ export class InventoryListComponent {
   ]
   dataSource = ELEMENT_DATA;
 
+  ngOnInit(): void {
+    this.trackSearchTerm();
+  }
+
+  trackSearchTerm(){
+    effect(()=> {
+      const search = this.searchService.getSearchTerm()();
+      console.log("Cambio de dato: ", search);
+      this.data.searchData(search);
+    }, {injector: this.injector})
+  }
+
   delete(item: Products){
     console.log("Eliminar: ", item)
   }
@@ -43,11 +59,9 @@ export class InventoryListComponent {
   // Signal computado para filtrar elementos
   filteredItems = computed(() => {
     const searchTerm = this.searchService.getSearchTerm()().toLowerCase();
-    console.log(searchTerm);
-    this.dataSource.filter(item =>
-      item.codigo.toLowerCase().includes(searchTerm)
+    console.log("Busqueda inventory ",searchTerm)
+    return this.dataSource.filter(item =>
+      item.categoria.toLowerCase().includes(searchTerm)
     );
-    console.log(this.dataSource);
-
   });
 }

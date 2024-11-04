@@ -13,7 +13,6 @@ export class SearchService {
 
   // Método para actualizar el término de búsqueda
   updateSearchTerm(term: string) {
-    console.log("SERVICIO: ", term);
     this.searchTerm.set(term);
   }
 }

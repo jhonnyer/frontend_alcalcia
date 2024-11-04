@@ -16,7 +16,7 @@ const ELEMENT_DATA: Products[] = productsList;
 })
 export class InventoryListComponent implements OnInit{
 
-  data = new DataSourceInventory();
+  dataSource = new DataSourceInventory();
   // constructor(private searchService: SearchService) {}
   private searchService = inject(SearchService);
   injector = inject(Injector);
@@ -34,17 +34,16 @@ export class InventoryListComponent implements OnInit{
     'ubicacion',
     'controls'
   ]
-  dataSource = ELEMENT_DATA;
 
   ngOnInit(): void {
+    this.dataSource.init(ELEMENT_DATA);
     this.trackSearchTerm();
   }
 
   trackSearchTerm(){
     effect(()=> {
       const search = this.searchService.getSearchTerm()();
-      console.log("Cambio de dato: ", search);
-      this.data.searchData(search);
+      this.dataSource.searchData(search);
     }, {injector: this.injector})
   }
 
@@ -56,12 +55,4 @@ export class InventoryListComponent implements OnInit{
     console.log("update: ", item)
   }
 
-  // Signal computado para filtrar elementos
-  filteredItems = computed(() => {
-    const searchTerm = this.searchService.getSearchTerm()().toLowerCase();
-    console.log("Busqueda inventory ",searchTerm)
-    return this.dataSource.filter(item =>
-      item.categoria.toLowerCase().includes(searchTerm)
-    );
-  });
 }

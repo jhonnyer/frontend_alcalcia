@@ -8,8 +8,16 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'inventory',
+        redirectTo: 'home',
         pathMatch: 'full'
+      },
+      {
+        path: 'home',
+        loadChildren: () => import('./features/home/home.routes').then(m => m.HOME_ROUTES)
+      },
+      {
+        path: 'nucleo',
+        loadChildren: () => import('./features/nucleo/nucleo.routes').then(m => m.NUCLEO_ROUTES)
       },
       {
         path: 'inventory',
@@ -23,10 +31,7 @@ export const routes: Routes = [
         path: 'auth',
         loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES)
       },
-      {
-        path: 'home',
-        loadChildren: () => import('./features/home/home.routes').then(m => m.HOME_ROUTES)
-      },
+
     ]
   }
 ];

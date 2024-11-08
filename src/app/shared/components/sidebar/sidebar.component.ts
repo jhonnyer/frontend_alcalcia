@@ -7,11 +7,12 @@ import { ListInventoryComponent } from './components/list-inventory/list-invento
 import { ListBeneficiaryComponent } from './components/list-beneficiary/list-beneficiary.component';
 import { ListAuthComponent } from './components/list-auth/list-auth.component';
 import { ListHomeComponent } from './components/list-home/list-home.component';
+import { ListNucleoComponent } from './components/list-nucleo/list-nucleo.component';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ListHomeComponent, ListInventoryComponent, ListBeneficiaryComponent, ListAuthComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ListHomeComponent, ListNucleoComponent, ListInventoryComponent, ListBeneficiaryComponent, ListAuthComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })

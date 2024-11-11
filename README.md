@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Donaciones
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.1.
@@ -85,3 +86,7 @@ src/
 ├── assets/
 └── styles/
     └── globals.css
+=======
+# donaciones
+Control de donaciones para alcaldía
+>>>>>>> 480382e0a7e6045a52b4dab92423e01e0de6363b

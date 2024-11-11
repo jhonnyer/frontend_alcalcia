@@ -10,5 +10,5 @@ export const NUCLEO_ROUTES: Routes = [
   {
     path: 'register',
     component: NucleoRegisterComponent
-  }
+  },
 ]

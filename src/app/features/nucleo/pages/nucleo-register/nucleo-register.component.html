@@ -1,70 +1,240 @@
-<div class="font-std mb-10 w-full rounded-2xl bg-white p-10 font-normal leading-relaxed text-gray-900 shadow-xl">
+<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
+  <form [formGroup]="formFamilyCore" class="form" (ngSubmit)="onSubmit()" class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5">
+    <div class="flex flex-wrap justify-between">
+      <div class="w-full md:w-[49%]">
+        <label for="zona" class="block text-sm font-medium text-gray-700">Seleccionar zona</label>
+        <select formControlName="zona" name="zona" id="zona" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+          <option value="zona urbana" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" selected>Zona Urbana</option>
+          <option value="chilco" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" >Chilco</option>
+          <option value="garbanzal" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize">garbanzal</option>
+        </select>
+      </div>
 
-  <div class="flex flex-col">
-      <!-- <div class="flex flex-col md:flex-row justify-between mb-5 items-start">
-          <h2 class="mb-5 text-4xl font-bold text-blue-900">Update Profile</h2>
-          <div class="text-center">
-              <div>
-                  <img src="https://i.pravatar.cc/300" alt="Profile Picture" class="rounded-full w-32 h-32 mx-auto border-4 border-indigo-800 mb-4 transition-transform duration-300 hover:scale-105 ring ring-gray-300">
-                  <input type="file" name="profile" id="upload_profile" hidden required>
+      <div class="w-full md:w-[49%]">
+        <label for="barrio" class="block text-sm font-medium text-gray-700">Seleccionar barrio</label>
+        <select formControlName="barrio" name="barrio" id="barrio" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+          <option value="sin_corregimiento" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" selected>Sin Corregimiento</option>
+          <option value="chilco" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" >Chilco</option>
+          <option value="garbanzal" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize">garbanzal</option>
+        </select>
+      </div>
+    </div>
 
-                  <label for="upload_profile" class="inline-flex items-center">
-                      <svg data-slot="icon" class="w-5 h-5 text-blue-700" fill="none" stroke-width="1.5"
-                          stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
-                          aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z">
-                          </path>
-                          <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z">
-                          </path>
-                      </svg>
-                  </label>
-              </div>
-              <button class="bg-indigo-800 text-white px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors duration-300 ring ring-gray-300 hover:ring-indigo-300">
-                  Change Profile Picture
-              </button>
-          </div>
-      </div> -->
+    <div class="flex flex-wrap justify-between">
+      <div class="w-full md:w-[49%]">
+        <label for="direccion" class="block text-sm font-medium text-gray-700">Dirección</label>
+        <input formControlName="direccion" type="text" id="direccion" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Dirección">
+      </div>
 
-      <!-- Bilgi Düzenleme Formu -->
-      <form class="space-y-4">
-          <!-- İsim ve Unvan -->
-          <div>
-              <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
-              <input type="text" id="name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="John Doe">
-          </div>
-          <div>
-              <label for="title" class="block text-sm font-medium text-gray-700">Ocupación</label>
-              <input type="text" id="title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="Software Developer">
-          </div>
+      <div class="w-full md:w-[49%]">
+        <label for="integrantes" class="block text-sm font-medium text-gray-700">Integrantes</label>
+        <input formControlName="integrantes" type="number" id="integrantes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Integrantes">
+      </div>
+    </div>
 
-          <!-- Organizasyon Bilgisi -->
-          <div>
-              <label for="organization" class="block text-sm font-medium text-gray-700">Núcleo familiar</label>
-              <input type="text" id="organization" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="P2568">
+
+    <h2>Integrantes</h2>
+    <!--  -->
+    <div class="flex justify-between flex-wrap gap-4" *ngFor="let beneficiario of getCtrl('beneficiarios', formFamilyCore).controls; index as formChild" >
+      <div class="flex flex-col w-full border border-gray-400 rounded-2xl p-4" [formGroupName]="formChild">
+        <div class="w-full flex flex-wrap justify-between">
+          <div class="w-full md:w-[49%]">
+            <label for="nombre_1" class="block text-sm font-medium text-gray-700">Primer nombre</label>
+            <input formControlName="nombre1" type="text" id="nombre_1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Primer nombre">
           </div>
 
-          <!-- İletişim Bilgileri -->
-          <div>
-              <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-              <input type="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="john.doe@example.com">
+          <div class="w-full md:w-[49%]">
+            <label for="nombre_2" class="block text-sm font-medium text-gray-700">Segundo nombre</label>
+            <input formControlName="nombre2" type="text" id="nombre_2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Segundo nombre">
           </div>
-          <div>
-              <label for="phone" class="block text-sm font-medium text-gray-700">Telefono</label>
-              <input type="tel" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="+1 (555) 123-4567">
-          </div>
-          <div>
-              <label for="location" class="block text-sm font-medium text-gray-700">Vereda</label>
-              <input type="text" id="location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="San Francisco, CA">
+        </div>
+
+        <div class="w-full flex flex-wrap justify-between">
+          <div class="w-full md:w-[49%] my-2">
+            <label for="apellido_1" class="block text-sm font-medium text-gray-700">Primer apellido</label>
+            <input formControlName="apellido1" type="text" id="apellido_1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Primer apellido">
           </div>
 
-          <!-- Kaydet ve İptal Butonları -->
-          <div class="flex justify-end space-x-4">
-              <button type="button" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">Cancel</button>
-              <button type="submit" class="px-4 py-2 rounded-lg text-white bg-gradient-to-tr from-blue-600 to-blue-400 shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-[0.85]">Save Changes</button>
+          <div class="w-full md:w-[49%] my-2">
+            <label for="apellido_2" class="block text-sm font-medium text-gray-700">Segundo apellido</label>
+            <input formControlName="apellido2" type="text" id="apellido_2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Segundo apellido">
           </div>
-      </form>
-  </div>
+        </div>
+
+        <div class="w-full flex justify-between md:gap-5 flex-wrap md:flex-nowrap">
+          <div class="w-full md:w-52">
+            <label for="tipo_documento" class="block text-sm font-medium text-gray-700">Tipo de documento</label>
+            <select formControlName="tipoDocumento" name="tipo_documento" id="tipo_documento" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="cc" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" selected>C.C</option>
+              <option value="ti" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" >t.i</option>
+              <option value="pasaporte" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" >pasaporte</option>
+            </select>
+          </div>
+
+          <div class="w-full">
+            <label for="id" class="block text-sm font-medium text-gray-700">Número de documento</label>
+            <input formControlName="numeroDocumento" type="text" id="id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Documento">
+          </div>
+        </div>
+
+        <div class="w-full flex flex-wrap justify-between my-4 gap-4">
+
+          <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+            <label>Sexo: </label>
+            <input formControlName="sexo" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="sexo" value="f" checked> Femenino
+            <input formControlName="sexo" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="sexo" value="m"> Masculino
+          </div>
+
+          <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+            <label>Genero: </label>
+            <input formControlName="genero" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="genero" value="na" checked> No aplica
+            <input formControlName="genero" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="genero" value="lgbt"> Lgbt+
+          </div>
+
+          <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+            <label>Victima del conflicto: </label>
+            <input formControlName="victimaConflico" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="genero" value="0" checked> No
+            <input formControlName="victimaConflico" class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="genero" value="1"> Si
+          </div>
+
+          <div class="relative flex items-center gap-2">
+            <label for="birthdate">Nacimiento</label>
+            <input formControlName="fechaNacimiento" id="birthdate" datepicker id="default-datepicker" type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date">
+          </div>
+
+          <div class="flex items-center gap-4">
+            <label for="edad" class="block text-sm font-medium text-gray-700">Edad</label>
+            <input formControlName="edad" type="number" id="edad" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="0">
+          </div>
+        </div>
+
+        <div>
+          <label for="etnia" class="block text-sm font-medium text-gray-700">Etnia</label>
+          <input formControlName="etnia" type="text" id="apellido_2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="etnia">
+        </div>
+
+        <div class="flex flex-wrap md:flex-nowrap justify-between my-2">
+          <div class="w-full md:w-[49%]">
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input formControlName="email" type="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="beneficiario@correo.com">
+          </div>
+
+          <div class="w-full md:w-[49%]">
+            <label for="phone" class="block text-sm font-medium text-gray-700">Telefono</label>
+            <input formControlName="telefono" type="tel" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="+1 (555) 123-4567">
+          </div>
+        </div>
+
+        <button type="button" class="px-4 py-2 mt-4 w-24 self-end text-white bg-red-500 text-black-700 rounded-lg hover:bg-red-700">Eliminar</button>
+
+      </div>
+    </div>
+
+
+
+    <div class="flex justify-end space-x-4">
+      <button (click)="addBeneficiary()" type="button" class="px-4 py-2 rounded-lg text-white bg-gradient-to-tr from-green-600 to-green-400 shadow-md shadow-green-500/20 hover:shadow-lg hover:shadow-green-500/40 active:opacity-[0.85]">Agregar integrante</button>
+      <button type="button" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">Cancelar</button>
+      <button type="submit" class="px-4 py-2 rounded-lg text-white bg-gradient-to-tr from-blue-600 to-blue-400 shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-[0.85]">
+        Guardar cambios
+      </button>
+    </div>
+  </form>
 
 </div>
+
+<!-- <div class="flex justify-between flex-wrap gap-4">
+
+      <div class=" flex flex-col w-full border border-gray-400 rounded-2xl p-4">
+        <div class="w-full flex flex-wrap justify-between">
+          <div class="w-full md:w-[49%]">
+            <label for="nombre_1" class="block text-sm font-medium text-gray-700">Primer nombre</label>
+            <input type="text" id="nombre_1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Primer nombre">
+          </div>
+
+          <div class="w-full md:w-[49%]">
+            <label for="nombre_2" class="block text-sm font-medium text-gray-700">Segundo nombre</label>
+            <input type="text" id="nombre_2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Segundo nombre">
+          </div>
+        </div>
+
+        <div class="w-full flex flex-wrap justify-between">
+          <div class="w-full md:w-[49%] my-2">
+            <label for="apellido_1" class="block text-sm font-medium text-gray-700">Primer apellido</label>
+            <input type="text" id="apellido_1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Primer apellido">
+          </div>
+
+          <div class="w-full md:w-[49%] my-2">
+            <label for="apellido_2" class="block text-sm font-medium text-gray-700">Segundo apellido</label>
+            <input type="text" id="apellido_2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Segundo apellido">
+          </div>
+        </div>
+
+        <div class="w-full flex justify-between md:gap-5 flex-wrap md:flex-nowrap">
+          <div class="w-full md:w-52">
+            <label for="tipo_documento" class="block text-sm font-medium text-gray-700">Tipo de documento</label>
+            <select name="tipo_documento" id="tipo_documento" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="cc" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" selected>C.C</option>
+              <option value="ti" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" >t.i</option>
+              <option value="pasaporte" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" >pasaporte</option>
+            </select>
+          </div>
+
+          <div class="w-full">
+            <label for="id" class="block text-sm font-medium text-gray-700">Número de documento</label>
+            <input type="text" id="id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Documento">
+          </div>
+        </div>
+
+        <div class="w-full flex flex-wrap justify-between my-4 gap-4">
+
+          <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+            <label>Sexo: </label>
+            <input class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="sexo" value="f" checked> Femenino
+            <input class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="sexo" value="m"> Masculino
+          </div>
+
+          <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+            <label>Genero: </label>
+            <input class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="genero" value="na" checked> No aplica
+            <input class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="genero" value="lgbt"> Lgbt+
+          </div>
+
+          <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+            <label>Victima del conflicto: </label>
+            <input class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="genero" value="0" checked> No
+            <input class="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize"  type="radio" name="genero" value="1"> Si
+          </div>
+
+          <div class="relative flex items-center gap-2">
+            <label for="birthdate">Nacimiento</label>
+            <input id="birthdate" datepicker id="default-datepicker" type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date">
+          </div>
+
+          <div class="flex items-center gap-4">
+            <label for="edad" class="block text-sm font-medium text-gray-700">Edad</label>
+            <input type="number" id="edad" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="0">
+          </div>
+        </div>
+
+        <div>
+          <label for="etnia" class="block text-sm font-medium text-gray-700">Etnia</label>
+          <input type="text" id="apellido_2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="etnia">
+        </div>
+
+        <div class="flex flex-wrap md:flex-nowrap justify-between my-2">
+          <div class="w-full md:w-[49%]">
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" id="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="beneficiario@correo.com">
+          </div>
+
+          <div class="w-full md:w-[49%]">
+            <label for="phone" class="block text-sm font-medium text-gray-700">Telefono</label>
+            <input type="tel" id="phone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="+1 (555) 123-4567">
+          </div>
+        </div>
+
+        <button type="button" class="px-4 py-2 mt-4 w-24 self-end text-white bg-red-500 text-black-700 rounded-lg hover:bg-red-700">Eliminar</button>
+      </div>
+    </div> -->
+

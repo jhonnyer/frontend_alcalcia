@@ -3,7 +3,10 @@
 
   <div class="flex flex-col p-4 xl:ml-80 x-full w-xl-[calc(100vw-18rem)] h-screen h-max-[100vh] overflow-hiden relative">
     <app-header></app-header>
-    <router-outlet />
+
+    <div class="h-section overflow-hidden pb-4 border">
+      <router-outlet />
+    </div>
     <!-- <app-loader></app-loader> -->
   </div>
 </div>

@@ -9,6 +9,10 @@ module.exports = {
   plugins: [
     function ({ addUtilities }) {
       addUtilities({
+        '.h-section': {
+          height: 'calc(100vh-4rem)',
+          maxHeight: 'calc(100vh - 6rem)',
+        },
         '.scrollbar-hide': {
           /* Ocultar scrollbar */
           '-ms-overflow-style': 'none',

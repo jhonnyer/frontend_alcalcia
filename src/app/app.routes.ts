@@ -17,7 +17,7 @@ export const routes: Routes = [
       },
       {
         path: 'nucleo',
-        loadChildren: () => import('./features/nucleo/nucleo.routes').then(m => m.NUCLEO_ROUTES)
+        loadChildren: () => import('./features/nucleo/nucleo.routes').then(m=> m.NUCLEO_ROUTES)
       },
       {
         path: 'inventory',

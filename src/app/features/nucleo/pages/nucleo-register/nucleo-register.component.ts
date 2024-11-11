@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -13,10 +13,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 })
 export class NucleoRegisterComponent {
   public formFamilyCore: FormGroup = new FormGroup({});
-
-  constructor(
-    private fb: FormBuilder
-  ){}
+  private fb = inject(FormBuilder);
 
   ngOnInit(): void {
     this.initFormFamilyCore();
@@ -29,7 +26,7 @@ export class NucleoRegisterComponent {
       barrio: ['', [Validators.required]],
       direccion: ['', [Validators.required]],
       integrantes: ['', [Validators.required]],
-      beneficiarios: this.fb.array([], [Validators.required])
+      beneficiarios: this.fb.array([])
     });
     this.addBeneficiary();
   }
@@ -61,13 +58,17 @@ export class NucleoRegisterComponent {
   }
 
   // Referencia cada campo que se crea en el html
-  getCtrl(key: string, form: FormGroup): any {
+  getCtrl(key: string, form: FormGroup): FormArray {
     return form.get(key) as FormArray;
   }
 
+  get beneficiariosFormArray(): FormArray {
+    return this.formFamilyCore.get('beneficiarios') as FormArray;
+  }
+
   deletePerson(index: number): void {
-    const personsFormArray = this.formFamilyCore.get('beneficiary') as FormArray;
-    personsFormArray.removeAt(index);
+    const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
+    beneficiariosArray.removeAt(index);
   }
 
 

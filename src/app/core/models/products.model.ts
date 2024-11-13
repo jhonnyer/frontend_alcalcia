@@ -1,3 +1,5 @@
+export type ColumnKeys<T> = Array<keyof T>;
+
 export interface Products {
   codigo: string;
   descripcion: string;

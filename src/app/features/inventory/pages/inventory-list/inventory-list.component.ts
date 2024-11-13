@@ -1,7 +1,7 @@
 import { Component, inject, computed, effect, OnInit, Injector } from '@angular/core';
 import { CdkTableModule, DataSource } from '@angular/cdk/table';
 import { productsList } from '../../../../core/data/products.data';
-import { Products } from '../../interfaces/products.model';
+import { Products } from '../../../../core/models/products.model';
 import { SearchService } from '../../../../core/services/search.service';
 import { DataSourceInventory } from '../inventory-detail/data-source';
 

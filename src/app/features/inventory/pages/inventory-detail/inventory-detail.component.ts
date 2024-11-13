@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Products } from '../../interfaces/products.model';
+import { Products } from '../../../../core/models/products.model';
 import { productsList } from '../../../../core/data/products.data';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 @Component({
@@ -11,4 +11,43 @@ import { TableTemplateComponent } from '../../../../shared/components/table-temp
 })
 export class InventoryDetailComponent {
   data = productsList;
+
+  displayedColumns = [
+    "codigo",
+    "descripcion",
+    "categoria",
+    "unidad_medida",
+    "proveedor",
+    "fecha_ingreso",
+    "precio_unitario",
+    "stock_actual",
+    "stock_minimo",
+    "ubicacion",
+    "controls"
+  ]
+
+  sorteablesColumns = [
+    "codigo",
+    "descripcion",
+    "categoria",
+    "unidad_medida",
+    "proveedor",
+    "fecha_ingreso",
+    "precio_unitario",
+    "stock_actual",
+    "stock_minimo",
+    "ubicacion"
+  ]
+
+  stickyColumns = [
+    "codigo"
+  ]
+
+  delete(event: any){
+    console.log(event)
+  }
+
+  update(event: any){
+    console.log(event)
+  }
 }

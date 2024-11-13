@@ -1,6 +1,6 @@
 import { CollectionViewer, DataSource } from "@angular/cdk/collections";
 import { BehaviorSubject, Observable } from "rxjs";
-import { Products } from '../../interfaces/products.model';
+import { Products } from "../../../../core/models/products.model";
 
 export class DataSourceInventory extends DataSource<Products> {
   data = new BehaviorSubject<Products[]>([]);

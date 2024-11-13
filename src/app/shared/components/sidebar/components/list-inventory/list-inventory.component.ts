@@ -7,7 +7,7 @@ import { RouterLinkActive } from '@angular/router';
 @Component({
   selector: 'app-list-inventory',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './list-inventory.component.html',
   styleUrl: './list-inventory.component.scss'
 })

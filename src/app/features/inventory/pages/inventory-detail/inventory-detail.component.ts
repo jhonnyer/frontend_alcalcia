@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Products } from '../../../../core/models/products.model';
+import { Products, ColumnKeys } from '../../../../core/models/products.model';
 import { productsList } from '../../../../core/data/products.data';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 @Component({
@@ -10,9 +10,9 @@ import { TableTemplateComponent } from '../../../../shared/components/table-temp
   styleUrl: './inventory-detail.component.scss'
 })
 export class InventoryDetailComponent {
-  data = productsList;
+  data: Products[] = productsList;
 
-  displayedColumns = [
+  displayedColumns: (keyof Products | 'controls')[] = [
     "codigo",
     "descripcion",
     "categoria",
@@ -26,7 +26,9 @@ export class InventoryDetailComponent {
     "controls"
   ]
 
-  sorteablesColumns = [
+  columnSearch = 'categoria';
+
+  sorteablesColumns: string[] = [
     "codigo",
     "descripcion",
     "categoria",

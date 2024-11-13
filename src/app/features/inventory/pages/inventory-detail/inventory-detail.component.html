@@ -1,9 +1,9 @@
 <div class="relative flex flex-col h-[calc(100vh-6rem)] overflow-x-auto scrollbar-custom">
-  <!-- <p>{{searchTerm()}}</p> -->
   <div class="h-full">
     <app-table-template
       [data]="data"
       [displayedColumns]="displayedColumns"
+      [columnSearch] = "columnSearch"
       (deleteItem) = "delete($event)"
       (updateItem) = "update($event)"
     />

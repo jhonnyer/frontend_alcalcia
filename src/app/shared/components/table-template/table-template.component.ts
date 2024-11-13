@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, input, OnInit, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, OnInit, output } from '@angular/core';
 import { DataSourceTable } from './data-source';
 import { CdkTableModule } from '@angular/cdk/table';
+import { SearchService } from '../../../core/services/search.service';
 
 @Component({
   selector: 'app-table-template',
@@ -13,7 +14,7 @@ import { CdkTableModule } from '@angular/cdk/table';
   templateUrl: './table-template.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TableTemplateComponent<T> implements OnInit {
+export class TableTemplateComponent<T extends Record<string, any>> implements OnInit {
 
   dataSource = new DataSourceTable();
 
@@ -24,23 +25,29 @@ export class TableTemplateComponent<T> implements OnInit {
 
   deleteItem = output<T>()
   updateItem = output<T>()
-  injector: any;
-  searchService: any;
+  injector = inject(Injector);
+  searchService = inject(SearchService);
+  columnSearch = input<string>('');
 
 
   ngOnInit(): void {
     this.dataSource.init(this.data());
+    this.trackSearchTerm();
   }
 
-  trackSearchTerm(){
-    effect(()=> {
+  trackSearchTerm() {
+    effect(() => {
       const search = this.searchService.getSearchTerm()();
-      console.log(search)
-      // this.dataSource.searchDataByColumn('categoria', 'higiene');
+      if (search) {
+        // Búsqueda por columna específica o en todas as keyof T
+        this.dataSource.searchDataByColumn(search, this.columnSearch());
+      } else {
+        this.dataSource.init(this.data());
+      }
     }, {
       injector: this.injector,
-      allowSignalWrites: true  // Añadir esta opción
-    })
+      allowSignalWrites: true
+    });
   }
 
   update(element: T){

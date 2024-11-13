@@ -1,95 +1,15 @@
-<div class="relative overflow-x-auto mt-4 flex flex-col h-[calc(100vh-6rem)] scrollbar-custom">
-  <!-- <p>{{searchTerm()}}</p> -->
-
-  <div class="h-5/6">
-    @if(dataSource){
-      <table class="w-auto overflow-auto text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 overflow-x-scroll " cdk-table recycleRows [dataSource]="dataSource">
-        <!--
-        <tr cdk-footer-row class="text-xl text-gray-700 uppercase bg-gray-200 " *cdkFooterRowDef="columns"></tr> -->
-
-        <tr cdk-header-row *cdkHeaderRowDef="displayedColumns" class="text-xs text-gray-700 uppercase bg-gray-50"></tr>
-        <tr cdk-row *cdkRowDef="let row; columns: displayedColumns;" class="bg-white border-b text-gray-900"></tr>
-
-        <!-- id_beneficiario Column -->
-        <ng-container cdkColumnDef="id_beneficiario">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> codigo </th>
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.id_beneficiario}} </td>
-        </ng-container>
-
-        <!-- nombres_apellidos Column -->
-        <ng-container cdkColumnDef="nombres_apellidos">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> nombres </th>
-          <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.nombres_apellidos}} </td>
-        </ng-container>
-
-        <!-- documento_identidad Column -->
-        <ng-container cdkColumnDef="documento_identidad">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> Cedula </th>
-          <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.documento_identidad}} </td>
-        </ng-container>
-
-        <!-- fecha_nacimiento column -->
-        <ng-container cdkColumnDef="fecha_nacimiento">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> fecha nacimiento </th>
-          <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.fecha_nacimiento}} </td>
-        </ng-container>
-
-        <!-- direccion column -->
-        <ng-container cdkColumnDef="direccion">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> direccion </th>
-          <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.direccion}} </td>
-        </ng-container>
-
-        <!-- telefono column -->
-        <ng-container cdkColumnDef="telefono">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> telefono </th>
-          <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.telefono}} </td>
-        </ng-container>
-
-        <!-- correo_electronico column -->
-        <ng-container cdkColumnDef="correo_electronico">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> correo_electronico </th>
-          <td scope="row" class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.correo_electronico}} </td>
-        </ng-container>
-
-        <!-- programa_id column -->
-        <ng-container cdkColumnDef="programa_id">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> programa_id </th>
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.programa_id}} </td>
-        </ng-container>
-
-        <!-- fecha_ingreso column -->
-        <ng-container cdkColumnDef="fecha_ingreso">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> fecha_ingreso </th>
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.fecha_ingreso}} </td>
-        </ng-container>
-
-        <!-- estado column -->
-        <ng-container cdkColumnDef="estado">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> estado </th>
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.estado}} </td>
-        </ng-container>
-
-
-        <!-- observaciones column -->
-        <ng-container cdkColumnDef="observaciones">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> observaciones </th>
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.observaciones}} </td>
-        </ng-container>
-
-        <!-- Controls Column -->
-        <ng-container cdkColumnDef="controls">
-          <th class="example-row" cdk-header-cell *cdkHeaderCellDef class="uppercase"> Acciones</th>
-          <td cdk-cell *cdkCellDef="let element" class="flex gap-3 px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900">
-            <button type="button" (click)="delete(element)">
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#b91c1c"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-            </button>
-            <button type="button" (click)="update(element)">
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#22c55e"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
-            </button>
-          </td>
-        </ng-container>
-      </table>
-    }
+<div class="relative flex flex-col h-[calc(100vh-6rem)] overflow-x-auto scrollbar-custom">
+  <div class="h-full">
+    <app-table-template
+      [data]="data"
+      [displayedColumns]="displayedColumns"
+      [columnSearch] = "columnSearch"
+      (deleteItem) = "delete($event)"
+      (updateItem) = "update($event)"
+    />
+    <div class="flex">
+      <button type="button">Prev</button>
+      <button type="button">Next</button>
+    </div>
   </div>
 </div>

@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { CdkTableModule } from '@angular/cdk/table';
 import { Beneficiary } from '../../interfaces/beneficiary.model';
 import { beneficiaryList } from '../../../../core/data/beneficiary.data';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
+import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
 
 const ELEMENT_DATA: Beneficiary[] = beneficiaryList;
 
@@ -11,8 +11,8 @@ const ELEMENT_DATA: Beneficiary[] = beneficiaryList;
   selector: 'app-beneficiary-list',
   standalone: true,
   imports: [
-    CommonModule, TableTemplateComponent
-  ],
+    CommonModule, TableTemplateComponent, StepperPaginationComponent
+],
   templateUrl: './beneficiary-list.component.html',
   styles: ``,
 })

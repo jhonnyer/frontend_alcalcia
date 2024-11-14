@@ -11,4 +11,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive} from '@angular/router';
   styles: ``,
   templateUrl: './list-users.component.html'
 })
-export class ListUsersComponent { }
+export class ListUsersComponent {
+  activeMenu: boolean = true;
+
+}

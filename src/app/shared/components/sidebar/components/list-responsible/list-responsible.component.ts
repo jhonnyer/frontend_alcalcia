@@ -6,10 +6,12 @@ import { RouterOutlet,RouterLink, RouterLinkActive} from '@angular/router';
   selector: 'app-list-responsible',
   standalone: true,
   imports: [
-    CommonModule, RouterOutlet,RouterLink, RouterLinkActive
+    RouterLink, RouterLinkActive
   ],
   styles: ``,
   templateUrl: './list-responsible.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListResponsibleComponent { }
+export class ListResponsibleComponent {
+  activeMenu: boolean = true;
+}

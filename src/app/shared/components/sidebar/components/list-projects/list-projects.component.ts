@@ -6,9 +6,11 @@ import { RouterOutlet,RouterLink, RouterLinkActive} from '@angular/router';
   selector: 'app-list-projects',
   standalone: true,
   imports: [
-    CommonModule, RouterOutlet,RouterLink, RouterLinkActive
+    RouterLink, RouterLinkActive
   ],
   styles: ``,
   templateUrl: './list-projects.component.html',
 })
-export class ListProjectsComponent { }
+export class ListProjectsComponent {
+  activeMenu: boolean = true;
+}

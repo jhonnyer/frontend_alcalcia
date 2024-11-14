@@ -1,12 +1,14 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { OverlayModule } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-list-nucleo',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, OverlayModule],
   templateUrl: './list-nucleo.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListNucleoComponent { }
+export class ListNucleoComponent {
+  activeMenu: boolean = true;
+}

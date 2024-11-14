@@ -12,5 +12,5 @@ import { RouterLinkActive } from '@angular/router';
   styleUrl: './list-auth.component.scss'
 })
 export class ListAuthComponent {
-
+  activeMenu: boolean = true;
 }

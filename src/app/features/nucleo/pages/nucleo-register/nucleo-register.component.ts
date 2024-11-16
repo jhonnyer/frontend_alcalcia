@@ -73,7 +73,7 @@ export class NucleoRegisterComponent {
 
 
   onSubmit() {
-    console.log(this.formFamilyCore.value)
-
+    console.log("Form Family Core");
+    console.log(this.formFamilyCore.value);
   }
 }

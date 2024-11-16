@@ -73,7 +73,11 @@ export class NucleoRegisterComponent {
 
 
   onSubmit() {
-    console.log("Form Family Core");
-    console.log(this.formFamilyCore.value);
+    if(this.formFamilyCore.valid){
+      console.log("Form Family Core");
+      console.log(this.formFamilyCore.value);
+	  }else{
+		  this.formFamilyCore.markAllAsTouched();
+	  }
   }
 }

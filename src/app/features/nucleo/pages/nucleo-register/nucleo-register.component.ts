@@ -25,7 +25,7 @@ export class NucleoRegisterComponent {
       zona: ['', [Validators.required]],
       barrio: ['', [Validators.required]],
       direccion: ['', [Validators.required]],
-      integrantes: ['', [Validators.required]],
+      nombreNucleo: ['', [Validators.required]],
       beneficiarios: this.fb.array([])
     });
     this.addBeneficiary();

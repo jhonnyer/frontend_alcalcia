@@ -1,0 +1,82 @@
+<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
+  <form [formGroup]="formFamilyCore" class="form" (ngSubmit)="onSubmit()"
+    class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
+  >
+    <div class="flex flex-wrap justify-between">
+      <div class="w-full md:w-[49%]">
+        <label for="nombre" class="label-base">Nombre</label>
+        <input [formControlName]="'nombre'" type="text" id="nombre" class="input-base" placeholder="Nombre">
+
+        @if(formFamilyCore.get('nombre')?.hasError('required') && formFamilyCore.get('nombre')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="w-full md:w-[49%]">
+        <label for="categoria" class="label-base">Seleccionar categoría</label>
+        <select formControlName="categoria" name="categoria" id="categoria" class="input-base">
+          <option value="invierno" class="input-base capitalize" selected>Invierno</option>
+          <option value="verano" class="input-base capitalize" >Verano</option>
+          <option value="ambiental" class="input-base capitalize">Ambiental</option>
+        </select>
+
+        @if(formFamilyCore.get('categoria')?.hasError('required') && formFamilyCore.get('categoria')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row md:flex-nowrap gap-5">
+      <div class="w-full flex flex-col">
+        <div class="relative flex flex-col  items-start gap-2">
+          <label for="fechaInicio">Fecha inicio</label>
+          <input formControlName="fechaInicio" id="fechaInicio" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date">
+        </div>
+        @if(formFamilyCore.get('fechaInicio')?.hasError('required') && formFamilyCore.get('fechaInicio')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="w-full flex flex-col">
+        <div class="relative flex flex-col  items-start gap-2">
+          <label for="fechaFin">Fecha finalización</label>
+          <input formControlName="fechaFin" id="fechaFin" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Select date">
+        </div>
+        @if(formFamilyCore.get('fechaFin')?.hasError('required') && formFamilyCore.get('fechaFin')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+    </div>
+
+
+    <div class="flex flex-wrap justify-between">
+      <div class="flex flex-col border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+        <label>Estado:</label>
+        <div class="flex gap-4">
+          <input formControlName="estado" type="radio" name="estado" value="0" class="input-radio-base" checked> Inactivo
+          <input formControlName="estado" type="radio" name="estado" value="1" class="input-radio-base"> Activo
+        </div>
+
+        @if(formFamilyCore.get('estado')?.hasError('required') && formFamilyCore.get('estado')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="flex justify-end space-x-4">
+      <button type="button" class="btn-action-gray">Cancelar</button>
+      <button type="submit" class="btn-action-blue">Guardar cambios</button>
+    </div>
+  </form>
+</div>

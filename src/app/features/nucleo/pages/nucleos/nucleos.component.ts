@@ -4,7 +4,8 @@ import { nucleoList } from '../../../../core/data/nucleo.data';
 import { Nucleo } from '../../interface/nucleo.model';
 import { DataSourceNucleos } from './nucleos.datasourse';
 import { SearchService } from '../../../../core/services/search.service';
-import { CdkTableModule, DataSource } from '@angular/cdk/table';
+import { CdkTableModule } from '@angular/cdk/table';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-nucleos',
@@ -18,6 +19,7 @@ export class NucleosComponent implements OnInit{
   dataSource = new DataSourceNucleos();
   private searchService = inject(SearchService);
   injector = inject(Injector);
+  private router = inject(Router)
 
   displayedColumns: string[] = [
     "id",
@@ -45,7 +47,8 @@ export class NucleosComponent implements OnInit{
   }
 
   update(item: Nucleo){
-    console.log("update: ", item)
+    console.log("update/: ", item)
+    this.router.navigate(["nucleo/update/", item.id]);
   }
 
 }

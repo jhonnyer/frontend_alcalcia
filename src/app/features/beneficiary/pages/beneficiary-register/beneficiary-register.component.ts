@@ -1,17 +1,18 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-nucleo-register',
+  selector: 'app-beneficiary-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: 'nucleo-register.component.html',
-  styleUrl: './nucleo-register.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    CommonModule ,ReactiveFormsModule
+  ],
+  styles: ``,
+  templateUrl: './beneficiary-register.component.html'
 })
-export class NucleoRegisterComponent {
+export class BeneficiaryRegisterComponent {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
 

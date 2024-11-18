@@ -1,8 +1,4 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
-import { RouterLink } from '@angular/router';
-import { RouterLinkActive } from '@angular/router';
 import { ListInventoryComponent } from './components/list-inventory/list-inventory.component';
 import { ListBeneficiaryComponent } from './components/list-beneficiary/list-beneficiary.component';
 import { ListAuthComponent } from './components/list-auth/list-auth.component';
@@ -10,17 +6,13 @@ import { ListHomeComponent } from './components/list-home/list-home.component';
 import { ListNucleoComponent } from './components/list-nucleo/list-nucleo.component';
 import { ListProceedingsComponent } from './components/list-proceedings/list-proceedings.component';
 import { ListResponsibleComponent } from './components/list-responsible/list-responsible.component';
-import { ListUsersComponent } from './components/list-users/list-users.component';
+// import { ListUsersComponent } from './components/list-users/list-users.component';
 import { ListProjectsComponent } from "./components/list-projects/list-projects.component";
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
   imports: [
-    CommonModule,
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
     ListHomeComponent,
     ListNucleoComponent,
     ListInventoryComponent,
@@ -28,7 +20,6 @@ import { ListProjectsComponent } from "./components/list-projects/list-projects.
     ListAuthComponent,
     ListProceedingsComponent,
     ListResponsibleComponent,
-    ListUsersComponent,
     ListProjectsComponent
 ],
   templateUrl: './sidebar.component.html',

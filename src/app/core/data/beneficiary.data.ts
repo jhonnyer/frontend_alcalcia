@@ -10,7 +10,8 @@ export const beneficiaryList = [
     programa_id: '101',
     fecha_ingreso: '2022-01-01',
     estado: 'Activo',
-    observaciones: 'Ninguna'
+    observaciones: 'Ninguna',
+    idNucleo: 'NUFA001'
 },
 {
     id_beneficiario: '2',
@@ -23,7 +24,8 @@ export const beneficiaryList = [
     programa_id: '102',
     fecha_ingreso: '2022-02-01',
     estado: 'Activo',
-    observaciones: 'Ninguna'
+    observaciones: 'Ninguna',
+    idNucleo: 'NUFA001'
 },
 {
     id_beneficiario: '3',
@@ -36,7 +38,8 @@ export const beneficiaryList = [
     programa_id: '103',
     fecha_ingreso: '2022-03-01',
     estado: 'Inactivo',
-    observaciones: 'Pendiente de revisión'
+    observaciones: 'Pendiente de revisión',
+    idNucleo: 'NUFA001'
 },
 {
     id_beneficiario: '4',
@@ -49,7 +52,8 @@ export const beneficiaryList = [
     programa_id: '104',
     fecha_ingreso: '2022-04-01',
     estado: 'Activo',
-    observaciones: 'Ninguna'
+    observaciones: 'Ninguna',
+    idNucleo: 'NUFA002'
 },
 {
     id_beneficiario: '5',
@@ -62,7 +66,8 @@ export const beneficiaryList = [
     programa_id: '105',
     fecha_ingreso: '2022-05-01',
     estado: 'Activo',
-    observaciones: 'Ninguna'
+    observaciones: 'Ninguna',
+    idNucleo: 'NUFA002'
 },
 {
     id_beneficiario: '6',
@@ -75,7 +80,8 @@ export const beneficiaryList = [
     programa_id: '106',
     fecha_ingreso: '2022-06-01',
     estado: 'Inactivo',
-    observaciones: 'Pendiente de documentación'
+    observaciones: 'Pendiente de documentación',
+    idNucleo: 'NUFA03'
 },
 {
     id_beneficiario: '7',
@@ -88,7 +94,8 @@ export const beneficiaryList = [
     programa_id: '107',
     fecha_ingreso: '2022-07-01',
     estado: 'Activo',
-    observaciones: 'Ninguna'
+    observaciones: 'Ninguna',
+    idNucleo: 'NUFA003'
 },
 {
     id_beneficiario: '8',
@@ -101,7 +108,8 @@ export const beneficiaryList = [
     programa_id: '108',
     fecha_ingreso: '2022-08-01',
     estado: 'Activo',
-    observaciones: 'Ninguna'
+    observaciones: 'Ninguna',
+    idNucleo: 'NUFA004'
 },
 {
     id_beneficiario: '9',
@@ -114,7 +122,8 @@ export const beneficiaryList = [
     programa_id: '109',
     fecha_ingreso: '2022-09-01',
     estado: 'Inactivo',
-    observaciones: 'Pendiente de aprobación'
+    observaciones: 'Pendiente de aprobación',
+    idNucleo: 'NUFA004'
 },
 {
     id_beneficiario: '10',
@@ -127,6 +136,7 @@ export const beneficiaryList = [
     programa_id: '110',
     fecha_ingreso: '2022-10-01',
     estado: 'Activo',
-    observaciones: 'Ninguna'
+    observaciones: 'Ninguna',
+    idNucleo: 'NUFA005'
 }
 ]

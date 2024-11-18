@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -8,8 +8,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: 'nucleo-register.component.html',
-  styleUrl: './nucleo-register.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './nucleo-register.component.scss'
 })
 export class NucleoRegisterComponent {
   public formFamilyCore: FormGroup = new FormGroup({});

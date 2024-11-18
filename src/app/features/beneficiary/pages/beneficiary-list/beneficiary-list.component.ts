@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { Beneficiary } from '../../interfaces/beneficiary.model';
+
+import { IBeneficiary } from '../../../../core/models/beneficiary.models';
 import { beneficiaryList } from '../../../../core/data/beneficiary.data';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
 
-const ELEMENT_DATA: Beneficiary[] = beneficiaryList;
+const ELEMENT_DATA: IBeneficiary[] = beneficiaryList;
 
 @Component({
   selector: 'app-beneficiary-list',
@@ -17,22 +18,27 @@ const ELEMENT_DATA: Beneficiary[] = beneficiaryList;
   styles: ``,
 })
 export class BeneficiaryListComponent {
-  displayedColumns: (keyof Beneficiary | 'controls')[] = [
+  displayedColumns: (keyof IBeneficiary | 'controls')[] = [
     'id_beneficiario',
-    'nombres_apellidos',
-    'documento_identidad',
-    'fecha_nacimiento',
-    'direccion',
+    'idNucleo',
+    'nombre1',
+    'nombre2',
+    'apellido1',
+    'apellido2',
+    'sexo',
+    'genero',
+    'etnia',
+    'edad',
+    'victimaConflico',
+    'tipoDocumento',
+    'numeroDocumento',
+    'fechaNacimiento',
     'telefono',
-    'correo_electronico',
-    'programa_id',
-    'fecha_ingreso',
-    'estado',
-    'observaciones',
+    'email',
     'controls'
   ]
 
-  data: Beneficiary[] = ELEMENT_DATA;
+  data: IBeneficiary[] = ELEMENT_DATA;
 
   columnSearch = 'categoria';
 
@@ -53,11 +59,11 @@ export class BeneficiaryListComponent {
     "codigo"
   ]
 
-  delete(item: Beneficiary){
+  delete(item: IBeneficiary){
     console.log("Eliminar: ", item)
   }
 
-  update(item: Beneficiary){
+  update(item: IBeneficiary){
     console.log("update: ", item)
   }
 }

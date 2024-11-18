@@ -37,7 +37,7 @@ export class NucleoRegisterComponent {
       nombre2: ['', [Validators.required]],
       apellido1: ['', [Validators.required]],
       apellido2: ['', [Validators.required]],
-      tipoDocumento: ['', [Validators.required]],
+      tipoDocumento: ['cc', [Validators.required]],
       numeroDocumento: ['', [Validators.required]],
       sexo: ['', [Validators.required]],
       genero: ['', [Validators.required]],

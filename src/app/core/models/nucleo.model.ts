@@ -3,4 +3,5 @@ export interface INucleo  {
   zona: string;
   barrio: string;
   direccion: string;
+  nombreNucleo: string;
 }

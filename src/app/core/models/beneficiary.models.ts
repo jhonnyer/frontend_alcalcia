@@ -1,14 +1,18 @@
 export interface IBeneficiary {
   id_beneficiario: string;
-  nombres_apellidos: string;
-  documento_identidad: string;
-  fecha_nacimiento: string;
-  direccion: string;
+  idNucleo: string;
+  nombre1: string;
+  nombre2: string;
+  apellido1: string;
+  apellido2: string;
+  sexo: string;
+  genero: string;
+  etnia: string;
+  edad: string;
+  victimaConflico: string;
+  tipoDocumento: string;
+  numeroDocumento: string;
+  fechaNacimiento: string;
   telefono: string;
-  correo_electronico: string;
-  programa_id: string;
-  fecha_ingreso: string;
-  estado: string;
-  observaciones: string;
-  idNucleo?: string;
+  email: string;
 }

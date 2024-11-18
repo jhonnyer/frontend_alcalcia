@@ -43,7 +43,6 @@ export class NucleoUpdateComponent implements OnInit{
         this.nucleoId = response.id;
         this.initNucleo(response);
         this.getBeneficiaryByNucleo();
-
       }
     })
   }

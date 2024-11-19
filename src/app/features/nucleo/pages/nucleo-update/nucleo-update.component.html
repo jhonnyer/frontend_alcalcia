@@ -151,8 +151,8 @@
 
             <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
               <label>Sexo: </label>
-              <input formControlName="sexo" name="sexo" type="radio" value="f" class="input-radio-base"> Femenino
-              <input formControlName="sexo" name="sexo" type="radio" value="m" class="input-radio-base"> Masculino
+              <input formControlName="sexo" type="radio" value="f" class="input-radio-base"> Femenino
+              <input formControlName="sexo" type="radio" value="m" class="input-radio-base"> Masculino
 
 
               @if(beneficiario.get('sexo')?.hasError('required') && beneficiario.get('sexo')?.touched) {
@@ -164,8 +164,8 @@
 
             <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
               <label>Genero: </label>
-              <input formControlName="genero" name="genero" type="radio" value="na"   class="input-radio-base"> No aplica
-              <input formControlName="genero" name="genero" type="radio" value="lgbt" class="input-radio-base"> Lgbt+
+              <input formControlName="genero" type="radio" value="na"   class="input-radio-base"> No aplica
+              <input formControlName="genero" type="radio" value="lgbt" class="input-radio-base"> Lgbt+
 
               @if(beneficiario.get('genero')?.hasError('required') && beneficiario.get('genero')?.touched) {
                 <p class="text-red-500">
@@ -176,8 +176,8 @@
 
             <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
               <label>Victima del conflicto: </label>
-              <input formControlName="victimaConflico" type="radio" name="victimaConflico" value="0" class="input-radio-base"> No
-              <input formControlName="victimaConflico" type="radio" name="victimaConflico" value="1" class="input-radio-base"> Si
+              <input formControlName="victimaConflico" type="radio" value="0" class="input-radio-base"> No
+              <input formControlName="victimaConflico" type="radio" value="1" class="input-radio-base"> Si
 
               @if(beneficiario.get('victimaConflico')?.hasError('required') && beneficiario.get('victimaConflico')?.touched) {
                 <p class="text-red-500">

@@ -1,6 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import '@angular/cdk/overlay-prebuilt.css';
+
 
 .input-base {
   @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize;
@@ -15,7 +17,7 @@
 }
 
 .btn-action-red {
-  @apply px-4 py-2 mt-4 w-24 self-end text-white bg-red-500 rounded-lg hover:bg-red-700;
+  @apply px-4 py-2 w-24 self-end text-white bg-red-500 rounded-lg hover:bg-red-700;
 }
 
 .btn-action-green {

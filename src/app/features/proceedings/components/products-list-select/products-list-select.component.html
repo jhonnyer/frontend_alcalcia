@@ -1,0 +1,665 @@
+<div class="overflow-x-auto overflow-y-auto max-h-[80vh] shadow-md sm:rounded-lg bg-white p-3 scrollbar-custom">
+  <h2>Productos</h2>
+  <div class="flex justify-end gap-3">
+    <button (click)="closeWithRta()" class="btn-action-blue">Registrar</button>
+    <button (click)="dialogRef.close()" class="btn-action-red">Cancelar</button>
+  </div>
+  <table class="w-full text-sm text-left rtl:text-right text-gray-500 ">
+    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+      <tr>
+        <th scope="col" class="px-6 py-3">
+          Nombre
+        </th>
+        <th scope="col" class="px-6 py-3">
+          Stock
+        </th>
+        <th scope="col" class="px-6 py-3">
+          Categoría
+        </th>
+        <th scope="col" class="px-6 py-3">
+          Descripción
+        </th>
+        <th scope="col" class="px-6 py-3">
+          Cantidad Solicitado
+        </th>
+        <th scope="col" class="px-6 py-3">
+          Acción
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+            Apple MacBook Pro 17"
+        </th>
+        <td class="px-6 py-4">
+          8
+        </td>
+        <td class="px-6 py-4">
+            Laptop
+        </td>
+        <td class="px-6 py-4">
+          $2999
+        </td>
+        <td class="px-6 py-4">
+          3
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Microsoft Surface Pro
+        </th>
+        <td class="px-6 py-4">
+          20
+        </td>
+        <td class="px-6 py-4">
+            Laptop PC
+        </td>
+        <td class="px-6 py-4">
+            $1999
+        </td>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Magic Mouse 2
+        </th>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            Accessories
+        </td>
+        <td class="px-6 py-4">
+            $99
+        </td>
+        <td class="px-6 py-4">
+          2
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Google Pixel Phone
+        </th>
+        <td class="px-6 py-4">
+          12
+        </td>
+        <td class="px-6 py-4">
+          Phone
+        </td>
+        <td class="px-6 py-4">
+          $799
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Apple Watch 5
+        </th>
+        <td class="px-6 py-4">
+          32
+        </td>
+        <td class="px-6 py-4">
+          Wearables
+        </td>
+        <td class="px-6 py-4">
+          $999
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+            Apple MacBook Pro 17"
+        </th>
+        <td class="px-6 py-4">
+          8
+        </td>
+        <td class="px-6 py-4">
+            Laptop
+        </td>
+        <td class="px-6 py-4">
+          $2999
+        </td>
+        <td class="px-6 py-4">
+          3
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Microsoft Surface Pro
+        </th>
+        <td class="px-6 py-4">
+          20
+        </td>
+        <td class="px-6 py-4">
+            Laptop PC
+        </td>
+        <td class="px-6 py-4">
+            $1999
+        </td>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Magic Mouse 2
+        </th>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            Accessories
+        </td>
+        <td class="px-6 py-4">
+            $99
+        </td>
+        <td class="px-6 py-4">
+          2
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Google Pixel Phone
+        </th>
+        <td class="px-6 py-4">
+          12
+        </td>
+        <td class="px-6 py-4">
+          Phone
+        </td>
+        <td class="px-6 py-4">
+          $799
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Apple Watch 5
+        </th>
+        <td class="px-6 py-4">
+          32
+        </td>
+        <td class="px-6 py-4">
+          Wearables
+        </td>
+        <td class="px-6 py-4">
+          $999
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+
+
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+            Apple MacBook Pro 17"
+        </th>
+        <td class="px-6 py-4">
+          8
+        </td>
+        <td class="px-6 py-4">
+            Laptop
+        </td>
+        <td class="px-6 py-4">
+          $2999
+        </td>
+        <td class="px-6 py-4">
+          3
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Microsoft Surface Pro
+        </th>
+        <td class="px-6 py-4">
+          20
+        </td>
+        <td class="px-6 py-4">
+            Laptop PC
+        </td>
+        <td class="px-6 py-4">
+            $1999
+        </td>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Magic Mouse 2
+        </th>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            Accessories
+        </td>
+        <td class="px-6 py-4">
+            $99
+        </td>
+        <td class="px-6 py-4">
+          2
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Google Pixel Phone
+        </th>
+        <td class="px-6 py-4">
+          12
+        </td>
+        <td class="px-6 py-4">
+          Phone
+        </td>
+        <td class="px-6 py-4">
+          $799
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Apple Watch 5
+        </th>
+        <td class="px-6 py-4">
+          32
+        </td>
+        <td class="px-6 py-4">
+          Wearables
+        </td>
+        <td class="px-6 py-4">
+          $999
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+
+
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+            Apple MacBook Pro 17"
+        </th>
+        <td class="px-6 py-4">
+          8
+        </td>
+        <td class="px-6 py-4">
+            Laptop
+        </td>
+        <td class="px-6 py-4">
+          $2999
+        </td>
+        <td class="px-6 py-4">
+          3
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Microsoft Surface Pro
+        </th>
+        <td class="px-6 py-4">
+          20
+        </td>
+        <td class="px-6 py-4">
+            Laptop PC
+        </td>
+        <td class="px-6 py-4">
+            $1999
+        </td>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Magic Mouse 2
+        </th>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            Accessories
+        </td>
+        <td class="px-6 py-4">
+            $99
+        </td>
+        <td class="px-6 py-4">
+          2
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Google Pixel Phone
+        </th>
+        <td class="px-6 py-4">
+          12
+        </td>
+        <td class="px-6 py-4">
+          Phone
+        </td>
+        <td class="px-6 py-4">
+          $799
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Apple Watch 5
+        </th>
+        <td class="px-6 py-4">
+          32
+        </td>
+        <td class="px-6 py-4">
+          Wearables
+        </td>
+        <td class="px-6 py-4">
+          $999
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+
+
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+            Apple MacBook Pro 17"
+        </th>
+        <td class="px-6 py-4">
+          8
+        </td>
+        <td class="px-6 py-4">
+            Laptop
+        </td>
+        <td class="px-6 py-4">
+          $2999
+        </td>
+        <td class="px-6 py-4">
+          3
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Microsoft Surface Pro
+        </th>
+        <td class="px-6 py-4">
+          20
+        </td>
+        <td class="px-6 py-4">
+            Laptop PC
+        </td>
+        <td class="px-6 py-4">
+            $1999
+        </td>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Magic Mouse 2
+        </th>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            Accessories
+        </td>
+        <td class="px-6 py-4">
+            $99
+        </td>
+        <td class="px-6 py-4">
+          2
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Google Pixel Phone
+        </th>
+        <td class="px-6 py-4">
+          12
+        </td>
+        <td class="px-6 py-4">
+          Phone
+        </td>
+        <td class="px-6 py-4">
+          $799
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Apple Watch 5
+        </th>
+        <td class="px-6 py-4">
+          32
+        </td>
+        <td class="px-6 py-4">
+          Wearables
+        </td>
+        <td class="px-6 py-4">
+          $999
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+
+
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+            Apple MacBook Pro 17"
+        </th>
+        <td class="px-6 py-4">
+          8
+        </td>
+        <td class="px-6 py-4">
+            Laptop
+        </td>
+        <td class="px-6 py-4">
+          $2999
+        </td>
+        <td class="px-6 py-4">
+          3
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Microsoft Surface Pro
+        </th>
+        <td class="px-6 py-4">
+          20
+        </td>
+        <td class="px-6 py-4">
+            Laptop PC
+        </td>
+        <td class="px-6 py-4">
+            $1999
+        </td>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Magic Mouse 2
+        </th>
+        <td class="px-6 py-4">
+          5
+        </td>
+        <td class="px-6 py-4">
+            Accessories
+        </td>
+        <td class="px-6 py-4">
+            $99
+        </td>
+        <td class="px-6 py-4">
+          2
+        </td>
+        <td class="px-6 py-4">
+            <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr class="odd:bg-white  even:bg-gray-50 ">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Google Pixel Phone
+        </th>
+        <td class="px-6 py-4">
+          12
+        </td>
+        <td class="px-6 py-4">
+          Phone
+        </td>
+        <td class="px-6 py-4">
+          $799
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap ">
+          Apple Watch 5
+        </th>
+        <td class="px-6 py-4">
+          32
+        </td>
+        <td class="px-6 py-4">
+          Wearables
+        </td>
+        <td class="px-6 py-4">
+          $999
+        </td>
+        <td class="px-6 py-4">
+          1
+        </td>
+        <td class="px-6 py-4">
+          <a href="#" class="font-medium text-blue-600 hover:underline">Agregar</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- <h1>Favorite Animal</h1>
+<div>
+  My favorite animal is:
+  <ul>
+    <li>
+      @if (data.animal === 'panda') {
+        <span>&#10003;</span>
+      } Panda
+    </li>
+    <li>
+      @if (data.animal === 'unicorn') {
+        <span>&#10003;</span>
+      } Unicorn
+    </li>
+    <li>
+      @if (data.animal === 'lion') {
+        <span>&#10003;</span>
+      } Lion
+    </li>
+  </ul>
+</div> -->

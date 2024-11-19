@@ -3,11 +3,18 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 
+import { ProductsListSelectComponent } from '../../components/products-list-select/products-list-select.component';
+import { Dialog, DialogModule } from '@angular/cdk/dialog';
+
+interface OutputData {
+  rta: string;
+}
+
 @Component({
   selector: 'app-procedings-register',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule
+    CommonModule, ReactiveFormsModule, DialogModule
   ],
   styles: ``,
   templateUrl: './procedings-register.component.html'
@@ -15,10 +22,10 @@ import { ReactiveFormsModule } from '@angular/forms';
 export class ProcedingsRegisterComponent {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
+  private dialog = inject(Dialog);
 
   ngOnInit(): void {
     this.initFormFamilyCore();
-
   }
 
   initFormFamilyCore(): void {
@@ -33,6 +40,7 @@ export class ProcedingsRegisterComponent {
   }
 
   initFormBeneficiary(): FormGroup {
+
     // Retorna el formulario que estará anidado
     return this.fb.group({
       nombre1: ['', [Validators.required]],
@@ -70,6 +78,19 @@ export class ProcedingsRegisterComponent {
   deletePerson(index: number): void {
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
     beneficiariosArray.removeAt(index);
+  }
+
+  openDialog() {
+    // const idProyecto = this.formFamilyCore.get('proyecto')
+    const idProyecto = 2
+    const dialogRef = this.dialog.open<string>(ProductsListSelectComponent, {
+      data: {
+        animal: 'perro',
+      }
+    });
+    dialogRef.closed.subscribe(output => {
+      console.log("Salida: ", output);
+    })
   }
 
 

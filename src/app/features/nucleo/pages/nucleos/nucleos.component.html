@@ -1,7 +1,7 @@
 <div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom">
   <div class="h-5/6">
     @if(dataSource){
-      <table class="w-auto overflow-auto text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 overflow-x-scroll " cdk-table recycleRows [dataSource]="dataSource">
+      <table class="w-auto overflow-auto text-sm text-left rtl:text-right text-gray-500  overflow-x-scroll " cdk-table recycleRows [dataSource]="dataSource">
         <!--
         <tr cdk-footer-row class="text-xl text-gray-700 uppercase bg-gray-200 " *cdkFooterRowDef="columns"></tr> -->
 
@@ -10,32 +10,32 @@
 
         <!-- id Column -->
         <ng-container cdkColumnDef="id">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> id </th>
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.id}} </td>
+          <th class="px-6 py-4 font-medium  whitespace-nowrap " cdk-header-cell *cdkHeaderCellDef> id </th>
+          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap " cdk-cell *cdkCellDef="let element"> {{element.id}} </td>
         </ng-container>
 
         <!-- zona Column -->
         <ng-container cdkColumnDef="zona">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> zona </th>
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.zona}} </td>
+          <th class="px-6 py-4 font-medium  whitespace-nowrap " cdk-header-cell *cdkHeaderCellDef> zona </th>
+          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap " cdk-cell *cdkCellDef="let element"> {{element.zona}} </td>
         </ng-container>
 
         <!-- barrio Column -->
         <ng-container cdkColumnDef="barrio">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> barrio </th>
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.barrio}} </td>
+          <th class="px-6 py-4 font-medium  whitespace-nowrap " cdk-header-cell *cdkHeaderCellDef> barrio </th>
+          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap " cdk-cell *cdkCellDef="let element"> {{element.barrio}} </td>
         </ng-container>
 
         <!-- direccion Column -->
         <ng-container cdkColumnDef="direccion">
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef> direccion </th>
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element"> {{element.direccion}} </td>
+          <th class="px-6 py-4 font-medium  whitespace-nowrap " cdk-header-cell *cdkHeaderCellDef> direccion </th>
+          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap " cdk-cell *cdkCellDef="let element"> {{element.direccion}} </td>
         </ng-container>
 
         <!-- Controls Column -->
         <ng-container cdkColumnDef="controls">
           <th class="example-row" cdk-header-cell *cdkHeaderCellDef class="uppercase"> Acciones</th>
-          <td cdk-cell *cdkCellDef="let element" class="flex gap-3 px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900">
+          <td cdk-cell *cdkCellDef="let element" class="flex gap-3 px-6 py-4 font-medium whitespace-nowrap ">
             <button type="button" (click)="delete(element)">
               <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#b91c1c"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
             </button>

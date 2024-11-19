@@ -2,7 +2,7 @@
 
   @if(dataSource){
     <table
-      class="border border-red-500 w-auto overflow-auto text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 "
+      class="border border-red-500 w-auto overflow-auto text-sm text-left rtl:text-right text-gray-500  "
       cdk-table recycleRows
       [dataSource]="dataSource"
     >
@@ -10,16 +10,16 @@
       <!-- Columns -->
       <ng-container [cdkColumnDef]="column">
         @if(this.stickyColumns().includes(column)){
-          <th class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef>
+          <th class="px-6 py-4 font-medium  whitespace-nowrap " cdk-header-cell *cdkHeaderCellDef>
             {{column}}
           </th>
         }@else{
-          <th sticky class="px-6 py-4 font-medium  whitespace-nowrap dark:text-gray-900" cdk-header-cell *cdkHeaderCellDef>
+          <th sticky class="px-6 py-4 font-medium  whitespace-nowrap " cdk-header-cell *cdkHeaderCellDef>
             {{column}}
           </th>
         }
         @if(column === "controls"){
-          <td cdk-cell *cdkCellDef="let element" class="flex gap-3 px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900">
+          <td cdk-cell *cdkCellDef="let element" class="flex gap-3 px-6 py-4 font-medium whitespace-nowrap ">
             <button type="button" (click)="delete(element)">
               <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#b91c1c"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
             </button>
@@ -29,7 +29,7 @@
           </td>
         }
         @else {
-          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap dark:text-gray-900" cdk-cell *cdkCellDef="let element">
+          <td scope="row" class="px-6 py-4 font-medium whitespace-nowrap " cdk-cell *cdkCellDef="let element">
             {{element[column]}}
           </td>
         }

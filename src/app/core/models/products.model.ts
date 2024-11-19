@@ -12,3 +12,11 @@ export interface Products {
   stock_minimo: number;
   ubicacion: string;
 }
+
+export interface IProducto {
+  "idProducto": number,
+  "nombre": string;
+  "descripcion": string;
+  "stock": number;
+  "fechaIngreso": string;
+}

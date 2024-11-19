@@ -1,3 +1,6 @@
+type Sexo = 'M' | 'F';
+
+// BORRAR ESTA INTERFACE
 export interface IBeneficiary {
   id_beneficiario: string;
   idNucleo: string;
@@ -15,4 +18,23 @@ export interface IBeneficiary {
   fechaNacimiento: string;
   telefono: string;
   email: string;
+}
+
+export interface IBeneficiario {
+  "idBeneficiario": number;
+  "primerNombre": string;
+  "segundoNombre": string;
+  "primerApellido": string;
+  "segundoApellido": string;
+  "sexo": Sexo;
+  "genero": string;
+  "etnia": string;
+  "edad": number;
+  "victimaConflicto": boolean;
+  "tipoDocumento": string;
+  "numeroDocumento": string;
+  "fechaNacimiento": string;
+  "telefono": string;
+  "email": string;
+  "esVivo": boolean;
 }

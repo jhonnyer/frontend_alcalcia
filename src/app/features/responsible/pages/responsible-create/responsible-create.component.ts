@@ -21,12 +21,12 @@ export class ResponsibleCreateComponent {
 
   initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
-      nombre1: ['', [Validators.required]],
-      nombre2: ['', [Validators.required]],
-      apellido1: ['', [Validators.required]],
-      apellido2: ['', [Validators.required]],
+      primerNombre: ['', [Validators.required]],
+      segundoNombre: ['', [Validators.required]],
+      primerApellido: ['', [Validators.required]],
+      segundoApellido: ['', [Validators.required]],
       tipoDocumento: ['cc', [Validators.required]],
-      numeroDocumento: ['', [Validators.required]],
+      numeroIdentificacion: ['', [Validators.required]],
       area: ['', [Validators.required]],
       cargo: ['', [Validators.required]],
       email: ['', [Validators.required]],

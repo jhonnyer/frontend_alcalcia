@@ -21,20 +21,21 @@ export interface IBeneficiary {
 }
 
 export interface IBeneficiario {
-  "idBeneficiario": number;
-  "primerNombre": string;
-  "segundoNombre": string;
-  "primerApellido": string;
-  "segundoApellido": string;
-  "sexo": Sexo;
-  "genero": string;
-  "etnia": string;
-  "edad": number;
-  "victimaConflicto": boolean;
-  "tipoDocumento": string;
-  "numeroDocumento": string;
-  "fechaNacimiento": string;
-  "telefono": string;
-  "email": string;
-  "esVivo": boolean;
+  idBeneficiario: number;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  sexo: Sexo;
+  genero: string;
+  etnia: string;
+  edad: number;
+  victimaConflicto: boolean;
+  tipoDocumento: string;
+  numeroDocumento: string;
+  fechaNacimiento: string;
+  telefono: string;
+  email: string;
+  esVivo: boolean;
+  idNucleoFk: number | null;
 }

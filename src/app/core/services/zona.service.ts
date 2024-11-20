@@ -9,6 +9,7 @@ export class ZonaService {
   private http = inject(HttpClient);
 
   getAll(){
+    //return this.http.get<IZona[]>(`http://localhost:8080/api/zonas/list`);
     return this.http.get<IZona[]>(`${environment.URL_API}/zonas/list`);
   }
 

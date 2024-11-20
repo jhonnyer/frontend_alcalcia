@@ -50,10 +50,11 @@ export class NucleoRegisterComponent {
 
   initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
-      zona: ['', [Validators.required]],
-      barrio: ['', [Validators.required]],
+      idZonaFk: ['', [Validators.required, Validators.nullValidator]],
+      idBarrioFk: ['', [Validators.required, Validators.nullValidator]],
       direccion: ['', [Validators.required]],
       nombreNucleo: ['', [Validators.required]],
+      numeroIntegrantes: [0],
       beneficiarios: this.fb.array([])
     });
     this.addBeneficiary();
@@ -62,20 +63,22 @@ export class NucleoRegisterComponent {
   initFormBeneficiary(): FormGroup {
     // Retorna el formulario que estará anidado
     return this.fb.group({
-      nombre1: ['', [Validators.required]],
-      nombre2: ['', [Validators.required]],
-      apellido1: ['', [Validators.required]],
-      apellido2: ['', [Validators.required]],
+      primerNombre: ['', [Validators.required]],
+      segundoNombre: [''],
+      primerApellido: ['', [Validators.required]],
+      segundoApellido: [''],
       tipoDocumento: ['cc', [Validators.required]],
       numeroDocumento: ['', [Validators.required]],
       sexo: ['', [Validators.required]],
       genero: ['', [Validators.required]],
-      victimaConflico: ['', [Validators.required]],
+      victimaConflicto: [false, [Validators.required]],
       fechaNacimiento: ['', [Validators.required]],
       edad: ['', [Validators.required]],
       etnia: ['', [Validators.required]],
       email: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
+      esVivo: [true, [Validators.required]],
+      idNucleoFk: [null]
     });
   }
 
@@ -101,10 +104,27 @@ export class NucleoRegisterComponent {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
+      const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
+      const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
+      console.log(this.formFamilyCore.get("idZonaFk")?.value)
+
+      this.formFamilyCore.patchValue({
+        numeroIntegrantes: null,
+        idZonaFk: zona,
+        idBarrioFk: barrio
+      });
+      this.formFamilyCore.patchValue({numeroIntegrantes: null});
       console.log("Form Family Core");
       console.log(this.formFamilyCore.value);
 	  }else{
-      console.log("Error");
+      const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
+      const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
+      console.log(this.formFamilyCore.get("idZonaFk")?.value)
+      this.formFamilyCore.patchValue({
+        numeroIntegrantes: null,
+        idZonaFk: zona,
+        idBarrioFk: barrio
+      });
       console.log(this.formFamilyCore.value);
 		  this.formFamilyCore.markAllAsTouched();
 	  }

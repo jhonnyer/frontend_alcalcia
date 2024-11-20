@@ -20,8 +20,6 @@ export class NucleoRegisterComponent {
   private zonaService = inject(ZonaService);
   private barrioService = inject(BarrioService);
 
-
-
   zonas = signal<IZona[]>([]);
   barrios = signal<IBarrio[]>([]);
 
@@ -35,6 +33,8 @@ export class NucleoRegisterComponent {
     this.zonaService.getAll().subscribe({
       next: (response:IZona[]) => {
         console.log(response)
+        this.zonas.set(response);
+
       }
     });
   }
@@ -43,6 +43,7 @@ export class NucleoRegisterComponent {
     this.barrioService.getAll().subscribe({
       next: (response:IBarrio[]) => {
         console.log(response)
+        this.barrios.set(response);
       }
     });
   }
@@ -103,6 +104,8 @@ export class NucleoRegisterComponent {
       console.log("Form Family Core");
       console.log(this.formFamilyCore.value);
 	  }else{
+      console.log("Error");
+      console.log(this.formFamilyCore.value);
 		  this.formFamilyCore.markAllAsTouched();
 	  }
   }

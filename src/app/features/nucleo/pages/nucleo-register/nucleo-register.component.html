@@ -6,10 +6,11 @@
       <div class="w-full md:w-[49%]">
         <label for="zona" class="label-base">Seleccionar zona</label>
         <select formControlName="zona" name="zona" id="zona" class="input-base">
-          <option value="zona urbana" class="input-base capitalize" selected>Zona Urbana</option>
-          <option value="chilco" class="input-base capitalize" >achiral</option>
-          <option value="garbanzal" class="input-base capitalize">altillo</option>
+          @for(item of zonas(); track item.idZona){
+            <option [value]="item.idZona" class="input-base capitalize">{{item.nombreZona}}</option>
+          }
         </select>
+
 
         @if(formFamilyCore.get('zona')?.hasError('required') && formFamilyCore.get('zona')?.touched) {
           <p class="text-red-500">
@@ -21,9 +22,9 @@
       <div class="w-full md:w-[49%]">
         <label for="barrio" class="label-base">Seleccionar barrio</label>
         <select formControlName="barrio" name="barrio" id="barrio" class="input-base">
-          <option value="sin_corregimiento" class="input-base capitalize" selected>Sin Corregimiento</option>
-          <option value="chilco" class="input-base capitalize" >Chilco</option>
-          <option value="garbanzal" class="input-base capitalize">garbanzal</option>
+          @for(item of barrios(); track item.idBarrio){
+            <option [value]="item.idBarrio" class="input-base capitalize">{{item.nombre}}</option>
+          }
         </select>
 
         @if(formFamilyCore.get('barrio')?.hasError('required') && formFamilyCore.get('barrio')?.touched) {

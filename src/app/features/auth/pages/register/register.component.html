@@ -9,50 +9,92 @@
                 Registrá tu cuenta
               </h1>
               <form class="space-y-4 md:space-y-6" action="#">
-                  <div>
-                    <label for="email" class="block mb-2 text-sm font-medium text-gray-900 ">Tu correo electrónico</label>
-                    <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" placeholder="name@company.com" required="">
+                <div class="w-full">
+                  <label for="email" class="label-base">Email</label>
+                  <input formControlName="email" type="email" id="email" class="input-base" placeholder="beneficiario@correo.com">
+                  @if(formFamilyCore.get('email')?.hasError('required') && formFamilyCore.get('email')?.touched) {
+                    <p class="text-red-500">
+                      * Este campo es requerido
+                    </p>
+                  }
+                </div>
+
+                  <div class="w-full flex flex-wrap justify-between">
+                    <div class="w-full md:w-[49%]">
+                      <label for="nombre_1" class="label-base">Primer nombre</label>
+                      <input formControlName="primerNombre" type="text" id="nombre_1" class="input-base" placeholder="Primer nombre">
+
+                      @if(formFamilyCore.get('primerNombre')?.hasError('required') && formFamilyCore.get('primerNombre')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+
+                    <div class="w-full md:w-[49%]">
+                      <label for="nombre_2" class="label-base">Segundo nombre</label>
+                      <input formControlName="segundoNombre" type="text" id="nombre_2" class="input-base" placeholder="Segundo nombre">
+
+                      @if(formFamilyCore.get('segundoNombre')?.hasError('required') && formFamilyCore.get('segundoNombre')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
                   </div>
 
                   <div class="w-full flex flex-wrap justify-between">
                     <div class="w-full md:w-[49%]">
-                      <label for="nombre_1" class="block text-sm font-medium text-gray-700">Primer nombre</label>
-                      <input formControlName="nombre1" type="text" id="nombre_1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Primer nombre">
+                      <label for="apellido_1" class="label-base">Primer apellido</label>
+                      <input formControlName="primerApellido" type="text" id="apellido_1" class="input-base" placeholder="Primer apellido">
+
+                      @if(formFamilyCore.get('primerApellido')?.hasError('required') && formFamilyCore.get('primerApellido')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
                     </div>
 
                     <div class="w-full md:w-[49%]">
-                      <label for="nombre_2" class="block text-sm font-medium text-gray-700">Segundo nombre</label>
-                      <input formControlName="nombre2" type="text" id="nombre_2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Segundo nombre">
-                    </div>
-                  </div>
+                      <label for="apellido_2" class="label-base">Segundo apellido</label>
+                      <input formControlName="segundoApellido" type="text" id="apellido_2" class="input-base" placeholder="Segundo apellido">
 
-                  <div class="w-full flex flex-wrap justify-between">
-                    <div class="w-full md:w-[49%] my-2">
-                      <label for="apellido_1" class="block text-sm font-medium text-gray-700">Primer apellido</label>
-                      <input formControlName="apellido1" type="text" id="apellido_1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Primer apellido">
-                    </div>
-
-                    <div class="w-full md:w-[49%] my-2">
-                      <label for="apellido_2" class="block text-sm font-medium text-gray-700">Segundo apellido</label>
-                      <input formControlName="apellido2" type="text" id="apellido_2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Segundo apellido">
+                      @if(formFamilyCore.get('segundoApellido')?.hasError('required') && formFamilyCore.get('segundoApellido')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
                     </div>
                   </div>
 
                   <div class="w-full flex justify-between md:gap-5 flex-wrap md:flex-nowrap">
                     <div class="w-full md:w-52">
-                      <label for="tipo_documento" class="block text-sm font-medium text-gray-700">Tipo de documento</label>
-                      <select formControlName="tipoDocumento" name="tipo_documento" id="tipo_documento" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="cc" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" selected>C.C</option>
-                        <option value="ti" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" >t.i</option>
-                        <option value="pasaporte" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 capitalize" >pasaporte</option>
+                      <label for="tipo_documento" class="label-base">Tipo de documento</label>
+                      <select formControlName="tipoIdentificacion" name="tipo_documento" id="tipo_documento" class="input-base">
+                        <option value="cc" class="input-base capitalize" selected>C.C</option>
+                        <option value="ti" class="input-base capitalize" >t.i</option>
+                        <option value="pasaporte" class="input-base capitalize" >pasaporte</option>
                       </select>
+
+                      @if(formFamilyCore.get('tipoIdentificacion')?.hasError('required') && formFamilyCore.get('tipoIdentificacion')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
                     </div>
 
                     <div class="w-full">
-                      <label for="id" class="block text-sm font-medium text-gray-700">Número de documento</label>
-                      <input formControlName="numeroDocumento" type="text" id="id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Documento">
+                      <label for="id" class="label-base">Número de documento</label>
+                      <input formControlName="numeroIdentificacion" type="text" id="id" class="input-base" placeholder="Documento">
+
+                      @if(formFamilyCore.get('numeroIdentificacion')?.hasError('required') && formFamilyCore.get('numeroIdentificacion')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
                     </div>
                   </div>
+
 
                   <div class="w-full flex flex-wrap justify-between">
                     <div class="w-full md:w-[49%] my-2">

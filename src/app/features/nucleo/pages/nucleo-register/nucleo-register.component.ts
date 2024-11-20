@@ -1,8 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ZonaService } from '../../../../core/services/zona.service';
+import { BarrioService } from '../../../../core/services/barrio.service';
 
+import { IZona } from '../../../../core/models/zona.models';
+import { IBarrio } from '../../../../core/models/barrio.model';
 @Component({
   selector: 'app-nucleo-register',
   standalone: true,
@@ -13,10 +17,34 @@ import { ReactiveFormsModule } from '@angular/forms';
 export class NucleoRegisterComponent {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
+  private zonaService = inject(ZonaService);
+  private barrioService = inject(BarrioService);
+
+
+
+  zonas = signal<IZona[]>([]);
+  barrios = signal<IBarrio[]>([]);
 
   ngOnInit(): void {
     this.initFormFamilyCore();
+    this.getAllZonas();
+    this.getAllBarrios();
+  }
 
+  getAllZonas(){
+    this.zonaService.getAll().subscribe({
+      next: (response:IZona[]) => {
+        console.log(response)
+      }
+    });
+  }
+
+  getAllBarrios(){
+    this.barrioService.getAll().subscribe({
+      next: (response:IBarrio[]) => {
+        console.log(response)
+      }
+    });
   }
 
   initFormFamilyCore(): void {
@@ -69,7 +97,6 @@ export class NucleoRegisterComponent {
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
     beneficiariosArray.removeAt(index);
   }
-
 
   onSubmit() {
     if(this.formFamilyCore.valid){

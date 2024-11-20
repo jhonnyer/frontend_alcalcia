@@ -1,12 +1,15 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { IZona } from '../models/zona.models';
 @Injectable({
   providedIn: 'root'
 })
 export class ZonaService {
+  private http = inject(HttpClient);
 
-  constructor() {
-    console.log(environment.URL_API)
-   }
+  getAll(){
+    return this.http.get<IZona[]>(`${environment.URL_API}/zonas/list`);
+  }
 
 }

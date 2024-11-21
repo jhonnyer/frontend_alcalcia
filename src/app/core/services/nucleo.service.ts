@@ -1,26 +1,27 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { nucleoList } from '../data/nucleo.data';
 import { INucleo } from '../models/nucleo.model';
+import { environment } from '../../../environments/environment';
 import { delay, Observable, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { PaginatedResponse } from '../models/pagination.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NucleoService {
+  private readonly URL = environment.URL_API;
 
-  constructor() { }
+  private http = inject(HttpClient);
 
-  getAll(): Observable<INucleo[]>{
-    return of(
-      nucleoList
-    ).pipe(delay(500))
+  getAll(): Observable<PaginatedResponse<INucleo>> {
+    return this.http.get<PaginatedResponse<INucleo>>(`${this.URL}/nucleosFamiliares/list`);
   }
 
-  getById(id: string):Observable<INucleo> {
+  /*getById(id: string):Observable<INucleo[]> {
     const index = nucleoList.findIndex(item => {
       return item.id === id
     })
-    return of(nucleoList[index]).pipe(delay(500));
   }
 
   updateById(itemNucleo: INucleo):Observable<INucleo> {
@@ -40,5 +41,5 @@ export class NucleoService {
     nucleoList.slice(index, 1);
     return of(nucleoList[index]).pipe(delay(500));
   }
-
+  */
 }

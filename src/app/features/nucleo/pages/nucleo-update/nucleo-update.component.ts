@@ -23,7 +23,7 @@ export class NucleoUpdateComponent implements OnInit{
   private readonly beneficiaryService = inject(BeneficiaryService);
 
   nucleo = signal<INucleo| null>(null);
-  nucleoId = '';
+  nucleoId!: number;
   listBeneficiaries = signal<IBeneficiary[]>([]);
 
   public formFamilyCore: FormGroup = new FormGroup({});
@@ -36,33 +36,33 @@ export class NucleoUpdateComponent implements OnInit{
   }
 
   getNucleoById(){
-    this.nucleoService.getById(this.productId).subscribe({
-      next: ( response:INucleo ) => {
-        console.log("Nucleo",response);
-        this.nucleo.set(response);
-        this.nucleoId = response.id;
-        this.initNucleo(response);
-        this.getBeneficiaryByNucleo();
-      }
-    })
+    // this.nucleoService.getById(this.productId).subscribe({
+    //   next: ( response:INucleo ) => {
+    //     console.log("Nucleo",response);
+    //     this.nucleo.set(response);
+    //     this.nucleoId = response.idNucleo;
+    //     this.initNucleo(response);
+    //     this.getBeneficiaryByNucleo();
+    //   }
+    // })
   }
 
   getBeneficiaryByNucleo() {
-    if (this.nucleo() !== undefined && this.nucleo() !== null) {
-      this.beneficiaryService.getByNucleoId(this.nucleoId).subscribe({
-        next: (response: IBeneficiary[]) => {
-          console.log('Beneficiarios: ', response);
-          this.listBeneficiaries.set(response);
-          this.initBeneficiaries(response)
-        }
-      });
-    }
+    // if (this.nucleo() !== undefined && this.nucleo() !== null) {
+    //   this.beneficiaryService.getByNucleoId(this.nucleoId).subscribe({
+    //     next: (response: IBeneficiary[]) => {
+    //       console.log('Beneficiarios: ', response);
+    //       this.listBeneficiaries.set(response);
+    //       this.initBeneficiaries(response)
+    //     }
+    //   });
+    // }
   }
 
   private initNucleo(nucleo: INucleo): void {
     this.formFamilyCore.setValue({
       zona: nucleo.zona,
-      barrio: nucleo.barrio,
+      barrio: nucleo.direccion,
       direccion: nucleo.direccion,
       nombreNucleo: nucleo.nombreNucleo,
       beneficiarios: []

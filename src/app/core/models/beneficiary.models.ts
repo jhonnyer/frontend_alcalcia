@@ -21,7 +21,7 @@ export interface IBeneficiary {
 }
 
 export interface IBeneficiario {
-  idBeneficiario: number;
+  idBeneficiario: number | null;
   primerNombre: string;
   segundoNombre: string;
   primerApellido: string;

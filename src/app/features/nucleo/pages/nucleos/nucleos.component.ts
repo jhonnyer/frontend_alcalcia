@@ -7,6 +7,8 @@ import { SearchService } from '../../../../core/services/search.service';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 
+import { NucleoService } from '../../../../core/services/nucleo.service';
+
 @Component({
   selector: 'app-nucleos',
   standalone: true,
@@ -21,6 +23,8 @@ export class NucleosComponent implements OnInit{
   injector = inject(Injector);
   private router = inject(Router)
 
+  private nucleoService = inject(NucleoService);
+
   displayedColumns: string[] = [
     "id",
     "zona",
@@ -33,6 +37,21 @@ export class NucleosComponent implements OnInit{
   ngOnInit(): void {
     this.dataSource.init(this.nucleos);
     this.trackSearchTerm();
+    this.getAll();
+  }
+
+  getAll() {
+    this.nucleoService.getAll().subscribe({
+      next: response => {
+        console.log("All Nucleos: ", response.content);
+        console.log("First: ", response.first);
+        console.log("last: ", response.last);
+        console.log("Paginas: ", response.pageable);
+      },
+      error: error => {
+        console.log("Error getAll nucleos: ", error)
+      }
+    })
   }
 
   trackSearchTerm(){

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { MyValidators } from '../../../../core/utils/validators';
 
 @Component({
   selector: 'app-register',
@@ -26,13 +27,17 @@ export class RegisterComponent {
       segundoNombre: ['', [Validators.required]],
       primerApellido: ['', [Validators.required]],
       segundoApellido: ['', [Validators.required]],
-      tipoDocumento: ['cc', [Validators.required]],
+      tipoIdentificacion: ['cc', [Validators.required]],
       numeroIdentificacion: ['', [Validators.required]],
       area: ['', [Validators.required]],
       cargo: ['', [Validators.required]],
       email: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
-      estado: [false, [Validators.required]],
+      estado: ['I', [Validators.required]],
+      password: ['', [Validators.required]],
+      confirmPassword : ['', [Validators.required]]
+    },{
+      validators: [MyValidators.matchPasswords]
     });
   }
 
@@ -46,6 +51,8 @@ export class RegisterComponent {
       console.log("Form Family Core");
       console.log(this.formFamilyCore.value);
 	  }else{
+      console.log("Form Error");
+      console.log(this.formFamilyCore.value);
 		  this.formFamilyCore.markAllAsTouched();
 	  }
   }

@@ -8,7 +8,7 @@
               <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl ">
                 Registrá tu cuenta
               </h1>
-              <form class="space-y-4 md:space-y-6" action="#">
+              <form class="space-y-4 md:space-y-6" [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()">
                 <div class="w-full">
                   <label for="email" class="label-base">Email</label>
                   <input formControlName="email" type="email" id="email" class="input-base" placeholder="beneficiario@correo.com">
@@ -71,9 +71,9 @@
                     <div class="w-full md:w-52">
                       <label for="tipo_documento" class="label-base">Tipo de documento</label>
                       <select formControlName="tipoIdentificacion" name="tipo_documento" id="tipo_documento" class="input-base">
-                        <option value="cc" class="input-base capitalize" selected>C.C</option>
-                        <option value="ti" class="input-base capitalize" >t.i</option>
-                        <option value="pasaporte" class="input-base capitalize" >pasaporte</option>
+                        <option [value]="'cc'" class="input-base capitalize">C.C</option>
+                        <option [value]="'ti'" class="input-base capitalize" >t.i</option>
+                        <option [value]="'pasaporte'" class="input-base capitalize" >pasaporte</option>
                       </select>
 
                       @if(formFamilyCore.get('tipoIdentificacion')?.hasError('required') && formFamilyCore.get('tipoIdentificacion')?.touched) {
@@ -95,32 +95,71 @@
                     </div>
                   </div>
 
+                  <div class="flex flex-wrap justify-between">
+                    <div class="w-full md:w-[49%]">
+                      <label for="area" class="label-base">Área</label>
+                      <input formControlName="area" type="text" id="area" class="input-base" placeholder="Área">
 
-                  <div class="w-full flex flex-wrap justify-between">
-                    <div class="w-full md:w-[49%] my-2">
-                      <label for="cargo" class="block text-sm font-medium text-gray-700">Cargo</label>
-                      <input formControlName="cargo" type="text" id="cargo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Primer apellido">
+
+                      @if(formFamilyCore.get('area')?.hasError('required') && formFamilyCore.get('area')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
                     </div>
 
-                    <div class="w-full md:w-[49%] my-2">
-                      <label for="area" class="block text-sm font-medium text-gray-700">Área</label>
-                      <input formControlName="area" type="text" id="area" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Segundo apellido">
+                    <div class="w-full md:w-[49%]">
+                      <label for="cargo" class="label-base">Cargo</label>
+                      <input formControlName="cargo" type="text" id="cargo" class="input-base" placeholder="Cargo">
+
+
+                      @if(formFamilyCore.get('cargo')?.hasError('required') && formFamilyCore.get('cargo')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
                     </div>
                   </div>
 
-                  <div>
-                    <label for="telefono" class="block mb-2 text-sm font-medium text-gray-900 ">Télefono</label>
-                    <input type="text" name="telefono" id="telefono" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" placeholder="name@company.com" required="">
+
+                  <div class="w-full">
+                    <label for="phone" class="label-base">Telefono</label>
+                    <input formControlName="telefono" type="tel" id="phone" class="input-base" placeholder="+1 (555) 123-4567">
+                    @if(formFamilyCore.get('telefono')?.hasError('required') && formFamilyCore.get('telefono')?.touched) {
+                      <p class="text-red-500">
+                        * Este campo es requerido
+                      </p>
+                    }
                   </div>
 
                   <div>
-                      <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Contraseña</label>
-                      <input type="password" name="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" required="">
+                    <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Contraseña</label>
+                    <input type="password" formControlName="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" required="">
+                    @if(formFamilyCore.get('password')?.hasError('required')  && formFamilyCore.get('password')?.touched) {
+                      <p class="text-red-500">
+                        * Este campo es requerido
+                      </p>
+                    }
                   </div>
+
                   <div>
-                    <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Confirma tú contraseña</label>
-                    <input type="password" name="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" required="">
+                    <label for="confirmPassword" class="block mb-2 text-sm font-medium text-gray-900 ">Confirma tú contraseña</label>
+                    <input type="password" formControlName="confirmPassword" id="confirmPassword" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" required="">
+                    @if(formFamilyCore.touched && formFamilyCore.invalid) {
+                      @if(formFamilyCore.hasError('match_password')){
+                        <p class="text-red-500">
+                          * Tu password no es el mismo
+                        </p>
+                      }
+                      @if(formFamilyCore.get('confirmPassword')?.hasError('required')){
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    }
                   </div>
+
+
                   <!-- <div class="flex items-center justify-between">
                       <a href="#" class="text-sm font-medium text-blue-600 hover:underline">¿Has olvidado tu contraseña?</a>
                   </div> -->

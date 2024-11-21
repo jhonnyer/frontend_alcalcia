@@ -11,7 +11,6 @@
           }
         </select>
 
-
         @if(formFamilyCore.get('idZonaFk')?.hasError('required')  && formFamilyCore.get('idZonaFk')?.touched) {
           <p class="text-red-500">
             * Este campo es requerido
@@ -27,9 +26,16 @@
           }
         </select>
 
-        @if(formFamilyCore.get('idBarrioFk')?.hasError('required') && formFamilyCore.get('idBarrioFk')?.touched) {
+        @if(formFamilyCore.get('idBarrioFk')?.invalid && formFamilyCore.get('idBarrioFk')?.touched) {
+          @if(formFamilyCore.get('idBarrioFk')?.hasError('required')){
+            <p class="text-red-500">
+              * Este campo es requerido
+            </p>
+          }
+        }
+        @if(barrios().length<=0  && formFamilyCore.get('idBarrioFk')?.touched){
           <p class="text-red-500">
-            * Este campo es requerido
+            * Debes seleccionar la zona primero
           </p>
         }
       </div>

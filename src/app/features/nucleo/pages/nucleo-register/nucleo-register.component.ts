@@ -1,12 +1,12 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ZonaService } from '../../../../core/services/zona.service';
-import { BarrioService } from '../../../../core/services/barrio.service';
 
 import { IZona } from '../../../../core/models/zona.models';
 import { IBarrio } from '../../../../core/models/barrio.model';
+import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-nucleo-register',
   standalone: true,
@@ -14,38 +14,44 @@ import { IBarrio } from '../../../../core/models/barrio.model';
   templateUrl: 'nucleo-register.component.html',
   styleUrl: './nucleo-register.component.scss'
 })
-export class NucleoRegisterComponent {
+export class NucleoRegisterComponent implements OnDestroy {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
   private zonaService = inject(ZonaService);
-  private barrioService = inject(BarrioService);
 
   zonas = signal<IZona[]>([]);
+  private zonasSubscription!: Subscription;
   barrios = signal<IBarrio[]>([]);
 
   ngOnInit(): void {
     this.initFormFamilyCore();
     this.getAllZonas();
-    this.getAllBarrios();
+    this.changeZona();
   }
 
   getAllZonas(){
-    this.zonaService.getAll().subscribe({
+    this.zonasSubscription = this.zonaService.getAll().subscribe({
       next: (response:IZona[]) => {
-        console.log(response)
         this.zonas.set(response);
-
+      },
+      error: (error) => {
+        console.log("Error en zonas: ", error);
       }
     });
   }
 
-  getAllBarrios(){
-    this.barrioService.getAll().subscribe({
-      next: (response:IBarrio[]) => {
-        console.log(response)
-        this.barrios.set(response);
+  changeZona(){
+    this.formFamilyCore.get('idZonaFk')?.valueChanges.subscribe({
+      next: option => {
+        if(option !== ''){
+          this.zonaService.getById(option).subscribe({
+            next: response => {
+              this.barrios.set(response.barrios as IBarrio[])
+            }
+          })
+        }
       }
-    });
+    })
   }
 
   initFormFamilyCore(): void {
@@ -106,7 +112,6 @@ export class NucleoRegisterComponent {
     if(this.formFamilyCore.valid){
       const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
       const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
-      console.log(this.formFamilyCore.get("idZonaFk")?.value)
 
       this.formFamilyCore.patchValue({
         numeroIntegrantes: null,
@@ -114,19 +119,22 @@ export class NucleoRegisterComponent {
         idBarrioFk: barrio
       });
       this.formFamilyCore.patchValue({numeroIntegrantes: null});
-      console.log("Form Family Core");
-      console.log(this.formFamilyCore.value);
+
 	  }else{
       const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
       const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
-      console.log(this.formFamilyCore.get("idZonaFk")?.value)
       this.formFamilyCore.patchValue({
         numeroIntegrantes: null,
         idZonaFk: zona,
         idBarrioFk: barrio
       });
-      console.log(this.formFamilyCore.value);
 		  this.formFamilyCore.markAllAsTouched();
 	  }
+  }
+
+  ngOnDestroy() {
+    if (this.zonasSubscription) {
+      this.zonasSubscription.unsubscribe();
+    }
   }
 }

@@ -7,6 +7,10 @@ import { ZonaService } from '../../../../core/services/zona.service';
 import { IZona } from '../../../../core/models/zona.models';
 import { IBarrio } from '../../../../core/models/barrio.model';
 import { Subscription } from 'rxjs';
+
+import { NucleoService } from '../../../../core/services/nucleo.service';
+import { response } from 'express';
+import { error } from 'console';
 @Component({
   selector: 'app-nucleo-register',
   standalone: true,
@@ -18,6 +22,8 @@ export class NucleoRegisterComponent implements OnDestroy {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
   private zonaService = inject(ZonaService);
+  private nucleoService = inject(NucleoService);
+
 
   zonas = signal<IZona[]>([]);
   private zonasSubscription!: Subscription;
@@ -118,22 +124,22 @@ export class NucleoRegisterComponent implements OnDestroy {
         idZonaFk: zona,
         idBarrioFk: barrio
       });
-      this.formFamilyCore.patchValue({numeroIntegrantes: null});
-
+      this.nucleoService.post(this.formFamilyCore.value).subscribe({
+        next: response => {
+          console.log("Create nucloe OK: ", response)
+        },
+        error: error => {
+          console.log("Create nucleo error: ", error);
+        }
+      })
 	  }else{
-      const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
-      const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
-      this.formFamilyCore.patchValue({
-        numeroIntegrantes: null,
-        idZonaFk: zona,
-        idBarrioFk: barrio
-      });
 		  this.formFamilyCore.markAllAsTouched();
 	  }
   }
 
   ngOnDestroy() {
     if (this.zonasSubscription) {
+
       this.zonasSubscription.unsubscribe();
     }
   }

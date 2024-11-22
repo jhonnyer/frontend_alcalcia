@@ -18,6 +18,11 @@ export class NucleoService {
     return this.http.get<PaginatedResponse<INucleo>>(`${this.URL}/nucleosFamiliares/list`);
   }
 
+
+  post(data: any):Observable<any>{
+    return this.http.post(`${this.URL}/nucleosFamiliares`, data);
+  }
+
   /*getById(id: string):Observable<INucleo[]> {
     const index = nucleoList.findIndex(item => {
       return item.id === id

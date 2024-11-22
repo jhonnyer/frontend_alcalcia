@@ -9,8 +9,8 @@ import { IBarrio } from '../../../../core/models/barrio.model';
 import { Subscription } from 'rxjs';
 
 import { NucleoService } from '../../../../core/services/nucleo.service';
-import { response } from 'express';
-import { error } from 'console';
+import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-nucleo-register',
   standalone: true,
@@ -23,7 +23,7 @@ export class NucleoRegisterComponent implements OnDestroy {
   private fb = inject(FormBuilder);
   private zonaService = inject(ZonaService);
   private nucleoService = inject(NucleoService);
-
+  private router = inject(Router);
 
   zonas = signal<IZona[]>([]);
   private zonasSubscription!: Subscription;
@@ -127,9 +127,12 @@ export class NucleoRegisterComponent implements OnDestroy {
       this.nucleoService.post(this.formFamilyCore.value).subscribe({
         next: response => {
           console.log("Create nucloe OK: ", response)
+          alert('Se ha guardado correctamente el núcleo');
+          this.router.navigate(["nucleo"]);
         },
         error: error => {
           console.log("Create nucleo error: ", error);
+          alert('Ha ocurrido un error al cargar los datos');
         }
       })
 	  }else{

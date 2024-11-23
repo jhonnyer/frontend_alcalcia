@@ -12,7 +12,6 @@ import { DatePipe } from '@angular/common';
 })
 export class NucleoService {
   private readonly URL = environment.URL_API;
-
   private http = inject(HttpClient);
 
   getAll(page: number): Observable<PaginatedResponse<INucleoUpdate>> {

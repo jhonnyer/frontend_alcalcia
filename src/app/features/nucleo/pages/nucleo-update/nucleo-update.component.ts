@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { NucleoService } from '../../../../core/services/nucleo.service';
-import { INucleoUpdate } from '../../../../core/models/nucleo.model';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { IBeneficiario, IBeneficiary } from '../../../../core/models/beneficiary.models';
+import { INucleoUpdate } from '../../../../core/models/nucleo.model';
+import { IBeneficiario } from '../../../../core/models/beneficiary.models';
 import { ZonaService } from '../../../../core/services/zona.service';
 import { BarrioService } from '../../../../core/services/barrio.service';
 import { Subscription } from 'rxjs';
@@ -28,9 +28,11 @@ export class NucleoUpdateComponent implements OnInit{
 
   nucleo = signal<INucleoUpdate| null>(null);
   nucleoId!: number;
-  nombreZona = '';
-  nombreBarrio = '';
+  zonas = signal<IZona[]>([]);
   listBeneficiaries = signal<IBeneficiario[]>([]);
+
+  private zonasSubscription!: Subscription;
+  barrios = signal<IBarrio[]>([]);
 
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
@@ -52,34 +54,14 @@ export class NucleoUpdateComponent implements OnInit{
         this.initNucleo(response);
         this.listBeneficiaries.set(response.beneficiarios);
         this.initBeneficiaries(response.beneficiarios)
-        this.getZonaById(1);
-        this.getBarrioById(1);
-      }
-    })
-  }
-
-  getZonaById(id:number) {
-    this.zonaService.getById(id).subscribe({
-      next: response => {
-        console.log("Zona: ", response)
-        this.nombreZona = response.nombreZona;
-      }
-    })
-  }
-
-  getBarrioById(id:number) {
-    this.barrioService.getById(id).subscribe({
-      next: response => {
-        console.log("Barrio: ", response)
-        this.nombreBarrio = response.nombre;
       }
     })
   }
 
   private initNucleo(nucleo: INucleoUpdate): void {
     this.formFamilyCore.setValue({
-      idZonaFk: this.nombreZona,
-      idBarrioFk: this.nombreBarrio,
+      idZonaFk: nucleo.idZonaFk,
+      idBarrioFk: nucleo.idBarrioFk,
       direccion: nucleo.direccion,
       nombreNucleo: nucleo.nombreNucleo,
       numeroIntegrantes: nucleo.numeroIntegrantes,
@@ -141,6 +123,20 @@ export class NucleoUpdateComponent implements OnInit{
         console.log("Error en zonas: ", error);
       }
     });
+  }
+
+  changeZona(){
+    this.formFamilyCore.get('idZonaFk')?.valueChanges.subscribe({
+      next: option => {
+        if(option !== ''){
+          this.zonaService.getById(option).subscribe({
+            next: response => {
+              this.barrios.set(response.barrios as IBarrio[])
+            }
+          })
+        }
+      }
+    })
   }
 
   private initFormBeneficiary(): FormGroup {
@@ -216,27 +212,6 @@ export class NucleoUpdateComponent implements OnInit{
       console.log(this.formFamilyCore.value);
 		  this.formFamilyCore.markAllAsTouched();
 	  }
-  }
-
-  /**** */
-  zonas = signal<IZona[]>([]);
-  private zonasSubscription!: Subscription;
-  barrios = signal<IBarrio[]>([]);
-
-
-
-  changeZona(){
-    this.formFamilyCore.get('idZonaFk')?.valueChanges.subscribe({
-      next: option => {
-        if(option !== ''){
-          this.zonaService.getById(option).subscribe({
-            next: response => {
-              this.barrios.set(response.barrios as IBarrio[])
-            }
-          })
-        }
-      }
-    })
   }
 
   ngOnDestroy() {

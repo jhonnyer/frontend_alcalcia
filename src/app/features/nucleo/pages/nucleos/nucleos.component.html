@@ -8,7 +8,7 @@
       (updateItem) = "update($event)"
     />
     <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-      <app-stepper-pagination [initPage]="1" [endPage]="2"></app-stepper-pagination>
+      <app-stepper-pagination [initPage]="1" [endPage]="totalPage" (next)="nextPage()" (previus)="previousPage()"></app-stepper-pagination>
     </div>
   </div>
 </div>

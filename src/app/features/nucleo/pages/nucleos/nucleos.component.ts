@@ -28,6 +28,7 @@ export class NucleosComponent implements OnInit{
   private router = inject(Router);
   currentPage = 0;
   data = signal<INucleo[]>([]);
+  totalPage!: number;
 
   private nucleoService = inject(NucleoService);
 
@@ -64,6 +65,7 @@ export class NucleosComponent implements OnInit{
       next: response => {
         // console.log("All Nucleos: ", response.content);
         this.data.set(response.content)
+        this.totalPage = response.totalPages;
         // console.log("First: ", response.first);
         // console.log("last: ", response.last);
         // console.log("Paginas: ", response.pageable);
@@ -77,12 +79,14 @@ export class NucleosComponent implements OnInit{
   nextPage() {
     this.currentPage++;
     this.getAll();
+    console.log("Siguiente: ")
   }
 
   previousPage() {
     if (this.currentPage > 0) {
       this.currentPage--;
       this.getAll();
+      console.log("previo")
     }
   }
 

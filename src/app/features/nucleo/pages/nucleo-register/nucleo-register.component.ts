@@ -87,7 +87,7 @@ export class NucleoRegisterComponent implements OnDestroy {
       fechaNacimiento: ['', [Validators.required]],
       edad: ['', [Validators.required]],
       etnia: ['', [Validators.required]],
-      email: ['', [Validators.required]],
+      email: [''],
       telefono: ['', [Validators.required]],
       esVivo: [true, [Validators.required]],
       idNucleoFk: [null]

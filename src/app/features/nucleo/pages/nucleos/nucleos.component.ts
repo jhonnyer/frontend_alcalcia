@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
-import { nucleoList } from '../../../../core/data/nucleo.data';
-import { Nucleo } from '../../interface/nucleo.model';
+
 import { DataSourceNucleos } from './nucleos.datasourse';
 import { SearchService } from '../../../../core/services/search.service';
 import { CdkTableModule } from '@angular/cdk/table';
@@ -12,7 +11,6 @@ import { NucleoService } from '../../../../core/services/nucleo.service';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
 import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
-import { ZonaService } from '../../../../core/services/zona.service';
 
 @Component({
   selector: 'app-nucleos',
@@ -23,9 +21,8 @@ import { ZonaService } from '../../../../core/services/zona.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NucleosComponent implements OnInit{
-  dataSource = new DataSourceNucleos();
+  // dataSource = new DataSourceNucleos();
   private searchService = inject(SearchService);
-  private readonly zonaService = inject(ZonaService);
   injector = inject(Injector);
   private router = inject(Router);
 
@@ -67,8 +64,10 @@ export class NucleosComponent implements OnInit{
   getAll() {
     this.nucleoService.getAll(this.currentPage).subscribe({
       next: response => {
-        // console.log("All Nucleos: ", response.content);
+        console.log("All Nucleos: ", response.content);
         this.data.set(response.content)
+        console.log("All DataSet: ", response.content);
+
         this.totalPage = response.totalPages;
       },
       error: error => {
@@ -77,26 +76,24 @@ export class NucleosComponent implements OnInit{
     })
   }
 
-
-
   nextPage() {
     this.currentPage++;
+    console.log("Siguiente: ", this.currentPage)
     this.getAll();
-    console.log("Siguiente: ")
   }
 
   previousPage() {
-    if (this.currentPage > 0) {
+    if (this.currentPage >= 0) {
       this.currentPage--;
+      console.log("previo: ", this.currentPage)
       this.getAll();
-      console.log("previo")
     }
   }
 
   trackSearchTerm(){
     effect(()=> {
       const search = this.searchService.getSearchTerm()();
-      this.dataSource.searchData(search);
+      // this.dataSource.searchData(search);
     }, {injector: this.injector})
   }
 

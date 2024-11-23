@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, OnInit, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Injector, input, OnChanges, OnInit, output, SimpleChanges } from '@angular/core';
 import { DataSourceTable } from './data-source';
 import { CdkTableModule } from '@angular/cdk/table';
 import { SearchService } from '../../../core/services/search.service';
@@ -14,7 +14,8 @@ import { SearchService } from '../../../core/services/search.service';
   templateUrl: './table-template.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TableTemplateComponent<T extends Record<string, any>> implements OnInit {
+export class TableTemplateComponent<T extends Record<string, any>> implements OnInit, OnChanges{
+
 
   dataSource = new DataSourceTable();
 
@@ -29,9 +30,13 @@ export class TableTemplateComponent<T extends Record<string, any>> implements On
   searchService = inject(SearchService);
   columnSearch = input<string>('');
 
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log("DtaTable: ", this.data())
+    this.dataSource.init(this.data());
+  }
 
   ngOnInit(): void {
-    this.dataSource.init(this.data());
+
     this.trackSearchTerm();
   }
 

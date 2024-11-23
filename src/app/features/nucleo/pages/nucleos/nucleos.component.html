@@ -1,12 +1,14 @@
 <div class="flex flex-col h-[calc(100vh-6rem)] overflow-x-auto scrollbar-custom">
   <div class="h-full">
-    <app-table-template
-      [data]="data()"
-      [displayedColumns]="displayedColumns"
-      [columnSearch] = "columnSearch"
-      (deleteItem) = "delete($event)"
-      (updateItem) = "update($event)"
-    />
+    @if(data()){
+      <app-table-template
+        [data]="data()"
+        [displayedColumns]="displayedColumns"
+        [columnSearch] = "columnSearch"
+        (deleteItem) = "delete($event)"
+        (updateItem) = "update($event)"
+      />
+    }
     <div class="absolute bottom-5 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
       <app-stepper-pagination [initPage]="1" [endPage]="totalPage" (next)="nextPage()" (previus)="previousPage()"></app-stepper-pagination>
     </div>

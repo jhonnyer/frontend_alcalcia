@@ -17,7 +17,7 @@ export class ZonaService {
     );
   }
 
-  getById(id:string): Observable<any> {
+  getById(id:number): Observable<any> {
     return this.http.get<any>(`${environment.URL_API}/zonas/${id}`).pipe(
       tap({
         error: (error) => console.error('Error al obtener zonas por id', error)

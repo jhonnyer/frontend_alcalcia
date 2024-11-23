@@ -14,4 +14,8 @@ export class BarrioService {
     return this.http.get<IBarrio[]>(`${environment.URL_API}/barrios/list`);
   }
 
+  getById(id: number){
+    return this.http.get<IBarrio>(`${environment.URL_API}/barrios/${id}`);
+  }
+
 }

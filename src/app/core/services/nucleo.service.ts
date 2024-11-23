@@ -18,17 +18,17 @@ export class NucleoService {
     return this.http.get<PaginatedResponse<INucleo>>(`${this.URL}/nucleosFamiliares/list?page=${page}`);
   }
 
+  getById(id: string):Observable<INucleo> {
+    return this.http.get<INucleo>(`${this.URL}/nucleosFamiliares/${id}`);
+  }
 
   post(data: any):Observable<any>{
     return this.http.post(`${this.URL}/nucleosFamiliares`, data);
   }
 
-  /*getById(id: string):Observable<INucleo[]> {
-    const index = nucleoList.findIndex(item => {
-      return item.id === id
-    })
-  }
 
+
+  /*
   updateById(itemNucleo: INucleo):Observable<INucleo> {
     const index = nucleoList.findIndex(item => {
       return item.id === itemNucleo.id

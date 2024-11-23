@@ -5,8 +5,12 @@ import { BeneficiaryService } from '../../../../core/services/beneficiary.servic
 import { INucleo } from '../../../../core/models/nucleo.model';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { IBeneficiary } from '../../../../core/models/beneficiary.models';
-
+import { IBeneficiario, IBeneficiary } from '../../../../core/models/beneficiary.models';
+import { ZonaService } from '../../../../core/services/zona.service';
+import { BarrioService } from '../../../../core/services/barrio.service';
+import { Subscription } from 'rxjs';
+import { IZona } from '../../../../core/models/zona.models';
+import { IBarrio } from '../../../../core/models/barrio.model';
 @Component({
   selector: 'app-nucleo-update',
   standalone: true,
@@ -17,78 +21,93 @@ import { IBeneficiary } from '../../../../core/models/beneficiary.models';
   templateUrl: './nucleo-update.component.html',
 })
 export class NucleoUpdateComponent implements OnInit{
-  @Input('id') productId!: string;
+  @Input('id') nucleoID!: string;
 
   private readonly nucleoService = inject(NucleoService);
-  private readonly beneficiaryService = inject(BeneficiaryService);
+  private readonly zonaService = inject(ZonaService);
+  private readonly barrioService = inject(BarrioService);
 
   nucleo = signal<INucleo| null>(null);
   nucleoId!: number;
-  listBeneficiaries = signal<IBeneficiary[]>([]);
+  nombreZona = '';
+  nombreBarrio = '';
+  listBeneficiaries = signal<IBeneficiario[]>([]);
 
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
 
+
   ngOnInit(): void {
-    console.log(this.productId)
+    console.log("nucleoID", this.nucleoID)
     this.initFormFamilyCore();
     this.getNucleoById();
   }
 
   getNucleoById(){
-    // this.nucleoService.getById(this.productId).subscribe({
-    //   next: ( response:INucleo ) => {
-    //     console.log("Nucleo",response);
-    //     this.nucleo.set(response);
-    //     this.nucleoId = response.idNucleo;
-    //     this.initNucleo(response);
-    //     this.getBeneficiaryByNucleo();
-    //   }
-    // })
+    this.nucleoService.getById(this.nucleoID).subscribe({
+      next: ( response:INucleo ) => {
+        console.log("Nucleo",response);
+        this.nucleo.set(response);
+        this.nucleoId = response.idNucleo;
+        this.initNucleo(response);
+        this.listBeneficiaries.set(response.beneficiarios);
+        this.initBeneficiaries(response.beneficiarios)
+        this.getZonaById(1);
+        this.getBarrioById(1);
+      }
+    })
   }
 
-  getBeneficiaryByNucleo() {
-    // if (this.nucleo() !== undefined && this.nucleo() !== null) {
-    //   this.beneficiaryService.getByNucleoId(this.nucleoId).subscribe({
-    //     next: (response: IBeneficiary[]) => {
-    //       console.log('Beneficiarios: ', response);
-    //       this.listBeneficiaries.set(response);
-    //       this.initBeneficiaries(response)
-    //     }
-    //   });
-    // }
+  getZonaById(id:number) {
+    this.zonaService.getById(id).subscribe({
+      next: response => {
+        console.log("Zona: ", response)
+        this.nombreZona = response.nombreZona;
+      }
+    })
+  }
+
+  getBarrioById(id:number) {
+    this.barrioService.getById(id).subscribe({
+      next: response => {
+        console.log("Barrio: ", response)
+        this.nombreBarrio = response.nombre;
+      }
+    })
   }
 
   private initNucleo(nucleo: INucleo): void {
     this.formFamilyCore.setValue({
-      zona: nucleo.zona,
-      barrio: nucleo.direccion,
+      zona: this.nombreZona,
+      barrio: this.nombreBarrio,
       direccion: nucleo.direccion,
       nombreNucleo: nucleo.nombreNucleo,
       beneficiarios: []
     }, { emitEvent: true })
   }
 
-  private initBeneficiaries(beneficiaries: IBeneficiary[]): void {
+  private initBeneficiaries(beneficiaries: IBeneficiario[]): void {
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
     beneficiaries.forEach((beneficiary) => {
       beneficiariosArray.push(this.initFormBeneficiary());
       const beneficiaryForm = beneficiariosArray.at(beneficiariosArray.length - 1);
       beneficiaryForm.setValue({
-        nombre1: beneficiary.nombre1,
-        nombre2: beneficiary.nombre2,
-        apellido1: beneficiary.apellido1,
-        apellido2: beneficiary.apellido2,
+        primerNombre: beneficiary.primerNombre,
+        segundoNombre: beneficiary.segundoNombre,
+        primerApellido: beneficiary.primerApellido,
+        segundoApellido: beneficiary.segundoApellido,
         tipoDocumento: beneficiary.tipoDocumento,
         numeroDocumento: beneficiary.numeroDocumento,
         sexo: beneficiary.sexo,
         genero: beneficiary.genero,
-        victimaConflico: beneficiary.victimaConflico,
+        victimaConflicto: beneficiary.victimaConflicto,
         fechaNacimiento: beneficiary.fechaNacimiento,
         edad: beneficiary.edad,
         etnia: beneficiary.etnia,
         email: beneficiary.email,
-        telefono: beneficiary.telefono
+        telefono: beneficiary.telefono,
+        esVivo: beneficiary.esVivo,
+        idNucleoFk: [this.nucleoID]
       }, { emitEvent: true });
     });
   }
@@ -100,27 +119,37 @@ export class NucleoUpdateComponent implements OnInit{
       direccion: ['', [Validators.required]],
       nombreNucleo: ['', [Validators.required]],
       beneficiarios: this.fb.array([])
+
+      // idZonaFk: ['', [Validators.required, Validators.nullValidator]],
+      // idBarrioFk: ['', [Validators.required, Validators.nullValidator]],
+      // direccion: ['', [Validators.required]],
+      // nombreNucleo: ['', [Validators.required]],
+      // numeroIntegrantes: [0],
+      // beneficiarios: this.fb.array([])
     });
     // this.addBeneficiary();
   }
 
   private initFormBeneficiary(): FormGroup {
     // Retorna el formulario que estará anidado
+
     return this.fb.group({
-      nombre1: ['', [Validators.required]],
-      nombre2: [''],
-      apellido1: ['', [Validators.required]],
-      apellido2: [''],
+      primerNombre: ['', [Validators.required]],
+      segundoNombre: [''],
+      primerApellido: ['', [Validators.required]],
+      segundoApellido: [''],
       tipoDocumento: ['', [Validators.required]],
       numeroDocumento: ['', [Validators.required]],
       sexo: ['', [Validators.required]],
       genero: ['', [Validators.required]],
-      victimaConflico: ['', [Validators.required]],
+      victimaConflicto: [false, [Validators.required]],
       fechaNacimiento: ['', [Validators.required]],
       edad: ['', [Validators.required]],
       etnia: ['', [Validators.required]],
       email: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
+      esVivo: [true, [Validators.required]],
+      idNucleoFk: [this.nucleoID]
     });
   }
 
@@ -156,5 +185,41 @@ export class NucleoUpdateComponent implements OnInit{
 	  }
   }
 
+  /**** */
+  zonas = signal<IZona[]>([]);
+  private zonasSubscription!: Subscription;
+  barrios = signal<IBarrio[]>([]);
+
+  getAllZonas(){
+    this.zonasSubscription = this.zonaService.getAll().subscribe({
+      next: (response:IZona[]) => {
+        this.zonas.set(response);
+      },
+      error: (error) => {
+        console.log("Error en zonas: ", error);
+      }
+    });
+  }
+
+  changeZona(){
+    this.formFamilyCore.get('idZonaFk')?.valueChanges.subscribe({
+      next: option => {
+        if(option !== ''){
+          this.zonaService.getById(option).subscribe({
+            next: response => {
+              this.barrios.set(response.barrios as IBarrio[])
+            }
+          })
+        }
+      }
+    })
+  }
+
+  ngOnDestroy() {
+    if (this.zonasSubscription) {
+
+      this.zonasSubscription.unsubscribe();
+    }
+  }
 
 }

@@ -35,7 +35,6 @@ export class NucleoUpdateComponent implements OnInit{
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
 
-
   ngOnInit(): void {
     console.log("nucleoID", this.nucleoID)
     this.initFormFamilyCore();
@@ -132,9 +131,20 @@ export class NucleoUpdateComponent implements OnInit{
     });
   }
 
+  getAllZonas(){
+    this.zonasSubscription = this.zonaService.getAll().subscribe({
+      next: (response:IZona[]) => {
+        console.log("All ZONAS: ", response)
+        this.zonas.set(response);
+      },
+      error: (error) => {
+        console.log("Error en zonas: ", error);
+      }
+    });
+  }
+
   private initFormBeneficiary(): FormGroup {
     // Retorna el formulario que estará anidado
-
     const formGroup =  this.fb.group({
       primerNombre: ['', [Validators.required]],
       segundoNombre: [''],
@@ -213,18 +223,7 @@ export class NucleoUpdateComponent implements OnInit{
   private zonasSubscription!: Subscription;
   barrios = signal<IBarrio[]>([]);
 
-  getAllZonas(){
-    this.zonasSubscription = this.zonaService.getAll().subscribe({
-      next: (response:IZona[]) => {
-        console.log("ZONAS: ", response)
-        this.zonas.set(response);
 
-      },
-      error: (error) => {
-        console.log("Error en zonas: ", error);
-      }
-    });
-  }
 
   changeZona(){
     this.formFamilyCore.get('idZonaFk')?.valueChanges.subscribe({

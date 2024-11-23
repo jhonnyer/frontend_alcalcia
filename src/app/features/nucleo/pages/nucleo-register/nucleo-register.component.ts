@@ -135,7 +135,6 @@ export class NucleoRegisterComponent implements OnDestroy {
     if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimientoDate.getDate())) {
       edad--;
     }
-    console.log(edad)
     return edad;
   }
 

@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { NucleoService } from '../../../../core/services/nucleo.service';
-import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
-import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
+import { INucleoUpdate } from '../../../../core/models/nucleo.model';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { IBeneficiario, IBeneficiary } from '../../../../core/models/beneficiary.models';
@@ -80,12 +79,6 @@ export class NucleoUpdateComponent implements OnInit{
 
   private initNucleo(nucleo: INucleoUpdate): void {
     this.formFamilyCore.setValue({
-      // zona: this.nombreZona,
-      // barrio: this.nombreBarrio,
-      // direccion: nucleo.direccion,
-      // nombreNucleo: nucleo.nombreNucleo,
-      // beneficiarios: []
-
       idZonaFk: this.nombreZona,
       idBarrioFk: this.nombreBarrio,
       direccion: nucleo.direccion,
@@ -118,17 +111,18 @@ export class NucleoUpdateComponent implements OnInit{
         esVivo: beneficiary.esVivo,
         idNucleoFk: [this.nucleoID]
       }, { emitEvent: true });
+
+      beneficiaryForm.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
+        if (fecha) {
+          const edad = this.calcularEdad(fecha);
+          beneficiaryForm.get('edad')?.setValue(edad.toString(), { emitEvent: false });
+        }
+      });
     });
   }
 
   private initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
-      // zona: ['', [Validators.required]],
-      // barrio: ['', [Validators.required]],
-      // direccion: ['', [Validators.required]],
-      // nombreNucleo: ['', [Validators.required]],
-      // beneficiarios: this.fb.array([])
-
       idZonaFk: ['', [Validators.required, Validators.nullValidator]],
       idBarrioFk: ['', [Validators.required, Validators.nullValidator]],
       direccion: ['', [Validators.required]],
@@ -136,13 +130,12 @@ export class NucleoUpdateComponent implements OnInit{
       numeroIntegrantes: [0],
       beneficiarios: this.fb.array([])
     });
-    // this.addBeneficiary();
   }
 
   private initFormBeneficiary(): FormGroup {
     // Retorna el formulario que estará anidado
 
-    return this.fb.group({
+    const formGroup =  this.fb.group({
       primerNombre: ['', [Validators.required]],
       segundoNombre: [''],
       primerApellido: ['', [Validators.required]],
@@ -160,6 +153,14 @@ export class NucleoUpdateComponent implements OnInit{
       esVivo: [true, [Validators.required]],
       idNucleoFk: [this.nucleoID]
     });
+
+    formGroup.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
+      if (fecha) {
+        const edad = this.calcularEdad(fecha);
+        formGroup.get('edad')?.setValue(edad.toString(), { emitEvent: false });
+      }
+    });
+    return formGroup;
   }
 
   //Agrega un nuevo formulario anidado de Persona
@@ -180,6 +181,19 @@ export class NucleoUpdateComponent implements OnInit{
   deletePerson(index: number): void {
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
     beneficiariosArray.removeAt(index);
+  }
+
+  calcularEdad(fechaNacimiento: string): number {
+    const fechaNacimientoDate = new Date(fechaNacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNacimientoDate.getFullYear();  
+
+    const mes = hoy.getMonth() - fechaNacimientoDate.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimientoDate.getDate())) {
+      edad--;
+    }
+    console.log(edad)
+    return edad;
   }
 
 

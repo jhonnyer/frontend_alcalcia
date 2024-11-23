@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { nucleoList } from '../data/nucleo.data';
-import { INucleo } from '../models/nucleo.model';
+import { INucleo, INucleoUpdate } from '../models/nucleo.model';
 import { environment } from '../../../environments/environment';
 import { delay, Observable, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
@@ -18,8 +18,8 @@ export class NucleoService {
     return this.http.get<PaginatedResponse<INucleo>>(`${this.URL}/nucleosFamiliares/list?page=${page}`);
   }
 
-  getById(id: string):Observable<INucleo> {
-    return this.http.get<INucleo>(`${this.URL}/nucleosFamiliares/${id}`);
+  getById(id: string):Observable<INucleoUpdate> {
+    return this.http.get<INucleoUpdate>(`${this.URL}/nucleosFamiliares/${id}`);
   }
 
   post(data: any):Observable<any>{

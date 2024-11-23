@@ -19,16 +19,23 @@
       </div>
 
       <div class="w-full md:w-[49%]">
-        <label for="barrio" class="label-base">Seleccionar barrio</label>
-        <select formControlName="barrio" name="barrio" id="barrio" class="input-base">
-          <option value="sin_corregimiento" class="input-base capitalize" selected>Sin Corregimiento</option>
-          <option value="chilco" class="input-base capitalize" >Chilco</option>
-          <option value="garbanzal" class="input-base capitalize">garbanzal</option>
+        <label for="idBarrioFk" class="label-base">Seleccionar barrio</label>
+        <select formControlName="idBarrioFk" id="idBarrioFk" class="input-base">
+          @for(item of barrios(); track item.idBarrio){
+            <option [value]="item.idBarrio" class="input-base capitalize">{{item.nombre}}</option>
+          }
         </select>
 
-        @if(formFamilyCore.get('barrio')?.hasError('required') && formFamilyCore.get('barrio')?.touched) {
+        @if(formFamilyCore.get('idBarrioFk')?.invalid && formFamilyCore.get('idBarrioFk')?.touched) {
+          @if(formFamilyCore.get('idBarrioFk')?.hasError('required')){
+            <p class="text-red-500">
+              * Este campo es requerido
+            </p>
+          }
+        }
+        @if(barrios().length<=0  && formFamilyCore.get('idBarrioFk')?.touched){
           <p class="text-red-500">
-            * Este campo es requerido
+            * Debes seleccionar la zona primero
           </p>
         }
       </div>

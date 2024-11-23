@@ -11,7 +11,8 @@ import { NucleoService } from '../../../../core/services/nucleo.service';
 
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
-import { INucleo } from '../../../../core/models/nucleo.model';
+import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
+import { ZonaService } from '../../../../core/services/zona.service';
 
 @Component({
   selector: 'app-nucleos',
@@ -24,19 +25,22 @@ import { INucleo } from '../../../../core/models/nucleo.model';
 export class NucleosComponent implements OnInit{
   dataSource = new DataSourceNucleos();
   private searchService = inject(SearchService);
+  private readonly zonaService = inject(ZonaService);
   injector = inject(Injector);
   private router = inject(Router);
+
+
   currentPage = 0;
-  data = signal<INucleo[]>([]);
+  data = signal<INucleoUpdate[]>([]);
   totalPage!: number;
 
   private nucleoService = inject(NucleoService);
 
-  displayedColumns: (keyof INucleo | 'controls')[] = [
+  displayedColumns: (keyof INucleoUpdate | 'controls')[] = [
     'idNucleo',
     'nombreNucleo',
     'direccion',
-    'zona',
+    'idZonaFk',
     'numeroIntegrantes',
     'controls'
   ]
@@ -47,7 +51,7 @@ export class NucleosComponent implements OnInit{
     'idNucleo',
     'nombreNucleo',
     'direccion',
-    'zona',
+    'idZonaFk',
     'numeroIntegrantes',
   ]
 
@@ -66,15 +70,14 @@ export class NucleosComponent implements OnInit{
         // console.log("All Nucleos: ", response.content);
         this.data.set(response.content)
         this.totalPage = response.totalPages;
-        // console.log("First: ", response.first);
-        // console.log("last: ", response.last);
-        // console.log("Paginas: ", response.pageable);
       },
       error: error => {
         console.log("Error getAll nucleos: ", error)
       }
     })
   }
+
+
 
   nextPage() {
     this.currentPage++;
@@ -97,11 +100,11 @@ export class NucleosComponent implements OnInit{
     }, {injector: this.injector})
   }
 
-  delete(item: INucleo){
+  delete(item: INucleoUpdate){
     console.log("Eliminar: ", item)
   }
 
-  update(item: INucleo){
+  update(item: INucleoUpdate){
     console.log("update/: ", item)
     this.router.navigate(["nucleo/update/", item.idNucleo]);
   }

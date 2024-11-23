@@ -14,8 +14,8 @@ export class NucleoService {
 
   private http = inject(HttpClient);
 
-  getAll(page: number): Observable<PaginatedResponse<INucleo>> {
-    return this.http.get<PaginatedResponse<INucleo>>(`${this.URL}/nucleosFamiliares/list?page=${page}`);
+  getAll(page: number): Observable<PaginatedResponse<INucleoUpdate>> {
+    return this.http.get<PaginatedResponse<INucleoUpdate>>(`${this.URL}/nucleosFamiliares/list?page=${page}`);
   }
 
   getById(id: string):Observable<INucleoUpdate> {

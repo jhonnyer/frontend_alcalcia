@@ -13,12 +13,19 @@ export class AuthService {
   private http = inject(HttpClient);
   private tokenService = inject(TokenService);
 
+  proxyUrl = "/auth/login";
+
   private readonly URL = environment.URL_API;
 
-  login(data: any): Observable<IResponseLogin>{
+  login(data: any): Observable<any>{
     console.log("Servicio login ",data)
-    console.log("Servicio login URL ",this.URL)
-    return this.http.post<IResponseLogin>(`${this.URL}/api/auth/login`, data);
+    console.log(`Servicio login URL  ${this.URL}/auth/login`)
+    // return this.http.post<any>(proxyUrl, {
+
+    return this.http.post<any>(`${this.URL}/auth/login`, {
+      "usuario": "clopez",
+      "password": "admin123"
+    });
     // .pipe(
     //   tap(response => {
     //     console.log("Respuesta: ", response)

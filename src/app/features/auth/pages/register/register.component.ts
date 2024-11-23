@@ -18,7 +18,6 @@ export class RegisterComponent {
 
   ngOnInit(): void {
     this.initFormFamilyCore();
-
   }
 
   initFormFamilyCore(): void {
@@ -32,6 +31,7 @@ export class RegisterComponent {
       area: ['', [Validators.required]],
       cargo: ['', [Validators.required]],
       email: ['', [Validators.required]],
+      usuario: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
       estado: ['I', [Validators.required]],
       password: ['', [Validators.required]],

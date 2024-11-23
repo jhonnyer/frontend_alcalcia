@@ -10,6 +10,16 @@
               </h1>
               <form class="space-y-4 md:space-y-6" [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()">
                 <div class="w-full">
+                  <label for="usuario" class="label-base">usuario</label>
+                  <input formControlName="usuario" type="usuario" id="usuario" class="input-base" placeholder="beneficiario@correo.com">
+                  @if(formFamilyCore.get('usuario')?.hasError('required') && formFamilyCore.get('usuario')?.touched) {
+                    <p class="text-red-500">
+                      * Este campo es requerido
+                    </p>
+                  }
+                </div>
+
+                <div class="w-full">
                   <label for="email" class="label-base">Email</label>
                   <input formControlName="email" type="email" id="email" class="input-base" placeholder="beneficiario@correo.com">
                   @if(formFamilyCore.get('email')?.hasError('required') && formFamilyCore.get('email')?.touched) {

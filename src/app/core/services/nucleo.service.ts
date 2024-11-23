@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { nucleoList } from '../data/nucleo.data';
 import { INucleo } from '../models/nucleo.model';
 import { environment } from '../../../environments/environment';
 import { delay, Observable, of } from 'rxjs';

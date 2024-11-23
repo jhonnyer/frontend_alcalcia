@@ -31,12 +31,10 @@ export class TableTemplateComponent<T extends Record<string, any>> implements On
   columnSearch = input<string>('');
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log("DtaTable: ", this.data())
     this.dataSource.init(this.data());
   }
 
   ngOnInit(): void {
-
     this.trackSearchTerm();
   }
 

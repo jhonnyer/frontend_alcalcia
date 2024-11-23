@@ -1,6 +1,6 @@
 import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormArray, FormGroup, Validators, FormControl } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ZonaService } from '../../../../core/services/zona.service';
 
@@ -10,6 +10,7 @@ import { Subscription } from 'rxjs';
 
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { Router } from '@angular/router';
+import { IBeneficiario } from '../../../../core/models/beneficiary.models';
 
 @Component({
   selector: 'app-nucleo-register',
@@ -74,7 +75,7 @@ export class NucleoRegisterComponent implements OnDestroy {
 
   initFormBeneficiary(): FormGroup {
     // Retorna el formulario que estará anidado
-    return this.fb.group({
+    const formGroup = this.fb.group({
       primerNombre: ['', [Validators.required]],
       segundoNombre: [''],
       primerApellido: ['', [Validators.required]],
@@ -92,6 +93,15 @@ export class NucleoRegisterComponent implements OnDestroy {
       esVivo: [true, [Validators.required]],
       idNucleoFk: [null]
     });
+
+    formGroup.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
+      if (fecha) {
+        const edad = this.calcularEdad(fecha);
+        formGroup.get('edad')?.setValue(edad.toString(), { emitEvent: false });
+      }
+    });
+
+    return formGroup;
   }
 
   //Agrega un nuevo formulario anidado de Persona
@@ -109,9 +119,24 @@ export class NucleoRegisterComponent implements OnDestroy {
     return this.formFamilyCore.get('beneficiarios') as FormArray;
   }
 
+
+
   deletePerson(index: number): void {
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
     beneficiariosArray.removeAt(index);
+  }
+
+  calcularEdad(fechaNacimiento: string): number {
+    const fechaNacimientoDate = new Date(fechaNacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNacimientoDate.getFullYear();  
+
+    const mes = hoy.getMonth() - fechaNacimientoDate.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimientoDate.getDate())) {
+      edad--;
+    }
+    console.log(edad)
+    return edad;
   }
 
   onSubmit() {
@@ -124,25 +149,25 @@ export class NucleoRegisterComponent implements OnDestroy {
         idZonaFk: zona,
         idBarrioFk: barrio
       });
+
       this.nucleoService.post(this.formFamilyCore.value).subscribe({
         next: response => {
-          console.log("Create nucloe OK: ", response)
           alert('Se ha guardado correctamente el núcleo');
           this.router.navigate(["nucleo"]);
         },
         error: error => {
-          console.log("Create nucleo error: ", error);
           alert('Ha ocurrido un error al cargar los datos');
         }
       })
 	  }else{
+      alert('Verifica los campos de tu formulario');
 		  this.formFamilyCore.markAllAsTouched();
 	  }
   }
 
   ngOnDestroy() {
-    if (this.zonasSubscription) {
 
+    if (this.zonasSubscription) {
       this.zonasSubscription.unsubscribe();
     }
   }

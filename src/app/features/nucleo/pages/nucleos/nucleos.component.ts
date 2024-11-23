@@ -64,10 +64,8 @@ export class NucleosComponent implements OnInit{
   getAll() {
     this.nucleoService.getAll(this.currentPage).subscribe({
       next: response => {
-        console.log("All Nucleos: ", response.content);
+        // console.log("All Nucleos: ", response.content);
         this.data.set(response.content)
-        console.log("All DataSet: ", response.content);
-
         this.totalPage = response.totalPages;
       },
       error: error => {

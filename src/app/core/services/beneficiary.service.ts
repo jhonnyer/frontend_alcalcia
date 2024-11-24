@@ -1,7 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { delay, of, Observable, tap } from 'rxjs';
-import { beneficiaryList } from '../data/beneficiary.data';
-import { IBeneficiary, IBeneficiario, IBeneficiarioUnique } from '../models/beneficiary.models';
+import { Observable, tap } from 'rxjs';
+import { IBeneficiario, IBeneficiarioUnique } from '../models/beneficiary.models';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { PaginatedResponse } from '../models/pagination.model';
@@ -12,8 +11,6 @@ import { PaginatedResponse } from '../models/pagination.model';
 export class BeneficiaryService {
   private readonly URL = environment.URL_API;
   private http = inject(HttpClient);
-
-  constructor() { }
 
   getAll(): Observable<IBeneficiario[]> {
     return this.http.get<IBeneficiario[]>(`${this.URL}/beneficiarios`).pipe(
@@ -33,6 +30,7 @@ export class BeneficiaryService {
     );
   }
 
+  /*
   getByNucleoId(id_nucleo: string): Observable<IBeneficiary[]>{
     const beneficiaries = beneficiaryList.filter(item => {
       return item.idNucleo === id_nucleo;
@@ -47,6 +45,7 @@ export class BeneficiaryService {
 
     return of(beneficiaryList[index]).pipe(delay(500));
   }
+  */
 
   private formatDate(dateString: string): string {
     const date = new Date(dateString);

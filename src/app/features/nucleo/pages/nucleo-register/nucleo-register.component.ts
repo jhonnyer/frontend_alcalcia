@@ -165,7 +165,6 @@ export class NucleoRegisterComponent implements OnDestroy {
   }
 
   ngOnDestroy() {
-
     if (this.zonasSubscription) {
       this.zonasSubscription.unsubscribe();
     }

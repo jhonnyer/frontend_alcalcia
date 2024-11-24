@@ -6,10 +6,10 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { INucleoUpdate } from '../../../../core/models/nucleo.model';
 import { IBeneficiario } from '../../../../core/models/beneficiary.models';
 import { ZonaService } from '../../../../core/services/zona.service';
-import { BarrioService } from '../../../../core/services/barrio.service';
 import { Subscription } from 'rxjs';
 import { IZona } from '../../../../core/models/zona.models';
 import { IBarrio } from '../../../../core/models/barrio.model';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-nucleo-update',
   standalone: true,
@@ -24,7 +24,7 @@ export class NucleoUpdateComponent implements OnInit{
 
   private readonly nucleoService = inject(NucleoService);
   private readonly zonaService = inject(ZonaService);
-  private readonly barrioService = inject(BarrioService);
+  private router = inject(Router);
 
   nucleo = signal<INucleoUpdate| null>(null);
   nucleoId!: number;
@@ -75,6 +75,7 @@ export class NucleoUpdateComponent implements OnInit{
       beneficiariosArray.push(this.initFormBeneficiary());
       const beneficiaryForm = beneficiariosArray.at(beneficiariosArray.length - 1);
       beneficiaryForm.setValue({
+        idBeneficiario: beneficiary.idBeneficiario,
         primerNombre: beneficiary.primerNombre,
         segundoNombre: beneficiary.segundoNombre,
         primerApellido: beneficiary.primerApellido,
@@ -90,7 +91,7 @@ export class NucleoUpdateComponent implements OnInit{
         email: beneficiary.email,
         telefono: beneficiary.telefono,
         esVivo: beneficiary.esVivo,
-        idNucleoFk: [this.nucleoID]
+        idNucleoFk: parseInt(this.nucleoID)
       }, { emitEvent: true });
 
       beneficiaryForm.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
@@ -142,6 +143,7 @@ export class NucleoUpdateComponent implements OnInit{
   private initFormBeneficiary(): FormGroup {
     // Retorna el formulario que estará anidado
     const formGroup =  this.fb.group({
+      idBeneficiario: [null],
       primerNombre: ['', [Validators.required]],
       segundoNombre: [''],
       primerApellido: ['', [Validators.required]],
@@ -154,10 +156,10 @@ export class NucleoUpdateComponent implements OnInit{
       fechaNacimiento: ['', [Validators.required]],
       edad: ['', [Validators.required]],
       etnia: ['', [Validators.required]],
-      email: ['', [Validators.required]],
+      email: [''],
       telefono: ['', [Validators.required]],
       esVivo: [true, [Validators.required]],
-      idNucleoFk: [this.nucleoID]
+      idNucleoFk: [parseInt(this.nucleoID), [Validators.required]]
     });
 
     formGroup.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
@@ -205,20 +207,38 @@ export class NucleoUpdateComponent implements OnInit{
 
   onSubmit() {
     if(this.formFamilyCore.valid){
-      console.log("Form Family Core");
-      console.log(this.formFamilyCore.value);
-	  }else{
-      console.log("Form invalid");
-      console.log(this.formFamilyCore.value);
-		  this.formFamilyCore.markAllAsTouched();
-	  }
+      const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
+      const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
+
+      this.formFamilyCore.patchValue({
+        numeroIntegrantes: null,
+        idZonaFk: zona,
+        idBarrioFk: barrio
+      });
+
+      delete this.formFamilyCore.value.idNucleo;
+
+      console.log(`UPDATE_NUCLEO: `, this.formFamilyCore.value)
+
+      this.nucleoService.updateById(this.nucleoID, this.formFamilyCore.value).subscribe({
+        next: response => {
+          alert('Se ha guardado correctamente el núcleo');
+          this.router.navigate(["nucleo"]);
+        },
+        error: error => {
+          alert('Ha ocurrido un error al cargar los datos');
+        }
+      })
+	  }else
+    {
+      alert('Verifica los campos de tu formulario');
+      this.formFamilyCore.markAllAsTouched();
+    }
   }
 
   ngOnDestroy() {
     if (this.zonasSubscription) {
-
       this.zonasSubscription.unsubscribe();
     }
   }
-
 }

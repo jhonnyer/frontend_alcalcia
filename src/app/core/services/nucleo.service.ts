@@ -28,34 +28,22 @@ export class NucleoService {
     );
   }
 
+  post(data: INucleoUpdate):Observable<INucleoUpdate>{
+    return this.http.post<INucleoUpdate>(`${this.URL}/nucleosFamiliares`, data);
+  }
+
+  updateById(nucleoID: string, itemNucleo: INucleoUpdate):Observable<any> {
+    console.log(`URL = ${this.URL}/nucleosFamiliares/${nucleoID}`)
+    console.log(`DATA = ${itemNucleo}`)
+    return this.http.put<any>(`${this.URL}/nucleosFamiliares/${nucleoID}`, itemNucleo);
+  }
+
+  deleteById(id: string) {
+    this.http.delete(`${this.URL}/nucleosFamiliares/${id}`);
+  }
+
   private formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toISOString().split('T')[0]; // Extraemos solo la parte de la fecha
   }
-
-  post(data: any):Observable<any>{
-    return this.http.post(`${this.URL}/nucleosFamiliares`, data);
-  }
-
-
-
-  /*
-  updateById(itemNucleo: INucleo):Observable<INucleo> {
-    const index = nucleoList.findIndex(item => {
-      return item.id === itemNucleo.id
-    })
-
-    nucleoList[index] = itemNucleo;
-
-    return of(nucleoList[index]).pipe(delay(500));
-  }
-
-  deleteById(id: string):Observable<INucleo> {
-    const index = nucleoList.findIndex(item => {
-      return item.id === id
-    })
-    nucleoList.slice(index, 1);
-    return of(nucleoList[index]).pipe(delay(500));
-  }
-  */
 }

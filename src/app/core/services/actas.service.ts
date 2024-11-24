@@ -1,10 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { beneficiaryList } from '../data/beneficiary.data';
 import { IActa } from '../models/acta.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { PaginatedResponse } from '../models/pagination.model';
+// import { PaginatedResponse } from '../models/pagination.model';
 
 @Injectable({
   providedIn: 'root'

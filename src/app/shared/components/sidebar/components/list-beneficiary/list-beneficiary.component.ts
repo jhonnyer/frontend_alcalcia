@@ -10,5 +10,5 @@ import { RouterOutlet,RouterLink, RouterLinkActive} from '@angular/router';
   styleUrl: './list-beneficiary.component.scss'
 })
 export class ListBeneficiaryComponent {
-  activeMenu: boolean = true;
+  activeMenu: boolean = false;
 }

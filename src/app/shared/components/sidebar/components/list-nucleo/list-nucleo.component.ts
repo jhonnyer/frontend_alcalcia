@@ -10,5 +10,5 @@ import { OverlayModule } from '@angular/cdk/overlay';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListNucleoComponent {
-  activeMenu: boolean = true;
+  activeMenu: boolean = false;
 }

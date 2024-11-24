@@ -28,7 +28,7 @@ export class ProyectosService {
     return this.http.get<IProyecto>(`${this.URL}/proyectos/${idCategoria}`);
   }
 
-  postById(data:Partial<IProyecto>): Observable<IProyecto> {
+  post(data:Partial<IProyecto>): Observable<IProyecto> {
     return this.http.post<IProyecto>(`${this.URL}/proyectos}`, data);
   }
 

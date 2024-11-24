@@ -1,58 +1,105 @@
-import { Component, inject, computed, effect, OnInit, Injector } from '@angular/core';
-import { CdkTableModule, DataSource } from '@angular/cdk/table';
-import { productsList } from '../../../../core/data/products.data';
-import { Products } from '../../../../core/models/products.model';
-import { SearchService } from '../../../../core/services/search.service';
-import { DataSourceInventory } from '../inventory-detail/data-source';
+import { CommonModule } from '@angular/common';
+import { Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
 
-const ELEMENT_DATA: Products[] = productsList;
+import { SearchService } from '../../../../core/services/search.service';
+import { CdkTableModule } from '@angular/cdk/table';
+import { Router } from '@angular/router';
+
+import { ProductosService } from '../../../../core/services/productos.service';
+
+import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
+import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
+import { IProducto } from '../../../../core/models/products.model';
 
 @Component({
   selector: 'app-inventory-list',
   standalone: true,
-  imports: [CdkTableModule],
+  imports: [CommonModule, CdkTableModule, TableTemplateComponent, StepperPaginationComponent],
   templateUrl: './inventory-list.component.html',
   styleUrl: './inventory-list.component.scss'
 })
 export class InventoryListComponent implements OnInit{
-
-  dataSource = new DataSourceInventory();
-  // constructor(private searchService: SearchService) {}
   private searchService = inject(SearchService);
   injector = inject(Injector);
+  private router = inject(Router);
 
-  displayedColumns: string[] = [
-    'codigo',
+
+  currentPage = 0;
+  data = signal<IProducto[]>([]);
+  totalPage!: number;
+
+  private productosService = inject(ProductosService);
+
+  displayedColumns: (keyof IProducto | 'controls')[] = [
+    'idProducto',
+    'nombre',
     'descripcion',
-    'categoria',
-    'unidad_medida',
-    'proveedor',
-    'fecha_ingreso',
-    'precio_unitario',
-    'stock_actual',
-    'stock_minimo',
-    'ubicacion',
+    'stock',
+    'fechaIngreso',
     'controls'
   ]
 
+  columnSearch = 'idProyecto';
+
+  sorteablesColumns: string[] = [
+    'idProducto',
+    'nombre',
+    'descripcion',
+    'stock',
+    'fechaIngreso'
+  ]
+
+  stickyColumns = [
+    "idProducto"
+  ]
+
   ngOnInit(): void {
-    this.dataSource.init(ELEMENT_DATA);
     this.trackSearchTerm();
+    this.getAll();
+  }
+
+  getAll() {
+    this.productosService.getAll().subscribe({
+      next: response => {
+        this.data.set(response)
+        console.log(response)
+        this.totalPage = 1;
+      },
+      error: error => {
+        console.log("Error getAll proyectos: ", error)
+      }
+    })
+  }
+
+  nextPage() {
+    this.currentPage++;
+    console.log("Siguiente: ", this.currentPage)
+    this.getAll();
+  }
+
+  previousPage() {
+    if (this.currentPage >= 0) {
+      this.currentPage--;
+      console.log("previo: ", this.currentPage)
+      this.getAll();
+    }
   }
 
   trackSearchTerm(){
     effect(()=> {
       const search = this.searchService.getSearchTerm()();
-      this.dataSource.searchData(search);
+      // this.dataSource.searchData(search);
     }, {injector: this.injector})
   }
 
-  delete(item: Products){
+  delete(item: IProducto){
     console.log("Eliminar: ", item)
   }
 
-  update(item: Products){
-    console.log("update: ", item)
+  update(item: IProducto){
+    console.log("update/: ", item)
+    // this.router.navigate(["nucleo/update/", item.idNucleo]);
   }
+
 
 }

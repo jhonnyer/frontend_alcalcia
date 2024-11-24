@@ -1,11 +1,9 @@
 import { inject, Injectable } from '@angular/core';
-import { nucleoList } from '../data/nucleo.data';
-import { INucleo, INucleoUpdate } from '../models/nucleo.model';
+import { INucleoUpdate } from '../models/nucleo.model';
 import { environment } from '../../../environments/environment';
-import { delay, Observable, of, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PaginatedResponse } from '../models/pagination.model';
-import { DatePipe } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'

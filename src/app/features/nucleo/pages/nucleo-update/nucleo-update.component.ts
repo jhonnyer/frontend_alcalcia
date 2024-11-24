@@ -38,7 +38,7 @@ export class NucleoUpdateComponent implements OnInit{
   private fb = inject(FormBuilder);
 
   ngOnInit(): void {
-    console.log("nucleoID", this.nucleoID)
+    // console.log("nucleoID", this.nucleoID)
     this.initFormFamilyCore();
     this.getAllZonas();
     this.changeZona();
@@ -48,7 +48,6 @@ export class NucleoUpdateComponent implements OnInit{
   getNucleoById(){
     this.nucleoService.getById(this.nucleoID).subscribe({
       next: ( response:INucleoUpdate ) => {
-        console.log("Nucleo",response);
         this.nucleo.set(response);
         this.nucleoId = response.idNucleo;
         this.initNucleo(response);
@@ -117,7 +116,6 @@ export class NucleoUpdateComponent implements OnInit{
   getAllZonas(){
     this.zonasSubscription = this.zonaService.getAll().subscribe({
       next: (response:IZona[]) => {
-        console.log("All ZONAS: ", response)
         this.zonas.set(response);
       },
       error: (error) => {
@@ -200,7 +198,6 @@ export class NucleoUpdateComponent implements OnInit{
     if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimientoDate.getDate())) {
       edad--;
     }
-    console.log(edad)
     return edad;
   }
 
@@ -218,7 +215,6 @@ export class NucleoUpdateComponent implements OnInit{
 
       delete this.formFamilyCore.value.idNucleo;
 
-      console.log(`UPDATE_NUCLEO: `, this.formFamilyCore.value)
 
       this.nucleoService.updateById(this.nucleoID, this.formFamilyCore.value).subscribe({
         next: response => {

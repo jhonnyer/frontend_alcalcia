@@ -1,3 +1,4 @@
+import { INucleoUpdate } from "./nucleo.model";
 type Sexo = 'M' | 'F';
 
 // BORRAR ESTA INTERFACE
@@ -38,4 +39,25 @@ export interface IBeneficiario {
   email: string;
   esVivo: boolean;
   idNucleoFk: number | null;
+}
+
+export interface IBeneficiarioUnique {
+  idBeneficiario: number | null;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  sexo: Sexo;
+  genero: string;
+  etnia: string;
+  edad: number;
+  victimaConflicto: boolean;
+  tipoDocumento: string;
+  numeroDocumento: string;
+  fechaNacimiento: string;
+  telefono: string;
+  email: string;
+  esVivo: boolean;
+  nucleoFamiliar: INucleoUpdate;
+  proyectoAsociado: INucleoUpdate;
 }

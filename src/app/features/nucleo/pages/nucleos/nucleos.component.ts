@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
 
-import { DataSourceNucleos } from './nucleos.datasourse';
 import { SearchService } from '../../../../core/services/search.service';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -10,7 +9,7 @@ import { NucleoService } from '../../../../core/services/nucleo.service';
 
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
-import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
+import { INucleoUpdate } from '../../../../core/models/nucleo.model';
 
 @Component({
   selector: 'app-nucleos',
@@ -21,7 +20,6 @@ import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NucleosComponent implements OnInit{
-  // dataSource = new DataSourceNucleos();
   private searchService = inject(SearchService);
   injector = inject(Injector);
   private router = inject(Router);

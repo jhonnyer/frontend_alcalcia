@@ -22,16 +22,16 @@ export class AuthService {
     console.log(`Servicio login URL  ${this.URL}/auth/login`)
     // return this.http.post<any>(proxyUrl, {
 
-    return this.http.post<any>(`${this.URL}/auth/login`, {
+    return this.http.post<any>(`/api/auth/login`, {
       "usuario": "clopez",
       "password": "admin123"
-    });
-    // .pipe(
-    //   tap(response => {
-    //     console.log("Respuesta: ", response)
-    //     this.tokenService.saveToken(response.token);
-    //   })
-    // );
+    })
+    .pipe(
+       tap(response => {
+       console.log("Respuesta: ", response)
+        this.tokenService.saveToken(response.token);
+       })
+    );
   }
 
 }

@@ -1,9 +1,10 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable, tap } from 'rxjs';
 import { TokenService } from './token.service';
 import { IResponseLogin } from '../models/responseLogin.model';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -12,87 +13,37 @@ export class AuthService {
 
   private http = inject(HttpClient);
   private tokenService = inject(TokenService);
+  private router = inject(Router);
+
+  role = signal('');
 
   proxyUrl = "/auth/login";
 
   private readonly URL = environment.URL_API;
 
-  login(data: any): Observable<any>{
-    console.log("Servicio login ",data)
-    console.log(`Servicio login URL  ${this.URL}/auth/login`)
-    // return this.http.post<any>(proxyUrl, {
 
-    return this.http.post<any>(`${this.URL}/auth/login`, {
-      "usuario": "clopez",
-      "password": "admin123"
-    });
-    // .pipe(
-    //   tap(response => {
-    //     console.log("Respuesta: ", response)
-    //     this.tokenService.saveToken(response.token);
-    //   })
-    // );
+  login(data: any): Observable<IResponseLogin> {
+    return this.http.post<IResponseLogin>(`/api/auth/login`, data)
+      .pipe(
+        tap(response => {
+          // Guardar toda la respuesta de login
+          this.tokenService.saveLoginResponse(response);
+
+          // Manejar la navegación basada en el estado del usuario
+          if (response.estadoUser === 'A') {
+            // Usuario activo, navegar al home
+            this.router.navigate(['/home']);
+          } else {
+            // Usuario inactivo, navegar a página de no autorizado
+            this.router.navigate(['/user-inactive']);
+          }
+        })
+      );
   }
 
-}
-/*
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-
-import { environment } from '@environments/environment';
-import { switchMap, tap } from 'rxjs';
-import { TokenService } from './token.service';
-import { ResponseLogin } from '@models/auth.model';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class AuthService {
-
-  apiUrl = environment.API_URL;
-
-  constructor(
-    private http: HttpClient,
-    private tokenService: TokenService
-  ) { }
-
-  login(email: string, password: string) {
-    return this.http.post<ResponseLogin>(`${this.apiUrl}/api/v1/auth/login`, {
-      email,
-      password
-    })
-    .pipe(
-      tap(response => {
-        this.tokenService.saveToken(response.access_token);
-      })
-    )
-  }
-
-  register(name: string, email: string, password: string) {
-    return this.http.post(`${this.apiUrl}/api/v1/auth/register`, {
-      name,
-      email,
-      password
-    });
-  }
-
-  registerAndLogin(name: string, email: string, password: string) {
-    return this.register(name, email, password)
-    .pipe(
-      switchMap(() => this.login(email, password))
-    )
-  }
-
-  isAvailable(email: string) {
-    return this.http.post<{ isAvailable: boolean }>(`${this.apiUrl}/api/v1/auth/is-available`, { email });
-  }
-
-  recovery(email: string) {
-    return this.http.post(`${this.apiUrl}/api/v1/auth/recovery`, { email });
-  }
-
-  changePassword(token: string, newPassword: string) {
-    return this.http.post(`${this.apiUrl}/api/v1/auth/change-password`, { token, newPassword })
+  logout() {
+    // Método para cerrar sesión
+    this.tokenService.clearToken();
+    this.router.navigate(['/auth']);
   }
 }
-*/

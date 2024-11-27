@@ -13,5 +13,5 @@ import { RouterOutlet,RouterLink, RouterLinkActive} from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListResponsibleComponent {
-  activeMenu: boolean = true;
+  activeMenu: boolean = false;
 }

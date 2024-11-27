@@ -2,7 +2,7 @@
 
   @if(dataSource){
     <table
-      class="border border-red-500 w-auto overflow-auto text-sm text-left rtl:text-right text-gray-500  "
+      class="w-auto overflow-auto text-sm text-left rtl:text-right text-gray-500  "
       cdk-table recycleRows
       [dataSource]="dataSource"
     >
@@ -41,9 +41,9 @@
       <tr cdk-row *cdkRowDef="let row; columns: displayedColumns();" class="bg-white border-b text-gray-900"></tr>
 
     </table>
-    <!-- <br>
     <br>
-    <br> -->
+    <br>
+    <br>
     <!-- <button type="button">Next</button> -->
   }
 

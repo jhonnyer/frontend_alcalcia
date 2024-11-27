@@ -1,8 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
-import { nucleoList } from '../../../../core/data/nucleo.data';
-import { Nucleo } from '../../interface/nucleo.model';
-import { DataSourceNucleos } from './nucleos.datasourse';
+
 import { SearchService } from '../../../../core/services/search.service';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -11,7 +9,7 @@ import { NucleoService } from '../../../../core/services/nucleo.service';
 
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
-import { INucleo } from '../../../../core/models/nucleo.model';
+import { INucleoUpdate } from '../../../../core/models/nucleo.model';
 
 @Component({
   selector: 'app-nucleos',
@@ -22,20 +20,22 @@ import { INucleo } from '../../../../core/models/nucleo.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NucleosComponent implements OnInit{
-  dataSource = new DataSourceNucleos();
   private searchService = inject(SearchService);
   injector = inject(Injector);
   private router = inject(Router);
+
+
   currentPage = 0;
-  data = signal<INucleo[]>([]);
+  data = signal<INucleoUpdate[]>([]);
+  totalPage!: number;
 
   private nucleoService = inject(NucleoService);
 
-  displayedColumns: (keyof INucleo | 'controls')[] = [
+  displayedColumns: (keyof INucleoUpdate | 'controls')[] = [
     'idNucleo',
     'nombreNucleo',
     'direccion',
-    'zona',
+    'idZonaFk',
     'numeroIntegrantes',
     'controls'
   ]
@@ -46,7 +46,7 @@ export class NucleosComponent implements OnInit{
     'idNucleo',
     'nombreNucleo',
     'direccion',
-    'zona',
+    'idZonaFk',
     'numeroIntegrantes',
   ]
 
@@ -64,9 +64,7 @@ export class NucleosComponent implements OnInit{
       next: response => {
         // console.log("All Nucleos: ", response.content);
         this.data.set(response.content)
-        // console.log("First: ", response.first);
-        // console.log("last: ", response.last);
-        // console.log("Paginas: ", response.pageable);
+        this.totalPage = response.totalPages;
       },
       error: error => {
         console.log("Error getAll nucleos: ", error)
@@ -76,12 +74,14 @@ export class NucleosComponent implements OnInit{
 
   nextPage() {
     this.currentPage++;
+    console.log("Siguiente: ", this.currentPage)
     this.getAll();
   }
 
   previousPage() {
-    if (this.currentPage > 0) {
+    if (this.currentPage >= 0) {
       this.currentPage--;
+      console.log("previo: ", this.currentPage)
       this.getAll();
     }
   }
@@ -89,15 +89,15 @@ export class NucleosComponent implements OnInit{
   trackSearchTerm(){
     effect(()=> {
       const search = this.searchService.getSearchTerm()();
-      this.dataSource.searchData(search);
+      // this.dataSource.searchData(search);
     }, {injector: this.injector})
   }
 
-  delete(item: INucleo){
+  delete(item: INucleoUpdate){
     console.log("Eliminar: ", item)
   }
 
-  update(item: INucleo){
+  update(item: INucleoUpdate){
     console.log("update/: ", item)
     this.router.navigate(["nucleo/update/", item.idNucleo]);
   }

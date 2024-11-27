@@ -12,6 +12,6 @@ import { RouterLinkActive } from '@angular/router';
   styleUrl: './list-inventory.component.scss'
 })
 export class ListInventoryComponent {
-  activeMenu: boolean = true;
+  activeMenu: boolean = false;
 
 }

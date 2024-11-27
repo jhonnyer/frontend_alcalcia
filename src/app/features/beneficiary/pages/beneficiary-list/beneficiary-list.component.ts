@@ -1,10 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
 
-import { IBeneficiary } from '../../../../core/models/beneficiary.models';
+import { IBeneficiary, IBeneficiario } from '../../../../core/models/beneficiary.models';
 import { beneficiaryList } from '../../../../core/data/beneficiary.data';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
+
+import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
+import { Router } from '@angular/router';
+import { SearchService } from '../../../../core/services/search.service';
 
 const ELEMENT_DATA: IBeneficiary[] = beneficiaryList;
 
@@ -17,19 +21,29 @@ const ELEMENT_DATA: IBeneficiary[] = beneficiaryList;
   templateUrl: './beneficiary-list.component.html',
   styles: ``,
 })
-export class BeneficiaryListComponent {
-  displayedColumns: (keyof IBeneficiary | 'controls')[] = [
-    'id_beneficiario',
-    'idNucleo',
-    'nombre1',
-    'nombre2',
-    'apellido1',
-    'apellido2',
+export class BeneficiaryListComponent implements OnInit {
+  private searchService = inject(SearchService);
+  injector = inject(Injector);
+  private router = inject(Router);
+
+  currentPage = 0;
+  data = signal<IBeneficiario[]>([]);
+  totalPage!: number;
+
+  private readonly beneficiaryService = inject(BeneficiaryService)
+
+  displayedColumns: (keyof IBeneficiario | 'controls')[] = [
+    'idBeneficiario',
+    'idNucleoFk',
+    'primerNombre',
+    'segundoNombre',
+    'primerApellido',
+    'segundoApellido',
     'sexo',
     'genero',
     'etnia',
     'edad',
-    'victimaConflico',
+    'victimaConflicto',
     'tipoDocumento',
     'numeroDocumento',
     'fechaNacimiento',
@@ -38,32 +52,68 @@ export class BeneficiaryListComponent {
     'controls'
   ]
 
-  data: IBeneficiary[] = ELEMENT_DATA;
-
-  columnSearch = 'categoria';
+  columnSearch = 'numeroDocumento';
 
   sorteablesColumns: string[] = [
-    "codigo",
-    "descripcion",
-    "categoria",
-    "unidad_medida",
-    "proveedor",
-    "fecha_ingreso",
-    "precio_unitario",
-    "stock_actual",
-    "stock_minimo",
-    "ubicacion"
+    'idBeneficiario',
+    'idNucleoFk',
+    'primerNombre',
+    'segundoNombre',
+    'primerApellido',
+    'segundoApellido',
+    'numeroDocumento',
+    'fechaNacimiento',
   ]
 
   stickyColumns = [
-    "codigo"
+    "idBeneficiario"
   ]
 
-  delete(item: IBeneficiary){
+  ngOnInit(): void {
+    this.trackSearchTerm();
+    this.getAll();
+  }
+
+  getAll() {
+    this.beneficiaryService.getAll().subscribe({
+      next: (response:IBeneficiario[]) => {
+        this.data.set(response)
+        this.totalPage = 1;
+      },
+      error: error => {
+        console.log("Error getAll Beneficiarios: ", error);
+      }
+    })
+  }
+
+  nextPage() {
+    this.currentPage++;
+    console.log("Siguiente: ", this.currentPage)
+    this.getAll();
+  }
+
+  previousPage() {
+    if (this.currentPage >= 0) {
+      this.currentPage--;
+      console.log("previo: ", this.currentPage)
+      this.getAll();
+    }
+  }
+
+  trackSearchTerm(){
+    effect(()=> {
+      const search = this.searchService.getSearchTerm()();
+      // this.dataSource.searchData(search);
+    }, {injector: this.injector})
+  }
+
+  delete(item: IBeneficiario){
     console.log("Eliminar: ", item)
   }
 
-  update(item: IBeneficiary){
-    console.log("update: ", item)
+  update(item: IBeneficiario){
+    console.log("update/: ", item)
+    this.router.navigate(["nucleo/update/", item.idNucleoFk]);
   }
+
 }

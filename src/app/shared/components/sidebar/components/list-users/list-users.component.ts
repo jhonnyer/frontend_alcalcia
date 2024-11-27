@@ -11,6 +11,6 @@ import { RouterLink, RouterLinkActive} from '@angular/router';
   templateUrl: './list-users.component.html'
 })
 export class ListUsersComponent {
-  activeMenu: boolean = true;
+  activeMenu: boolean = false;
 
 }

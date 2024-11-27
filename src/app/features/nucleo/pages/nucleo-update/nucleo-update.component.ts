@@ -1,12 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { NucleoService } from '../../../../core/services/nucleo.service';
-import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
-import { INucleo } from '../../../../core/models/nucleo.model';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { IBeneficiary } from '../../../../core/models/beneficiary.models';
-
+import { INucleoUpdate } from '../../../../core/models/nucleo.model';
+import { IBeneficiario } from '../../../../core/models/beneficiary.models';
+import { ZonaService } from '../../../../core/services/zona.service';
+import { Subscription } from 'rxjs';
+import { IZona } from '../../../../core/models/zona.models';
+import { IBarrio } from '../../../../core/models/barrio.model';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-nucleo-update',
   standalone: true,
@@ -17,111 +20,153 @@ import { IBeneficiary } from '../../../../core/models/beneficiary.models';
   templateUrl: './nucleo-update.component.html',
 })
 export class NucleoUpdateComponent implements OnInit{
-  @Input('id') productId!: string;
+  @Input('id') nucleoID!: string;
 
   private readonly nucleoService = inject(NucleoService);
-  private readonly beneficiaryService = inject(BeneficiaryService);
+  private readonly zonaService = inject(ZonaService);
+  private router = inject(Router);
 
-  nucleo = signal<INucleo| null>(null);
+  nucleo = signal<INucleoUpdate| null>(null);
   nucleoId!: number;
-  listBeneficiaries = signal<IBeneficiary[]>([]);
+  zonas = signal<IZona[]>([]);
+  listBeneficiaries = signal<IBeneficiario[]>([]);
+
+  private zonasSubscription!: Subscription;
+  barrios = signal<IBarrio[]>([]);
 
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
 
   ngOnInit(): void {
-    console.log(this.productId)
+    // console.log("nucleoID", this.nucleoID)
     this.initFormFamilyCore();
+    this.getAllZonas();
+    this.changeZona();
     this.getNucleoById();
   }
 
   getNucleoById(){
-    // this.nucleoService.getById(this.productId).subscribe({
-    //   next: ( response:INucleo ) => {
-    //     console.log("Nucleo",response);
-    //     this.nucleo.set(response);
-    //     this.nucleoId = response.idNucleo;
-    //     this.initNucleo(response);
-    //     this.getBeneficiaryByNucleo();
-    //   }
-    // })
+    this.nucleoService.getById(this.nucleoID).subscribe({
+      next: ( response:INucleoUpdate ) => {
+        this.nucleo.set(response);
+        this.nucleoId = response.idNucleo;
+        this.initNucleo(response);
+        this.listBeneficiaries.set(response.beneficiarios);
+        this.initBeneficiaries(response.beneficiarios)
+      }
+    })
   }
 
-  getBeneficiaryByNucleo() {
-    // if (this.nucleo() !== undefined && this.nucleo() !== null) {
-    //   this.beneficiaryService.getByNucleoId(this.nucleoId).subscribe({
-    //     next: (response: IBeneficiary[]) => {
-    //       console.log('Beneficiarios: ', response);
-    //       this.listBeneficiaries.set(response);
-    //       this.initBeneficiaries(response)
-    //     }
-    //   });
-    // }
-  }
-
-  private initNucleo(nucleo: INucleo): void {
+  private initNucleo(nucleo: INucleoUpdate): void {
     this.formFamilyCore.setValue({
-      zona: nucleo.zona,
-      barrio: nucleo.direccion,
+      idZonaFk: nucleo.idZonaFk,
+      idBarrioFk: nucleo.idBarrioFk,
       direccion: nucleo.direccion,
       nombreNucleo: nucleo.nombreNucleo,
+      numeroIntegrantes: nucleo.numeroIntegrantes,
       beneficiarios: []
     }, { emitEvent: true })
   }
 
-  private initBeneficiaries(beneficiaries: IBeneficiary[]): void {
+  private initBeneficiaries(beneficiaries: IBeneficiario[]): void {
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
     beneficiaries.forEach((beneficiary) => {
       beneficiariosArray.push(this.initFormBeneficiary());
       const beneficiaryForm = beneficiariosArray.at(beneficiariosArray.length - 1);
       beneficiaryForm.setValue({
-        nombre1: beneficiary.nombre1,
-        nombre2: beneficiary.nombre2,
-        apellido1: beneficiary.apellido1,
-        apellido2: beneficiary.apellido2,
+        idBeneficiario: beneficiary.idBeneficiario,
+        primerNombre: beneficiary.primerNombre,
+        segundoNombre: beneficiary.segundoNombre,
+        primerApellido: beneficiary.primerApellido,
+        segundoApellido: beneficiary.segundoApellido,
         tipoDocumento: beneficiary.tipoDocumento,
         numeroDocumento: beneficiary.numeroDocumento,
         sexo: beneficiary.sexo,
         genero: beneficiary.genero,
-        victimaConflico: beneficiary.victimaConflico,
+        victimaConflicto: beneficiary.victimaConflicto,
         fechaNacimiento: beneficiary.fechaNacimiento,
         edad: beneficiary.edad,
         etnia: beneficiary.etnia,
         email: beneficiary.email,
-        telefono: beneficiary.telefono
+        telefono: beneficiary.telefono,
+        esVivo: beneficiary.esVivo,
+        idNucleoFk: parseInt(this.nucleoID)
       }, { emitEvent: true });
+
+      beneficiaryForm.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
+        if (fecha) {
+          const edad = this.calcularEdad(fecha);
+          beneficiaryForm.get('edad')?.setValue(edad.toString(), { emitEvent: false });
+        }
+      });
     });
   }
 
   private initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
-      zona: ['', [Validators.required]],
-      barrio: ['', [Validators.required]],
+      idZonaFk: ['', [Validators.required, Validators.nullValidator]],
+      idBarrioFk: ['', [Validators.required, Validators.nullValidator]],
       direccion: ['', [Validators.required]],
       nombreNucleo: ['', [Validators.required]],
+      numeroIntegrantes: [0],
       beneficiarios: this.fb.array([])
     });
-    // this.addBeneficiary();
+  }
+
+  getAllZonas(){
+    this.zonasSubscription = this.zonaService.getAll().subscribe({
+      next: (response:IZona[]) => {
+        this.zonas.set(response);
+      },
+      error: (error) => {
+        console.log("Error en zonas: ", error);
+      }
+    });
+  }
+
+  changeZona(){
+    this.formFamilyCore.get('idZonaFk')?.valueChanges.subscribe({
+      next: option => {
+        if(option !== ''){
+          this.zonaService.getById(option).subscribe({
+            next: response => {
+              this.barrios.set(response.barrios as IBarrio[])
+            }
+          })
+        }
+      }
+    })
   }
 
   private initFormBeneficiary(): FormGroup {
     // Retorna el formulario que estará anidado
-    return this.fb.group({
-      nombre1: ['', [Validators.required]],
-      nombre2: [''],
-      apellido1: ['', [Validators.required]],
-      apellido2: [''],
+    const formGroup =  this.fb.group({
+      idBeneficiario: [null],
+      primerNombre: ['', [Validators.required]],
+      segundoNombre: [''],
+      primerApellido: ['', [Validators.required]],
+      segundoApellido: [''],
       tipoDocumento: ['', [Validators.required]],
       numeroDocumento: ['', [Validators.required]],
       sexo: ['', [Validators.required]],
       genero: ['', [Validators.required]],
-      victimaConflico: ['', [Validators.required]],
+      victimaConflicto: [false, [Validators.required]],
       fechaNacimiento: ['', [Validators.required]],
       edad: ['', [Validators.required]],
       etnia: ['', [Validators.required]],
-      email: ['', [Validators.required]],
+      email: [''],
       telefono: ['', [Validators.required]],
+      esVivo: [true, [Validators.required]],
+      idNucleoFk: [parseInt(this.nucleoID), [Validators.required]]
     });
+
+    formGroup.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
+      if (fecha) {
+        const edad = this.calcularEdad(fecha);
+        formGroup.get('edad')?.setValue(edad.toString(), { emitEvent: false });
+      }
+    });
+    return formGroup;
   }
 
   //Agrega un nuevo formulario anidado de Persona
@@ -144,17 +189,52 @@ export class NucleoUpdateComponent implements OnInit{
     beneficiariosArray.removeAt(index);
   }
 
+  calcularEdad(fechaNacimiento: string): number {
+    const fechaNacimientoDate = new Date(fechaNacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fechaNacimientoDate.getFullYear();  
 
-  onSubmit() {
-    if(this.formFamilyCore.valid){
-      console.log("Form Family Core");
-      console.log(this.formFamilyCore.value);
-	  }else{
-      console.log("Form invalid");
-      console.log(this.formFamilyCore.value);
-		  this.formFamilyCore.markAllAsTouched();
-	  }
+    const mes = hoy.getMonth() - fechaNacimientoDate.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimientoDate.getDate())) {
+      edad--;
+    }
+    return edad;
   }
 
 
+  onSubmit() {
+    if(this.formFamilyCore.valid){
+      const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
+      const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
+
+      this.formFamilyCore.patchValue({
+        numeroIntegrantes: null,
+        idZonaFk: zona,
+        idBarrioFk: barrio
+      });
+
+      delete this.formFamilyCore.value.idNucleo;
+
+
+      this.nucleoService.updateById(this.nucleoID, this.formFamilyCore.value).subscribe({
+        next: response => {
+          alert('Se ha guardado correctamente el núcleo');
+          this.router.navigate(["nucleo"]);
+        },
+        error: error => {
+          alert('Ha ocurrido un error al cargar los datos');
+        }
+      })
+	  }else
+    {
+      alert('Verifica los campos de tu formulario');
+      this.formFamilyCore.markAllAsTouched();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.zonasSubscription) {
+      this.zonasSubscription.unsubscribe();
+    }
+  }
 }

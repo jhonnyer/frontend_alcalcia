@@ -78,6 +78,7 @@
               "buildTarget": "donaciones:build:production"
             },
             "development": {
+              "proxyConfig": "proxy.conf.js",
               "buildTarget": "donaciones:build:development"
             }
           },

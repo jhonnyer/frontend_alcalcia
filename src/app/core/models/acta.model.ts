@@ -6,15 +6,15 @@ type EstadoActa = 'R' | 'P' | 'A' | 'RC' | 'E'; //Enum para Recibido, Procesado,
 type PrioridadActa = 'A' | 'M' | 'B';// Enum para prioridad Alta, Media, Baja
 
 export interface IActa {
-  "idActa": number;
-  "fechaCreacion": string;
-  "estado": EstadoActa;
-  "fechaEntrega": string;
-  "beneficiario": IBeneficiario;
-  "proyecto": IProyecto;
-  "responsable": IResponsable;
-  "ubicacionEntrega": string;
-  "observaciones": string;
-  "prioridad": PrioridadActa;
-  "tiposSolicitud": string;
+  idActa: number;
+  fechaCreacion: string;
+  estado: EstadoActa;
+  fechaEntrega: string;
+  beneficiario: IBeneficiario;
+  proyecto: IProyecto;
+  responsable: IResponsable;
+  ubicacionEntrega: string;
+  observaciones: string;
+  prioridad: PrioridadActa;
+  tiposSolicitud: string;
 }

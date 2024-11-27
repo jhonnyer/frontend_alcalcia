@@ -54,14 +54,13 @@
       </div>
 
       <div class="w-full md:w-[49%]">
-        <label for="nombreNucleo" class="label-base">nombreNucleo</label>
-        <!-- <input formControlName="nombreNucleo" type="number" id="nombreNucleo" class="input-base" placeholder="nombreNucleo"> -->
+        <label for="nombreNucleo" class="label-base">Nombre núcleo</label>
         <input
           formControlName="nombreNucleo"
           type="text"
           id="nombreNucleo"
           class="input-base"
-          placeholder="nombreNucleo"
+          placeholder="Nombre núcleo"
         >
         @if(formFamilyCore.get('nombreNucleo')?.hasError('required') && formFamilyCore.get('nombreNucleo')?.touched) {
           <p class="text-red-500">
@@ -207,7 +206,7 @@
             <div class="flex flex-col">
               <div class="flex items-center gap-4">
                 <label for="edad" class="label-base">Edad</label>
-                <input formControlName="edad" type="number" id="edad" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="0">
+                <input readonly formControlName="edad" type="number" id="edad" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="0">
               </div>
               @if(beneficiario.get('edad')?.hasError('required') && beneficiario.get('edad')?.touched) {
                 <p class="text-red-500">

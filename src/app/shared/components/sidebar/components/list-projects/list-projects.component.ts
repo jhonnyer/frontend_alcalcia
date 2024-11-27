@@ -12,5 +12,5 @@ import { RouterOutlet,RouterLink, RouterLinkActive} from '@angular/router';
   templateUrl: './list-projects.component.html',
 })
 export class ListProjectsComponent {
-  activeMenu: boolean = true;
+  activeMenu: boolean = false;
 }

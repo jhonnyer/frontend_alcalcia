@@ -18,5 +18,5 @@ export interface IProducto {
   "nombre": string;
   "descripcion": string;
   "stock": number;
-  "fechaIngreso": string;
+  "fechaIngreso": string | null;
 }

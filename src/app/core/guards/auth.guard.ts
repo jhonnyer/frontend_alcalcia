@@ -14,36 +14,25 @@ export const authGuard: CanActivateFn = (route, state) => {
     return false;
   }
 
-  // Obtener el rol del usuario
+  // Obtener el rol y estado del usuario
   const userRole = tokenService.getUserRole();
+  const userState = tokenService.getUserState();
 
   // Obtener el rol requerido de la ruta
   const requiredRole = route.data['role'] as string;
 
-  // Si no hay rol requerido, solo verificar que esté logeado
-  if (!requiredRole) {
-    return true;
+  // Verificar estado del usuario
+  if (userState !== 'A') {
+    // Redirigir a página de cuenta no autorizada
+    router.navigate(['/user-inactive']);
+    return false;
   }
 
-  // Verificar si el rol del usuario coincide con el rol requerido
-  // Considera que tu rol viene como "RESP", así que ajusta la comparación
-  if (userRole !== requiredRole) {
-    // Puedes redirigir a una página de acceso denegado
-    // router.navigate(['/access-denied']);
-    router.navigate(['/']);
+  // Si hay rol requerido, verificarlo
+  if (requiredRole && userRole !== requiredRole) {
+    router.navigate(['/access-denied']);
     return false;
   }
 
   return true;
 };
-
-/*
-  const token: string | unknown = inject(TokenService).getToken();
-
-  if(!token){
-    inject(Router).navigate(['/auth'])
-  }
-  inject(Router).navigate(['/home'])
-  return true;
-};
-*/

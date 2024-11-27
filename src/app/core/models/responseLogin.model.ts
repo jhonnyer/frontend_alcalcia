@@ -4,5 +4,6 @@ export interface IResponseLogin {
   idUser: number;
   user: string;
   rol: string;
+  estadoUser: string;
   estado: string;
 }

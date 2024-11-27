@@ -4,6 +4,7 @@ import { environment } from '../../../environments/environment';
 import { Observable, tap } from 'rxjs';
 import { TokenService } from './token.service';
 import { IResponseLogin } from '../models/responseLogin.model';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,7 @@ export class AuthService {
 
   private http = inject(HttpClient);
   private tokenService = inject(TokenService);
+  private router = inject(Router);
 
   role = signal('');
 
@@ -26,6 +28,15 @@ export class AuthService {
         tap(response => {
           // Guardar toda la respuesta de login
           this.tokenService.saveLoginResponse(response);
+
+          // Manejar la navegación basada en el estado del usuario
+          if (response.estadoUser === 'A') {
+            // Usuario activo, navegar al home
+            this.router.navigate(['/home']);
+          } else {
+            // Usuario inactivo, navegar a página de no autorizado
+            this.router.navigate(['/user-inactive']);
+          }
         })
       );
   }
@@ -33,7 +44,7 @@ export class AuthService {
   logout() {
     // Método para cerrar sesión
     this.tokenService.clearToken();
-    // Redirigir a login o hacer cualquier otra limpieza necesaria
+    this.router.navigate(['/auth']);
   }
 }
 

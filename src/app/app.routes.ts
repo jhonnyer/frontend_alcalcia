@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 import { MainLayoutComponent } from './layouts/components/main-layout/main-layout.component';
 import { authGuard } from './core/guards/auth.guard';
+import { Error404Component } from './shared/components/error404/error404.component';
+import { UnauthorizedComponent } from './shared/components/unauthorized/unauthorized.component';
+import { UserInactiveComponent } from './shared/components/userInactive/userInactive.component';
 
 export const routes: Routes = [
   {
@@ -58,6 +61,12 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadChildren: () => import('./features/users/users.routes').then(m => m.USERS_ROUTES)
       },
+      { path: 'no-autorizado', component: UnauthorizedComponent },
+      {
+        path: 'user-inactive',
+        component: UserInactiveComponent
+      },
+      { path: '**', component: Error404Component }
     ]
   }
 ];

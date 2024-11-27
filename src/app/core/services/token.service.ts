@@ -15,6 +15,7 @@ export class TokenService {
 
   private TOKEN_KEY = 'auth_token';
   private USER_ROLE_KEY = 'user_role';
+  private USER_STATE_KEY = 'user_state';
 
   // Guardar token y rol al iniciar sesión
   saveLoginResponse(response: IResponseLogin) {
@@ -23,6 +24,9 @@ export class TokenService {
 
     // Guardar rol
     localStorage.setItem(this.USER_ROLE_KEY, response.rol);
+
+    // Guardar estado del usuario
+    localStorage.setItem(this.USER_STATE_KEY, response.estadoUser);
   }
 
   saveToken(token: string): void {
@@ -37,13 +41,18 @@ export class TokenService {
     return localStorage.getItem(this.USER_ROLE_KEY);
   }
 
+  getUserState(): string | null {
+    return localStorage.getItem(this.USER_STATE_KEY);
+  }
+
   // Método para limpiar el token (logout)
   clearToken() {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_ROLE_KEY);
+    localStorage.removeItem(this.USER_STATE_KEY);
   }
 
-  // Método opcional para verificar si el token está expirado
+  // Método para verificar si el token está expirado
   isTokenExpired(): boolean {
     const token = this.getToken();
     if (!token) return true;

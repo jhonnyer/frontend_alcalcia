@@ -47,19 +47,3 @@ export class AuthService {
     this.router.navigate(['/auth']);
   }
 }
-
-/*
-login(data: any): Observable<IResponseLogin>{
-  console.log("Servicio login ",data)
-  console.log(`Servicio login URL  ${this.URL}/auth/login`)
-  // return this.http.post<any>(proxyUrl, {
-
-  return this.http.post<IResponseLogin>(`/api/auth/login`, data)
-  .pipe(
-      tap(response => {
-      console.log("Respuesta: ", response)
-      this.tokenService.saveToken(response.token);
-      })
-  );
-}
-*/

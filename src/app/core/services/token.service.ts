@@ -17,42 +17,63 @@ export class TokenService {
   private USER_ROLE_KEY = 'user_role';
   private USER_STATE_KEY = 'user_state';
 
-  // Guardar token y rol al iniciar sesión
+  // Método para verificar si localStorage está disponible
+  private isLocalStorageAvailable(): boolean {
+    try {
+      return typeof window !== 'undefined' && 'localStorage' in window && window['localStorage'] !== null;
+    } catch (e) {
+      return false;
+    }
+  }
+
   saveLoginResponse(response: IResponseLogin) {
-    // Guardar token
-    this.saveToken(response.token);
+    if (this.isLocalStorageAvailable()) {
+      // Guardar token
+      this.saveToken(response.token);
 
-    // Guardar rol
-    localStorage.setItem(this.USER_ROLE_KEY, response.rol);
+      // Guardar rol
+      localStorage.setItem(this.USER_ROLE_KEY, response.rol);
 
-    // Guardar estado del usuario
-    localStorage.setItem(this.USER_STATE_KEY, response.estadoUser);
+      // Guardar estado del usuario
+      localStorage.setItem(this.USER_STATE_KEY, response.estadoUser);
+    }
   }
 
   saveToken(token: string): void {
-    localStorage.setItem(this.TOKEN_KEY, token);
+    if (this.isLocalStorageAvailable()) {
+      localStorage.setItem(this.TOKEN_KEY, token);
+    }
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    if (this.isLocalStorageAvailable()) {
+      return localStorage.getItem(this.TOKEN_KEY);
+    }
+    return null;
   }
 
   getUserRole(): string | null {
-    return localStorage.getItem(this.USER_ROLE_KEY);
+    if (this.isLocalStorageAvailable()) {
+      return localStorage.getItem(this.USER_ROLE_KEY);
+    }
+    return null;
   }
 
   getUserState(): string | null {
-    return localStorage.getItem(this.USER_STATE_KEY);
+    if (this.isLocalStorageAvailable()) {
+      return localStorage.getItem(this.USER_STATE_KEY);
+    }
+    return null;
   }
 
-  // Método para limpiar el token (logout)
   clearToken() {
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.USER_ROLE_KEY);
-    localStorage.removeItem(this.USER_STATE_KEY);
+    if (this.isLocalStorageAvailable()) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.USER_ROLE_KEY);
+      localStorage.removeItem(this.USER_STATE_KEY);
+    }
   }
 
-  // Método para verificar si el token está expirado
   isTokenExpired(): boolean {
     const token = this.getToken();
     if (!token) return true;

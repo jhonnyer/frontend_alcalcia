@@ -4,13 +4,15 @@ import { IActa } from '../models/acta.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
 import { TokenService } from './token.service';
+import { checkToken } from '../interceptors/token-interceptor.interceptor';
 // import { PaginatedResponse } from '../models/pagination.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ActasService {
-  private readonly URL = environment.URL_API;
+  // private readonly URL = environment.URL_API;
+  private readonly URL = '/api';
   private http = inject(HttpClient);
   private tokenService = inject(TokenService);
 
@@ -22,9 +24,7 @@ export class ActasService {
   }
 
   getAll(): Observable<IActa[]> {
-    const headers = this.getHeader();
-    console.log("GET ALL HEADERS: ", headers)
-    return this.http.get<IActa[]>(`${this.URL}/actas/list`, { headers }).pipe(
+    return this.http.get<IActa[]>(`${this.URL}/actas/list`, { context: checkToken() }).pipe(
       tap(actas => {
         actas.forEach(acta => {
           // acta.fechaCreacion = this.formatDate(acta.fechaCreacion);

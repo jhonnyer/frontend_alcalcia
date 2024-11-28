@@ -3,6 +3,7 @@ import { Observable, tap } from 'rxjs';
 import { IProducto } from '../models/products.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { checkToken } from '../interceptors/token-interceptor.interceptor';
 // import { PaginatedResponse } from '../models/pagination.model';
 
 @Injectable({
@@ -13,23 +14,23 @@ export class ProductosService {
   private http = inject(HttpClient);
 
   getAll(): Observable<IProducto[]> {
-    return this.http.get<IProducto[]>(`${this.URL}/productos/list`);
+    return this.http.get<IProducto[]>(`${this.URL}/productos/list`, { context: checkToken() });
   }
 
   getById(idProducto: string): Observable<IProducto[]> {
-    return this.http.get<IProducto[]>(`${this.URL}/productos/${idProducto}`);
+    return this.http.get<IProducto[]>(`${this.URL}/productos/${idProducto}`, { context: checkToken() });
   }
 
   post(data:Partial<IProducto>): Observable<IProducto> {
-    return this.http.post<IProducto>(`${this.URL}/productos}`, data);
+    return this.http.post<IProducto>(`${this.URL}/productos}`, data, { context: checkToken() });
   }
 
   putById(idProducto: string, data:IProducto) {
-    this.http.put(`${this.URL}/productos/${idProducto}`, data);
+    this.http.put(`${this.URL}/productos/${idProducto}`, data, { context: checkToken() });
   }
 
   delete(idProducto: string) {
-    this.http.delete(`${this.URL}/productos/${idProducto}`);
+    this.http.delete(`${this.URL}/productos/${idProducto}`, { context: checkToken() });
   }
 
 }

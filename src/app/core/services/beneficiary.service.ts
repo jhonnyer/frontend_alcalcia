@@ -3,6 +3,7 @@ import { Observable, tap } from 'rxjs';
 import { IBeneficiario, IBeneficiarioUnique } from '../models/beneficiary.models';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import { PaginatedResponse } from '../models/pagination.model';
 
 @Injectable({
@@ -13,7 +14,7 @@ export class BeneficiaryService {
   private http = inject(HttpClient);
 
   getAll(): Observable<IBeneficiario[]> {
-    return this.http.get<IBeneficiario[]>(`${this.URL}/beneficiarios`).pipe(
+    return this.http.get<IBeneficiario[]>(`${this.URL}/beneficiarios`, { context: checkToken() }).pipe(
       tap(item => {
         item.forEach(beneficiario => {
           beneficiario.fechaNacimiento = this.formatDate(beneficiario.fechaNacimiento);
@@ -23,7 +24,7 @@ export class BeneficiaryService {
   }
 
   getById(id: string): Observable<IBeneficiarioUnique>{
-    return this.http.get<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${id}`).pipe(
+    return this.http.get<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${id}`, { context: checkToken() }).pipe(
       tap(item => {
         item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
       })

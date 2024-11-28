@@ -76,7 +76,7 @@ export class ResponsiblesListComponent {
         this.totalPage = 1;
       },
       error: error => {
-        console.log("Error getAll nucleos: ", error)
+        console.log("Error getAll responsables: ", error)
       }
     })
   }

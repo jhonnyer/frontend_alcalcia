@@ -66,7 +66,7 @@ export class InventoryListComponent implements OnInit{
         this.totalPage = 1;
       },
       error: error => {
-        console.log("Error getAll proyectos: ", error)
+        console.log("Error getAll ineventarios: ", error)
       }
     })
   }

@@ -9,6 +9,26 @@ export function checkToken() {
 }
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
+  const tokenService = inject(TokenService);
+  const accessToken = tokenService.getToken();
+
+  // Verificar si hay un token disponible
+  if (accessToken) {
+    // Clonar la solicitud y agregar el encabezado de autorización
+    const authRequest = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    // Continuar con la solicitud modificada
+    return next(authRequest);
+  }
+
+  // Si no hay token, continuar con la solicitud original
+  return next(req);
+
+  /*
   if (req.context.get(CHECK_TOKEN)) {
     const tokenService = inject(TokenService);
     const accessToken = tokenService.getToken();
@@ -20,5 +40,5 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
     }
     return next(req);
   }
-  return next(req);
+  return next(req);*/
 };

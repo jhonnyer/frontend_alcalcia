@@ -63,12 +63,12 @@ export class ProcedingsListComponent implements OnInit {
   getAll() {
     this.actasService.getAll().subscribe({
       next: response => {
-        // console.log("All Nucleos: ", response.content);
+        // console.log("All actas: ", response.content);
         this.data.set(response)
         this.totalPage = 1;
       },
       error: error => {
-        console.log("Error getAll nucleos: ", error)
+        console.log("Error getAll actas: ", error)
       }
     })
   }

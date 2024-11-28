@@ -64,7 +64,7 @@ export class ProjectsListComponent {
   getAll() {
     this.proyectosService.getAll().subscribe({
       next: response => {
-        this.data.set(response)
+        this.data.set(response.respuesta)
         console.log(response)
         this.totalPage = 1;
       },

@@ -4,7 +4,8 @@ import { IProyecto } from '../models/proyecto.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
-// import { PaginatedResponse } from '../models/pagination.model';
+import { response } from 'express';
+import { ResponseStandar } from '../models/response.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,8 +14,12 @@ export class ProyectosService {
   private readonly URL = environment.URL_API;
   private http = inject(HttpClient);
 
-  getAll(): Observable<IProyecto[]> {
-    return this.http.get<IProyecto[]>(`${this.URL}/proyectos/list`, { context: checkToken() });
+  getAll(): Observable<ResponseStandar<IProyecto>> {
+    return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/list`, { context: checkToken() }).pipe(
+      tap(response => {
+        console.log(response)
+      })
+    );
   }
 
   getById(id: string): Observable<IProyecto> {

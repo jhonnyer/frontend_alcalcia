@@ -31,10 +31,8 @@ export class NucleoService {
     return this.http.post<INucleoUpdate>(`${this.URL}/nucleosFamiliares`, data, { context: checkToken() });
   }
 
-  updateById(nucleoID: string, itemNucleo: INucleoUpdate):Observable<any> {
-    console.log(`URL = ${this.URL}/nucleosFamiliares/${nucleoID}`)
-    console.log(`DATA = ${itemNucleo}`)
-    return this.http.put<any>(`${this.URL}/nucleosFamiliares/${nucleoID}`, itemNucleo, { context: checkToken() });
+  updateById(nucleoID: string, itemNucleo: INucleoUpdate):Observable<INucleoUpdate> {
+    return this.http.put<INucleoUpdate>(`${this.URL}/nucleosFamiliares/${nucleoID}`, itemNucleo, { context: checkToken() });
   }
 
   deleteById(id: string) {

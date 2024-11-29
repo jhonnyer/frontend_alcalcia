@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
 
-import { IBeneficiary, IBeneficiario } from '../../../../core/models/beneficiary.models';
+import { IBeneficiario } from '../../../../core/models/beneficiary.models';
 import { beneficiaryList } from '../../../../core/data/beneficiary.data';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
@@ -10,7 +10,6 @@ import { BeneficiaryService } from '../../../../core/services/beneficiary.servic
 import { Router } from '@angular/router';
 import { SearchService } from '../../../../core/services/search.service';
 
-const ELEMENT_DATA: IBeneficiary[] = beneficiaryList;
 
 @Component({
   selector: 'app-beneficiary-list',

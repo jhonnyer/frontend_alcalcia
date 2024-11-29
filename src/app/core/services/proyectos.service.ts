@@ -22,23 +22,32 @@ export class ProyectosService {
     );
   }
 
-  getById(id: string): Observable<IProyecto> {
-    return this.http.get<IProyecto>(`${this.URL}/proyectos/${id}`, { context: checkToken() });
+  getById(id: string): Observable<ResponseStandar<IProyecto>> {
+    return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${id}`, { context: checkToken() });
   }
 
-  getByName(name: string): Observable<IProyecto> {
-    return this.http.get<IProyecto>(`${this.URL}/proyectos/${name}`, { context: checkToken() });
+  getByName(name: string): Observable<ResponseStandar<IProyecto>> {
+    return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${name}`, { context: checkToken() });
   }
 
-  getByCategory(idCategoria: string): Observable<IProyecto> {
-    return this.http.get<IProyecto>(`${this.URL}/proyectos/${idCategoria}`, { context: checkToken() });
+  getByCategory(idCategoria: string): Observable<ResponseStandar<IProyecto>> {
+    return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idCategoria}`, { context: checkToken() });
   }
 
-  post(data:Partial<IProyecto>): Observable<IProyecto> {
-    return this.http.post<IProyecto>(`${this.URL}/proyectos}`, data, { context: checkToken() });
+  post(data:Partial<IProyecto>): Observable<ResponseStandar<IProyecto>> {
+    return this.http.post<ResponseStandar<IProyecto>>(`${this.URL}/proyectos}`, data, { context: checkToken() });
   }
 
-  putById(idProyecto: string, data:IProyecto) {
-    this.http.put(`${this.URL}/proyectos/${idProyecto}`, data, { context: checkToken() });
+  putById(idProyecto: string, data:IProyecto): Observable<ResponseStandar<IProyecto>> {
+    return this.http.put<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idProyecto}`, data, { context: checkToken() });
+  }
+
+  updateProjectState(idProyecto: string, state: "A" | "I"): Observable<ResponseStandar<IProyecto>>{
+    return this.http.patch<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idProyecto}/estado/${state}`, { context: checkToken() });
+  }
+
+  //Asignar categoria a un proyecto
+  addCategory(idProyecto: string, idCategory: string): Observable<ResponseStandar<IProyecto>>{
+    return this.http.patch<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idProyecto}/estado/${idCategory}`, { context: checkToken() });
   }
 }

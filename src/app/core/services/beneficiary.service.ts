@@ -31,22 +31,34 @@ export class BeneficiaryService {
     );
   }
 
-  /*
-  getByNucleoId(id_nucleo: string): Observable<IBeneficiary[]>{
-    const beneficiaries = beneficiaryList.filter(item => {
-      return item.idNucleo === id_nucleo;
-    })
-    return of(beneficiaries).pipe(delay(500));
+  /**
+   * Busqueda de beneficiarios por numero de documento, nombres y apellidos
+   */
+  getByNameAndLastNameAndDocument(names: string): Observable<IBeneficiarioUnique[]>{
+    return this.http.get<IBeneficiarioUnique[]>(`${this.URL}/beneficiarios/buscar/${names}`, { context: checkToken() }).pipe(
+      tap(item => {
+        item.forEach(beneficiario => {
+          beneficiario.fechaNacimiento = this.formatDate(beneficiario.fechaNacimiento);
+        });
+      })
+    );
   }
 
-  updateById(beneficiary: IBeneficiary): Observable<IBeneficiary>{
-    const index = beneficiaryList.findIndex(item => {
-      return item.id_beneficiario=== beneficiary.id_beneficiario;
-    })
-
-    return of(beneficiaryList[index]).pipe(delay(500));
+  post(beneficiario: Partial<IBeneficiario>): Observable<IBeneficiario>{
+    return this.http.post<IBeneficiario>(`${this.URL}/beneficiarios}`, beneficiario, { context: checkToken() }).pipe(
+      tap(item => {
+        item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
+      })
+    );
   }
-  */
+
+  update(beneficiario: Partial<IBeneficiario>): Observable<IBeneficiario>{
+    return this.http.post<IBeneficiario>(`${this.URL}/beneficiarios/${beneficiario.idBeneficiario}}`, beneficiario, { context: checkToken() }).pipe(
+      tap(item => {
+        item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
+      })
+    );
+  }
 
   private formatDate(dateString: string): string {
     const date = new Date(dateString);

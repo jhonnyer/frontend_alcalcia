@@ -26,10 +26,21 @@ export class ZonaService {
     );
   }
 
-  getFakeApi(): Observable<any>{
-    console.log("Llamado fakeApi")
-    return this.http.get('https://fakestoreapi.com/products/1', { context: checkToken() });
+  post(zona: Partial<IZona>): Observable<IZona>{
+    return this.http.post<IZona>(`${environment.URL_API}/zonas}`, zona ,{ context: checkToken() })
   }
 
+  //Actualizar zonas
+  put(zona: IZona): Observable<IZona> {
+    return this.http.put<any>(`${environment.URL_API}/zonas/${zona.idZona}`, {
+      nombreZona: zona.nombreZona,
+      ubicacion: zona.ubicacion
+    } ,{ context: checkToken() })
+  }
+
+  //Eliminar
+  delete(idZona: string): void{
+    this.http.delete(`${environment.URL_API}/zonas/${idZona}}`, { context: checkToken() });
+  }
 }
 

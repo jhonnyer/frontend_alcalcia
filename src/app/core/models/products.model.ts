@@ -14,9 +14,10 @@ export interface Products {
 }
 
 export interface IProducto {
-  "idProducto": number,
-  "nombre": string;
-  "descripcion": string;
-  "stock": number;
-  "fechaIngreso": string | null;
+  idProducto: number,
+  nombre: string;
+  descripcion: string;
+  stock: number;
+  fechaIngreso: string | null;
+  cantidad: number;
 }

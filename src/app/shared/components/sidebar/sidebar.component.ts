@@ -6,6 +6,7 @@ import { ListHomeComponent } from './components/list-home/list-home.component';
 import { ListNucleoComponent } from './components/list-nucleo/list-nucleo.component';
 import { ListProceedingsComponent } from './components/list-proceedings/list-proceedings.component';
 import { ListResponsibleComponent } from './components/list-responsible/list-responsible.component';
+import { ListCategoriasComponent } from './components/list-categorias/list-categorias.component';
 // import { ListUsersComponent } from './components/list-users/list-users.component';
 import { ListProjectsComponent } from "./components/list-projects/list-projects.component";
 
@@ -20,7 +21,8 @@ import { ListProjectsComponent } from "./components/list-projects/list-projects.
     ListAuthComponent,
     ListProceedingsComponent,
     ListResponsibleComponent,
-    ListProjectsComponent
+    ListProjectsComponent,
+    ListCategoriasComponent
 ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'

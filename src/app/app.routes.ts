@@ -52,6 +52,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/projects/projects.routes').then(m => m.PROJECTS_ROUTES)
       },
       {
+        path: 'categorias',
+        canActivate: [authGuard],
+        loadChildren: () => import('./features/categorias/categorias.routes').then(m => m.CATEGORIAS_ROUTES)
+      },
+
+      {
         path: 'resposibles',
         canActivate: [authGuard],
         loadChildren: () => import('./features/responsible/responsible.routes').then(m => m.RESPONSIBLE_ROUTES)

@@ -9,7 +9,7 @@ import { ProyectosService } from '../../../../core/services/proyectos.service';
 
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
-import { IProyecto } from '../../../../core/models/proyecto.model';
+import { IProyecto, IProyectoAndResponse } from '../../../../core/models/proyecto.model';
 
 @Component({
   selector: 'app-projects-list',
@@ -64,8 +64,13 @@ export class ProjectsListComponent {
   getAll() {
     this.proyectosService.getAll().subscribe({
       next: response => {
-        this.data.set(response.respuesta)
-        console.log(response)
+        const proyectos = response.respuesta.map(res => {
+          return res.proyecto
+        });
+
+        this.data.set(proyectos);
+
+        console.log("Proyectos: ",proyectos)
         this.totalPage = 1;
       },
       error: error => {

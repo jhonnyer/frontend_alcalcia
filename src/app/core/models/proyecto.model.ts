@@ -1,3 +1,5 @@
+import { ICategorias } from './categorias.model';
+
 type EstadoProyecto = 'A' | 'I' | 'P';
 type TipoProyecto = 'D' | 'M';
 
@@ -11,4 +13,9 @@ export interface IProyecto{
   fechaInicio: string;
   fechaFin: string;
   tipoProyecto: TipoProyecto;
+}
+
+export interface IProyectoAndResponse{
+  proyecto: IProyecto;
+  categorias: ICategorias;
 }

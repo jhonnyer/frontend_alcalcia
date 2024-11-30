@@ -1,10 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { IProyecto } from '../models/proyecto.model';
+import { IProyecto, IProyectoAndResponse } from '../models/proyecto.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
-import { response } from 'express';
 import { ResponseStandar } from '../models/response.model';
 
 @Injectable({
@@ -14,8 +13,8 @@ export class ProyectosService {
   private readonly URL = environment.URL_API;
   private http = inject(HttpClient);
 
-  getAll(): Observable<ResponseStandar<IProyecto>> {
-    return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/list`, { context: checkToken() }).pipe(
+  getAll(): Observable<ResponseStandar<IProyectoAndResponse>> {
+    return this.http.get<ResponseStandar<IProyectoAndResponse>>(`${this.URL}/proyectos/list`, { context: checkToken() }).pipe(
       tap(response => {
         console.log(response)
       })

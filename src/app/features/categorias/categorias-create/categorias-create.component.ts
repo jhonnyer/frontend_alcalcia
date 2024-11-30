@@ -1,11 +1,55 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
+import { CategoriasService } from '../../../core/services/categorias.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-categorias-create',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, ReactiveFormsModule],
   styles: ``,
-  templateUrl: './categorias-create.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './categorias-create.component.html'
 })
-export class CategoriasCreateComponent { }
+export class CategoriasCreateComponent {
+  public formFamilyCore: FormGroup = new FormGroup({});
+  private fb = inject(FormBuilder);
+  private categoriasService = inject(CategoriasService);
+  private router = inject(Router);
+
+  ngOnInit(): void {
+    this.initFormFamilyCore();
+
+  }
+
+  initFormFamilyCore(): void {
+    this.formFamilyCore = this.fb.group({
+      nombre: ['', [Validators.required]],
+      descripcion: [''],
+    });
+  }
+
+  // Referencia cada campo que se crea en el html
+  getCtrl(key: string, form: FormGroup): FormArray {
+    return form.get(key) as FormArray;
+  }
+
+  onSubmit() {
+    console.log("Categorias: ", this.formFamilyCore.value)
+    if(this.formFamilyCore.valid){
+      this.categoriasService.post(this.formFamilyCore.value).subscribe({
+        next: response => {
+          alert('Se ha guardado correctamente la categoría');
+          this.router.navigate(["categorias"]);
+        },
+        error: error => {
+          alert('Ha ocurrido un error al cargar los datos');
+        }
+      })
+	  }else{
+		  this.formFamilyCore.markAllAsTouched();
+	  }
+  }
+
+}

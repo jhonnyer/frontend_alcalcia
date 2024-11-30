@@ -18,3 +18,17 @@ export interface IActa {
   prioridad: PrioridadActa;
   tiposSolicitud: string;
 }
+
+export interface IActaById {
+  idActa: number;
+  fechaCreacion: string;
+  estado: EstadoActa;
+  fechaEntrega: string;
+  beneficiarioFk: IBeneficiario;
+  proyecto: IProyecto;
+  responsable: IResponsable;
+  ubicacionEntrega: string;
+  observaciones: string;
+  prioridad: PrioridadActa;
+  tiposSolicitud: string;
+}

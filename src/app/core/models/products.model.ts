@@ -19,5 +19,4 @@ export interface IProducto {
   descripcion: string;
   stock: number;
   fechaIngreso: string | null;
-  cantidad: number;
 }

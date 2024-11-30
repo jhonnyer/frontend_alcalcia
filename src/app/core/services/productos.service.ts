@@ -25,7 +25,7 @@ export class ProductosService {
     return this.http.post<IProducto>(`${this.URL}/productos}`, data, { context: checkToken() });
   }
 
-  putById(idProducto: string, data:IProducto) {
+  updateById(idProducto: string, data:IProducto) {
     this.http.put(`${this.URL}/productos/${idProducto}`, data, { context: checkToken() });
   }
 

@@ -1,10 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { IActa } from '../models/acta.model';
+import { IActa, IActaById } from '../models/acta.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
 import { TokenService } from './token.service';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
+import { ResponseStandar } from '../models/response.model';
 // import { PaginatedResponse } from '../models/pagination.model';
 
 @Injectable({
@@ -14,25 +15,88 @@ export class ActasService {
   // private readonly URL = environment.URL_API;
   private readonly URL = '/api';
   private http = inject(HttpClient);
-  private tokenService = inject(TokenService);
-
-  getHeader() {
-    return new HttpHeaders({
-      'Authorization': `Bearer ${this.tokenService.getToken()}`,
-      'Content-Type': 'application/json'
-    });
-  }
 
   getAll(): Observable<IActa[]> {
     return this.http.get<IActa[]>(`${this.URL}/actas/list`, { context: checkToken() }).pipe(
       tap(actas => {
         actas.forEach(acta => {
-          // acta.fechaCreacion = this.formatDate(acta.fechaCreacion);
-          // acta.fechaEntrega = this.formatDate(acta.fechaEntrega);
           acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);
         });
       })
     );
+  }
+
+  getById(idActa: string): Observable<ResponseStandar<IActaById>> {
+    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/${idActa}`, { context: checkToken() }).pipe(
+      tap((acta:ResponseStandar<IActaById>) => {
+        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+      })
+    );
+  }
+
+  getByEstado(estadoActa: string): Observable<ResponseStandar<IActaById>> {
+    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/estado/${estadoActa}`, { context: checkToken() }).pipe(
+      tap(acta => {
+        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+      })
+    );
+  }
+
+  getByPriorida(prioridadActa: string): Observable<ResponseStandar<IActaById>> {
+    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/estado/${prioridadActa}`, { context: checkToken() }).pipe(
+      tap(acta => {
+        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+      })
+    );
+  }
+
+  getByFecha(fechaInicio: string, fechaFin: string): Observable<ResponseStandar<IActaById>> {
+    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/fechas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, { context: checkToken() }).pipe(
+      tap(acta => {
+        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+      })
+    );
+  }
+
+  /**
+   *
+   * @param params Parametros cedula, primerNombre, segundoNombre del responsable
+   * @returns Object actas
+   */
+  getByParamsResponsable(params:string): Observable<ResponseStandar<IActaById>> {
+    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas//responsable/${params}`, { context: checkToken() }).pipe(
+      tap(acta => {
+        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+      })
+    );
+  }
+
+  post(acta:Partial<IActa>): Observable<IActa> {
+    return this.http.post<IActa>(`${this.URL}/actas`, acta ,{ context: checkToken() }).pipe(
+      tap(acta => {
+        acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);
+      })
+    );
+  }
+
+  update(acta:Partial<IActa>): Observable<IActa> {
+    return this.http.post<IActa>(`${this.URL}/actas/${acta.idActa}`, acta ,{ context: checkToken() }).pipe(
+      tap(acta => {
+        acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);
+      })
+    );
+  }
+
+  updateAdjudicarUnResponsable(idActa: string, idResponsable: string): Observable<IActa> {
+    return this.http.post<IActa>(`${this.URL}/actas/${idActa}/responsable/${idResponsable}`, { context: checkToken() }).pipe(
+      tap(acta => {
+        acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);
+      })
+    );
+  }
+
+  deleteById(id: string) {
+    this.http.delete(`${this.URL}/actas/${id}`, { context: checkToken() });
   }
 
   private formatDate(dateString: string): string {

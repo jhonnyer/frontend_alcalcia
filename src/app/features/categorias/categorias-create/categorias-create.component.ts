@@ -36,7 +36,6 @@ export class CategoriasCreateComponent {
   }
 
   onSubmit() {
-    console.log("Categorias: ", this.formFamilyCore.value)
     if(this.formFamilyCore.valid){
       this.categoriasService.post(this.formFamilyCore.value).subscribe({
         next: response => {

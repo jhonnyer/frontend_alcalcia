@@ -61,18 +61,7 @@ export class ProjectUpdateComponent implements OnInit {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
-      const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
-      const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
-
-      this.formFamilyCore.patchValue({
-        numeroIntegrantes: null,
-        idZonaFk: zona,
-        idBarrioFk: barrio
-      });
-
-      delete this.formFamilyCore.value.idNucleo;
-
-
+      console.log("Send Project: ", this.formFamilyCore.value)
       this.proyectosService.updateById(this.proyectoId, this.formFamilyCore.value).subscribe({
         next: response => {
           alert('Se ha guardado correctamente el núcleo');

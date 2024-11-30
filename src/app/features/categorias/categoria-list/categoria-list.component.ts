@@ -58,7 +58,6 @@ export class CategoriaListComponent {
     this.categoriasService.getAll().subscribe({
       next: response => {
         this.data.set(response);
-        console.log("Categorías: ", this.data())
         this.totalPage = 1;
       },
       error: error => {
@@ -69,14 +68,12 @@ export class CategoriaListComponent {
 
   nextPage() {
     this.currentPage++;
-    console.log("Siguiente: ", this.currentPage)
     this.getAll();
   }
 
   previousPage() {
     if (this.currentPage >= 0) {
       this.currentPage--;
-      console.log("previo: ", this.currentPage)
       this.getAll();
     }
   }
@@ -93,7 +90,7 @@ export class CategoriaListComponent {
   }
 
   update(item: ICategorias){
-    console.log("update/: ", item)
+    // console.log("update/: ", item)
     this.router.navigate(["categorias/update/", item.idCategoria]);
   }
 }

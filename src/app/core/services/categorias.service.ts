@@ -16,7 +16,7 @@ export class CategoriasService {
   }
 
   getById(categoriaId: string): Observable<ICategorias>{
-    return this.http.get<ICategorias>(`${environment.URL_API}/categorias/list/${categoriaId}`, { context: checkToken() });
+    return this.http.get<ICategorias>(`${environment.URL_API}/categorias/${categoriaId}`, { context: checkToken() });
   }
 
   /**
@@ -31,12 +31,8 @@ export class CategoriasService {
     return this.http.post<ICategorias>(`${environment.URL_API}/categorias`, categoria ,{ context: checkToken() });
   }
 
-  update(categoria: Partial<ICategorias>): Observable<ICategorias>{
-    return this.http.put<ICategorias>(`${environment.URL_API}/categorias/${categoria.idCategoria}}`,
-      {
-        nombre: categoria.nombre,
-        descripcion: categoria.descripcion,
-      }, { context: checkToken() });
+  updateById(idCategoria: string, categoria: Partial<ICategorias>): Observable<ICategorias>{
+    return this.http.put<ICategorias>(`${environment.URL_API}/categorias/${idCategoria}`, categoria, { context: checkToken() });
   }
 
   delete(idCategoria: string): void{

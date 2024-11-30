@@ -3,3 +3,9 @@ export interface ResponseStandar<T> {
   mensaje: string;
   estado: string;
 }
+
+export interface ResponseStandarUnique<T> {
+  respuesta: T;
+  mensaje: string;
+  estado: string;
+}

@@ -15,7 +15,7 @@ export interface IProyecto{
   tipoProyecto: TipoProyecto;
 }
 
-export interface IProyectoAndResponse{
+export interface IProyectoAndCategoria{
   proyecto: IProyecto;
   categorias: ICategorias;
 }

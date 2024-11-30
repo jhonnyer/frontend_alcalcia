@@ -27,7 +27,7 @@ export class NucleoUpdateComponent implements OnInit{
   private router = inject(Router);
 
   nucleo = signal<INucleoUpdate| null>(null);
-  nucleoId!: number;
+  // nucleoId!: number;
   zonas = signal<IZona[]>([]);
   listBeneficiaries = signal<IBeneficiario[]>([]);
 
@@ -49,7 +49,7 @@ export class NucleoUpdateComponent implements OnInit{
     this.nucleoService.getById(this.nucleoID).subscribe({
       next: ( response:INucleoUpdate ) => {
         this.nucleo.set(response);
-        this.nucleoId = response.idNucleo;
+        // this.nucleoId = response.idNucleo;
         this.initNucleo(response);
         this.listBeneficiaries.set(response.beneficiarios);
         this.initBeneficiaries(response.beneficiarios)

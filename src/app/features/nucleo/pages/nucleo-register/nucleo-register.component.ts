@@ -10,7 +10,6 @@ import { Subscription } from 'rxjs';
 
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { Router } from '@angular/router';
-import { IBeneficiario } from '../../../../core/models/beneficiary.models';
 
 @Component({
   selector: 'app-nucleo-register',

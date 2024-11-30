@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ProyectosService } from '../../../../core/services/proyectos.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-project-create',
@@ -13,6 +15,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 export class ProjectCreateComponent {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
+  private proyectosService = inject(ProyectosService);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.initFormFamilyCore();
@@ -22,10 +26,11 @@ export class ProjectCreateComponent {
   initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
       nombre: ['', [Validators.required]],
-      categoria: ['', [Validators.required]],
+      tipoProyecto: ['', [Validators.required]],
       fechaInicio: ['', [Validators.required]],
-      fechaFin: ['', [Validators.required]],
-      estado: ['', [Validators.required]],
+      fechaFin: [''],
+      estado: ['A', [Validators.required]],
+      descripcion: [''],
     });
   }
 
@@ -35,9 +40,17 @@ export class ProjectCreateComponent {
   }
 
   onSubmit() {
+    console.log("Proyectos: ", this.formFamilyCore.value)
     if(this.formFamilyCore.valid){
-      console.log("Form Family Core");
-      console.log(this.formFamilyCore.value);
+      this.proyectosService.post(this.formFamilyCore.value).subscribe({
+        next: response => {
+          alert('Se ha guardado correctamente el proyecto');
+          this.router.navigate(["projects"]);
+        },
+        error: error => {
+          alert('Ha ocurrido un error al cargar los datos');
+        }
+      })
 	  }else{
 		  this.formFamilyCore.markAllAsTouched();
 	  }

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-home',
@@ -7,6 +8,10 @@ import { Component } from '@angular/core';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit{
+  private pageTitleService = inject(PageTitleService);
 
+  ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Home');
+  }
 }

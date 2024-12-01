@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { response } from 'express';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-login',
@@ -14,12 +14,14 @@ import { response } from 'express';
 })
 export class LoginComponent {
   private readonly authService = inject(AuthService);
+  private readonly pageTitleService = inject(PageTitleService);
 
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
 
   ngOnInit(): void {
     this.initFormFamilyCore();
+    this.pageTitleService.setCurrentPage('Login');
   }
 
   initFormFamilyCore(): void {
@@ -39,7 +41,7 @@ export class LoginComponent {
           alert('Inicio de sesión exitoso');
         },
         error: error=> {
-          alert('Verifica tus credenciales');
+          alert('Verifica tus credenciales con un administrador');
           console.log("Error en el servicio")
         }
       })

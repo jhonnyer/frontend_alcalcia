@@ -36,6 +36,11 @@ export class LoginComponent {
       this.authService.login(this.formFamilyCore.value).subscribe({
         next: response => {
           console.log(response);
+          alert('Inicio de sesión exitoso');
+        },
+        error: error=> {
+          alert('Verifica tus credenciales');
+          console.log("Error en el servicio")
         }
       })
 	  }else{

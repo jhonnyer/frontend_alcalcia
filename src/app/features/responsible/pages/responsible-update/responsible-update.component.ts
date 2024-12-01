@@ -73,7 +73,7 @@ export class ResponsibleUpdateComponent implements OnInit{
       telefono: ['', [Validators.required]],
       estado: ['', [Validators.required]],
       perfilUsuario: ['', [Validators.required]],
-      password: ['admin123', [Validators.required]]
+      password: ['']
     });
   }
 

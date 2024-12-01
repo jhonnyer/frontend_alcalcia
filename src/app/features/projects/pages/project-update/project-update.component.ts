@@ -54,7 +54,7 @@ export class ProjectUpdateComponent implements OnInit {
       tipoProyecto: ['', [Validators.required]],
       fechaInicio: ['', [Validators.required]],
       fechaFin: [''],
-      estado: ['A', [Validators.required]],
+      estado: ['', [Validators.required]],
       descripcion: [''],
     });
   }

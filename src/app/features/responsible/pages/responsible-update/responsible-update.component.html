@@ -1,0 +1,216 @@
+<section class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
+  <div class="flex flex-col items-center justify-center px-6 py-8 lg:py-0 bg-white/2">
+
+      <div class="w-full bg-white rounded-lg shadow md:mt-0 xl:p-0">
+          <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
+              <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl ">
+                Activa una cuenta
+              </h1>
+              <form class="space-y-4 md:space-y-6" [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()">
+                <div class="w-full">
+                  <label for="usuario" class="label-base">Usuario</label>
+                  <input formControlName="usuario" type="usuario" id="usuario" class="input-base" placeholder="beneficiario@correo.com">
+                  @if(formFamilyCore.get('usuario')?.hasError('required') && formFamilyCore.get('usuario')?.touched) {
+                    <p class="text-red-500">
+                      * Este campo es requerido
+                    </p>
+                  }
+                </div>
+
+                <div class="w-full">
+                  <label for="email" class="label-base">Email</label>
+                  <input formControlName="email" type="email" id="email" class="input-base" placeholder="beneficiario@correo.com">
+                  @if(formFamilyCore.get('email')?.hasError('required') && formFamilyCore.get('email')?.touched) {
+                    <p class="text-red-500">
+                      * Este campo es requerido
+                    </p>
+                  }
+                </div>
+
+                  <div class="w-full flex flex-wrap justify-between">
+                    <div class="w-full md:w-[49%]">
+                      <label for="nombre_1" class="label-base">Primer nombre</label>
+                      <input formControlName="primerNombre" type="text" id="nombre_1" class="input-base" placeholder="Primer nombre">
+
+                      @if(formFamilyCore.get('primerNombre')?.hasError('required') && formFamilyCore.get('primerNombre')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+
+                    <div class="w-full md:w-[49%]">
+                      <label for="nombre_2" class="label-base">Segundo nombre</label>
+                      <input formControlName="segundoNombre" type="text" id="nombre_2" class="input-base" placeholder="Segundo nombre">
+
+                      @if(formFamilyCore.get('segundoNombre')?.hasError('required') && formFamilyCore.get('segundoNombre')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="w-full flex flex-wrap justify-between">
+                    <div class="w-full md:w-[49%]">
+                      <label for="apellido_1" class="label-base">Primer apellido</label>
+                      <input formControlName="primerApellido" type="text" id="apellido_1" class="input-base" placeholder="Primer apellido">
+
+                      @if(formFamilyCore.get('primerApellido')?.hasError('required') && formFamilyCore.get('primerApellido')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+
+                    <div class="w-full md:w-[49%]">
+                      <label for="apellido_2" class="label-base">Segundo apellido</label>
+                      <input formControlName="segundoApellido" type="text" id="apellido_2" class="input-base" placeholder="Segundo apellido">
+
+                      @if(formFamilyCore.get('segundoApellido')?.hasError('required') && formFamilyCore.get('segundoApellido')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="w-full flex justify-between md:gap-5 flex-wrap md:flex-nowrap">
+                    <div class="w-full md:w-52">
+                      <label for="tipo_documento" class="label-base">Tipo de documento</label>
+                      <select formControlName="tipoIdentificacion" name="tipo_documento" id="tipo_documento" class="input-base">
+                        <option [value]="'CC'" class="input-base capitalize">C.C</option>
+                        <option [value]="'TI'" class="input-base capitalize" >t.i</option>
+                        <option [value]="'pasaporte'" class="input-base capitalize" >pasaporte</option>
+                      </select>
+
+                      @if(formFamilyCore.get('tipoIdentificacion')?.hasError('required') && formFamilyCore.get('tipoIdentificacion')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+
+                    <div class="w-full">
+                      <label for="id" class="label-base">Número de documento</label>
+                      <input formControlName="numeroIdentificacion" type="text" id="id" class="input-base" placeholder="Documento">
+
+                      @if(formFamilyCore.get('numeroIdentificacion')?.hasError('required') && formFamilyCore.get('numeroIdentificacion')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="flex flex-wrap justify-between">
+                    <div class="w-full md:w-[49%]">
+                      <label for="area" class="label-base">Área</label>
+                      <input formControlName="area" type="text" id="area" class="input-base" placeholder="Área">
+
+
+                      @if(formFamilyCore.get('area')?.hasError('required') && formFamilyCore.get('area')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+
+                    <div class="w-full md:w-[49%]">
+                      <label for="cargo" class="label-base">Cargo</label>
+                      <input formControlName="cargo" type="text" id="cargo" class="input-base" placeholder="Cargo">
+
+
+                      @if(formFamilyCore.get('cargo')?.hasError('required') && formFamilyCore.get('cargo')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+
+                  <div class="w-full">
+                    <label for="phone" class="label-base">Telefono</label>
+                    <input formControlName="telefono" type="tel" id="phone" class="input-base" placeholder="+1 (555) 123-4567">
+                    @if(formFamilyCore.get('telefono')?.hasError('required') && formFamilyCore.get('telefono')?.touched) {
+                      <p class="text-red-500">
+                        * Este campo es requerido
+                      </p>
+                    }
+                  </div>
+
+                  <div class="w-full flex flex-wrap justify-between my-4 gap-4">
+
+                    <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+                      <label>Estado: </label>
+                      <input formControlName="estado" type="radio" value="A" class="input-radio-base"> Activo
+                      <input formControlName="estado" type="radio" value="I" class="input-radio-base"> Inactivo
+
+                      @if(formFamilyCore.get('estado')?.hasError('required') && formFamilyCore.get('estado')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+
+                    <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+                      <label>Perfil del usuario: </label>
+                      <input formControlName="perfilUsuario" type="radio" value="RESP"   class="input-radio-base"> Responsable
+                      <input formControlName="perfilUsuario" type="radio" value="ADMIN" class="input-radio-base"> Administrador
+
+                      @if(formFamilyCore.get('genero')?.hasError('required') && formFamilyCore.get('genero')?.touched) {
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- <div>
+                    <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Contraseña</label>
+                    <input type="password" formControlName="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" required="">
+                    @if(formFamilyCore.get('password')?.hasError('required')  && formFamilyCore.get('password')?.touched) {
+                      <p class="text-red-500">
+                        * Este campo es requerido
+                      </p>
+                    }
+                  </div>-->
+
+                  <!--
+                  <div>
+                    <label for="confirmPassword" class="block mb-2 text-sm font-medium text-gray-900 ">Confirma tú contraseña</label>
+                    <input type="password" formControlName="confirmPassword" id="confirmPassword" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" required="">
+                    @if(formFamilyCore.touched && formFamilyCore.invalid) {
+                      @if(formFamilyCore.hasError('match_password')){
+                        <p class="text-red-500">
+                          * Tu password no es el mismo
+                        </p>
+                      }
+                      @if(formFamilyCore.get('confirmPassword')?.hasError('required')){
+                        <p class="text-red-500">
+                          * Este campo es requerido
+                        </p>
+                      }
+                    }
+                  </div> -->
+
+
+                  <!-- <div class="flex items-center justify-between">
+                      <a href="#" class="text-sm font-medium text-blue-600 hover:underline">¿Has olvidado tu contraseña?</a>
+                  </div> -->
+                  <button
+                    type="submit"
+                    class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                    Actualizar
+                  </button>
+                  <!-- <p class="text-sm font-light text-gray-500">
+                    ¿Ya tienes una cuenta?
+                    <a routerLink="/auth"  class="font-medium text-blue-600 hover:underline">Ingresa</a>
+                  </p> -->
+              </form>
+          </div>
+      </div>
+  </div>
+</section>
+

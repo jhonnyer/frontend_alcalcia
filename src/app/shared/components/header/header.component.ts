@@ -1,5 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { SearchService } from '../../../core/services/search.service';
+import { PageTitleService } from '../../../core/services/pageTitle.service';
+
 import {
   CdkMenuItemRadio,
   CdkMenuItemCheckbox,
@@ -18,15 +20,17 @@ import {
     CdkMenuItem,
     CdkMenuTrigger,
     CdkMenu,
-    CdkMenuGroup,
-    CdkMenuItemCheckbox,
-    CdkMenuItemRadio,
+    // CdkMenuGroup,
+    // CdkMenuItemCheckbox,
+    // CdkMenuItemRadio,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
   public searchService = inject(SearchService);
+  public pageTitleService = inject(PageTitleService);
+
   searchTerm = this.searchService.getSearchTerm();
 
   onSearch(event: Event) {

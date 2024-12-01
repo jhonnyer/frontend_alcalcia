@@ -108,7 +108,7 @@ export class ResponsiblesListComponent {
 
   update(item: IResponsable){
     console.log("update/: ", item)
-    // this.router.navigate(["nucleo/update/", item.idNucleo]);
+    this.router.navigate(["resposibles/update/", item.idResponsable]);
   }
 
 

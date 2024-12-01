@@ -25,13 +25,16 @@ export class ResponsibleCreateComponent {
       segundoNombre: ['', [Validators.required]],
       primerApellido: ['', [Validators.required]],
       segundoApellido: ['', [Validators.required]],
-      tipoDocumento: ['cc', [Validators.required]],
+      tipoIdentificacion: ['cc', [Validators.required]],
       numeroIdentificacion: ['', [Validators.required]],
       area: ['', [Validators.required]],
       cargo: ['', [Validators.required]],
       email: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
-      estado: [false, [Validators.required]],
+      estado: ['I', [Validators.required]],
+      usuario: ['', [Validators.required]],
+      password: ['', [Validators.required]],
+      perfilUsuario: ['', [Validators.required]],
     });
   }
 

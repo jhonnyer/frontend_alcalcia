@@ -19,19 +19,21 @@ export class ResponsibleService {
 
   /**
    *
-   * @param responsabelParam Puede ser el id, la cedula o el nombre como string
+   * @param responsabelParam Puede ser el id, la cedula o el nombre del responsable
    * @returns Object responsable
    */
-  getById(responsabelParam: string): Observable<IResponsable> {
+  getByParams(responsabelParam: string): Observable<IResponsable> {
     return this.http.get<IResponsable>(`${this.URL}/responsables/${responsabelParam}`, { context: checkToken() });
   }
 
   post(responsable: Partial<IResponsable>): Observable<IResponsable> {
+    console.log(`${this.URL}/responsables`)
+    console.log(`responsables: ${responsable}`)
     return this.http.post<IResponsable>(`${this.URL}/responsables`, responsable, { context: checkToken() });
   }
 
-  update(responsable: IResponsable): Observable<IResponsable> {
-    return this.http.post<IResponsable>(`${this.URL}/responsables/${responsable.idResponsable}`, responsable, { context: checkToken() });
+  updateById(idResponsable: string,responsable: Partial<IResponsable>): Observable<IResponsable> {
+    return this.http.put<IResponsable>(`${this.URL}/responsables/${idResponsable}`, responsable, { context: checkToken() });
   }
 
   delete(idResponsable: string): void {

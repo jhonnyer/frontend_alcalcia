@@ -4,6 +4,8 @@ import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MyValidators } from '../../../../core/utils/validators';
+import { Router } from '@angular/router';
+import { ResponsibleService } from '../../../../core/services/responsible.service';
 
 @Component({
   selector: 'app-register',
@@ -15,6 +17,8 @@ import { MyValidators } from '../../../../core/utils/validators';
 export class RegisterComponent {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
+  private responsibleService = inject(ResponsibleService);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.initFormFamilyCore();
@@ -23,9 +27,9 @@ export class RegisterComponent {
   initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
       primerNombre: ['', [Validators.required]],
-      segundoNombre: ['', [Validators.required]],
+      segundoNombre: [''],
       primerApellido: ['', [Validators.required]],
-      segundoApellido: ['', [Validators.required]],
+      segundoApellido: [''],
       tipoIdentificacion: ['cc', [Validators.required]],
       numeroIdentificacion: ['', [Validators.required]],
       area: ['', [Validators.required]],
@@ -33,9 +37,10 @@ export class RegisterComponent {
       email: ['', [Validators.required]],
       usuario: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
-      estado: ['I', [Validators.required]],
       password: ['', [Validators.required]],
-      confirmPassword : ['', [Validators.required]]
+      confirmPassword : ['', [Validators.required]],
+      estado: ['I', [Validators.required]],
+      perfilUsuario: ['RESP', [Validators.required]],
     },{
       validators: [MyValidators.matchPasswords]
     });
@@ -50,9 +55,16 @@ export class RegisterComponent {
     if(this.formFamilyCore.valid){
       console.log("Form Family Core");
       console.log(this.formFamilyCore.value);
+      delete this.formFamilyCore.value.confirmPassword;
+      this.responsibleService.post(this.formFamilyCore.value).subscribe({
+        next: response => {
+          alert('Tu perfil se ha creado correctamente, debes contactar un administrador para activar tu cuenta');
+          this.router.navigate(['auth']);
+        }
+      })
 	  }else{
       console.log("Form Error");
-      console.log(this.formFamilyCore.value);
+      alert('Verifica los campos del formulario de registro');
 		  this.formFamilyCore.markAllAsTouched();
 	  }
   }

@@ -9,7 +9,7 @@ import { StepperPaginationComponent } from '../../../../shared/components/steppe
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { Router } from '@angular/router';
 import { SearchService } from '../../../../core/services/search.service';
-
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-beneficiary-list',
@@ -24,6 +24,7 @@ export class BeneficiaryListComponent implements OnInit {
   private searchService = inject(SearchService);
   injector = inject(Injector);
   private router = inject(Router);
+  private pageTitleService = inject(PageTitleService);
 
   currentPage = 0;
   data = signal<IBeneficiario[]>([]);
@@ -69,6 +70,7 @@ export class BeneficiaryListComponent implements OnInit {
   ]
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Beneficiarios');
     this.trackSearchTerm();
     this.getAll();
   }

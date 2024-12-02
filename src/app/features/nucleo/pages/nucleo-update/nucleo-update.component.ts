@@ -10,6 +10,8 @@ import { Subscription } from 'rxjs';
 import { IZona } from '../../../../core/models/zona.models';
 import { IBarrio } from '../../../../core/models/barrio.model';
 import { Router } from '@angular/router';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
+
 @Component({
   selector: 'app-nucleo-update',
   standalone: true,
@@ -25,6 +27,7 @@ export class NucleoUpdateComponent implements OnInit{
   private readonly nucleoService = inject(NucleoService);
   private readonly zonaService = inject(ZonaService);
   private router = inject(Router);
+  private pageTitleService = inject(PageTitleService);
 
   nucleo = signal<INucleoUpdate| null>(null);
   // nucleoId!: number;
@@ -38,7 +41,7 @@ export class NucleoUpdateComponent implements OnInit{
   private fb = inject(FormBuilder);
 
   ngOnInit(): void {
-    // console.log("nucleoID", this.nucleoID)
+    this.pageTitleService.setCurrentPage('Actualizar núcleo');
     this.initFormFamilyCore();
     this.getAllZonas();
     this.changeZona();

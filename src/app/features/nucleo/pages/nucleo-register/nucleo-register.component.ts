@@ -10,6 +10,7 @@ import { Subscription } from 'rxjs';
 
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { Router } from '@angular/router';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-nucleo-register',
@@ -24,12 +25,14 @@ export class NucleoRegisterComponent implements OnDestroy {
   private zonaService = inject(ZonaService);
   private nucleoService = inject(NucleoService);
   private router = inject(Router);
+  private pageTitleService = inject(PageTitleService);
 
   zonas = signal<IZona[]>([]);
   private zonasSubscription!: Subscription;
   barrios = signal<IBarrio[]>([]);
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Registrar un núcleo');
     this.initFormFamilyCore();
     this.getAllZonas();
     this.changeZona();

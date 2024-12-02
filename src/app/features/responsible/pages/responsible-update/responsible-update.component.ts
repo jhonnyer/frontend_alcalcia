@@ -2,10 +2,10 @@ import { Component, inject, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { Router } from '@angular/router';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
 import { IResponsable } from '../../../../core/models/responsable.model';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-responsible-update',
@@ -24,7 +24,7 @@ export class ResponsibleUpdateComponent implements OnInit{
   private pageTitleService = inject(PageTitleService);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Actualizar responsable')
+    this.pageTitleService.setCurrentPage('Actualizar responsable');
     this.initFormFamilyCore();
     this.getResponsableById();
   }

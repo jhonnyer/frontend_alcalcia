@@ -11,6 +11,8 @@ import { TableTemplateComponent } from '../../../../shared/components/table-temp
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
 import { INucleoUpdate } from '../../../../core/models/nucleo.model';
 
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
+
 @Component({
   selector: 'app-nucleos',
   standalone: true,
@@ -23,6 +25,7 @@ export class NucleosComponent implements OnInit{
   private searchService = inject(SearchService);
   injector = inject(Injector);
   private router = inject(Router);
+  private pageTitleService = inject(PageTitleService);
 
 
   currentPage = 0;
@@ -55,6 +58,7 @@ export class NucleosComponent implements OnInit{
   ]
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Lista de núcleos');
     this.trackSearchTerm();
     this.getAll();
   }

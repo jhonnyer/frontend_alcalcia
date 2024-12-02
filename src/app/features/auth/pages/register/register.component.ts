@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
 import { MyValidators } from '../../../../core/utils/validators';
 import { Router } from '@angular/router';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-register',
@@ -19,8 +20,10 @@ export class RegisterComponent {
   private fb = inject(FormBuilder);
   private responsibleService = inject(ResponsibleService);
   private router = inject(Router);
+  private pageTitleService = inject(PageTitleService);
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Registro de usuario');
     this.initFormFamilyCore();
   }
 

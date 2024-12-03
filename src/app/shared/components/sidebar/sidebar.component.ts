@@ -9,6 +9,8 @@ import { ListResponsibleComponent } from './components/list-responsible/list-res
 import { ListCategoriasComponent } from './components/list-categorias/list-categorias.component';
 // import { ListUsersComponent } from './components/list-users/list-users.component';
 import { ListProjectsComponent } from "./components/list-projects/list-projects.component";
+import { ShowForRolesDirective } from '../../../core/directives/show-for-roles.directive';
+
 
 @Component({
   selector: 'app-sidebar',
@@ -22,7 +24,8 @@ import { ListProjectsComponent } from "./components/list-projects/list-projects.
     ListProceedingsComponent,
     ListResponsibleComponent,
     ListProjectsComponent,
-    ListCategoriasComponent
+    ListCategoriasComponent,
+    ShowForRolesDirective
 ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'

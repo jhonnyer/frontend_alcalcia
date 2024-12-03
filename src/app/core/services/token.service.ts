@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { jwtDecode } from "jwt-decode";
 import { IResponseLogin } from '../models/responseLogin.model';
+import { BehaviorSubject } from 'rxjs';
 
 interface JwtPayload {
   id: string;
@@ -16,6 +17,10 @@ export class TokenService {
   private TOKEN_KEY = 'auth_token';
   private USER_ROLE_KEY = 'user_role';
   private USER_STATE_KEY = 'user_state';
+
+  // Observable para notificar cambios en el token
+  private tokenChangesSubject = new BehaviorSubject<string | null>(this.getToken());
+  tokenChanges$ = this.tokenChangesSubject.asObservable();
 
   // Método para verificar si localStorage está disponible
   private isLocalStorageAvailable(): boolean {
@@ -36,12 +41,17 @@ export class TokenService {
 
       // Guardar estado del usuario
       localStorage.setItem(this.USER_STATE_KEY, response.estadoUser);
+
+      // Notificar cambio de token
+      this.tokenChangesSubject.next(response.token);
     }
   }
 
   saveToken(token: string): void {
     if (this.isLocalStorageAvailable()) {
       localStorage.setItem(this.TOKEN_KEY, token);
+      // Notificar cambio de token
+      this.tokenChangesSubject.next(token);
     }
   }
 
@@ -71,6 +81,8 @@ export class TokenService {
       localStorage.removeItem(this.TOKEN_KEY);
       localStorage.removeItem(this.USER_ROLE_KEY);
       localStorage.removeItem(this.USER_STATE_KEY);
+      // Notificar que el token ha sido eliminado
+      this.tokenChangesSubject.next(null);
     }
   }
 

@@ -1,6 +1,6 @@
-type TipoIdentificacion = 'CC' | 'PA' | 'NIT' | 'TI' | 'CE';
-type EstadoResponsabel = 'A' | 'I';
-type PerfilUsuario = 'ADMIN' | 'RESP';
+export type TipoIdentificacion = 'CC' | 'PA' | 'NIT' | 'TI' | 'CE';
+export type EstadoResponsabel = 'A' | 'I';
+export type PerfilUsuario = 'ADMIN' | 'RESP';
 
 export interface IResponsable {
   idResponsable: number;

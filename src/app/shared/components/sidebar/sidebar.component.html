@@ -14,15 +14,15 @@
   </div>
 
   <div class="m-4">
-    <app-list-home/>
-    <app-list-nucleo/>
-    <app-list-beneficiary/>
-    <app-list-proceedings/>
-    <app-list-responsible/>
-    <app-list-projects/>
-    <app-list-categorias></app-list-categorias>
-    <app-list-inventory/>
-    <!-- <app-list-users/> -->
+    <app-list-home *appShowForRoles="['ADMIN', 'RESP']"/>
+    <app-list-nucleo *appShowForRoles="['ADMIN', 'RESP']"/>
+    <app-list-beneficiary *appShowForRoles="['ADMIN', 'RESP']"/>
+    <app-list-proceedings *appShowForRoles="['ADMIN', 'RESP']"/>
+    <app-list-responsible *appShowForRoles="['ADMIN', 'RESP']"/>
+    <app-list-projects *appShowForRoles="['ADMIN', 'RESP']"/>
+    <app-list-categorias *appShowForRoles="['ADMIN', 'RESP']"/>
+    <app-list-inventory *appShowForRoles="['ADMIN', 'RESP']"/>
+    <!-- <app-list-users *appShowForRoles="['ADMIN', 'RESP']"/> -->
     <app-list-auth/>
   </div>
 </aside>

@@ -1,7 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { SearchService } from '../../../core/services/search.service';
 import { PageTitleService } from '../../../core/services/pageTitle.service';
-
+import { TokenService } from '../../../core/services/token.service';
+import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   CdkMenuItemRadio,
   CdkMenuItemCheckbox,
@@ -20,6 +22,7 @@ import {
     CdkMenuItem,
     CdkMenuTrigger,
     CdkMenu,
+    RouterLink
     // CdkMenuGroup,
     // CdkMenuItemCheckbox,
     // CdkMenuItemRadio,
@@ -27,11 +30,30 @@ import {
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
+
   public searchService = inject(SearchService);
   public pageTitleService = inject(PageTitleService);
+  public tokenService = inject(TokenService);
+  public route = inject(Router);
+
+  loginUser: boolean = false;
 
   searchTerm = this.searchService.getSearchTerm();
+
+  ngOnInit(): void {
+    console.log(this.pageTitleService.getCurrentPage());
+  }
+
+  loginState(){
+    // Primero verificar si el usuario está logueado (token no expirado)
+    this.loginUser = !this.tokenService.getToken();
+  }
+
+  logout(){
+    this.tokenService.clearToken();
+    this.route.navigate(['/auth']);
+  }
 
   onSearch(event: Event) {
     const target = event.target as HTMLInputElement;

@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { Products, ColumnKeys } from '../../../../core/models/products.model';
 import { productsList } from '../../../../core/data/products.data';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
+
 @Component({
   selector: 'app-inventory-detail',
   standalone: true,
@@ -9,8 +11,15 @@ import { TableTemplateComponent } from '../../../../shared/components/table-temp
   templateUrl: './inventory-detail.component.html',
   styleUrl: './inventory-detail.component.scss'
 })
-export class InventoryDetailComponent {
+export class InventoryDetailComponent implements OnInit{
+
+  private pageTitleService = inject(PageTitleService);
+
   data: Products[] = productsList;
+
+  ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Detalle producto');
+  }
 
   displayedColumns: (keyof Products | 'controls')[] = [
     "codigo",

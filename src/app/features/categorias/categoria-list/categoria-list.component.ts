@@ -10,6 +10,7 @@ import { CategoriasService } from '../../../core/services/categorias.service';
 import { TableTemplateComponent } from '../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../shared/components/stepper-pagination/stepper-pagination.component';
 import { ICategorias } from '../../../core/models/categorias.model';
+import { PageTitleService } from '../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-categoria-list',
@@ -18,11 +19,11 @@ import { ICategorias } from '../../../core/models/categorias.model';
   styles: ``,
   templateUrl: './categoria-list.component.html',
 })
-export class CategoriaListComponent {
+export class CategoriaListComponent implements OnInit{
   private searchService = inject(SearchService);
   injector = inject(Injector);
   private router = inject(Router);
-
+  private pageTitleService = inject(PageTitleService);
 
   currentPage = 0;
   data = signal<ICategorias[]>([]);
@@ -50,6 +51,7 @@ export class CategoriaListComponent {
   ]
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Lista de categorías');
     this.trackSearchTerm();
     this.getAll();
   }

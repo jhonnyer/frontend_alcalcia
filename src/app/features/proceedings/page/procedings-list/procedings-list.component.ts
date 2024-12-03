@@ -10,7 +10,7 @@ import { ActasService } from '../../../../core/services/actas.service';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
 import { IActa } from '../../../../core/models/acta.model';
-import { U } from '@angular/cdk/keycodes';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-procedings-list',
@@ -23,7 +23,7 @@ export class ProcedingsListComponent implements OnInit {
   private searchService = inject(SearchService);
   injector = inject(Injector);
   private router = inject(Router);
-
+  private pageTitleService = inject(PageTitleService);
 
   currentPage = 0;
   data = signal<IActa[]>([]);
@@ -56,6 +56,7 @@ export class ProcedingsListComponent implements OnInit {
   ]
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Lista de actas');
     this.trackSearchTerm();
     this.getAll();
   }

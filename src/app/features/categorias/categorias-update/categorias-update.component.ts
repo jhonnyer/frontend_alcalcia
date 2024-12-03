@@ -5,6 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CategoriasService } from '../../../core/services/categorias.service';
 import { Router } from '@angular/router';
 import { ICategorias } from './../../../core/models/categorias.model';
+import { PageTitleService } from '../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-categorias-update',
@@ -21,10 +22,10 @@ export class CategoriasUpdateComponent implements OnInit {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
   private categoriasService = inject(CategoriasService);
-
+  private pageTitleService = inject(PageTitleService);
 
   ngOnInit(): void {
-    // console.log("proyectoId", this.proyectoId)
+    this.pageTitleService.setCurrentPage('Actualizar una categoría');
     this.initFormFamilyCore();
     this.getProyectoById();
   }

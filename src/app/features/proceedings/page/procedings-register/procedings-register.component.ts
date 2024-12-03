@@ -1,11 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { ProductsListSelectComponent } from '../../components/products-list-select/products-list-select.component';
 import { Dialog, DialogModule } from '@angular/cdk/dialog';
-
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 interface OutputData {
   rta: string;
 }
@@ -19,12 +19,14 @@ interface OutputData {
   styles: ``,
   templateUrl: './procedings-register.component.html'
 })
-export class ProcedingsRegisterComponent {
+export class ProcedingsRegisterComponent implements OnInit{
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
   private dialog = inject(Dialog);
+  private pageTitleService = inject(PageTitleService);
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Registrar acta');
     this.initFormFamilyCore();
   }
 

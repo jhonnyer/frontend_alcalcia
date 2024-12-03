@@ -4,6 +4,7 @@ import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CategoriasService } from '../../../core/services/categorias.service';
 import { Router } from '@angular/router';
+import { PageTitleService } from '../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-categorias-create',
@@ -17,10 +18,11 @@ export class CategoriasCreateComponent {
   private fb = inject(FormBuilder);
   private categoriasService = inject(CategoriasService);
   private router = inject(Router);
+  private pageTitleService = inject(PageTitleService);
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Crear una categoría');
     this.initFormFamilyCore();
-
   }
 
   initFormFamilyCore(): void {

@@ -1,5 +1,6 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { SearchService } from '../../../../core/services/search.service';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-inventory-form',
@@ -8,7 +9,9 @@ import { SearchService } from '../../../../core/services/search.service';
   templateUrl: './inventory-form.component.html',
   styleUrl: './inventory-form.component.scss'
 })
-export class InventoryFormComponent {
+export class InventoryFormComponent implements OnInit {
+
+  private pageTitleService = inject(PageTitleService);
 
   private items = [
     { id: 1, name: 'Elemento 1' },
@@ -18,6 +21,10 @@ export class InventoryFormComponent {
 
   // constructor(private searchService: SearchService) {}
   private searchService = inject(SearchService);
+
+  ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Registrar producto');
+  }
 
   filteredItems = computed(() => {
     const searchTerm = this.searchService.getSearchTerm()().toLowerCase();

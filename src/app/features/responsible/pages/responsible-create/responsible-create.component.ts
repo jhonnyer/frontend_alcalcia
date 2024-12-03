@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-responsible-create',
@@ -13,10 +14,11 @@ import { ReactiveFormsModule } from '@angular/forms';
 export class ResponsibleCreateComponent {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
+  private pageTitleService = inject(PageTitleService);
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Crar responsable');
     this.initFormFamilyCore();
-
   }
 
   initFormFamilyCore(): void {

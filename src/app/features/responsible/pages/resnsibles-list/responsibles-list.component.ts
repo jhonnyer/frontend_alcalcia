@@ -10,6 +10,7 @@ import { ResponsibleService } from '../../../../core/services/responsible.servic
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
 import { IResponsable } from '../../../../core/models/responsable.model';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-responsibles-list',
@@ -22,7 +23,7 @@ export class ResponsiblesListComponent {
   private searchService = inject(SearchService);
   injector = inject(Injector);
   private router = inject(Router);
-
+  private pageTitleService = inject(PageTitleService);
 
   currentPage = 0;
   data = signal<IResponsable[]>([]);
@@ -65,6 +66,7 @@ export class ResponsiblesListComponent {
   ]
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Lista de responsable');
     this.trackSearchTerm();
     this.getAll();
   }

@@ -10,6 +10,7 @@ import { ProductosService } from '../../../../core/services/productos.service';
 import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
 import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
 import { IProducto } from '../../../../core/models/products.model';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 @Component({
   selector: 'app-inventory-list',
@@ -22,7 +23,7 @@ export class InventoryListComponent implements OnInit{
   private searchService = inject(SearchService);
   injector = inject(Injector);
   private router = inject(Router);
-
+  private pageTitleService = inject(PageTitleService);
 
   currentPage = 0;
   data = signal<IProducto[]>([]);
@@ -54,6 +55,7 @@ export class InventoryListComponent implements OnInit{
   ]
 
   ngOnInit(): void {
+    this.pageTitleService.setCurrentPage('Lista de productos');
     this.trackSearchTerm();
     this.getAll();
   }

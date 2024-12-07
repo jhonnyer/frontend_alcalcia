@@ -52,12 +52,19 @@ export class BeneficiaryService {
     );
   }
 
-  update(beneficiario: Partial<IBeneficiario>): Observable<IBeneficiario>{
-    return this.http.post<IBeneficiario>(`${this.URL}/beneficiarios/${beneficiario.idBeneficiario}}`, beneficiario, { context: checkToken() }).pipe(
+  update(idBeneficiario: string, beneficiario: Partial<IBeneficiarioUnique>): Observable<IBeneficiarioUnique>{
+
+    return this.http.put<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${idBeneficiario}}`, beneficiario, { context: checkToken() }).pipe(
       tap(item => {
         item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
       })
     );
+  }
+
+  updateById(idBeneficiario: string, beneficiario: Partial<IBeneficiarioUnique>):Observable<IBeneficiarioUnique> {
+    console.log("Se envia: ", idBeneficiario)
+    console.log("Se envia: ", beneficiario)
+    return this.http.put<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${idBeneficiario}`, beneficiario, { context: checkToken() });
   }
 
   private formatDate(dateString: string): string {

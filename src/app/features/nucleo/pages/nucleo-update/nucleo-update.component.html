@@ -130,9 +130,10 @@
             <div class="w-full md:w-52">
               <label for="tipo_documento" class="label-base">Tipo de documento</label>
               <select formControlName="tipoDocumento" name="tipo_documento" id="tipo_documento" class="input-base">
-                <option value="cc" class="input-base capitalize" selected>C.C</option>
-                <option value="ti" class="input-base capitalize" >t.i</option>
+                <option value="CC" class="input-base capitalize">Cedula de Ciudadania</option>
+                <option value="TI" class="input-base capitalize" >Tarjeta de identidad</option>
                 <option value="pasaporte" class="input-base capitalize" >pasaporte</option>
+                <option value="CE" class="input-base capitalize" >Cedula extranjera</option>
               </select>
 
               @if(beneficiario.get('tipoDocumento')?.hasError('required') && beneficiario.get('tipoDocumento')?.touched) {
@@ -232,10 +233,18 @@
 
           </div>
 
-          <div>
+          <div class="w-full">
             <label for="etnia" class="label-base">Etnia</label>
-            <input formControlName="etnia" type="text" id="etnia" class="input-base" placeholder="etnia">
-            @if(beneficiario.get('etnia')?.hasError('required') && beneficiario.get('etnia')?.touched) {
+            <select formControlName="etnia" name="etnia" id="etnia" class="input-base">
+              <option value="N" class="input-base capitalize" selected>No Aplica</option>
+              <option value="C" class="input-base capitalize" selected>Campesino</option>
+              <option value="I" class="input-base capitalize" selected>Indigena</option>
+              <option value="A" class="input-base capitalize" selected>Afrocolombiano</option>
+              <option value="E" class="input-base capitalize" selected>Extranjero</option>
+              <option value="M" class="input-base capitalize" selected>Mestizo</option>
+            </select>
+
+            @if(formFamilyCore.get('etnia')?.hasError('required') && formFamilyCore.get('etnia')?.touched) {
               <p class="text-red-500">
                 * Este campo es requerido
               </p>

@@ -1,1 +1,210 @@
-<p>beneficiary-update works!</p>
+<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
+  <form [formGroup]="formFamilyCore" class="form" (ngSubmit)="onSubmit()"
+    class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
+  >
+    <div class="flex gap-5">
+      <div class="w-full">
+        <label for="primerNombre" class="label-base">Primer nombre</label>
+        <input [formControlName]="'primerNombre'" type="text" id="primerNombre" class="input-base" placeholder="Primer Nombre">
+
+        @if(formFamilyCore.get('primerNombre')?.hasError('required') && formFamilyCore.get('primerNombre')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="w-full">
+        <label for="segundoNombre" class="label-base">Segundo nombre</label>
+        <input [formControlName]="'segundoNombre'" type="text" id="segundoNombre" class="input-base" placeholder="Segundo Nombre">
+
+        @if(formFamilyCore.get('segundoNombre')?.hasError('required') && formFamilyCore.get('segundoNombre')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="flex gap-5">
+      <div class="w-full">
+        <label for="primerApellido" class="label-base">Primer apellido</label>
+        <input [formControlName]="'primerApellido'" type="text" id="primerApellido" class="input-base" placeholder="Primer Nombre">
+
+        @if(formFamilyCore.get('primerApellido')?.hasError('required') && formFamilyCore.get('primerApellido')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="w-full">
+        <label for="segundoApellido" class="label-base">Segundo apellido</label>
+        <input [formControlName]="'segundoApellido'" type="text" id="segundoApellido" class="input-base" placeholder="Segundo apellido">
+
+        @if(formFamilyCore.get('segundoApellido')?.hasError('required') && formFamilyCore.get('segundoApellido')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+    </div>
+
+
+    <div class="w-full flex flex-wrap justify-between my-4 gap-4">
+
+      <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+        <label>Sexo: </label>
+        <input formControlName="sexo" type="radio" value="F" class="input-radio-base"> Femenino
+        <input formControlName="sexo" type="radio" value="M" class="input-radio-base"> Masculino
+
+
+        @if(formFamilyCore.get('sexo')?.hasError('required') && formFamilyCore.get('sexo')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+        <label>Genero: </label>
+        <input formControlName="genero" type="radio" value="na"   class="input-radio-base"> No aplica
+        <input formControlName="genero" type="radio" value="lgbt" class="input-radio-base"> Lgbt+
+
+        @if(formFamilyCore.get('genero')?.hasError('required') && formFamilyCore.get('genero')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+        <label>Victima del conflicto: </label>
+        <input formControlName="victimaConflicto" type="radio" [value]="false" class="input-radio-base"> No
+        <input formControlName="victimaConflicto" type="radio" [value]="true" class="input-radio-base"> Si
+
+        @if(formFamilyCore.get('victimaConflicto')?.hasError('required') && formFamilyCore.get('victimaConflicto')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="flex flex-col">
+        <div class="relative flex  items-center gap-2">
+          <label for="birthdate">Nacimiento</label>
+          <input formControlName="fechaNacimiento" id="birthdate" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 " placeholder="Select date">
+        </div>
+        @if(formFamilyCore.get('fechaNacimiento')?.hasError('required') && formFamilyCore.get('fechaNacimiento')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="flex flex-col">
+        <div class="flex items-center gap-4">
+          <label for="edad" class="label-base">Edad</label>
+          <input readonly formControlName="edad" type="number" id="edad" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="0">
+        </div>
+        @if(formFamilyCore.get('edad')?.hasError('required') && formFamilyCore.get('edad')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+
+      <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+        <label>Vivo: </label>
+        <input formControlName="esVivo" type="radio" [value]="true" class="input-radio-base"> Sí
+        <input formControlName="esVivo" type="radio" [value]="false" class="input-radio-base"> No
+
+        @if(formFamilyCore.get('esVivo')?.hasError('required') && formFamilyCore.get('esVivo')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+
+
+    </div>
+
+    <div class="w-full">
+      <label for="etnia" class="label-base">Etnia</label>
+      <select formControlName="etnia" name="etnia" id="etnia" class="input-base">
+        <option value="N" class="input-base capitalize" selected>No Aplica</option>
+        <option value="C" class="input-base capitalize" selected>Campesino</option>
+        <option value="I" class="input-base capitalize" selected>Indigena</option>
+        <option value="A" class="input-base capitalize" selected>Afrocolombiano</option>
+        <option value="E" class="input-base capitalize" selected>Extranjero</option>
+        <option value="M" class="input-base capitalize" selected>Mestizo</option>
+      </select>
+
+      @if(formFamilyCore.get('etnia')?.hasError('required') && formFamilyCore.get('etnia')?.touched) {
+        <p class="text-red-500">
+          * Este campo es requerido
+        </p>
+      }
+    </div>
+
+    <div class="w-full flex justify-between md:gap-5 flex-wrap md:flex-nowrap">
+      <div class="w-full">
+        <label for="tipo_documento" class="label-base">Tipo de documento</label>
+        <select formControlName="tipoDocumento" name="tipo_documento" id="tipo_documento" class="input-base">
+          <option value="CC" class="input-base capitalize">Cedula de Ciudadania</option>
+          <option value="TI" class="input-base capitalize" >Tarjeta de identidad</option>
+          <option value="pasaporte" class="input-base capitalize" >pasaporte</option>
+          <option value="CE" class="input-base capitalize" >Cedula extranjera</option>
+        </select>
+
+        @if(formFamilyCore.get('tipoDocumento')?.hasError('required') && formFamilyCore.get('tipoDocumento')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="w-full">
+        <label for="id" class="label-base">Número de documento</label>
+        <input formControlName="numeroDocumento" type="text" id="id" class="input-base" placeholder="Documento">
+
+        @if(formFamilyCore.get('numeroDocumento')?.hasError('required') && formFamilyCore.get('numeroDocumento')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-wrap md:flex-nowrap justify-between my-2">
+      <div class="w-full md:w-[49%]">
+        <label for="email" class="label-base">Email</label>
+        <input formControlName="email" type="email" id="email" class="input-base" placeholder="beneficiario@correo.com">
+        @if(formFamilyCore.get('email')?.hasError('required') && formFamilyCore.get('email')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="w-full md:w-[49%]">
+        <label for="phone" class="label-base">Telefono</label>
+        <input formControlName="telefono" type="tel" id="phone" class="input-base" placeholder="+1 (555) 123-4567">
+        @if(formFamilyCore.get('telefono')?.hasError('required') && formFamilyCore.get('telefono')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+    </div>
+
+
+    <div class="flex justify-end space-x-4">
+      <button type="button" class="btn-action-gray" (click)="cancelar()">Cancelar</button>
+      <button type="submit" class="btn-action-blue">Guardar cambios</button>
+    </div>
+  </form>
+</div>
+

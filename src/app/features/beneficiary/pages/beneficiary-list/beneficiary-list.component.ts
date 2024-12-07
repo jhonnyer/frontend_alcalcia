@@ -114,7 +114,8 @@ export class BeneficiaryListComponent implements OnInit {
 
   update(item: IBeneficiario){
     console.log("update/: ", item)
-    this.router.navigate(["nucleo/update/", item.idNucleoFk]);
+    this.router.navigate(["/beneficary/update/", item.idBeneficiario]);
+    // this.router.navigate(["nucleo/update/", item.idNucleoFk]);
   }
 
 }

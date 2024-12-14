@@ -10,6 +10,15 @@ export interface IPaquete {
   detallesPaquete: IDetallePaquete[];
 }
 
+export interface IPaqueteFk {
+  idPaqueteFk: number;
+  cantidad: number;
+  nombrePaquete: string;
+  descripcion: string;
+  estado: null,
+  stock: number;
+}
+
 type IDetallePaquete = {
   idDetallePaquete: number;
   producto: IProducto; // Es un string con el id del producto revisar

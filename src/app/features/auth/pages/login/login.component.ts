@@ -33,7 +33,7 @@ export class LoginComponent {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
-      console.log("Form Family Core");
+      console.log("Formulario");
       console.log(this.formFamilyCore.value);
       this.authService.login(this.formFamilyCore.value).subscribe({
         next: response => {

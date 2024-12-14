@@ -38,6 +38,7 @@ export class BeneficiarioProyectoService {
     );
   }
 
+
   post(beneficiarioProyecto: Partial<IBeneficiarioProyecto>): Observable<IBeneficiarioProyecto> {
     return this.http.post<IBeneficiarioProyecto>(`${this.URL}/beneficiarios-proyectos`, beneficiarioProyecto ,{ context: checkToken() }).pipe(
       tap(beneficiario => {

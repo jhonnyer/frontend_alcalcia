@@ -1,4 +1,5 @@
 import { IBeneficiario } from "./beneficiary.models";
+import { IDetalleActasProductosById } from "./detalleActaProducto.model";
 import { IProyecto } from "./proyecto.model";
 import { IResponsable } from "./responsable.model";
 
@@ -17,6 +18,7 @@ export interface IActa {
   observaciones: string;
   prioridad: PrioridadActa;
   tiposSolicitud: string;
+  responsableVisita: string;
 }
 
 export interface IActaById {
@@ -25,10 +27,12 @@ export interface IActaById {
   estado: EstadoActa;
   fechaEntrega: string;
   beneficiarioFk: IBeneficiario;
-  proyecto: IProyecto;
-  responsable: IResponsable;
+  proyectoFk: IProyecto;
+  responsableFk: IResponsable;
   ubicacionEntrega: string;
   observaciones: string;
   prioridad: PrioridadActa;
   tiposSolicitud: string;
+  responsableVisita: string;
+  detallesActaProductos: IDetalleActasProductosById
 }

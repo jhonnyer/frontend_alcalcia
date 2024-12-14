@@ -23,12 +23,12 @@ export class AuthService {
 
 
   login(data: any): Observable<IResponseLogin> {
+    console.log("LOGEARSE: ", data)
     return this.http.post<IResponseLogin>(`/api/auth/login`, data)
       .pipe(
         tap(response => {
           // Guardar toda la respuesta de login
           this.tokenService.saveLoginResponse(response);
-
           // Manejar la navegación basada en el estado del usuario
           if (response.estadoUser === 'A') {
             // Usuario activo, navegar al home

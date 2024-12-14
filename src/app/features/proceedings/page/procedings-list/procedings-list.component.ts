@@ -40,6 +40,7 @@ export class ProcedingsListComponent implements OnInit {
     'observaciones',
     'prioridad',
     'tiposSolicitud',
+    'responsableVisita',
     'controls'
   ]
 

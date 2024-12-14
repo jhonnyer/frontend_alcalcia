@@ -14,9 +14,18 @@ export interface Products {
 }
 
 export interface IProducto {
-  idProducto: number,
+  idProducto: number;
   nombre: string;
   descripcion: string;
   stock: number;
   fechaIngreso: string | null;
+}
+
+export interface IProductoFk {
+  idProductoFk: number;
+  nombreProducto: string;
+  descripcion: string;
+  stock: number;
+  fechaIngreso: null | string;
+  cantidad: number;
 }

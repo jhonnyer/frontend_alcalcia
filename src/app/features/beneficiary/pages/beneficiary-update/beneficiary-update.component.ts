@@ -54,7 +54,7 @@ export class BeneficiaryUpdateComponent implements OnInit {
       fechaNacimiento: beneficiario.fechaNacimiento,
       telefono: beneficiario.telefono,
       email: beneficiario.email,
-      nucleoFamiliar: beneficiario.nucleoFamiliar,
+      idNucleoFk: beneficiario.nucleoFamiliar.idNucleo,
       esVivo: beneficiario.esVivo
     }, { emitEvent: true })
   }
@@ -76,7 +76,7 @@ export class BeneficiaryUpdateComponent implements OnInit {
       telefono: ['', Validators.required],
       email: [''],
       esVivo: ['', Validators.required],
-      nucleoFamiliar: ['']
+      idNucleoFk: ['']
     });
   }
 

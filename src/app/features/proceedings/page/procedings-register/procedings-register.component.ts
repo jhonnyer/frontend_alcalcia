@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, EventEmitter, inject, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -6,9 +6,13 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ProductsListSelectComponent } from '../../components/products-list-select/products-list-select.component';
 import { Dialog, DialogModule } from '@angular/cdk/dialog';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
-interface OutputData {
-  rta: string;
-}
+
+import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
+import { ProyectosService } from '../../../../core/services/proyectos.service';
+import { ResponsibleService } from '../../../../core/services/responsible.service';
+import { ProductosService } from '../../../../core/services/productos.service';
+import { PaquetesService } from '../../../../core/services/paquetes.service';
+import { error } from 'console';
 
 @Component({
   selector: 'app-procedings-register',
@@ -21,15 +25,107 @@ interface OutputData {
 })
 export class ProcedingsRegisterComponent implements OnInit{
   public formFamilyCore: FormGroup = new FormGroup({});
+  public searchFormProyecto: FormGroup = new FormGroup({});
+
   private fb = inject(FormBuilder);
   private dialog = inject(Dialog);
   private pageTitleService = inject(PageTitleService);
 
+
+
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Registrar acta');
-    this.initFormFamilyCore();
+    this.initFormFamilyCore(); // Formulario del acta
+    this.initSearchBeneficiarioForm(); // Formulario para buscar beneficiario
+
+    this.getBeneficiarios();
+    this.getProyectos();
+    this.getResponsables();
+    this.getProductos();
+    this.getPaquetes();
   }
 
+  /**PREVIO Inicio */
+
+  private beneficiarioProyectoService = inject(BeneficiarioProyectoService)
+  private proyectosService = inject(ProyectosService)
+  private responsibleService = inject(ResponsibleService)
+  private productosService = inject(ProductosService)
+  private paquetesService = inject(PaquetesService)
+
+
+  getBeneficiarios() {
+    this.beneficiarioProyectoService.getAll().subscribe({
+      next: response => {
+        console.log("Beneficiarios: ", response)
+      },
+      error: error => {
+        console.log("Error al traer beneficiarios")
+      }
+    });
+  }
+
+  getProyectos() {
+    this.proyectosService.getAll().subscribe({
+      next: response => {
+        console.log("Proyectos", response)
+      },
+      error: error => {
+        console.log("Error al traer proyectos")
+      }
+    });
+  }
+
+  getResponsables() {
+    this.responsibleService.getAll().subscribe({
+      next: response => {
+        console.log("Responsables: ",response);
+      },
+      error: error => {
+        console.log("Error al traer responsables")
+      }
+    });
+  }
+
+  getProductos() {
+    this.productosService.getAll().subscribe({
+      next: response => {
+        console.log("Productos: ",response);
+      },
+      error: error => {
+        console.log("Error al traer productos")
+      }
+    })
+  }
+
+  getPaquetes() {
+    this.paquetesService.getAll().subscribe({
+      next: response => {
+        console.log("Paquetes: ",response)
+      },
+      error: error => {
+        console.log("Error al traer los paquetes")
+      }
+    });
+  }
+
+  initSearchBeneficiarioForm(){
+    this.searchFormProyecto = this.fb.group({
+      searchInputProyecto: ['']
+    });
+  }
+
+
+
+  searchTermProyecto: string = '';
+  onSearchProyecto(event: any): void {
+    console.log(this.searchTermProyecto)
+    if (this.searchTermProyecto.trim()) {
+    }
+  }
+
+
+  /**PREVIO FIN */
   initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
       proyecto: ['', [Validators.required]],

@@ -1,5 +1,5 @@
 export type TipoIdentificacion = 'CC' | 'PA' | 'NIT' | 'TI' | 'CE';
-export type EstadoResponsabel = 'A' | 'I';
+export type EstadoResponsable = 'A' | 'I';
 export type PerfilUsuario = 'ADMIN' | 'RESP';
 
 export interface IResponsable {
@@ -17,5 +17,5 @@ export interface IResponsable {
   usuario: string;
   password: string;
   perfilUsuario: PerfilUsuario;
-  estado: EstadoResponsabel;
+  estado: EstadoResponsable;
 }

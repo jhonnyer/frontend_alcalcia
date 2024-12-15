@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { IActa, IActaById } from '../models/acta.model';
+import { IActa, IActaById, ICreateActa } from '../models/acta.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
 import { TokenService } from './token.service';
@@ -71,10 +71,11 @@ export class ActasService {
     );
   }
 
-  post(acta:Partial<IActa>): Observable<IActa> {
-    return this.http.post<IActa>(`${this.URL}/actas`, acta ,{ context: checkToken() }).pipe(
+  post(acta:Partial<ICreateActa>): Observable<ICreateActa> {
+    return this.http.post<ICreateActa>(`${this.URL}/actas`, acta ,{ context: checkToken() }).pipe(
       tap(acta => {
-        acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);
+        acta.fechaCreacion = this.formatDate(acta.fechaCreacion);
+        acta.fechaEntrega = this.formatDate(acta.fechaEntrega);
       })
     );
   }

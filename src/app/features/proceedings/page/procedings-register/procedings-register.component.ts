@@ -21,6 +21,8 @@ import { IProyecto, IProyectoAndCategoria } from '../../../../core/models/proyec
 import { IResponsable } from '../../../../core/models/responsable.model';
 import { ISelectedProduct } from '../../../../core/models/products.model';
 
+import { Router } from '@angular/router';
+
 @Component({
   selector: 'app-procedings-register',
   standalone: true,
@@ -36,6 +38,7 @@ export class ProcedingsRegisterComponent implements OnInit{
 
   private fb = inject(FormBuilder);
   private dialog = inject(Dialog);
+  private router = inject(Router);
 
   private pageTitleService = inject(PageTitleService);
 
@@ -98,13 +101,14 @@ export class ProcedingsRegisterComponent implements OnInit{
     .subscribe({
       next: (value:string) => {
         if(value.length >= 6 ){
-          this.beneficiaryService.getByNameAndLastNameAndDocument(value).subscribe({
+          this.beneficiaryService.getByCedula(value).subscribe({
             next: resp => {
-              if(resp[0] !== undefined){
-                this.beneficiario.set( resp[0]);
-                console.log("Llamado exitoso", resp[0])
+              if(resp !== undefined){
+                this.beneficiario.set(resp);
+                console.log("Llamado exitoso", resp)
               }else{
                 this.beneficiarioNoEncontrado = true;
+                this.beneficiario.set(null);
                 timer(1500).subscribe(() => {
                   this.beneficiarioNoEncontrado = false;
                 })
@@ -112,6 +116,11 @@ export class ProcedingsRegisterComponent implements OnInit{
               // alert(resp)
             },
             error: error => {
+              this.beneficiarioNoEncontrado = true;
+              this.beneficiario.set(null);
+              timer(2500).subscribe(() => {
+                this.beneficiarioNoEncontrado = false;
+              })
               console.log(error)
             }
           })
@@ -176,20 +185,28 @@ export class ProcedingsRegisterComponent implements OnInit{
 
   initFormActa(): void {
     this.formActa = this.fb.group({
-      fechaCreacion: ['', [Validators.required]],
+      fechaCreacion: [this.getFechaActual(), [Validators.required]],
       estado: ['R', [Validators.required]],
-      fechaEntrega: ['', [Validators.required]],
-      beneficiario: ['', [Validators.required]],
-      proyecto: ['', [Validators.required]],
-      responsable: ['', [Validators.required]],
+      fechaEntrega: [''],
+      // proyecto:     [{idProyecto: this.proyectoSelect()}, [Validators.required]],
+      // responsable:  [{idResponsable: this.responsableActa()}, [Validators.required]],
       ubicacionEntrega: ['', [Validators.required]],
       prioridad: ['', [Validators.required]],
-      tipoSolicitud: ['', [Validators.required]],
       responsableVisita: ['', [Validators.required]],
-      productos: ['', [Validators.required]],
-      paquetes: ['', [Validators.required]],
+      tipoSolicitud: ['', [Validators.required]],
+      productos: [''],
+      paquetes: [''],
       observaciones: [''],
     });
+  }
+
+  // Método para obtener la fecha actual en formato "YYYY-MM-DD"
+  getFechaActual(): string {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = (hoy.getMonth() + 1).toString().padStart(2, '0'); // Mes en formato 2 dígitos
+    const day = hoy.getDate().toString().padStart(2, '0'); // Día en formato 2 dígitos
+    return `${year}-${month}-${day}`;
   }
 
   openDialog() {
@@ -205,11 +222,26 @@ export class ProcedingsRegisterComponent implements OnInit{
     })
   }
 
+  cancelar(){
+    this.formActa.reset();
+    this.router.navigate(['proceedings']);
+  }
+
   onSubmit() {
+    console.log("ID Beneficiario: ", this.beneficiario()?.idBeneficiario)
+
     if(this.formActa.valid){
-      console.log("Form Family Core");
+      this.formActa.value.beneficiario =  {idBeneficiario: this.beneficiario()?.idBeneficiario};
+      this.formActa.value.proyecto =      {idProyecto:     this.proyectoSelect()};
+      this.formActa.value.responsable =   {idResponsable:  this.responsableActa()};
+      console.log("Formulario valido Acta");
       console.log(this.formActa.value);
+      this.actasService.post(this.formActa.value).subscribe({
+        next: resp => console.log(resp),
+        error: error => console.log(error)
+      })
 	  }else{
+      console.log("Formulario NO valido Acta", this.formActa.value);
 		  this.formActa.markAllAsTouched();
 	  }
   }

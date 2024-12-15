@@ -31,6 +31,14 @@ export class BeneficiaryService {
     );
   }
 
+  getByCedula(id: string): Observable<IBeneficiarioUnique>{
+    return this.http.get<IBeneficiarioUnique>(`${this.URL}/beneficiarios/buscar-cedula/${id}`, { context: checkToken() }).pipe(
+      tap(item => {
+        item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
+      })
+    );
+  }
+
   /**
    * Busqueda de beneficiarios por numero de documento, nombres y apellidos
    */

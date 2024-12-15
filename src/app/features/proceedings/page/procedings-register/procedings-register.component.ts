@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, OnInit, Output, signal } from '@angular/core';
+import { Component, EventEmitter, inject, OnInit, Output, signal, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, FormControl, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -17,7 +17,6 @@ import { ActasService } from '../../../../core/services/actas.service';
 import { IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
 import { debounceTime } from 'rxjs';
 import { timer } from 'rxjs';
-import { time } from 'console';
 import { IProyecto, IProyectoAndCategoria } from '../../../../core/models/proyecto.model';
 import { IResponsable } from '../../../../core/models/responsable.model';
 import { ISelectedProduct } from '../../../../core/models/products.model';
@@ -33,18 +32,28 @@ import { ISelectedProduct } from '../../../../core/models/products.model';
 })
 export class ProcedingsRegisterComponent implements OnInit{
   public formActa: FormGroup = new FormGroup({});
-  public searchFormProyecto: FormGroup = new FormGroup({});
+  // public searchFormProyecto: FormGroup = new FormGroup({});
 
   private fb = inject(FormBuilder);
   private dialog = inject(Dialog);
+
   private pageTitleService = inject(PageTitleService);
-  private actasService = inject(ActasService);
+
   private beneficiaryService = inject(BeneficiaryService);
   beneficiario = signal<IBeneficiarioUnique | null>(null);
+  beneficiarioNoEncontrado: boolean = false;
+  proyectoSelect = signal<number | null>(null);
+  responsableActa = signal<number | null>(null);
+
   proyectos = signal<IProyectoAndCategoria[]>([]);
   responsables = signal<IResponsable[]>([]);
 
-  beneficiarioNoEncontrado: boolean = false;
+
+  private beneficiarioProyectoService = inject(BeneficiarioProyectoService)
+  private proyectosService = inject(ProyectosService)
+  private responsibleService = inject(ResponsibleService)
+
+  private actasService = inject(ActasService);
 
   searchBeneficiario = new FormControl('', {
     nonNullable: true,
@@ -73,16 +82,12 @@ export class ProcedingsRegisterComponent implements OnInit{
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Registrar acta');
     this.onSearchBeneficiario();
-
-
+    this.onChangesSelectProyecto();
+    this.onChangesSelectResponsableActa();
     this.initFormActa(); // Formulario del acta
-    this.initSearchBeneficiarioForm(); // Formulario para buscar beneficiario
-
-    this.getBeneficiarios();
+    // this.getBeneficiarios();
     this.getProyectos();
     this.getResponsables();
-    this.getProductos();
-    this.getPaquetes();
   }
 
   onSearchBeneficiario(){
@@ -116,24 +121,34 @@ export class ProcedingsRegisterComponent implements OnInit{
     });
   }
 
-  /**PREVIO Inicio */
-
-  private beneficiarioProyectoService = inject(BeneficiarioProyectoService)
-  private proyectosService = inject(ProyectosService)
-  private responsibleService = inject(ResponsibleService)
-  private productosService = inject(ProductosService)
-  private paquetesService = inject(PaquetesService)
-
-  getBeneficiarios() {
-    this.beneficiarioProyectoService.getAll().subscribe({
-      next: response => {
-        console.log("Beneficiarios: ", response)
-      },
-      error: error => {
-        console.log("Error al traer beneficiarios")
+  onChangesSelectProyecto(){
+    this.selectProyecto.valueChanges.subscribe({
+      next: value => {
+        console.log("Proyecto: ", value);
+        this.proyectoSelect.set(+value);
       }
     });
   }
+
+  onChangesSelectResponsableActa(){
+    this.selectResponsable.valueChanges.subscribe({
+      next: value => {
+        console.log("Responsable: ", value);
+        this.responsableActa.set(+value);
+      }
+    });
+  }
+
+  // getBeneficiarios() {
+  //   this.beneficiarioProyectoService.getAll().subscribe({
+  //     next: response => {
+  //       console.log("Beneficiarios: ", response)
+  //     },
+  //     error: error => {
+  //       console.log("Error al traer beneficiarios")
+  //     }
+  //   });
+  // }
 
   getProyectos() {
     this.proyectosService.getAll().subscribe({
@@ -159,45 +174,6 @@ export class ProcedingsRegisterComponent implements OnInit{
     });
   }
 
-  getProductos() {
-    this.productosService.getAll().subscribe({
-      next: response => {
-        console.log("Productos: ",response);
-      },
-      error: error => {
-        console.log("Error al traer productos")
-      }
-    })
-  }
-
-  getPaquetes() {
-    this.paquetesService.getAll().subscribe({
-      next: response => {
-        console.log("Paquetes: ",response)
-      },
-      error: error => {
-        console.log("Error al traer los paquetes")
-      }
-    });
-  }
-
-  initSearchBeneficiarioForm(){
-    this.searchFormProyecto = this.fb.group({
-      searchInputProyecto: ['']
-    });
-  }
-
-
-
-  searchTermProyecto: string = '';
-  onSearchProyecto(event: any): void {
-    console.log(this.searchTermProyecto)
-    if (this.searchTermProyecto.trim()) {
-    }
-  }
-
-
-  /**PREVIO FIN */
   initFormActa(): void {
     this.formActa = this.fb.group({
       fechaCreacion: ['', [Validators.required]],
@@ -207,57 +183,13 @@ export class ProcedingsRegisterComponent implements OnInit{
       proyecto: ['', [Validators.required]],
       responsable: ['', [Validators.required]],
       ubicacionEntrega: ['', [Validators.required]],
-      observaciones: ['', [Validators.required]],
       prioridad: ['', [Validators.required]],
       tipoSolicitud: ['', [Validators.required]],
       responsableVisita: ['', [Validators.required]],
       productos: ['', [Validators.required]],
       paquetes: ['', [Validators.required]],
-
+      observaciones: [''],
     });
-   // this.addBeneficiary();
-  }
-
-
-  initFormBeneficiary(): FormGroup {
-
-    // Retorna el formulario que estará anidado
-    return this.fb.group({
-      nombre1: ['', [Validators.required]],
-      nombre2: ['', [Validators.required]],
-      apellido1: ['', [Validators.required]],
-      apellido2: ['', [Validators.required]],
-      tipoDocumento: ['', [Validators.required]],
-      numeroDocumento: ['', [Validators.required]],
-      sexo: ['', [Validators.required]],
-      genero: ['', [Validators.required]],
-      victimaConflico: ['', [Validators.required]],
-      fechaNacimiento: ['', [Validators.required]],
-      edad: ['', [Validators.required]],
-      etnia: ['', [Validators.required]],
-      email: ['', [Validators.required]],
-      telefono: ['', [Validators.required]],
-    });
-  }
-
-  //Agrega un nuevo formulario anidado de Persona
-  addBeneficiary(): void {
-    const refBeneficiary = this.formActa.get('beneficiarios') as FormArray;
-    refBeneficiary.push(this.initFormBeneficiary());
-  }
-
-  // Referencia cada campo que se crea en el html
-  getCtrl(key: string, form: FormGroup): FormArray {
-    return form.get(key) as FormArray;
-  }
-
-  get beneficiariosFormArray(): FormArray {
-    return this.formActa.get('beneficiarios') as FormArray;
-  }
-
-  deletePerson(index: number): void {
-    const beneficiariosArray = this.formActa.get('beneficiarios') as FormArray;
-    beneficiariosArray.removeAt(index);
   }
 
   openDialog() {
@@ -272,7 +204,6 @@ export class ProcedingsRegisterComponent implements OnInit{
       console.log("Salida: ", output);
     })
   }
-
 
   onSubmit() {
     if(this.formActa.valid){

@@ -1,5 +1,4 @@
-<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
-
+<div class="overflow-y-auto font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
   <div class="flex flex-col p-4">
     <div class="flex flex-col gap-2">
       <label for="buscarBeneficiario" class="label-base">Buscar beneficiario</label>
@@ -61,27 +60,7 @@
   </div>
 
   <div class="w-full px-4">
-    <label for="selectResponsable" class="label-base">Selecciona el Responsable</label>
-    <select [formControl]="selectResponsable" id="selectResponsable" class="input-base">
-      @for(responsable of responsables(); track responsable){
-        <option [value]="responsable.idResponsable" class="input-base capitalize">
-          {{responsable.primerNombre}}
-          {{responsable.segundoNombre}}
-          {{responsable.primerApellido}}
-          {{responsable.segundoApellido}}
-        </option>
-      }
-    </select>
-
-    @if(formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
-      <p class="text-red-500">
-        * Este campo es requerido
-      </p>
-    }
-  </div>
-
-  <div class="w-full px-4">
-    <label for="selectResponsable" class="label-base">Selecciona el Responsable</label>
+    <label for="selectResponsable" class="label-base">Responsable del acta</label>
     <select [formControl]="selectResponsable" id="selectResponsable" class="input-base">
       @for(responsable of responsables(); track responsable){
         <option [value]="responsable.idResponsable" class="input-base capitalize">
@@ -105,11 +84,121 @@
       class="btn-action-green">Agregar productos
     </button>
   </div>
+</div>
+
+@if(responsableActa() !== null && proyectoSelect() !== null && beneficiario() !== null){
+  <form [formGroup]="formActa" class="form" (ngSubmit)="onSubmit()"
+    class="p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
+  >
+
+    <div class="flex flex-wrap justify-between">
+     <div class="flex flex-col">
+        <div class="relative flex items-center gap-2">
+          <label for="fechaCreacion">Fecha de creacion</label>
+          <input formControlName="fechaCreacion" id="fechaCreacion" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 ">
+        </div>
+        @if(formActa.get('fechaCreacion')?.hasError('required') && formActa.get('fechaCreacion')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+      <div class="w-full md:w-[49%]">
+        <label for="estadoActa" class="label-base">Estado del acta</label>
+        <select formControlName="estado" id="estadoActa" class="input-base">
+          <option value="R" class="input-base capitalize">Recibida</option>
+          <option value="P" class="input-base capitalize">Procesada</option>
+          <option value="A" class="input-base capitalize">Autorizado</option>
+          <option value="RC" class="input-base capitalize">Rechazada</option>
+          <option value="E" class="input-base capitalize">Entregada</option>
+        </select>
+
+        @if(formActa.get('estado')?.hasError('required') && formActa.get('estado')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-wrap justify-between">
+      <div class="flex flex-col">
+         <div class="relative flex items-center gap-2">
+           <label for="fechaEntrega">Fecha de entrega</label>
+           <input formControlName="fechaCreacion" id="fechaEntrega" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 ">
+         </div>
+         @if(formActa.get('fechaCreacion')?.hasError('required') && formActa.get('fechaCreacion')?.touched) {
+           <p class="text-red-500">
+             * Este campo es requerido
+           </p>
+         }
+       </div>
+
+       <div class="w-full md:w-[49%]">
+         <label for="ubicacionEntrega" class="label-base">Ubicación de la entrega</label>
+         <input [formControlName]="'ubicacionEntrega'" type="text" id="ubicacionEntrega" class="input-base" placeholder="Ubicación de la entrega">
+
+         @if(formActa.get('ubicacionEntrega')?.hasError('required') && formActa.get('ubicacionEntrega')?.touched) {
+           <p class="text-red-500">
+             * Este campo es requerido
+           </p>
+         }
+       </div>
+     </div>
+
+     <div class="flex flex-wrap justify-between">
+        <div class="flex flex-col">
+          <label for="tipoSolicitud" class="label-base">Tipo de solicitud</label>
+          <input [formControlName]="'tipoSolicitud'" type="text" id="tipoSolicitud" class="input-base" placeholder="Tipo de solicitud">
+
+          @if(formActa.get('tipoSolicitud')?.hasError('required') && formActa.get('tipoSolicitud')?.touched) {
+            <p class="text-red-500">
+              * Este campo es requerido
+            </p>
+          }
+       </div>
+
+       <div class="w-full md:w-[49%]">
+         <label for="prioridad" class="label-base">Prioridad</label>
+         <select formControlName="prioridad" id="prioridad" class="input-base">
+           <option value="A" class="input-base capitalize">Alta</option>
+           <option value="M" class="input-base capitalize">Media</option>
+           <option value="B" class="input-base capitalize">Baja</option>
+         </select>
+
+         @if(formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
+           <p class="text-red-500">
+             * Este campo es requerido
+           </p>
+         }
+       </div>
+     </div>
+
+     <div class="flex flex-wrap justify-between">
+      <div class="flex flex-col">
+        <label for="responsableVisita" class="label-base">Responsable visita</label>
+        <input [formControlName]="'responsableVisita'" type="text" id="responsableVisita" class="input-base" placeholder="Responsable Visita">
+
+        @if(formActa.get('responsableVisita')?.hasError('required') && formActa.get('responsableVisita')?.touched) {
+          <p class="text-red-500">
+            * Este campo es requerido
+          </p>
+        }
+      </div>
+
+   </div>
+
+   <div class="flex flex-wrap justify-between">
+    <label for="message" class="block mb-2 text-sm font-medium text-gray-900 ">Observacioes</label>
+    <textarea formControlName="observaciones" id="message" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 " placeholder="Observacioes para está entrega..."></textarea>
+  </div>
+
+  </form>
+}
 
 
-
-
-  <!-- <form [formGroup]="formActa" class="form" (ngSubmit)="onSubmit()"
+<!-- <form [formGroup]="formActa" class="form" (ngSubmit)="onSubmit()"
     class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
   >
 
@@ -457,4 +546,3 @@
       </button>
     </div>
   </form> -->
-</div>

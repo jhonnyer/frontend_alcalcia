@@ -39,3 +39,14 @@
 .btn-aside-dropdown {
   @apply flex items-center w-full p-2 text-base font-normal text-gray-100 border-white border-b-2 transition duration-75 hover:text-gray-700 hover:bg-gray-100 hover:rounded-lg;
 }
+
+
+.no-arrows::-webkit-inner-spin-button,
+.no-arrows::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-arrows {
+  -moz-appearance: textfield; /* Firefox */
+}

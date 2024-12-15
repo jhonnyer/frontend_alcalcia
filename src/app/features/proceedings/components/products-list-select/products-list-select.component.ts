@@ -1,24 +1,88 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
-
-interface OutputData {
-  rta: string;
-}
-
+import { IProducto, ISelectedProduct } from '../../../../core/models/products.model';
+import { ProductosService } from '../../../../core/services/productos.service';
+import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-products-list-select',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   styles: ``,
   templateUrl: './products-list-select.component.html'
 })
 export class ProductsListSelectComponent implements OnInit{
 
   data = inject(DIALOG_DATA);
-  dialogRef = inject<DialogRef<OutputData>>(DialogRef<OutputData>);
+  dialogRef = inject<DialogRef<ISelectedProduct[]>>(DialogRef<ISelectedProduct[]>);
+  private productosService = inject(ProductosService);
+
+  // products= signal<IProducto[]>([]);
+  // selectedProducts= signal<ISelectedProduct[]>([]);
+
+  products: IProducto[] = [];
+  selectedProducts: ISelectedProduct[] = [];
 
   ngOnInit(): void {
     console.log(this.data)
+    this.getProductos();
+  }
+
+  getProductos() {
+    this.productosService.getAll().subscribe({
+      next: response => {
+        console.log("Productos: ",response);
+        this.products = response;
+      },
+      error: error => {
+        console.log("Error al traer productos")
+      }
+    })
+  }
+
+
+  onQuantityChange(product: IProducto, input: HTMLInputElement, checkbox: HTMLInputElement) {
+    const quantity = Number(input.value);
+    console.log("Cambio", quantity)
+
+    // Validate quantity doesn't exceed stock
+    if (quantity > product.stock) {
+      input.value = product.stock.toString();
+      return;
+    }
+
+    if (checkbox.checked && quantity > 0) {
+      // Add or update selected product
+      const existingIndex = this.selectedProducts.findIndex(
+        sp => sp.idProductoFk === product.idProducto
+      );
+
+      if (existingIndex !== -1) {
+        this.selectedProducts[existingIndex].cantidad = quantity;
+      } else {
+        this.selectedProducts.push({
+          idProductoFk: product.idProducto,
+          cantidad: quantity
+        });
+      }
+    } else {
+      // Remove from selected products
+      this.selectedProducts = this.selectedProducts.filter(
+        sp => sp.idProductoFk !== product.idProducto
+      );
+    }
+  }
+
+  removeProduct(product: IProducto, checkbox: HTMLInputElement, input: HTMLInputElement) {
+    // Uncheck checkbox
+    checkbox.checked = false;
+
+    // Clear input
+    input.value = '';
+
+    // Remove from selected products
+    this.selectedProducts = this.selectedProducts.filter(
+      sp => sp.idProductoFk !== product.idProducto
+    );
   }
 
   close() {
@@ -26,6 +90,6 @@ export class ProductsListSelectComponent implements OnInit{
   }
 
   closeWithRta() {
-    this.dialogRef.close({rta:'pizza'});
+    this.dialogRef.close([{idProductoFk:1, cantidad: 1}]);
   }
 }

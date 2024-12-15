@@ -87,8 +87,6 @@ export class BeneficiaryUpdateComponent implements OnInit {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
-      console.log(this.formFamilyCore.value)
-      console.log(this.beneficiarioId)
       this.beneficiaryService.updateById(this.beneficiarioId, this.formFamilyCore.value).subscribe({
         next: response => {
           alert('Se ha guardado correctamente el beneficiario');

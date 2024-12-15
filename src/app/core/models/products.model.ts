@@ -29,3 +29,8 @@ export interface IProductoFk {
   fechaIngreso: null | string;
   cantidad: number;
 }
+
+export interface ISelectedProduct {
+  idProductoFk: number;
+  cantidad: number;
+}

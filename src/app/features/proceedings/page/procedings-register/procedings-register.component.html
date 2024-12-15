@@ -1,10 +1,115 @@
 <div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
 
-  <div class="relative flex">
-    <input type="text" id="nombre_1" class="input-base" placeholder="Primer nombre" (change)="onSearchProyecto($event)">
+  <div class="flex flex-col p-4">
+    <div class="flex flex-col gap-2">
+      <label for="buscarBeneficiario" class="label-base">Buscar beneficiario</label>
+      <input
+        type="text"
+        id="buscarBeneficiario"
+        class="input-base"
+        placeholder="Ingresa la cedula"
+        [formControl] = "searchBeneficiario"
+        min="0"
+        oninput="this.value = Math.abs(this.value)"
+      >
+      @if(searchBeneficiario.errors && searchBeneficiario.touched){
+        @if(searchBeneficiario.hasError('minlength')){
+          <p class="text-red-500">* Minimo 6 digitos</p>
+        }
+        @if(searchBeneficiario.hasError('maxlength')){
+          <p class="text-red-500">* Minimo 14 digitos</p>
+        }
+        @if(searchBeneficiario.hasError('pattern')){
+          <p class="text-red-500">* Solo se aceptan números</p>
+        }
+      }
+      @if(beneficiarioNoEncontrado){
+        <p class="text-red-500">* Esta cedula no esta registrada</p>
+      }
+    </div>
+    @if(beneficiario()  !== null){
+      <div class="flex flex-col justify-center items-start gap-4 w-full">
+        <div class="flex justify-between gap-5 w-full">
+          <p class="w-1/2">Primer nombre: {{beneficiario()?.primerNombre}}</p>
+          <p class="w-1/2">Segundo nombre: {{beneficiario()?.segundoNombre}}</p>
+        </div>
+        <div class="flex justify-between gap-5 w-full">
+          <p class="w-1/2">Primer apellido: {{beneficiario()?.primerApellido}}</p>
+          <p class="w-1/2">Segundo apellido: {{beneficiario()?.segundoApellido}}</p>
+        </div>
+        <div class="flex justify-between gap-5 w-full">
+          <p class="w-1/2">Tipo de documento: {{beneficiario()?.tipoDocumento}}</p>
+          <p class="w-1/2">Número de documento: {{beneficiario()?.numeroDocumento}}</p>
+        </div>
+      </div>
+    }
   </div>
 
-  <!-- <form [formGroup]="formFamilyCore" class="form" (ngSubmit)="onSubmit()"
+  <div class="w-full px-4 pb-4">
+    <label for="selectProyecto" class="label-base">Selecciona el proyecto</label>
+    <select [formControl]="selectProyecto" id="selectProyecto" class="input-base">
+      @for(proyecto of proyectos(); track proyecto){
+        <option [value]="proyecto.proyecto.idProyecto" class="input-base capitalize">{{proyecto.proyecto.nombre}}</option>
+      }
+    </select>
+
+    @if(formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
+      <p class="text-red-500">
+        * Este campo es requerido
+      </p>
+    }
+  </div>
+
+  <div class="w-full px-4">
+    <label for="selectResponsable" class="label-base">Selecciona el Responsable</label>
+    <select [formControl]="selectResponsable" id="selectResponsable" class="input-base">
+      @for(responsable of responsables(); track responsable){
+        <option [value]="responsable.idResponsable" class="input-base capitalize">
+          {{responsable.primerNombre}}
+          {{responsable.segundoNombre}}
+          {{responsable.primerApellido}}
+          {{responsable.segundoApellido}}
+        </option>
+      }
+    </select>
+
+    @if(formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
+      <p class="text-red-500">
+        * Este campo es requerido
+      </p>
+    }
+  </div>
+
+  <div class="w-full px-4">
+    <label for="selectResponsable" class="label-base">Selecciona el Responsable</label>
+    <select [formControl]="selectResponsable" id="selectResponsable" class="input-base">
+      @for(responsable of responsables(); track responsable){
+        <option [value]="responsable.idResponsable" class="input-base capitalize">
+          {{responsable.primerNombre}}
+          {{responsable.segundoNombre}}
+          {{responsable.primerApellido}}
+          {{responsable.segundoApellido}}
+        </option>
+      }
+    </select>
+
+    @if(formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
+      <p class="text-red-500">
+        * Este campo es requerido
+      </p>
+    }
+  </div>
+
+  <div class="flex justify-end space-x-4 m-4">
+    <button (click)="openDialog()" type="button"
+      class="btn-action-green">Agregar productos
+    </button>
+  </div>
+
+
+
+
+  <!-- <form [formGroup]="formActa" class="form" (ngSubmit)="onSubmit()"
     class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
   >
 
@@ -93,7 +198,7 @@
           <option value="Hambre cero" class="input-base capitalize">Hambre cero</option>
         </select>
 
-        @if(formFamilyCore.get('proyecto')?.hasError('required') && formFamilyCore.get('proyecto')?.touched) {
+        @if(formActa.get('proyecto')?.hasError('required') && formActa.get('proyecto')?.touched) {
           <p class="text-red-500">
             * Este campo es requerido
           </p>
@@ -104,7 +209,7 @@
         <label for="responsableVisita" class="label-base">Responsable visita</label>
         <input [formControlName]="'responsableVisita'" type="text" id="responsableVisita" class="input-base" placeholder="Responsable visita">
 
-        @if(formFamilyCore.get('responsableVisita')?.hasError('required') && formFamilyCore.get('responsableVisita')?.touched) {
+        @if(formActa.get('responsableVisita')?.hasError('required') && formActa.get('responsableVisita')?.touched) {
           <p class="text-red-500">
             * Este campo es requerido
           </p>
@@ -117,7 +222,7 @@
         <label for="direccion" class="label-base">Dirección</label>
         <input [formControlName]="'direccion'" type="text" id="direccion" class="input-base" placeholder="Dirección">
 
-        @if(formFamilyCore.get('direccion')?.hasError('required') && formFamilyCore.get('direccion')?.touched) {
+        @if(formActa.get('direccion')?.hasError('required') && formActa.get('direccion')?.touched) {
           <p class="text-red-500">
             * Este campo es requerido
           </p>
@@ -132,7 +237,7 @@
           <option value="baja" class="input-base capitalize">baja</option>
         </select>
 
-        @if(formFamilyCore.get('prioridad')?.hasError('required') && formFamilyCore.get('prioridad')?.touched) {
+        @if(formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
           <p class="text-red-500">
             * Este campo es requerido
           </p>
@@ -152,9 +257,9 @@
 
     </div>
 
-    <!--  -->
-    <!-- <div formArrayName="beneficiarios" >
-      <div class="flex justify-between flex-wrap gap-4 mb-4" *ngFor="let beneficiario of getCtrl('beneficiarios', formFamilyCore).controls; index as formBeneficiary" >
+
+    <div formArrayName="beneficiarios" >
+      <div class="flex justify-between flex-wrap gap-4 mb-4" *ngFor="let beneficiario of getCtrl('beneficiarios', formActa).controls; index as formBeneficiary" >
         <div class="flex flex-col w-full border border-gray-400 rounded-2xl p-4" [formGroupName]="formBeneficiary">
 
           <div class="w-full flex flex-wrap justify-between">

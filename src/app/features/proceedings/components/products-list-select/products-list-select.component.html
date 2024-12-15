@@ -1,4 +1,4 @@
-<div class="overflow-x-auto overflow-y-auto max-h-[80vh] shadow-md sm:rounded-lg bg-white p-3 scrollbar-custom">
+<!-- <div class="overflow-x-auto overflow-y-auto max-h-[80vh] shadow-md sm:rounded-lg bg-white p-3 scrollbar-custom">
   <h2>Productos</h2>
   <div class="flex justify-end gap-3">
     <button (click)="closeWithRta()" class="btn-action-blue">Registrar</button>
@@ -642,7 +642,7 @@
 </div>
 
 
-<!-- <h1>Favorite Animal</h1>
+<h1>Favorite Animal</h1>
 <div>
   My favorite animal is:
   <ul>
@@ -663,3 +663,62 @@
     </li>
   </ul>
 </div> -->
+
+<!-- product-selection.component.html -->
+<div class="bg-white h-[90vh] min-w-[60vw] overflow-hidden p-5" >
+
+  <table class="table w-full">
+    <thead class="border-b-2">
+      <tr>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Stock</th>
+        <th>Seleccionar</th>
+        <th>Cantidad</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for(product of products; track product){
+        <tr>
+          <td class="py-2 ml-5">{{ product.nombre }}</td>
+          <td class="py-2 ml-5">{{ product.descripcion }}</td>
+          <td class="py-2 ml-5">{{ product.stock }}</td>
+          <td class="py-2 ml-5">
+            <input
+              type="checkbox"
+              #checkbox
+              (change)="onQuantityChange(product, quantityInput, checkbox)"
+            >
+          </td>
+          <td class="py-2 ml-5">
+            <input
+              class="w-full px-3 py-0 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              #quantityInput
+              type="number"
+              min="1"
+              [max]="product.stock"
+              (input)="onQuantityChange(product, quantityInput, checkbox)"
+            >
+          </td>
+          <td class="py-2 ml-5">
+            <button
+              (click)="removeProduct(product, checkbox, quantityInput)"
+              class="btn btn-danger"
+            >
+              Eliminar
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <!-- Optional: Display selected products -->
+  @if(selectedProducts.length > 0){
+    <div>
+      <h3>Productos Seleccionados:</h3>
+      <pre>{{ selectedProducts | json }}</pre>
+    </div>
+  }
+</div>

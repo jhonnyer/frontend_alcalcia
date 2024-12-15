@@ -20,6 +20,7 @@ import { timer } from 'rxjs';
 import { time } from 'console';
 import { IProyecto, IProyectoAndCategoria } from '../../../../core/models/proyecto.model';
 import { IResponsable } from '../../../../core/models/responsable.model';
+import { ISelectedProduct } from '../../../../core/models/products.model';
 
 @Component({
   selector: 'app-procedings-register',
@@ -262,7 +263,7 @@ export class ProcedingsRegisterComponent implements OnInit{
   openDialog() {
     // const idProyecto = this.formActa.get('proyecto')
     const idProyecto = 2
-    const dialogRef = this.dialog.open<string>(ProductsListSelectComponent, {
+    const dialogRef = this.dialog.open<ISelectedProduct[]>(ProductsListSelectComponent, {
       data: {
         animal: 'perro',
       }

@@ -7,7 +7,14 @@ import { CommonModule } from '@angular/common';
   selector: 'app-products-list-select',
   standalone: true,
   imports: [CommonModule],
-  styles: ``,
+  styles: `
+    th, td {
+      border-bottom: 1px solid #e5e7eb; /* Gris claro */
+    }
+    th:last-child, td:last-child {
+      border-bottom: none; /* Quitar el borde de la última columna */
+    }
+  `,
   templateUrl: './products-list-select.component.html'
 })
 export class ProductsListSelectComponent implements OnInit{
@@ -90,6 +97,6 @@ export class ProductsListSelectComponent implements OnInit{
   }
 
   closeWithRta() {
-    this.dialogRef.close([{idProductoFk:1, cantidad: 1}]);
+    this.dialogRef.close(this.selectedProducts);
   }
 }

@@ -194,8 +194,8 @@ export class ProcedingsRegisterComponent implements OnInit{
       prioridad: ['', [Validators.required]],
       responsableVisita: ['', [Validators.required]],
       tipoSolicitud: ['', [Validators.required]],
-      productos: [''],
-      paquetes: [''],
+      productos: [null],
+      paquetes: [null],
       observaciones: [''],
     });
   }
@@ -237,7 +237,9 @@ export class ProcedingsRegisterComponent implements OnInit{
       console.log("Formulario valido Acta");
       console.log(this.formActa.value);
       this.actasService.post(this.formActa.value).subscribe({
-        next: resp => console.log(resp),
+        next: resp => {
+          this.router.navigate(['proceedings']);
+        },
         error: error => console.log(error)
       })
 	  }else{

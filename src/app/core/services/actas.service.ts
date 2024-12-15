@@ -72,12 +72,7 @@ export class ActasService {
   }
 
   post(acta:Partial<ICreateActa>): Observable<ICreateActa> {
-    return this.http.post<ICreateActa>(`${this.URL}/actas`, acta ,{ context: checkToken() }).pipe(
-      tap(acta => {
-        acta.fechaCreacion = this.formatDate(acta.fechaCreacion);
-        acta.fechaEntrega = this.formatDate(acta.fechaEntrega);
-      })
-    );
+    return this.http.post<ICreateActa>(`${this.URL}/actas`, acta ,{ context: checkToken() });
   }
 
   update(acta:Partial<IActa>): Observable<IActa> {

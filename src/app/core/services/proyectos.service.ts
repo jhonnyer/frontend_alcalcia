@@ -33,8 +33,8 @@ export class ProyectosService {
     return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idCategoria}`, { context: checkToken() });
   }
 
-  post(data:Partial<IProyecto>): Observable<ResponseStandar<IProyecto>> {
-    return this.http.post<ResponseStandar<IProyecto>>(`${this.URL}/proyectos}`, data, { context: checkToken() });
+  post(data:Partial<IProyectoAndCategoria>): Observable<ResponseStandar<IProyectoAndCategoria>> {
+    return this.http.post<ResponseStandar<IProyectoAndCategoria>>(`${this.URL}/proyectos`, data, { context: checkToken() });
   }
 
   updateById(idProyecto: string, data:IProyecto): Observable<ResponseStandar<IProyecto>> {

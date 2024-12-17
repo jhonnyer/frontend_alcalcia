@@ -10,7 +10,7 @@ import { ListCategoriasComponent } from './components/list-categorias/list-categ
 // import { ListUsersComponent } from './components/list-users/list-users.component';
 import { ListProjectsComponent } from "./components/list-projects/list-projects.component";
 import { ShowForRolesDirective } from '../../../core/directives/show-for-roles.directive';
-
+import { HidenForRolesDirectiveDirective } from '../../../core/directives/hiden-for-roles-directive.directive';
 
 @Component({
   selector: 'app-sidebar',
@@ -25,7 +25,8 @@ import { ShowForRolesDirective } from '../../../core/directives/show-for-roles.d
     ListResponsibleComponent,
     ListProjectsComponent,
     ListCategoriasComponent,
-    ShowForRolesDirective
+    ShowForRolesDirective,
+    HidenForRolesDirectiveDirective
 ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'

@@ -7,11 +7,12 @@ import { CategoriasService } from '../../../../core/services/categorias.service'
 import { Router } from '@angular/router';
 import { ICategorias } from '../../../../core/models/categorias.model';
 import { IProyectoAndCategoria } from '../../../../core/models/proyecto.model';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-project-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './project-create.component.html',
   styleUrl: './project-create.component.scss'
 })

@@ -49,7 +49,7 @@ export class ShowForRolesDirective implements OnInit, OnDestroy  {
         userState === 'A' && // User is active
         this.allowedRoles?.some(role => role === userRole);
 
-      // Render or clear the view based on authorization
+      // Render or clear the view based on authorization revisar
       if (isAuthorized) {
         this.viewContainerRef.createEmbeddedView(this.templateRef);
       } else {

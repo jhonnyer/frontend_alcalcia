@@ -6,11 +6,12 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ICategorias } from './../../../../core/models/categorias.model';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-inventory-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   styles: ``,
   templateUrl: './inventory-create.component.html'
 })
@@ -27,6 +28,7 @@ export class InventoryCreateComponent implements OnInit {
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Agregar producto');
     this.initFormFamilyCore();
+    this.loadProyectos();
   }
 
   loadProyectos(): void {
@@ -118,6 +120,7 @@ export class InventoryCreateComponent implements OnInit {
       console.log('Formulario inválido');
       console.log(this.formFamilyCore.value);
 		  this.formFamilyCore.markAllAsTouched();
+      alert('Formulario inválido, revisa los campos');
 	  }
   }
 }

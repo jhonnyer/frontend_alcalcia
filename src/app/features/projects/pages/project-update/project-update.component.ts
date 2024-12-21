@@ -3,8 +3,13 @@ import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { IProyecto, IProyectoAndCategoria } from '../../../../core/models/proyecto.model';
+
+
+import { CategoriasService } from '../../../../core/services/categorias.service';
+import { Router, ActivatedRoute } from '@angular/router';
+import { ICategorias } from '../../../../core/models/categorias.model';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-project-update',

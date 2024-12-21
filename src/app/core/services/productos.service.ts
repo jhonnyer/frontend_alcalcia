@@ -23,7 +23,7 @@ export class ProductosService {
   }
 
   post(data:Partial<IProductoAndProyecto>): Observable<ResponseStandarUnique<string | null>> {
-    return this.http.post<ResponseStandarUnique<string | null>>(`${this.URL}/productos}`, data, { context: checkToken() });
+    return this.http.post<ResponseStandarUnique<string | null>>(`${this.URL}/productos`, data, { context: checkToken() });
   }
 
   updateById(idProducto: string, data:IProducto) {

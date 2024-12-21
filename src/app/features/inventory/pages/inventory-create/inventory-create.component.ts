@@ -6,7 +6,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ICategorias } from './../../../../core/models/categorias.model';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
 
 @Component({
@@ -22,6 +22,7 @@ export class InventoryCreateComponent implements OnInit {
   private pageTitleService = inject(PageTitleService);
   private proyectosService = inject(ProyectosService);
   private productosService = inject(ProductosService);
+  private router = inject(Router);
 
   // Usamos IProyectoAndCategoriaGetId que ya incluye la estructura correcta
   proyectos = signal<IProyectoAndCategoriaArray[]>([]);
@@ -127,6 +128,7 @@ export class InventoryCreateComponent implements OnInit {
         next: response => {
           console.log("Producto creado: ", response);
           alert('Producto creado correctamente');
+          this.router.navigate(['/inventory']);
         },
         error: error => {
           console.log("Error: ", error);

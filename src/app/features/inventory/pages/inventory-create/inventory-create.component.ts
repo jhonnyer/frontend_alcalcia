@@ -7,6 +7,7 @@ import { ICategorias } from './../../../../core/models/categorias.model';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { RouterLink } from '@angular/router';
+import { ProductosService } from '../../../../core/services/productos.service';
 
 @Component({
   selector: 'app-inventory-create',
@@ -20,6 +21,7 @@ export class InventoryCreateComponent implements OnInit {
   private fb = inject(FormBuilder);
   private pageTitleService = inject(PageTitleService);
   private proyectosService = inject(ProyectosService);
+  private productosService = inject(ProductosService);
 
   // Usamos IProyectoAndCategoriaGetId que ya incluye la estructura correcta
   proyectos = signal<IProyectoAndCategoriaArray[]>([]);
@@ -88,6 +90,7 @@ export class InventoryCreateComponent implements OnInit {
       nombreProducto: ['', [Validators.required]],
       stock: ['', [Validators.required]],
       descripcion: ['', [Validators.required]],
+      fechaIngreso: [null]
     });
   }
 
@@ -119,6 +122,18 @@ export class InventoryCreateComponent implements OnInit {
       this.formFamilyCore.value.idCategoria = Number(this.formFamilyCore.value.idCategoria);
       console.log("Form");
       console.log(this.formFamilyCore.value);
+
+      this.productosService.post(this.formFamilyCore.value).subscribe({
+        next: response => {
+          console.log("Producto creado: ", response);
+          alert('Producto creado correctamente');
+        },
+        error: error => {
+          console.log("Error: ", error);
+          alert('Error al crear el producto');
+        }
+      });
+
 	  }else{
       console.log('Formulario inválido');
       // this.formFamilyCore.get('idProyecto')?.setValue(Number(this.formFamilyCore.get('idProyecto')?.value));

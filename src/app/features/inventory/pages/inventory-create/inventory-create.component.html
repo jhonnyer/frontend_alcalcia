@@ -5,7 +5,7 @@
     <div class="flex flex-wrap justify-between">
       <div class="w-full md:w-[49%]">
         <label for="proyecto" class="label-base">Seleccionar proyecto</label>
-        <select formControlName="proyecto" name="proyecto" id="proyecto" class="input-base">
+        <select formControlName="idProyecto" name="proyecto" id="proyecto" class="input-base">
           <option value="">Seleccione un proyecto</option>
           @for(item of proyectos(); track item.proyecto.idProyecto) {
             <option [value]="item.proyecto.idProyecto" class="input-base capitalize">
@@ -14,7 +14,7 @@
           }
         </select>
 
-        @if(formFamilyCore.get('proyecto')?.hasError('required') && formFamilyCore.get('proyecto')?.touched) {
+        @if(formFamilyCore.get('idProyecto')?.hasError('required') && formFamilyCore.get('idProyecto')?.touched) {
           <p class="text-red-500">
             * Este campo es requerido
           </p>
@@ -23,7 +23,7 @@
 
       <div class="w-full md:w-[49%]">
         <label for="categoria" class="label-base">Seleccionar categoría</label>
-        <select formControlName="categoria" name="categoria" id="categoria" class="input-base">
+        <select formControlName="idCategoria" name="categoria" id="categoria" class="input-base">
           <option value="">Seleccione una categoría</option>
           @for(categoria of categoriasDisponibles(); track categoria.idCategoria) {
             <option [value]="categoria.idCategoria" class="input-base capitalize">
@@ -50,9 +50,9 @@
           <div class="w-full flex flex-wrap justify-between">
             <div class="w-full md:w-[49%]">
               <label for="nombre" class="label-base">Nombre producto</label>
-              <input formControlName="nombre" type="text" id="nombre" class="input-base" placeholder="Nombre producto">
+              <input formControlName="nombreProducto" type="text" id="nombre" class="input-base" placeholder="Nombre producto">
 
-              @if(producto.get('nombre')?.hasError('required') && producto.get('nombre')?.touched) {
+              @if(producto.get('nombreProducto')?.hasError('required') && producto.get('nombreProducto')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>

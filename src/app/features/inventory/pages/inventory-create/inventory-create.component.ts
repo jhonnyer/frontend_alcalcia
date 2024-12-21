@@ -47,13 +47,13 @@ export class InventoryCreateComponent implements OnInit {
 
   initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
-      proyecto: ['', [Validators.required]],
-      categoria: [{ value: '', disabled: true }, [Validators.required]],
+      idProyecto: ['', [Validators.required]],
+      idCategoria: [{ value: '', disabled: true }, [Validators.required]],
       productos: this.fb.array([], [Validators.required, Validators.min(1)])
     });
 
     // Escuchar cambios en la selección de proyecto
-    this.formFamilyCore.get('proyecto')?.valueChanges.subscribe(idProyecto => {
+    this.formFamilyCore.get('idProyecto')?.valueChanges.subscribe(idProyecto => {
       this.onProyectoChange(idProyecto);
     });
 
@@ -70,13 +70,13 @@ export class InventoryCreateComponent implements OnInit {
       this.categoriasDisponibles.set(proyectoSeleccionado.categorias);
 
       // Habilitar el select de categorías
-      const categoriaControl = this.formFamilyCore.get('categoria');
+      const categoriaControl = this.formFamilyCore.get('idCategoria');
       categoriaControl?.enable();
       categoriaControl?.setValue(''); // Resetear la selección
     } else {
       // Si no hay proyecto seleccionado, deshabilitar y limpiar categorías
       this.categoriasDisponibles.set([]);
-      const categoriaControl = this.formFamilyCore.get('categoria');
+      const categoriaControl = this.formFamilyCore.get('idCategoria');
       categoriaControl?.disable();
       categoriaControl?.setValue('');
     }
@@ -85,7 +85,7 @@ export class InventoryCreateComponent implements OnInit {
   initFormProducts(): FormGroup {
     // Retorna el formulario que estará anidado
     return this.fb.group({
-      nombre: ['', [Validators.required]],
+      nombreProducto: ['', [Validators.required]],
       stock: ['', [Validators.required]],
       descripcion: ['', [Validators.required]],
     });
@@ -114,10 +114,17 @@ export class InventoryCreateComponent implements OnInit {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
+      // this.formFamilyCore.get('idProyecto')?.setValue(Number(this.formFamilyCore.get('idProyecto')?.value));
+      this.formFamilyCore.value.idProyecto = Number(this.formFamilyCore.value.idProyecto);
+      this.formFamilyCore.value.idCategoria = Number(this.formFamilyCore.value.idCategoria);
       console.log("Form");
       console.log(this.formFamilyCore.value);
 	  }else{
       console.log('Formulario inválido');
+      // this.formFamilyCore.get('idProyecto')?.setValue(Number(this.formFamilyCore.get('idProyecto')?.value));
+      this.formFamilyCore.value.idProyecto = Number(this.formFamilyCore.value.idProyecto);
+      this.formFamilyCore.value.idCategoria = Number(this.formFamilyCore.value.idCategoria);
+
       console.log(this.formFamilyCore.value);
 		  this.formFamilyCore.markAllAsTouched();
       alert('Formulario inválido, revisa los campos');

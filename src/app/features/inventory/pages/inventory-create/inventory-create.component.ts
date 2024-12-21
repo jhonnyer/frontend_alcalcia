@@ -1,8 +1,11 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormArray, FormGroup, Validators, FormControl } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import { ReactiveFormsModule } from '@angular/forms';
+import { ICategorias } from './../../../../core/models/categorias.model';
+import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
+import { ProyectosService } from '../../../../core/services/proyectos.service';
 
 @Component({
   selector: 'app-inventory-create',
@@ -15,19 +18,66 @@ export class InventoryCreateComponent implements OnInit {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
   private pageTitleService = inject(PageTitleService);
+  private proyectosService = inject(ProyectosService);
+
+  // Usamos IProyectoAndCategoriaGetId que ya incluye la estructura correcta
+  proyectos = signal<IProyectoAndCategoriaArray[]>([]);
+  categoriasDisponibles = signal<ICategorias[]>([]);
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Agregar producto');
     this.initFormFamilyCore();
   }
 
+  loadProyectos(): void {
+    this.proyectosService.getAll().subscribe({
+      next: (response) => {
+        if (response.estado === 'exito') {
+          this.proyectos.set(response.respuesta);
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar proyectos:', error);
+        alert('Error al cargar los proyectos');
+      }
+    });
+  }
+
   initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
       proyecto: ['', [Validators.required]],
-      categoria: ['', [Validators.required]],
+      categoria: [{ value: '', disabled: true }, [Validators.required]],
       productos: this.fb.array([], [Validators.required, Validators.min(1)])
     });
+
+    // Escuchar cambios en la selección de proyecto
+    this.formFamilyCore.get('proyecto')?.valueChanges.subscribe(idProyecto => {
+      this.onProyectoChange(idProyecto);
+    });
+
     this.addProducts();
+  }
+
+  onProyectoChange(idProyecto: string): void {
+    const proyectoSeleccionado = this.proyectos().find(
+      p => p.proyecto.idProyecto === Number(idProyecto)
+    );
+
+    if (proyectoSeleccionado) {
+      // Actualizar categorías disponibles
+      this.categoriasDisponibles.set(proyectoSeleccionado.categorias);
+
+      // Habilitar el select de categorías
+      const categoriaControl = this.formFamilyCore.get('categoria');
+      categoriaControl?.enable();
+      categoriaControl?.setValue(''); // Resetear la selección
+    } else {
+      // Si no hay proyecto seleccionado, deshabilitar y limpiar categorías
+      this.categoriasDisponibles.set([]);
+      const categoriaControl = this.formFamilyCore.get('categoria');
+      categoriaControl?.disable();
+      categoriaControl?.setValue('');
+    }
   }
 
   initFormProducts(): FormGroup {

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { IProyecto, IProyectoAndCategoria, IProyectoAndCategoriaGetId } from '../models/proyecto.model';
+import { IProyecto, IProyectoAndCategoria, IProyectoAndCategoriaArray } from '../models/proyecto.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
@@ -13,16 +13,16 @@ export class ProyectosService {
   private readonly URL = environment.URL_API;
   private http = inject(HttpClient);
 
-  getAll(): Observable<ResponseStandar<IProyectoAndCategoria>> {
-    return this.http.get<ResponseStandar<IProyectoAndCategoria>>(`${this.URL}/proyectos/list`, { context: checkToken() }).pipe(
+  getAll(): Observable<ResponseStandar<IProyectoAndCategoriaArray>> {
+    return this.http.get<ResponseStandar<IProyectoAndCategoriaArray>>(`${this.URL}/proyectos/list`, { context: checkToken() }).pipe(
       tap(response => {
         console.log(response)
       })
     );
   }
 
-  getById(id: string | number): Observable<ResponseStandarUnique<IProyectoAndCategoriaGetId>> {
-    return this.http.get<ResponseStandarUnique<IProyectoAndCategoriaGetId>>(`${this.URL}/proyectos/${id}`, { context: checkToken() });
+  getById(id: string | number): Observable<ResponseStandarUnique<IProyectoAndCategoriaArray>> {
+    return this.http.get<ResponseStandarUnique<IProyectoAndCategoriaArray>>(`${this.URL}/proyectos/${id}`, { context: checkToken() });
   }
 
   getByName(name: string): Observable<ResponseStandar<IProyecto>> {

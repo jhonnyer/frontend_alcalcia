@@ -20,7 +20,7 @@ export interface IProyectoAndCategoria {
   categorias: ICategorias;
 }
 
-export interface IProyectoAndCategoriaGetId {
+export interface IProyectoAndCategoriaArray {
   proyecto: IProyecto;
   categorias: ICategorias[];
 }

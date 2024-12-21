@@ -17,7 +17,7 @@ import { ActasService } from '../../../../core/services/actas.service';
 import { IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
 import { debounceTime } from 'rxjs';
 import { timer } from 'rxjs';
-import { IProyecto, IProyectoAndCategoria } from '../../../../core/models/proyecto.model';
+import { IProyecto, IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { IResponsable } from '../../../../core/models/responsable.model';
 import { ISelectedProduct } from '../../../../core/models/products.model';
 
@@ -48,7 +48,7 @@ export class ProcedingsRegisterComponent implements OnInit{
   proyectoSelect = signal<number | null>(null);
   responsableActa = signal<number | null>(null);
 
-  proyectos = signal<IProyectoAndCategoria[]>([]);
+  proyectos = signal<IProyectoAndCategoriaArray[]>([]);
   responsables = signal<IResponsable[]>([]);
 
 

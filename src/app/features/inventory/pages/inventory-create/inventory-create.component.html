@@ -6,12 +6,15 @@
       <div class="w-full md:w-[49%]">
         <label for="proyecto" class="label-base">Seleccionar proyecto</label>
         <select formControlName="proyecto" name="proyecto" id="proyecto" class="input-base">
-          <option value="Cauca adelante" class="input-base capitalize" selected>Cauca adelante</option>
-          <option value="Hambre cero" class="input-base capitalize" >Hambre cero</option>
-          <option value="ambiental" class="input-base capitalize">Ambiental</option>
+          <option value="">Seleccione un proyecto</option>
+          @for(item of proyectos(); track item.proyecto.idProyecto) {
+            <option [value]="item.proyecto.idProyecto" class="input-base capitalize">
+              {{ item.proyecto.nombre }}
+            </option>
+          }
         </select>
 
-        @if(formFamilyCore.get('zona')?.hasError('required') && formFamilyCore.get('zona')?.touched) {
+        @if(formFamilyCore.get('proyecto')?.hasError('required') && formFamilyCore.get('proyecto')?.touched) {
           <p class="text-red-500">
             * Este campo es requerido
           </p>
@@ -19,11 +22,14 @@
       </div>
 
       <div class="w-full md:w-[49%]">
-        <label for="categoria" class="label-base">Seleccionar categoria</label>
+        <label for="categoria" class="label-base">Seleccionar categoría</label>
         <select formControlName="categoria" name="categoria" id="categoria" class="input-base">
-          <option value="invierno" class="input-base capitalize" selected>invierno</option>
-          <option value="verano" class="input-base capitalize" >verano</option>
-          <option value="ambiental" class="input-base capitalize">ambiental</option>
+          <option value="">Seleccione una categoría</option>
+          @for(categoria of categoriasDisponibles(); track categoria.idCategoria) {
+            <option [value]="categoria.idCategoria" class="input-base capitalize">
+              {{ categoria.nombre }}
+            </option>
+          }
         </select>
 
         @if(formFamilyCore.get('categoria')?.hasError('required') && formFamilyCore.get('categoria')?.touched) {
@@ -33,6 +39,7 @@
         }
       </div>
     </div>
+
 
     <h2>Productos</h2>
     <!--  -->

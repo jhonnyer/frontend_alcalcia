@@ -73,13 +73,31 @@
       </div>
     </div>
 
+    <!-- Sección de Categorías -->
+    <div class="flex flex-col py-4 px-2 border rounded-lg border-gray-300">
+      <label>Selecciona las categorías</label>
+      @for(categoria of categorias(); track categoria.idCategoria) {
+        <div class="flex items-center gap-2">
+          <input
+            type="checkbox"
+            [value]="categoria.idCategoria"
+            (change)="onCategoryCheckboxChange($event)"
+          />
+          <label>{{ categoria.nombre }}</label>
+        </div>
+      }
+    </div>
+
     <div class="flex flex-wrap justify-between">
       <label for="descripcion"class="block mb-2 text-sm font-medium text-gray-900 ">Descripción</label>
       <textarea id="descripcion" formControlName="descripcion" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 " placeholder="Observacioes para está entrega..."></textarea>
     </div>
 
+
     <div class="flex justify-end space-x-4">
-      <button type="button" class="btn-action-gray">Cancelar</button>
+      <button routerLink='/projects' type="button" class="btn-action-gray">
+        Cancelar
+      </button>
       <button type="submit" class="btn-action-blue">Guardar cambios</button>
     </div>
 

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { IProyecto, IProyectoAndCategoria } from '../models/proyecto.model';
+import { IProyecto, IProyectoAndCategoria, IProyectoAndCategoriaGetId } from '../models/proyecto.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
@@ -21,8 +21,8 @@ export class ProyectosService {
     );
   }
 
-  getById(id: string | number): Observable<ResponseStandarUnique<IProyectoAndCategoria>> {
-    return this.http.get<ResponseStandarUnique<IProyectoAndCategoria>>(`${this.URL}/proyectos/${id}`, { context: checkToken() });
+  getById(id: string | number): Observable<ResponseStandarUnique<IProyectoAndCategoriaGetId>> {
+    return this.http.get<ResponseStandarUnique<IProyectoAndCategoriaGetId>>(`${this.URL}/proyectos/${id}`, { context: checkToken() });
   }
 
   getByName(name: string): Observable<ResponseStandar<IProyecto>> {
@@ -37,8 +37,8 @@ export class ProyectosService {
     return this.http.post<ResponseStandar<IProyectoAndCategoria>>(`${this.URL}/proyectos`, data, { context: checkToken() });
   }
 
-  updateById(idProyecto: string, data:IProyecto): Observable<ResponseStandar<IProyecto>> {
-    return this.http.put<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idProyecto}`, data, { context: checkToken() });
+  updateById(idProyecto: string, data:IProyectoAndCategoria): Observable<ResponseStandar<IProyectoAndCategoria>> {
+    return this.http.put<ResponseStandar<IProyectoAndCategoria>>(`${this.URL}/proyectos/${idProyecto}`, data, { context: checkToken() });
   }
 
   updateProjectState(idProyecto: string, state: "A" | "I"): Observable<ResponseStandar<IProyecto>>{

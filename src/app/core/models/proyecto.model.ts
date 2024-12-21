@@ -5,7 +5,7 @@ type TipoProyecto = 'D' | 'M';
 
 export type ColumnKeys<T> = Array<keyof T>;
 
-export interface IProyecto{
+export interface IProyecto {
   idProyecto: number;
   nombre: string;
   descripcion: string;
@@ -15,7 +15,13 @@ export interface IProyecto{
   tipoProyecto: TipoProyecto;
 }
 
-export interface IProyectoAndCategoria{
+export interface IProyectoAndCategoria {
   proyecto: IProyecto;
   categorias: ICategorias;
 }
+
+export interface IProyectoAndCategoriaGetId {
+  proyecto: IProyecto;
+  categorias: ICategorias[];
+}
+

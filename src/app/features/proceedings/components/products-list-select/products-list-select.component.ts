@@ -3,6 +3,11 @@ import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
 import { IProducto, ISelectedProduct } from '../../../../core/models/products.model';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { CommonModule } from '@angular/common';
+
+interface DialogData {
+  idProyecto: number | null;
+}
+
 @Component({
   selector: 'app-products-list-select',
   standalone: true,
@@ -22,7 +27,8 @@ import { CommonModule } from '@angular/common';
 })
 export class ProductsListSelectComponent implements OnInit{
 
-  data = inject(DIALOG_DATA);
+  // data = inject(DIALOG_DATA);
+  data = inject<DialogData>(DIALOG_DATA);
   dialogRef = inject<DialogRef<ISelectedProduct[]>>(DialogRef<ISelectedProduct[]>);
   private productosService = inject(ProductosService);
 
@@ -33,7 +39,7 @@ export class ProductsListSelectComponent implements OnInit{
   selectedProducts: ISelectedProduct[] = [];
 
   ngOnInit(): void {
-    console.log(this.data)
+    console.log("ID Proyecto recibido:", this.data.idProyecto);
     this.getProductos();
   }
 

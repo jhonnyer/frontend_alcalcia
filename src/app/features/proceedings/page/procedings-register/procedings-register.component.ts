@@ -23,6 +23,10 @@ import { ISelectedProduct } from '../../../../core/models/products.model';
 
 import { Router } from '@angular/router';
 
+interface DialogData {
+  idProyecto: number | null;
+}
+
 @Component({
   selector: 'app-procedings-register',
   standalone: true,
@@ -215,16 +219,20 @@ export class ProcedingsRegisterComponent implements OnInit{
       alert('Por favor seleccione un proyecto primero');
       return;
     }
-    // const idProyecto = this.formActa.get('proyecto')
-    const idProyecto = 2
     const dialogRef = this.dialog.open<ISelectedProduct[]>(ProductsListSelectComponent, {
       data: {
-        animal: 'perro',
+        idProyecto: this.proyectoSelect()
+      } as DialogData
+    });
+    dialogRef.closed.subscribe(selectedProducts => {
+      if (selectedProducts) {
+        console.log("Productos seleccionados:", selectedProducts);
+        // Aquí manejaremos los productos seleccionados
+        this.formActa.patchValue({
+          productos: selectedProducts
+        });
       }
     });
-    dialogRef.closed.subscribe(output => {
-      console.log("Salida: ", output);
-    })
   }
 
   cancelar(){

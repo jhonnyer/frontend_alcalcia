@@ -18,16 +18,16 @@ export class ProductosService {
     return this.http.get<IProducto[]>(`${this.URL}/productos/list`, { context: checkToken() });
   }
 
-  getById(idProducto: string): Observable<IProducto[]> {
-    return this.http.get<IProducto[]>(`${this.URL}/productos/${idProducto}`, { context: checkToken() });
+  getById(idProducto: string): Observable<IProducto> {
+    return this.http.get<IProducto>(`${this.URL}/productos/${idProducto}`, { context: checkToken() });
   }
 
   post(data:Partial<IProductoAndProyecto>): Observable<ResponseStandarUnique<string | null>> {
     return this.http.post<ResponseStandarUnique<string | null>>(`${this.URL}/productos`, data, { context: checkToken() });
   }
 
-  updateById(idProducto: string, data:IProducto) {
-    this.http.put(`${this.URL}/productos/${idProducto}`, data, { context: checkToken() });
+  updateById(idProducto: string, data:Partial<IProducto>): Observable<ResponseStandarUnique<IProducto>> {
+    return this.http.put<ResponseStandarUnique<IProducto>>(`${this.URL}/productos/${idProducto}`, data, { context: checkToken() });
   }
 
   delete(idProducto: string) {

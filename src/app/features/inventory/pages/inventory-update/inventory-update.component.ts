@@ -48,7 +48,7 @@ export class InventoryUpdateComponent {
           this.formFamilyCore.patchValue({
             nombre: this.producto?.nombre,
             descripcion: this.producto?.descripcion,
-            stock: this.producto?.stock,
+            // stock: this.producto?.stock,
             fechaIngreso: this.producto?.fechaIngreso
           });
         }

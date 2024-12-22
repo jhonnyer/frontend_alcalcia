@@ -234,52 +234,94 @@ export class ProcedingsUpdateComponent implements OnInit {
     this.router.navigate(['proceedings']);
   }
 
-  updateProductQuantity(product: number, event: Event){
-    console.log("Productos actualizados:", this.selectedProductsInfo());
+  updateProductQuantity(productId: number, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const newQuantity = parseInt(input.value);
+
+    // Validar que la cantidad sea válida
+    if (isNaN(newQuantity) || newQuantity < 1) {
+      alert('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    // Actualizar cantidad en el signal
+    const updatedProducts = this.selectedProductsInfo().map(product => {
+      if (product.idProducto === productId) {
+        // Validar contra el stock
+        if (newQuantity > product.stock) {
+          alert(`No hay suficiente stock. Stock disponible: ${product.stock}`);
+          input.value = product.cantidad.toString();
+          return product;
+        }
+        return { ...product, cantidad: newQuantity };
+      }
+      return product;
+    });
+
+    this.selectedProductsInfo.set(updatedProducts);
+
+    // Actualizar en el formulario
+    const formProducts = updatedProducts.map(p => ({
+      idProductoFk: p.idProducto,
+      cantidad: p.cantidad
+    }));
+
+    this.formActa.patchValue({
+      productos: formProducts
+    });
   }
 
-    openDialog() {
-      if (!this.proyectoSelect()) {
-        alert('Por favor seleccione un proyecto primero');
-        return;
-      }
-      const dialogRef = this.dialog.open<ISelectedProduct[]>(ProductsListSelectComponent, {
-        data: {
-          idProyecto: this.proyectoSelect()
-        } as DialogData
-      });
 
-      dialogRef.closed.subscribe(selectedProducts => {
-        if (selectedProducts && selectedProducts.length > 0) {
-          // Actualizamos el formulario con los productos seleccionados
-          this.formActa.patchValue({
-            productos: selectedProducts
-          });
-
-          // Obtenemos la información completa de los productos
-          this.productosService.getAll().subscribe({
-            next: (allProducts) => {
-              const productsWithQuantity: ProductoWithCantidad[] = selectedProducts
-                .map(selected => {
-                  const productInfo = allProducts.find(p => p.idProducto === selected.idProductoFk);
-                  if (!productInfo) return null;
-
-                  return {
-                    ...productInfo,
-                    cantidad: selected.cantidad
-                  };
-                })
-                .filter((product): product is ProductoWithCantidad => product !== null);
-
-              this.selectedProductsInfo.set(productsWithQuantity);
-            },
-            error: (error) => {
-              console.error('Error al cargar información de productos:', error);
-            }
-          });
-        }
-      });
+  openDialog() {
+    // Solo permitir abrir el diálogo si no hay productos
+    if (this.selectedProductsInfo().length > 0) {
+      alert('Esta acta ya tiene productos asociados');
+      return;
     }
+
+    if (!this.proyectoSelect()) {
+      alert('Por favor seleccione un proyecto primero');
+      return;
+    }
+
+    const dialogRef = this.dialog.open<ISelectedProduct[]>(ProductsListSelectComponent, {
+      data: {
+        idProyecto: this.proyectoSelect()
+      } as DialogData
+    });
+
+    dialogRef.closed.subscribe(selectedProducts => {
+      if (selectedProducts && selectedProducts.length > 0) {
+        // Actualizamos el formulario con los productos seleccionados
+        this.formActa.patchValue({
+          productos: selectedProducts
+        });
+
+        // Obtenemos la información completa de los productos
+        this.productosService.getAll().subscribe({
+          next: (allProducts) => {
+            const productsWithQuantity: ProductoWithCantidad[] = selectedProducts
+              .map(selected => {
+                const productInfo = allProducts.find(p => p.idProducto === selected.idProductoFk);
+                if (!productInfo) return null;
+
+                return {
+                  ...productInfo,
+                  cantidad: selected.cantidad
+                };
+              })
+              .filter((product): product is ProductoWithCantidad => product !== null);
+
+            this.selectedProductsInfo.set(productsWithQuantity);
+          },
+          error: (error) => {
+            console.error('Error al cargar información de productos:', error);
+            alert('Error al cargar información de productos');
+          }
+        });
+      }
+    });
+  }
 
   onSubmit() {
     if (this.formActa.valid) {

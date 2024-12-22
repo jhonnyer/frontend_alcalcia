@@ -210,6 +210,11 @@ export class ProcedingsRegisterComponent implements OnInit{
   }
 
   openDialog() {
+
+    if (!this.proyectoSelect()) {
+      alert('Por favor seleccione un proyecto primero');
+      return;
+    }
     // const idProyecto = this.formActa.get('proyecto')
     const idProyecto = 2
     const dialogRef = this.dialog.open<ISelectedProduct[]>(ProductsListSelectComponent, {
@@ -238,12 +243,16 @@ export class ProcedingsRegisterComponent implements OnInit{
       console.log(this.formActa.value);
       this.actasService.post(this.formActa.value).subscribe({
         next: resp => {
+          console.log("Acta registrada correctamente");
           this.router.navigate(['proceedings']);
         },
-        error: error => console.log(error)
+        error: error => {
+          console.log("Algo salio mal intenta de nuevo");
+          console.log(error);
+        }
       })
 	  }else{
-      console.log("Formulario NO valido Acta", this.formActa.value);
+      console.log("Formulario no valido revisa los campos", this.formActa.value);
 		  this.formActa.markAllAsTouched();
 	  }
   }

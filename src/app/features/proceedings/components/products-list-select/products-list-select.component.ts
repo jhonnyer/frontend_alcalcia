@@ -15,7 +15,10 @@ import { CommonModule } from '@angular/common';
       border-bottom: none; /* Quitar el borde de la última columna */
     }
   `,
-  templateUrl: './products-list-select.component.html'
+  templateUrl: './products-list-select.component.html',
+  host: {
+    class: "h-[90vh] min-w-[60vw] overflow-hidden p-5"
+  }
 })
 export class ProductsListSelectComponent implements OnInit{
 

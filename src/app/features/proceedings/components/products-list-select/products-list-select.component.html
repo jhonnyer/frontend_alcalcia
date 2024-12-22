@@ -1,63 +1,65 @@
 <!-- product-selection.component.html -->
-<div class="bg-white h-[90vh] min-w-[60vw] overflow-hidden p-5" >
-  <div class="flex justify-end space-x-4 m-4">
+<div class="bg-white p-5 rounded-lg">
+  <div class="flex h-[40px] justify-end space-x-4 m-4">
     <button (click)="close()" type="button"
-      class="btn-action-green">Cancelar
+      class="btn-action-gray">Cancelar
     </button>
 
     <button (click)="closeWithRta()" type="button"
       class="btn-action-blue ">Agregar lista de productos
     </button>
   </div>
-  <table class="w-full text-sm text-left rtl:text-right text-gray-500 " style="border-collapse: separate; border-spacing: 0 10px;">
-    <thead class="border-b-2">
-      <tr>
-        <th>Nombre</th>
-        <th>Descripción</th>
-        <th>Stock</th>
-        <th>Agregar</th>
-        <th>Cantidad</th>
-        <th>Eliminar</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for(product of products; track product){
-        <tr class="px-2">
-          <td class="py-2">{{ product.nombre }}</td>
-          <td class="py-2">{{ product.descripcion }}</td>
-          <td class="py-2">{{ product.stock }}</td>
-          <td class="py-2">
-            <input
-              type="checkbox"
-              #checkbox
-              (change)="onQuantityChange(product, quantityInput, checkbox)"
-            >
-          </td>
-          <td class="py-2">
-            <input
-              class="w-full px-3 py-0 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              #quantityInput
-              type="number"
-              min="1"
-              [max]="product.stock"
-              (input)="onQuantityChange(product, quantityInput, checkbox)"
-            >
-          </td>
-          <td class="py-2">
-            <button type="button" (click)="removeProduct(product, checkbox, quantityInput)">
-              <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#b91c1c"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-            </button>
-          </td>
+  <div class="w-full h-[calc(90vh-70px)] overflow-y-scroll overflow-x-auto">
+    <table class="w-full h-[calc(90vh-70px)] text-sm text-left rtl:text-right text-gray-500 " style="border-collapse: separate; border-spacing: 0 10px;">
+      <thead class="border-b-2">
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Stock</th>
+          <th>Agregar</th>
+          <th>Cantidad</th>
+          <th>Eliminar</th>
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @for(product of products; track product){
+          <tr class="px-2">
+            <td class="py-2">{{ product.nombre }}</td>
+            <td class="py-2">{{ product.descripcion }}</td>
+            <td class="py-2">{{ product.stock }}</td>
+            <td class="py-2">
+              <input
+                type="checkbox"
+                #checkbox
+                (change)="onQuantityChange(product, quantityInput, checkbox)"
+              >
+            </td>
+            <td class="py-2">
+              <input
+                class="w-full px-3 py-0 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                #quantityInput
+                type="number"
+                min="1"
+                [max]="product.stock"
+                (input)="onQuantityChange(product, quantityInput, checkbox)"
+              >
+            </td>
+            <td class="py-2">
+              <button type="button" (click)="removeProduct(product, checkbox, quantityInput)">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#b91c1c"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 
   <!-- Optional: Display selected products -->
-  @if(selectedProducts.length > 0){
+  <!-- @if(selectedProducts.length > 0){
     <div>
       <h3>Productos Seleccionados:</h3>
       <pre>{{ selectedProducts | json }}</pre>
     </div>
-  }
+  } -->
 </div>

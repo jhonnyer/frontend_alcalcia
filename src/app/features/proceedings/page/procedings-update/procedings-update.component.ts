@@ -18,6 +18,10 @@ interface DialogData {
   idProyecto: number | null;
 }
 
+interface ProductoWithCantidadUpdate extends ProductoWithCantidad {
+  isExisting: boolean;
+}
+
 @Component({
   selector: 'app-procedings-update',
   standalone: true,
@@ -48,7 +52,8 @@ export class ProcedingsUpdateComponent implements OnInit {
 
   proyectos = signal<IProyectoAndCategoriaArray[]>([]);
   responsables = signal<IResponsable[]>([]);
-  selectedProductsInfo = signal<ProductoWithCantidad[]>([]);
+  // selectedProductsInfo = signal<ProductoWithCantidad[]>([]);
+  selectedProductsInfo = signal<ProductoWithCantidadUpdate[]>([]);
 
   proyectoSelect = signal<number | null>(null);
   responsableActa = signal<number | null>(null);
@@ -87,7 +92,6 @@ export class ProcedingsUpdateComponent implements OnInit {
     });
   }
 
-  /*
   private loadActaData(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -95,30 +99,46 @@ export class ProcedingsUpdateComponent implements OnInit {
     this.actasService.getById(this.idActa).subscribe({
       next: (response) => {
         if (response.estado === 'exito') {
-          this.actaData.set(response.respuesta);
+          const acta = response.respuesta;
+          this.actaData.set(acta);
 
-          if (response.respuesta.detallesActaProductos?.length > 0) {
-            const productos = response.respuesta.detallesActaProductos
-              .filter(detalle => detalle.productos) // Filtramos productos nulos
+          // Actualizar selecciones
+          this.proyectoSelect.set(acta.proyecto.idProyecto);
+          this.responsableActa.set(acta.responsable.idResponsable);
+          this.selectProyecto.setValue(acta.proyecto.idProyecto.toString());
+          this.selectResponsable.setValue(acta.responsable.idResponsable.toString());
+
+          // Actualizar formulario
+          this.formActa.patchValue({
+            fechaCreacion: acta.fechaCreacion,
+            estado: acta.estado,
+            fechaEntrega: acta.fechaEntrega,
+            ubicacionEntrega: acta.ubicacionEntrega,
+            prioridad: acta.prioridad,
+            responsableVisita: acta.responsableVisita,
+            tipoSolicitud: acta.tiposSolicitud,
+            observaciones: acta.observaciones
+          });
+
+          // Procesar productos si existen
+          if (acta.detallesActaProductos?.length > 0) {
+            const productos = acta.detallesActaProductos
+              .filter(detalle => detalle.productos)
               .map(detalle => {
                 const producto = detalle.productos;
-                if (!producto) return null;
-
                 return {
-                  idProducto: producto.idProductoFk,
-                  nombre: producto.nombreProducto,
-                  descripcion: producto.descripcion || '',
-                  stock: producto.stock || 0,
-                  fechaIngreso: producto.fechaIngreso,
-                  cantidad: producto.cantidad || 0
-                } as ProductoWithCantidad;
-              })
-              .filter((producto): producto is ProductoWithCantidad => producto !== null);
+                  idProducto: producto?.idProductoFk,
+                  nombre: producto?.nombreProducto,
+                  descripcion: producto?.descripcion || '',
+                  stock: producto?.stock || 0,
+                  fechaIngreso: producto?.fechaIngreso,
+                  cantidad: producto?.cantidad || 0,
+                  isExisting: true // Marcar como existente
+                } as ProductoWithCantidadUpdate;
+              });
 
-            this.productosActa.set(productos);
+            this.selectedProductsInfo.set(productos);
           }
-
-          console.log('Acta cargada:', response.respuesta);
           this.loading.set(false);
         }
       },
@@ -128,65 +148,7 @@ export class ProcedingsUpdateComponent implements OnInit {
         this.loading.set(false);
       }
     });
-  }*/
-
-    private loadActaData(): void {
-      this.loading.set(true);
-      this.error.set(null);
-
-      this.actasService.getById(this.idActa).subscribe({
-        next: (response) => {
-          if (response.estado === 'exito') {
-            const acta = response.respuesta;
-            this.actaData.set(acta);
-
-            // Actualizar selecciones
-            this.proyectoSelect.set(acta.proyecto.idProyecto);
-            this.responsableActa.set(acta.responsable.idResponsable);
-            this.selectProyecto.setValue(acta.proyecto.idProyecto.toString());
-            this.selectResponsable.setValue(acta.responsable.idResponsable.toString());
-
-            // Actualizar formulario
-            this.formActa.patchValue({
-              fechaCreacion: acta.fechaCreacion,
-              estado: acta.estado,
-              fechaEntrega: acta.fechaEntrega,
-              ubicacionEntrega: acta.ubicacionEntrega,
-              prioridad: acta.prioridad,
-              responsableVisita: acta.responsableVisita,
-              tipoSolicitud: acta.tiposSolicitud,
-              observaciones: acta.observaciones
-            });
-
-            // Procesar productos si existen
-            if (acta.detallesActaProductos?.length > 0) {
-              const productos = acta.detallesActaProductos
-                .filter(detalle => detalle.productos)
-                .map(detalle => {
-                  const producto = detalle.productos;
-                  return {
-                    idProducto: producto?.idProductoFk,
-                    nombre: producto?.nombreProducto,
-                    descripcion: producto?.descripcion || '',
-                    stock: producto?.stock || 0,
-                    fechaIngreso: producto?.fechaIngreso,
-                    cantidad: producto?.cantidad || 0
-                  } as ProductoWithCantidad;
-                });
-
-              this.selectedProductsInfo.set(productos);
-            }
-
-            this.loading.set(false);
-          }
-        },
-        error: (error) => {
-          console.error('Error al cargar el acta:', error);
-          this.error.set('Error al cargar los datos del acta');
-          this.loading.set(false);
-        }
-      });
-    }
+  }
 
   hasProducts(): boolean {
     return this.productosActa().length > 0;
@@ -290,6 +252,7 @@ export class ProcedingsUpdateComponent implements OnInit {
       } as DialogData
     });
 
+    /*
     dialogRef.closed.subscribe(selectedProducts => {
       if (selectedProducts && selectedProducts.length > 0) {
         // Actualizamos el formulario con los productos seleccionados
@@ -320,6 +283,53 @@ export class ProcedingsUpdateComponent implements OnInit {
           }
         });
       }
+    });*/
+
+    dialogRef.closed.subscribe(selectedProducts => {
+      if (selectedProducts && selectedProducts.length > 0) {
+        this.productosService.getAll().subscribe({
+          next: (allProducts) => {
+            const productsWithQuantity: ProductoWithCantidadUpdate[] = selectedProducts
+              .map(selected => {
+                const productInfo = allProducts.find(p => p.idProducto === selected.idProductoFk);
+                if (!productInfo) return null;
+
+                return {
+                  ...productInfo,
+                  cantidad: selected.cantidad,
+                  isExisting: false // Marcar como nuevo
+                };
+              })
+              .filter((product): product is ProductoWithCantidadUpdate => product !== null);
+
+            this.selectedProductsInfo.set(productsWithQuantity);
+          },
+          error: (error) => {
+            console.error('Error al cargar información de productos:', error);
+          }
+        });
+      }
+    });
+  }
+
+  // Agregar método para remover solo productos nuevos
+  removeSelectedProduct(productId: number) {
+    const product = this.selectedProductsInfo().find(p => p.idProducto === productId);
+
+    if (product?.isExisting) {
+      alert('No se pueden eliminar productos ya registrados');
+      return;
+    }
+
+    // Remover del signal de información
+    const updatedInfo = this.selectedProductsInfo().filter(p => p.idProducto !== productId);
+    this.selectedProductsInfo.set(updatedInfo);
+
+    // Remover del formulario
+    const currentProducts = this.formActa.get('productos')?.value || [];
+    const updatedProducts = currentProducts.filter((p: ISelectedProduct) => p.idProductoFk !== productId);
+    this.formActa.patchValue({
+      productos: updatedProducts
     });
   }
 

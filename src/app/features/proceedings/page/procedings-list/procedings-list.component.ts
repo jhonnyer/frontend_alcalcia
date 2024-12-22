@@ -102,7 +102,7 @@ export class ProcedingsListComponent implements OnInit {
 
   update(item: IActa){
     console.log("update/: ", item)
-    // this.router.navigate(["nucleo/update/", item.idNucleo]);
+    this.router.navigate(["proceedings/update/", item.idActa]);
   }
 
 

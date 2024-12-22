@@ -27,11 +27,12 @@ export class ActasService {
   }
 
   getById(idActa: string): Observable<ResponseStandar<IActaById>> {
-    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/${idActa}`, { context: checkToken() }).pipe(
-      tap((acta:ResponseStandar<IActaById>) => {
-        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
-      })
-    );
+    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/${idActa}`, { context: checkToken() })
+    // .pipe(
+    //   tap((acta:ResponseStandar<IActaById>) => {
+    //     acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+    //   })
+    // );
   }
 
   getByEstado(estadoActa: string): Observable<ResponseStandar<IActaById>> {
@@ -42,7 +43,7 @@ export class ActasService {
     );
   }
 
-  getByPriorida(prioridadActa: string): Observable<ResponseStandar<IActaById>> {
+  getByPrioridad(prioridadActa: string): Observable<ResponseStandar<IActaById>> {
     return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/estado/${prioridadActa}`, { context: checkToken() }).pipe(
       tap(acta => {
         acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
@@ -76,15 +77,16 @@ export class ActasService {
   }
 
   update(acta:Partial<IActa>): Observable<IActa> {
-    return this.http.post<IActa>(`${this.URL}/actas/${acta.idActa}`, acta ,{ context: checkToken() }).pipe(
+    return this.http.put<IActa>(`${this.URL}/actas/${acta.idActa}`, acta ,{ context: checkToken() })
+    /*.pipe(
       tap(acta => {
         acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);
       })
-    );
+    );*/
   }
 
   updateAdjudicarUnResponsable(idActa: string, idResponsable: string): Observable<IActa> {
-    return this.http.post<IActa>(`${this.URL}/actas/${idActa}/responsable/${idResponsable}`, { context: checkToken() }).pipe(
+    return this.http.put<IActa>(`${this.URL}/actas/${idActa}/responsable/${idResponsable}`, { context: checkToken() }).pipe(
       tap(acta => {
         acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);
       })

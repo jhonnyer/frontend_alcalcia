@@ -31,10 +31,6 @@ export class ProductsListSelectComponent implements OnInit{
   data = inject<DialogData>(DIALOG_DATA);
   dialogRef = inject<DialogRef<ISelectedProduct[]>>(DialogRef<ISelectedProduct[]>);
   private productosService = inject(ProductosService);
-
-  // products= signal<IProducto[]>([]);
-  // selectedProducts= signal<ISelectedProduct[]>([]);
-
   products: IProducto[] = [];
   selectedProducts: ISelectedProduct[] = [];
 

@@ -155,17 +155,6 @@ export class ProcedingsRegisterComponent implements OnInit{
     });
   }
 
-  // getBeneficiarios() {
-  //   this.beneficiarioProyectoService.getAll().subscribe({
-  //     next: response => {
-  //       console.log("Beneficiarios: ", response)
-  //     },
-  //     error: error => {
-  //       console.log("Error al traer beneficiarios")
-  //     }
-  //   });
-  // }
-
   getProyectos() {
     this.proyectosService.getAll().subscribe({
       next: (response) => {

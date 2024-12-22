@@ -226,16 +226,6 @@ export class ProcedingsRegisterComponent implements OnInit{
         idProyecto: this.proyectoSelect()
       } as DialogData
     });
-    /*
-    dialogRef.closed.subscribe(selectedProducts => {
-      if (selectedProducts) {
-        console.log("Productos seleccionados:", selectedProducts);
-        // Aquí manejaremos los productos seleccionados
-        this.formActa.patchValue({
-          productos: selectedProducts
-        });
-      }
-    });*/
 
     dialogRef.closed.subscribe(selectedProducts => {
       if (selectedProducts && selectedProducts.length > 0) {
@@ -247,17 +237,19 @@ export class ProcedingsRegisterComponent implements OnInit{
         // Obtenemos la información completa de los productos
         this.productosService.getAll().subscribe({
           next: (allProducts) => {
-            const productsWithQuantity = selectedProducts.map(selected => {
-            const productInfo = allProducts.find(p => p.idProducto === selected.idProductoFk);
-            return productInfo ? {
-              ...productInfo,
-              cantidad: selected.cantidad
-            } : null;
-          }).filter(product => product !== null);
+            const productsWithQuantity: ProductoWithCantidad[] = selectedProducts
+              .map(selected => {
+                const productInfo = allProducts.find(p => p.idProducto === selected.idProductoFk);
+                if (!productInfo) return null;
 
-          this.selectedProductsInfo.set(productsWithQuantity);
-          console.log('Productos seleccionados con información:', this.selectedProductsInfo());
-          console.log('Productos seleccionados con información:', productsWithQuantity);
+                return {
+                  ...productInfo,
+                  cantidad: selected.cantidad
+                };
+              })
+              .filter((product): product is ProductoWithCantidad => product !== null);
+
+            this.selectedProductsInfo.set(productsWithQuantity);
           },
           error: (error) => {
             console.error('Error al cargar información de productos:', error);

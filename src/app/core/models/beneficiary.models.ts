@@ -19,6 +19,11 @@ export interface IBeneficiario {
   email: string;
   esVivo: boolean;
   idNucleoFk: number | null;
+  nombreNucleo: string;
+  direccionNucleo: string;
+  barrio: string;
+  zona: string;
+  ubicacion: string;
 }
 
 export interface IBeneficiarioUnique {

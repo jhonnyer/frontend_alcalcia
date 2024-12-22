@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
 import { TokenService } from './token.service';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
-import { ResponseStandar } from '../models/response.model';
+import { ResponseStandar, ResponseStandarUnique } from '../models/response.model';
 // import { PaginatedResponse } from '../models/pagination.model';
 
 @Injectable({
@@ -26,11 +26,11 @@ export class ActasService {
     );
   }
 
-  getById(idActa: string): Observable<ResponseStandar<IActaById>> {
-    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/${idActa}`, { context: checkToken() })
+  getById(idActa: string): Observable<ResponseStandarUnique<IActaById>> {
+    return this.http.get<ResponseStandarUnique<IActaById>>(`${this.URL}/actas/${idActa}`, { context: checkToken() })
     // .pipe(
     //   tap((acta:ResponseStandar<IActaById>) => {
-    //     acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+    //     acta.respuesta[0].beneficiario.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiario.fechaNacimiento);
     //   })
     // );
   }
@@ -38,7 +38,7 @@ export class ActasService {
   getByEstado(estadoActa: string): Observable<ResponseStandar<IActaById>> {
     return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/estado/${estadoActa}`, { context: checkToken() }).pipe(
       tap(acta => {
-        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+        acta.respuesta[0].beneficiario.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiario.fechaNacimiento);
       })
     );
   }
@@ -46,7 +46,7 @@ export class ActasService {
   getByPrioridad(prioridadActa: string): Observable<ResponseStandar<IActaById>> {
     return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/estado/${prioridadActa}`, { context: checkToken() }).pipe(
       tap(acta => {
-        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+        acta.respuesta[0].beneficiario.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiario.fechaNacimiento);
       })
     );
   }
@@ -54,7 +54,7 @@ export class ActasService {
   getByFecha(fechaInicio: string, fechaFin: string): Observable<ResponseStandar<IActaById>> {
     return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/fechas?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, { context: checkToken() }).pipe(
       tap(acta => {
-        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+        acta.respuesta[0].beneficiario.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiario.fechaNacimiento);
       })
     );
   }
@@ -67,7 +67,7 @@ export class ActasService {
   getByParamsResponsable(params:string): Observable<ResponseStandar<IActaById>> {
     return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas//responsable/${params}`, { context: checkToken() }).pipe(
       tap(acta => {
-        acta.respuesta[0].beneficiarioFk.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiarioFk.fechaNacimiento);
+        acta.respuesta[0].beneficiario.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiario.fechaNacimiento);
       })
     );
   }
@@ -76,8 +76,8 @@ export class ActasService {
     return this.http.post<ICreateActa>(`${this.URL}/actas`, acta ,{ context: checkToken() });
   }
 
-  update(acta:Partial<IActa>): Observable<IActa> {
-    return this.http.put<IActa>(`${this.URL}/actas/${acta.idActa}`, acta ,{ context: checkToken() })
+  update(acta:Partial<IActa>): Observable<ResponseStandarUnique<IActaById>> {
+    return this.http.put<ResponseStandarUnique<IActaById>>(`${this.URL}/actas/${acta.idActa}`, acta ,{ context: checkToken() })
     /*.pipe(
       tap(acta => {
         acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);

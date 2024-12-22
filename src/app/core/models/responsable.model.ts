@@ -15,7 +15,7 @@ export interface IResponsable {
   tipoIdentificacion: TipoIdentificacion;
   numeroIdentificacion: string;
   usuario: string;
-  password: string;
+  password: string | null;
   perfilUsuario: PerfilUsuario;
   estado: EstadoResponsable;
 }

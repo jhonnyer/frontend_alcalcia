@@ -26,16 +26,16 @@ export interface IActaById {
   idActa: number;
   fechaCreacion: string;
   estado: EstadoActa;
-  fechaEntrega: string;
-  beneficiarioFk: IBeneficiario;
-  proyectoFk: IProyecto;
-  responsableFk: IResponsable;
-  ubicacionEntrega: string;
+  fechaEntrega: string | null;
+  beneficiario: IBeneficiario;
+  proyecto: IProyecto;
+  responsable: IResponsable;
   observaciones: string;
+  ubicacionEntrega: string;
   prioridad: PrioridadActa;
   tiposSolicitud: string;
   responsableVisita: string;
-  detallesActaProductos: IDetalleActasProductosById
+  detallesActaProductos: Array<IDetalleActasProductosById>;
 }
 
 export interface ICreateActa {

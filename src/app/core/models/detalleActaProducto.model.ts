@@ -12,8 +12,8 @@ export interface IDetalleActaProducto {
 }
 
 export interface IDetalleActasProductosById {
-  idDetalleActaProducto: 1;
-  idActaFk: 1;
+  idDetalleActaProducto: number;
+  idActaFk: number;
   productos: null | IProductoFk;
   paquetes: null | IPaqueteFk;
 }

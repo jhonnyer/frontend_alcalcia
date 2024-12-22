@@ -1,1 +1,51 @@
-<p>procedings-update works!</p>
+<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl p-5">
+  @if (loading()) {
+    <div class="flex items-center justify-center h-full">
+      <p class="text-gray-500">Cargando datos del acta...</p>
+    </div>
+  } @else if (error()) {
+    <div class="flex items-center justify-center h-full">
+      <p class="text-red-500">{{ error() }}</p>
+    </div>
+  } @else if (actaData()) {
+    <div class="flex flex-col gap-4">
+      <!-- Información básica del acta -->
+      <div class="border-b pb-4">
+        <h2 class="text-xl font-semibold mb-2">Información del Acta</h2>
+        <p><span class="font-medium">ID:</span> {{ actaData()?.idActa }}</p>
+        <p><span class="font-medium">Fecha Creación:</span> {{ actaData()?.fechaCreacion }}</p>
+        <p><span class="font-medium">Estado:</span> {{ actaData()?.estado }}</p>
+      </div>
+
+      <!-- Información del beneficiario -->
+      <div class="border-b pb-4">
+        <h2 class="text-xl font-semibold mb-2">Beneficiario</h2>
+        <p>
+          {{ actaData()?.beneficiario?.primerNombre }}
+          {{ actaData()?.beneficiario?.segundoNombre }}
+          {{ actaData()?.beneficiario?.primerApellido }}
+          {{ actaData()?.beneficiario?.segundoApellido }}
+        </p>
+        <p><span class="font-medium">Documento:</span> {{ actaData()?.beneficiario?.numeroDocumento }}</p>
+      </div>
+
+      <!-- Productos asociados -->
+      <div>
+        <h2 class="text-xl font-semibold mb-2">Productos</h2>
+        @if (hasProducts()) {
+          <div class="grid gap-4">
+            @for (producto of productosActa(); track producto.idProducto) {
+              <div class="border p-4 rounded-lg">
+                <h3 class="font-medium">{{ producto.nombre }}</h3>
+                <p class="text-sm text-gray-600">{{ producto.descripcion }}</p>
+                <p class="text-sm">Cantidad: {{ producto.cantidad }}</p>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-gray-500">No hay productos asociados a esta acta</p>
+        }
+      </div>
+    </div>
+  }
+</div>

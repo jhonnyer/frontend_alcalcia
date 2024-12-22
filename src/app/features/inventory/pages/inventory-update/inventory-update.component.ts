@@ -15,7 +15,7 @@ import { IProducto } from '../../../../core/models/products.model';
   styleUrl: './inventory-update.component.scss'
 })
 export class InventoryUpdateComponent {
-  @Input() productoId!: string;
+  @Input('id') productoId!: string;
 
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
@@ -28,6 +28,7 @@ export class InventoryUpdateComponent {
     this.pageTitleService.setCurrentPage('Actualizar Producto');
     this.initFormFamilyCore();
     this.loadProductData();
+    console.log('Producto ID:', this.productoId);
   }
 
   private initFormFamilyCore(): void {

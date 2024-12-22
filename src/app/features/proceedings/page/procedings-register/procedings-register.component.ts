@@ -19,7 +19,7 @@ import { debounceTime } from 'rxjs';
 import { timer } from 'rxjs';
 import { IProyecto, IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { IResponsable } from '../../../../core/models/responsable.model';
-import { ISelectedProduct } from '../../../../core/models/products.model';
+import { IProducto, ISelectedProduct, ProductoWithCantidad } from '../../../../core/models/products.model';
 
 import { Router } from '@angular/router';
 
@@ -55,12 +55,15 @@ export class ProcedingsRegisterComponent implements OnInit{
   proyectos = signal<IProyectoAndCategoriaArray[]>([]);
   responsables = signal<IResponsable[]>([]);
 
+  private productosService = inject(ProductosService);
 
   private beneficiarioProyectoService = inject(BeneficiarioProyectoService)
   private proyectosService = inject(ProyectosService)
   private responsibleService = inject(ResponsibleService)
 
   private actasService = inject(ActasService);
+
+  selectedProductsInfo = signal<ProductoWithCantidad[]>([]);
 
   searchBeneficiario = new FormControl('', {
     nonNullable: true,
@@ -214,7 +217,6 @@ export class ProcedingsRegisterComponent implements OnInit{
   }
 
   openDialog() {
-
     if (!this.proyectoSelect()) {
       alert('Por favor seleccione un proyecto primero');
       return;
@@ -224,6 +226,7 @@ export class ProcedingsRegisterComponent implements OnInit{
         idProyecto: this.proyectoSelect()
       } as DialogData
     });
+    /*
     dialogRef.closed.subscribe(selectedProducts => {
       if (selectedProducts) {
         console.log("Productos seleccionados:", selectedProducts);
@@ -232,6 +235,48 @@ export class ProcedingsRegisterComponent implements OnInit{
           productos: selectedProducts
         });
       }
+    });*/
+
+    dialogRef.closed.subscribe(selectedProducts => {
+      if (selectedProducts && selectedProducts.length > 0) {
+        // Actualizamos el formulario con los productos seleccionados
+        this.formActa.patchValue({
+          productos: selectedProducts
+        });
+
+        // Obtenemos la información completa de los productos
+        this.productosService.getAll().subscribe({
+          next: (allProducts) => {
+            const productsWithQuantity = selectedProducts.map(selected => {
+            const productInfo = allProducts.find(p => p.idProducto === selected.idProductoFk);
+            return productInfo ? {
+              ...productInfo,
+              cantidad: selected.cantidad
+            } : null;
+          }).filter(product => product !== null);
+
+          this.selectedProductsInfo.set(productsWithQuantity);
+          console.log('Productos seleccionados con información:', this.selectedProductsInfo());
+          console.log('Productos seleccionados con información:', productsWithQuantity);
+          },
+          error: (error) => {
+            console.error('Error al cargar información de productos:', error);
+          }
+        });
+      }
+    });
+  }
+
+  removeSelectedProduct(productId: number) {
+    // Remover del signal de información
+    const updatedInfo = this.selectedProductsInfo().filter(p => p.idProducto !== productId);
+    this.selectedProductsInfo.set(updatedInfo);
+
+    // Remover del formulario
+    const currentProducts = this.formActa.get('productos')?.value || [];
+    const updatedProducts = currentProducts.filter((p: ISelectedProduct) => p.idProductoFk !== productId);
+    this.formActa.patchValue({
+      productos: updatedProducts
     });
   }
 

@@ -21,6 +21,10 @@ export interface IProducto {
   fechaIngreso: string | null;
 }
 
+export interface ProductoWithCantidad extends IProducto {
+  cantidad: number;
+}
+
 export interface IProductoFk {
   idProductoFk: number;
   nombreProducto: string;

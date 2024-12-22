@@ -101,6 +101,7 @@ export class ProcedingsUpdateComponent implements OnInit {
         if (response.estado === 'exito') {
           const acta = response.respuesta;
           this.actaData.set(acta);
+          console.log("Acta:", acta);
 
           // Actualizar selecciones
           this.proyectoSelect.set(acta.proyecto.idProyecto);
@@ -116,9 +117,11 @@ export class ProcedingsUpdateComponent implements OnInit {
             ubicacionEntrega: acta.ubicacionEntrega,
             prioridad: acta.prioridad,
             responsableVisita: acta.responsableVisita,
-            tipoSolicitud: acta.tiposSolicitud,
+            tipoSolicitud: acta.tipoSolicitud,
             observaciones: acta.observaciones
           });
+
+          console.log("Form Acta: ", this.formActa.value)
 
           // Procesar productos si existen
           if (acta.detallesActaProductos?.length > 0) {

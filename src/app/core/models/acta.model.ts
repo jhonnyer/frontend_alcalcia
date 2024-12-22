@@ -33,7 +33,7 @@ export interface IActaById {
   observaciones: string;
   ubicacionEntrega: string;
   prioridad: PrioridadActa;
-  tiposSolicitud: string;
+  tipoSolicitud: string;
   responsableVisita: string;
   detallesActaProductos: Array<IDetalleActasProductosById>;
 }

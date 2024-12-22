@@ -1,0 +1,71 @@
+<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
+  <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()"
+    class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5">
+
+    <div class="flex flex-col w-full border border-gray-400 rounded-2xl p-4">
+      <!-- Nombre y Stock -->
+      <div class="w-full flex flex-wrap justify-between gap-4">
+        <div class="w-full md:w-[48%]">
+          <label for="nombre" class="label-base">Nombre producto</label>
+          <input
+            formControlName="nombre"
+            type="text"
+            id="nombre"
+            class="input-base"
+            placeholder="Nombre del producto">
+
+          @if(formFamilyCore.get('nombre')?.hasError('required') && formFamilyCore.get('nombre')?.touched) {
+            <p class="text-red-500">* Este campo es requerido</p>
+          }
+        </div>
+
+        <div class="w-full md:w-[48%]">
+          <label for="stock" class="label-base">Stock</label>
+          <input
+            formControlName="stock"
+            type="number"
+            id="stock"
+            class="input-base"
+            placeholder="Cantidad en stock">
+
+          @if(formFamilyCore.get('stock')?.hasError('required') && formFamilyCore.get('stock')?.touched) {
+            <p class="text-red-500">* Este campo es requerido</p>
+          }
+          @if(formFamilyCore.get('stock')?.hasError('min') && formFamilyCore.get('stock')?.touched) {
+            <p class="text-red-500">* El stock no puede ser negativo</p>
+          }
+        </div>
+      </div>
+
+      <!-- Descripción -->
+      <div class="mt-4">
+        <label for="descripcion" class="label-base">Descripción</label>
+        <textarea
+          formControlName="descripcion"
+          id="descripcion"
+          rows="4"
+          class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Descripción del producto"></textarea>
+
+        @if(formFamilyCore.get('descripcion')?.hasError('required') && formFamilyCore.get('descripcion')?.touched) {
+          <p class="text-red-500">* Este campo es requerido</p>
+        }
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-end space-x-4">
+      <button
+        type="button"
+        routerLink="/inventory"
+        class="btn-action-gray">
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        class="btn-action-blue">
+        Actualizar producto
+      </button>
+    </div>
+  </form>
+</div>

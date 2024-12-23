@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { ActasService } from '../../../../core/services/actas.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
-import { IActaById } from '../../../../core/models/acta.model';
+import { EstadoActa, EstadoTransition, IActaById } from '../../../../core/models/acta.model';
 import { ISelectedProduct, ProductoWithCantidad } from '../../../../core/models/products.model';
 import { Router } from '@angular/router';
 import { DialogModule, Dialog } from '@angular/cdk/dialog';
@@ -68,6 +68,30 @@ export class ProcedingsUpdateComponent implements OnInit {
     validators: [Validators.required]
   });
 
+  // Estados para la transición
+  // Agregar estas propiedades a la clase del componente
+  estadosPermitidos = signal<EstadoTransition[]>([]);
+  estadoInicialActa = signal<EstadoActa | null>(null);
+
+  private readonly ESTADOS_LABELS = {
+    'R': 'Recibido',
+    'P': 'Procesado',
+    'A': 'Autorizado',
+    'RC': 'Rechazado',
+    'E': 'Entregado'
+  };
+
+  private readonly TRANSICIONES: Record<EstadoActa, EstadoTransition[]> = {
+    'R': [{ label: 'Procesado', value: 'P' }],
+    'P': [
+      { label: 'Autorizado', value: 'A', requiereProductos: true },
+      { label: 'Rechazado', value: 'RC' }
+    ],
+    'A': [{ label: 'Entregado', value: 'E' }],
+    'RC': [], // No hay más transiciones posibles
+    'E': []  // Estado final
+  };
+
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Actualizar Acta');
     console.log("ID Acta recibido:", this.idActa);
@@ -80,7 +104,7 @@ export class ProcedingsUpdateComponent implements OnInit {
   private initFormActa(): void {
     this.formActa = this.fb.group({
       fechaCreacion: [{value: '', disabled: true}, [Validators.required]],
-      estado: [{value: '', disabled: true}, [Validators.required]],
+      estado: ['', [Validators.required]],
       fechaEntrega: [''],
       ubicacionEntrega: ['', [Validators.required]],
       prioridad: ['', [Validators.required]],
@@ -90,6 +114,56 @@ export class ProcedingsUpdateComponent implements OnInit {
       paquetes: [null],
       observaciones: ['']
     });
+
+    // Escuchar cambios en el estado
+    // this.formActa.get('estado')?.valueChanges.subscribe(nuevoEstado => {
+    //   if (nuevoEstado) {
+    //     this.actualizarEstadosPermitidos(nuevoEstado as EstadoActa);
+    //   }
+    // });
+  }
+
+  // Agregar estos métodos
+  private actualizarEstadosPermitidos(estado: EstadoActa): void {
+    const transicionesDisponibles = this.TRANSICIONES[estado];
+
+    // Filtrar transiciones basadas en productos si es necesario
+    const transicionesFiltradas = transicionesDisponibles.filter(transicion => {
+      if (transicion.requiereProductos) {
+        return this.selectedProductsInfo().length > 0;
+      }
+      return true;
+    });
+
+    // Agregar el estado actual y sus transiciones permitidas
+    const estadosPermitidos = [
+      { label: this.ESTADOS_LABELS[estado], value: estado },
+      ...transicionesFiltradas
+    ];
+
+    this.estadosPermitidos.set(estadosPermitidos);
+  }
+
+  // Modificar el método de validación
+  private validarTransicionEstado(estadoActual: EstadoActa, nuevoEstado: EstadoActa): boolean {
+    // Validar que la transición sea permitida
+    const transicionesPermitidas = this.TRANSICIONES[estadoActual];
+    // Seleccionar opciones validas
+    const transicionValida = transicionesPermitidas.some(t => t.value === nuevoEstado);
+
+    if (!transicionValida) {
+      alert('Transición de estado no permitida');
+      return false;
+    }
+
+    // Verificar requisitos adicionales
+    const transicion = transicionesPermitidas.find(t => t.value === nuevoEstado);
+    if (transicion?.requiereProductos && this.selectedProductsInfo().length === 0) {
+      alert('Se requieren productos para cambiar a este estado');
+      return false;
+    }
+
+    return true;
   }
 
   private loadActaData(): void {
@@ -102,6 +176,13 @@ export class ProcedingsUpdateComponent implements OnInit {
           const acta = response.respuesta;
           this.actaData.set(acta);
           console.log("Acta:", acta);
+
+          // Cargar el estado inicial del acta
+          this.estadoInicialActa.set(acta.estado);
+          // Actualizar estados permitidos basados en el estado inicial
+          this.actualizarEstadosPermitidos(acta.estado);
+          // Cargar las opciones de estado una sola vez
+          this.cargarOpcionesEstado(acta.estado);
 
           // Actualizar selecciones
           this.proyectoSelect.set(acta.proyecto.idProyecto);
@@ -143,6 +224,7 @@ export class ProcedingsUpdateComponent implements OnInit {
             this.selectedProductsInfo.set(productos);
           }
           this.loading.set(false);
+          this.actualizarEstadosPermitidos(acta.estado); // Validar
         }
       },
       error: (error) => {
@@ -151,6 +233,27 @@ export class ProcedingsUpdateComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  private cargarOpcionesEstado(estadoInicial: EstadoActa): void {
+    const transicionesDisponibles = this.TRANSICIONES[estadoInicial];
+
+    // Filtrar transiciones basadas en productos si es necesario
+    const transicionesFiltradas = transicionesDisponibles.filter(transicion => {
+      if (transicion.requiereProductos) {
+        return this.selectedProductsInfo().length > 0;
+      }
+      return true;
+    });
+
+    // Crear lista de estados permitidos (estado actual + transiciones posibles)
+    const estadosPermitidos = [
+      { label: this.ESTADOS_LABELS[estadoInicial], value: estadoInicial },
+      ...transicionesFiltradas
+    ];
+
+    // Establecer las opciones una sola vez
+    this.estadosPermitidos.set(estadosPermitidos);
   }
 
   hasProducts(): boolean {
@@ -236,7 +339,6 @@ export class ProcedingsUpdateComponent implements OnInit {
     });
   }
 
-
   openDialog() {
     // Solo permitir abrir el diálogo si no hay productos
     if (this.selectedProductsInfo().length > 0) {
@@ -254,39 +356,6 @@ export class ProcedingsUpdateComponent implements OnInit {
         idProyecto: this.proyectoSelect()
       } as DialogData
     });
-
-    /*
-    dialogRef.closed.subscribe(selectedProducts => {
-      if (selectedProducts && selectedProducts.length > 0) {
-        // Actualizamos el formulario con los productos seleccionados
-        this.formActa.patchValue({
-          productos: selectedProducts
-        });
-
-        // Obtenemos la información completa de los productos
-        this.productosService.getAll().subscribe({
-          next: (allProducts) => {
-            const productsWithQuantity: ProductoWithCantidad[] = selectedProducts
-              .map(selected => {
-                const productInfo = allProducts.find(p => p.idProducto === selected.idProductoFk);
-                if (!productInfo) return null;
-
-                return {
-                  ...productInfo,
-                  cantidad: selected.cantidad
-                };
-              })
-              .filter((product): product is ProductoWithCantidad => product !== null);
-
-            this.selectedProductsInfo.set(productsWithQuantity);
-          },
-          error: (error) => {
-            console.error('Error al cargar información de productos:', error);
-            alert('Error al cargar información de productos');
-          }
-        });
-      }
-    });*/
 
     dialogRef.closed.subscribe(selectedProducts => {
       if (selectedProducts && selectedProducts.length > 0) {
@@ -338,6 +407,19 @@ export class ProcedingsUpdateComponent implements OnInit {
 
   onSubmit() {
     if (this.formActa.valid) {
+      const nuevoEstado = this.formActa.get('estado')?.value as EstadoActa;
+
+      // Si el estado no cambió, mostrar mensaje
+      if (nuevoEstado === this.estadoInicialActa()) {
+        alert('Debe cambiar el estado del acta para actualizarla');
+        return;
+      }
+
+      // Validar que la transición sea válida
+      if (!this.validarTransicionEstado(this.estadoInicialActa()!, nuevoEstado)) {
+        return;
+      }
+
       const dataToUpdate = {
         ...this.formActa.value,
         idActa: this.idActa,

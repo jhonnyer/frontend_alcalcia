@@ -5,9 +5,9 @@ import { IProyecto } from "./proyecto.model";
 import { IResponsable } from "./responsable.model";
 
 export type EstadoActa = 'R' | 'P' | 'A' | 'RC' | 'E'; //Enum para Recibido, Procesado, Autorizado, Rechazado, Entregado
-type PrioridadActa = 'A' | 'M' | 'B';// Enum para prioridad Alta, Media, Baja
+export type PrioridadActa = 'A' | 'M' | 'B';// Enum para prioridad Alta, Media, Baja
 
-interface EstadoTransition {
+export interface EstadoTransition {
   label: string;
   value: EstadoActa;
   requiereProductos?: boolean;

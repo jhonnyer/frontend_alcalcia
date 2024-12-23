@@ -77,10 +77,17 @@
             class="input-base">
         </div>
 
+        <!-- Reemplazar el input de estado por este select -->
         <div class="w-full md:w-1/3">
           <label for="estado" class="label-base">Estado</label>
-          <input formControlName="estado" id="estado" type="text"
-            class="input-base bg-gray-100" readonly>
+          <select formControlName="estado" id="estado" class="input-base">
+            @for(estado of estadosPermitidos(); track estado.value) {
+              <option [value]="estado.value">{{ estado.label }}</option>
+            }
+          </select>
+          @if(formActa.get('estado')?.hasError('required') && formActa.get('estado')?.touched) {
+            <p class="text-red-500">* Este campo es requerido</p>
+          }
         </div>
       </div>
 

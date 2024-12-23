@@ -215,6 +215,12 @@
 
       <!-- Botones de acción -->
       <div class="flex justify-end space-x-4 mt-6">
+        <button type="button"
+          (click)="downloadPdf()"
+          class="btn-action-black ">
+          Descargar PDF
+        </button>
+
         <button type="button" (click)="cancelar()" class="btn-action-gray">
           @if (formularioEditable()) {
             Cancelar

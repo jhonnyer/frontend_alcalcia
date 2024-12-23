@@ -102,4 +102,11 @@ export class ActasService {
     return date.toISOString().split('T')[0]; // Extraemos solo la parte de la fecha
   }
 
+  getPdfActaById(idActa: string): Observable<Blob> {
+    return this.http.get(`${this.URL}/actas/pdf/${idActa}`, {
+      responseType: 'blob',
+      context: checkToken()
+    });
+  }
+
 }

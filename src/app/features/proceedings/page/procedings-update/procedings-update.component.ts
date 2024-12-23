@@ -165,6 +165,7 @@ export class ProcedingsUpdateComponent implements OnInit {
     return true;
   }
 
+  // Cargo los datos del acta
   private loadActaData(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -273,6 +274,7 @@ export class ProcedingsUpdateComponent implements OnInit {
     this.estadosPermitidos.set(estadosPermitidos);
   }
 
+  //Verifica si el acta tiene productos asociados
   hasProducts(): boolean {
     return this.productosActa().length > 0;
   }
@@ -313,10 +315,6 @@ export class ProcedingsUpdateComponent implements OnInit {
         this.responsableActa.set(+value);
       }
     });
-  }
-
-  cancelar() {
-    this.router.navigate(['proceedings']);
   }
 
   updateProductQuantity(productId: number, event: Event) {
@@ -420,6 +418,39 @@ export class ProcedingsUpdateComponent implements OnInit {
     this.formActa.patchValue({
       productos: updatedProducts
     });
+  }
+
+  // Descargar pdf
+  downloadPdf() {
+    if (!this.idActa) return;
+
+    this.actasService.getPdfActaById(this.idActa).subscribe({
+      next: (blob: Blob) => {
+        // Crear URL del blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Crear elemento a temporal
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Acta_${this.idActa}.pdf`;
+
+        // Simular click para descargar
+        document.body.appendChild(link);
+        link.click();
+
+        // Limpieza
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: error => {
+        console.error('Error al descargar el PDF:', error);
+        alert('Error al descargar el PDF del acta');
+      }
+    });
+  }
+
+  cancelar() {
+    this.router.navigate(['proceedings']);
   }
 
   onSubmit() {

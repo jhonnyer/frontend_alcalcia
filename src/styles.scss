@@ -32,6 +32,10 @@
   @apply px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400;
 }
 
+.btn-action-black {
+  @apply px-4 py-2 bg-black border-2 border-transparent text-white rounded-lg transition-all duration-300 hover:border-black hover:bg-white hover:text-black;
+}
+
 .btn-action-blue {
   @apply px-4 py-2 rounded-lg text-white bg-gradient-to-tr from-blue-600 to-blue-400 shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-[0.85];
 }

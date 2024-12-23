@@ -4,8 +4,14 @@ import { ISelectedProduct } from "./products.model";
 import { IProyecto } from "./proyecto.model";
 import { IResponsable } from "./responsable.model";
 
-type EstadoActa = 'R' | 'P' | 'A' | 'RC' | 'E'; //Enum para Recibido, Procesado, Autorizado, Rechazado, Entregado
+export type EstadoActa = 'R' | 'P' | 'A' | 'RC' | 'E'; //Enum para Recibido, Procesado, Autorizado, Rechazado, Entregado
 type PrioridadActa = 'A' | 'M' | 'B';// Enum para prioridad Alta, Media, Baja
+
+interface EstadoTransition {
+  label: string;
+  value: EstadoActa;
+  requiereProductos?: boolean;
+}
 
 export interface IActa {
   idActa: number;

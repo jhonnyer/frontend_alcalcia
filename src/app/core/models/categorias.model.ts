@@ -1,6 +1,8 @@
+import { IProductoFk } from './products.model';
 
 export interface ICategorias {
-  "idCategoria": number;
-  "nombre": string;
-  "descripcion": string;
+  idCategoria: number;
+  nombre: string;
+  descripcion: string;
+  productos?: Array<IProductoFk> | null;
 }

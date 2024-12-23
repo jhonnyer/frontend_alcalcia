@@ -72,8 +72,11 @@ export class ProcedingsUpdateComponent implements OnInit {
   // Agregar estas propiedades a la clase del componente
   estadosPermitidos = signal<EstadoTransition[]>([]);
   estadoInicialActa = signal<EstadoActa | null>(null);
+  readonly ESTADOS_FINALES: EstadoActa[] = ['RC', 'E']; // Estados que no permiten actualización
+  formularioEditable = signal<boolean>(true);
+  readonly ESTADO_DEFAULT: EstadoActa = 'R';
 
-  private readonly ESTADOS_LABELS = {
+  readonly ESTADOS_LABELS = {
     'R': 'Recibido',
     'P': 'Procesado',
     'A': 'Autorizado',
@@ -172,6 +175,16 @@ export class ProcedingsUpdateComponent implements OnInit {
           const acta = response.respuesta;
           this.actaData.set(acta);
           console.log("Acta:", acta);
+
+          // Verificar si el acta es editable
+          const esEditable = !this.ESTADOS_FINALES.includes(acta.estado);
+          this.formularioEditable.set(esEditable);
+          // Si no es editable, deshabilitar todo el formulario
+          if (!esEditable) {
+            this.formActa.disable();
+            this.selectProyecto.disable();
+            this.selectResponsable.disable();
+          }
 
           // Cargar el estado inicial del acta
           this.estadoInicialActa.set(acta.estado);

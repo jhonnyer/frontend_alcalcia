@@ -103,9 +103,12 @@ export class ProcedingsUpdateComponent implements OnInit {
 
   private initFormActa(): void {
     this.formActa = this.fb.group({
-      fechaCreacion: [{value: '', disabled: true}, [Validators.required]],
+      fechaCreacion: ['', [Validators.required]],
       estado: ['', [Validators.required]],
       fechaEntrega: [''],
+      beneficiario: ['', [Validators.required]], // Agregar beneficiario como campo disabled
+      proyecto: ['', [Validators.required]], // Agregar proyecto
+      responsable: ['', [Validators.required]], // Agregar responsable
       ubicacionEntrega: ['', [Validators.required]],
       prioridad: ['', [Validators.required]],
       responsableVisita: ['', [Validators.required]],
@@ -114,13 +117,6 @@ export class ProcedingsUpdateComponent implements OnInit {
       paquetes: [null],
       observaciones: ['']
     });
-
-    // Escuchar cambios en el estado
-    // this.formActa.get('estado')?.valueChanges.subscribe(nuevoEstado => {
-    //   if (nuevoEstado) {
-    //     this.actualizarEstadosPermitidos(nuevoEstado as EstadoActa);
-    //   }
-    // });
   }
 
   // Agregar estos métodos
@@ -195,11 +191,19 @@ export class ProcedingsUpdateComponent implements OnInit {
             fechaCreacion: acta.fechaCreacion,
             estado: acta.estado,
             fechaEntrega: acta.fechaEntrega,
+            beneficiario: { idBeneficiario: acta.beneficiario.idBeneficiario },
+            proyecto: { idProyecto: acta.proyecto.idProyecto },
+            responsable: { idResponsable: acta.responsable.idResponsable },
             ubicacionEntrega: acta.ubicacionEntrega,
             prioridad: acta.prioridad,
             responsableVisita: acta.responsableVisita,
             tipoSolicitud: acta.tipoSolicitud,
-            observaciones: acta.observaciones
+            observaciones: acta.observaciones,
+            productos: acta.detallesActaProductos?.map(detalle => ({
+              idProductoFk: detalle.productos?.idProductoFk,
+              cantidad: detalle.productos?.cantidad
+            })) || null,
+            paquetes: null
           });
 
           console.log("Form Acta: ", this.formActa.value)

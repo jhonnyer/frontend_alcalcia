@@ -16,7 +16,7 @@ export const unauthenticatedGuard: CanActivateFn = (route, state) => {
   // Verificar estado del usuario
   const userState = tokenService.getUserState();
   if (userState !== 'A') {
-    // Si el usuario no está activo, permitir el acceso
+    // Si el usuario está activo, permitir el acceso
     return true;
   }
 

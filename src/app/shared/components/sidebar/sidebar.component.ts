@@ -12,6 +12,8 @@ import { ListProjectsComponent } from "./components/list-projects/list-projects.
 import { ShowForRolesDirective } from '../../../core/directives/show-for-roles.directive';
 import { HidenForRolesDirectiveDirective } from '../../../core/directives/hiden-for-roles-directive.directive';
 
+import { HasRoleDirective } from '../../../core/directives/has-role/has-role-directive.directive';
+
 @Component({
   selector: 'app-sidebar',
   standalone: true,
@@ -26,7 +28,8 @@ import { HidenForRolesDirectiveDirective } from '../../../core/directives/hiden-
     ListProjectsComponent,
     ListCategoriasComponent,
     ShowForRolesDirective,
-    HidenForRolesDirectiveDirective
+    HidenForRolesDirectiveDirective,
+    HasRoleDirective
 ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'

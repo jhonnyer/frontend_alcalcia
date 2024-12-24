@@ -1,74 +1,50 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
-
-import { SearchService } from '../../../../core/services/search.service';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
-
 import { NucleoService } from '../../../../core/services/nucleo.service';
-
-import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
-import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
-import { INucleoUpdate } from '../../../../core/models/nucleo.model';
-
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import { Column, ColumnFiltersState, FlexRenderDirective, PaginationState, Row, RowSelectionState, SortingState, VisibilityState, createAngularTable, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel } from '@tanstack/angular-table';
+import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
+import { defaultColumns } from './nucleo-columns-definitions';
+import { INucleoUpdate } from '../../../../core/models/nucleo.model';
 
 @Component({
   selector: 'app-nucleos',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, TableTemplateComponent, StepperPaginationComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
   templateUrl: './nucleos.component.html',
   styles: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NucleosComponent implements OnInit{
-  private searchService = inject(SearchService);
+  private nucleoService = inject(NucleoService);
   injector = inject(Injector);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
-
-
-  currentPage = 0;
   data = signal<INucleoUpdate[]>([]);
-  totalPage!: number;
 
-  private nucleoService = inject(NucleoService);
+  public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
+  public readonly rowSelectionState = signal<RowSelectionState>({});
+  public copyOnClipboard = signal<number | null>(null);
+  public readonly columnFilters = signal<ColumnFiltersState>([]);
 
-  displayedColumns: (keyof INucleoUpdate | 'controls')[] = [
-    'idNucleo',
-    'nombreNucleo',
-    'direccion',
-    'idZonaFk',
-    'numeroIntegrantes',
-    'controls'
-  ]
+  public readonly paginationState = signal<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10
+  })
 
-  columnSearch = 'nombreNucleo';
-
-  sorteablesColumns: string[] = [
-    'idNucleo',
-    'nombreNucleo',
-    'direccion',
-    'idZonaFk',
-    'numeroIntegrantes',
-  ]
-
-  stickyColumns = [
-    "codigo"
-  ]
+  public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Lista de núcleos');
-    this.trackSearchTerm();
+    this.pageTitleService.setCurrentPage('Núcleos familiares');
     this.getAll();
   }
 
   getAll() {
-    this.nucleoService.getAll(this.currentPage).subscribe({
+    this.nucleoService.getSimpleAll().subscribe({
       next: response => {
-        // console.log("All Nucleos: ", response.content);
-        this.data.set(response.content)
-        this.totalPage = response.totalPages;
+        this.data.set(response)
       },
       error: error => {
         console.log("Error getAll nucleos: ", error)
@@ -76,33 +52,91 @@ export class NucleosComponent implements OnInit{
     })
   }
 
-  nextPage() {
-    this.currentPage++;
-    console.log("Siguiente: ", this.currentPage)
-    this.getAll();
+  public dataTable = createAngularTable(() => ({
+    data: this.data(),
+    getCoreRowModel: getCoreRowModel(),
+    columns: defaultColumns,
+
+    //Paginación
+    getPaginationRowModel: getPaginationRowModel(),
+
+    // Ordenar filas
+    getSortedRowModel: getSortedRowModel(),
+
+    // Modelo de filtrado
+    getFilteredRowModel: getFilteredRowModel(),
+
+    state: {
+      pagination: this.paginationState(),
+      sorting: this.sortingState(),
+      rowSelection: this.rowSelectionState(), // Seleccion de filas
+      columnFilters: this.columnFilters(), // Filtros de columnas
+    },
+
+    // Función paginación
+    onPaginationChange: ( valueOrFunction ) => {
+      typeof valueOrFunction === 'function'
+      ? this.paginationState.update( valueOrFunction )
+      : this.paginationState.set( valueOrFunction );
+    },
+
+    // Funcion ordnenar
+    onSortingChange: ( valueSorting ) => {
+      typeof valueSorting === 'function'
+      ? this.sortingState.update( valueSorting )
+      : this.sortingState.set( valueSorting );
+    },
+
+    // Selección de una fila recibe una función o un objeto
+    onRowSelectionChange: (valueOrFunction) => {
+      valueOrFunction instanceof Function
+      ? this.rowSelectionState.update( valueOrFunction )
+      : this.rowSelectionState.set( valueOrFunction );
+    },
+
+    // Manejador de cambios de filtros de columnas
+    onColumnFiltersChange: updater => {
+      updater instanceof Function
+        ? this.columnFilters.update(updater)
+        : this.columnFilters.set(updater);
+    },
+  }));
+
+
+  // Cambio de numero de elementos por pagina
+  onChangeValueSizePageSelect(e: Event){
+    const element = (e.target as HTMLSelectElement);
+    this.dataTable.setPageSize(+element.value);
   }
 
-  previousPage() {
-    if (this.currentPage >= 0) {
-      this.currentPage--;
-      console.log("previo: ", this.currentPage)
-      this.getAll();
-    }
+  //Ordenar filas de la tabla
+  onSortingColumn(column: Column<INucleoUpdate>){
+    column.toggleSorting(); // Por defecto
   }
 
-  trackSearchTerm(){
-    effect(()=> {
-      const search = this.searchService.getSearchTerm()();
-      // this.dataSource.searchData(search);
-    }, {injector: this.injector})
+  // Seleccionar una fila
+  onCopyOnClipboard( row: Row<INucleoUpdate> ) {
+    this.copyOnClipboard.set( row.original.idNucleo );
   }
 
-  delete(item: INucleoUpdate){
-    console.log("Eliminar: ", item)
+  // Metodo de busqueda
+  onSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.dataTable.setColumnFilters([
+      {
+        id: 'name', // Inicialmente filtramos por la columna name
+        value: value,
+      },
+    ]);
   }
 
-  update(item: INucleoUpdate){
-    console.log("update/: ", item)
-    this.router.navigate(["nucleo/update/", item.idNucleo]);
+  delete(item: Row<INucleoUpdate>){
+    this.nucleoService.deleteById(item.original.idNucleo.toString());
+    // console.log("Eliminar: ", item.original.idNucleo)
+  }
+
+  update(item: Row<INucleoUpdate>){
+    console.log("update/: ", item.original)
+    this.router.navigate(["nucleo/update/", item.original.idNucleo]);
   }
 }

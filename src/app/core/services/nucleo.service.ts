@@ -17,6 +17,10 @@ export class NucleoService {
     return this.http.get<PaginatedResponse<INucleoUpdate>>(`${this.URL}/nucleosFamiliares/list?page=${page}`, { context: checkToken() });
   }
 
+  getSimpleAll(): Observable<INucleoUpdate[]> {
+    return this.http.get<INucleoUpdate[]>(`${this.URL}/nucleosFamiliares/listar`, { context: checkToken() });
+  }
+
   getById(id: string): Observable<INucleoUpdate> {
     return this.http.get<INucleoUpdate>(`${this.URL}/nucleosFamiliares/${id}`, { context: checkToken() }).pipe(
       tap(item => {

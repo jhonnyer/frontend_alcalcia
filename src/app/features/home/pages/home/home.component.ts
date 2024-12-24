@@ -6,6 +6,7 @@ import { BeneficiaryService } from '../../../../core/services/beneficiary.servic
 import { CategoriasService } from '../../../../core/services/categorias.service';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
 import { ProductosService } from '../../../../core/services/productos.service';
+import { NucleoService } from '../../../../core/services/nucleo.service';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -22,12 +23,13 @@ export class HomeComponent implements OnInit{
   private categoriasService = inject(CategoriasService);
   private responsibleService = inject(ResponsibleService);
   private productosService = inject(ProductosService);
+  private nucleoService = inject(NucleoService);
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Home');
   }
 
-  downloadExcel() {
+  downloadGlobalReport() {
     this.actasService.getExcelActas().subscribe({
       next: (blob: Blob) => {
         // Crear URL del blob
@@ -284,6 +286,59 @@ export class HomeComponent implements OnInit{
       error: (error) => {
         console.error('Error al obtener productos:', error);
         alert('Error al descargar la información de productos');
+      }
+    });
+  }
+
+  downloadNucleos() {
+    this.nucleoService.getSimpleAll().subscribe({
+      next: (nucleos) => {
+        // Preparar los datos
+        const data = nucleos.map(nucleo => {
+          const beneficiariosInfo = nucleo.beneficiarios && nucleo.beneficiarios.length > 0
+            ? nucleo.beneficiarios.map(b =>
+                `${b.primerNombre} ${b.segundoNombre || ''} ${b.primerApellido} ${b.segundoApellido || ''} (${b.tipoDocumento}: ${b.numeroDocumento})`
+              ).join('\n')
+            : 'Sin beneficiarios registrados';
+
+          return {
+            'ID Núcleo': nucleo.idNucleo,
+            'Nombre Núcleo': nucleo.nombreNucleo,
+            'Dirección': nucleo.direccion,
+            'Número de Integrantes': nucleo.numeroIntegrantes,
+            'ID Zona': nucleo.idZonaFk,
+            'ID Barrio': nucleo.idBarrioFk,
+            'Beneficiarios': beneficiariosInfo
+          };
+        });
+
+        // Crear la hoja
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Núcleos Familiares');
+
+        // Ajustar el ancho de las columnas
+        const wscols = [
+          { wch: 10 },  // ID Núcleo
+          { wch: 20 },  // Nombre Núcleo
+          { wch: 35 },  // Dirección
+          { wch: 15 },  // Número de Integrantes
+          { wch: 10 },  // ID Zona
+          { wch: 10 },  // ID Barrio
+          { wch: 60 }   // Beneficiarios
+        ];
+        worksheet['!cols'] = wscols;
+
+        // Ajustar altura de filas
+        const wsrows = data.map(() => ({ hpt: 40 })); // altura en puntos
+        worksheet['!rows'] = wsrows;
+
+        // Generar el archivo
+        XLSX.writeFile(workbook, 'NucleosFamiliares.xlsx');
+      },
+      error: (error) => {
+        console.error('Error al obtener núcleos familiares:', error);
+        alert('Error al descargar la información de núcleos familiares');
       }
     });
   }

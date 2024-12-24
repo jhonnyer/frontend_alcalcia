@@ -1,17 +1,11 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-
+import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-error404',
   standalone: true,
-  imports: [],
-  template: `
-    <div class="error-container">
-      <h1>Página no encontrada</h1>
-      <p>Lo sentimos, la página que estás buscando no existe.</p>
-      <a routerLink="/">Volver al inicio</a>
-    </div>
-  `,
-  styleUrl: './error404.component.css',
+  imports: [RouterLink],
+  styles: ``,
+  templateUrl: './error404.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Error404Component { }

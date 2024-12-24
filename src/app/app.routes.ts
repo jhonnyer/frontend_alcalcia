@@ -64,15 +64,9 @@ export const routes: Routes = [
         loadChildren: () => import('./features/users/users.routes').then(m => m.USERS_ROUTES)
       },
       { path: 'no-autorizado', component: UnauthorizedComponent },
-      {
-        path: 'user-inactive',
-        component: UserInactiveComponent
-      },
+      { path: 'user-inactive', component: UserInactiveComponent},
       { path: '**', component: Error404Component }
     ]
   },
-  {
-    path: 'user-inactive',
-    component: UserInactiveComponent
-  },
+  { path: 'user-inactive', component: UserInactiveComponent}
 ];

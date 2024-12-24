@@ -22,7 +22,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    canActivate: [authenticationGuard],
+    canMatch: [authenticationGuard],
     component: MainLayoutComponent,
     children: [
       {
@@ -70,5 +70,9 @@ export const routes: Routes = [
       },
       { path: '**', component: Error404Component }
     ]
-  }
+  },
+  {
+    path: 'user-inactive',
+    component: UserInactiveComponent
+  },
 ];

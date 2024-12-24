@@ -27,9 +27,6 @@ import { HasRoleDirective } from '../../../core/directives/has-role/has-role-dir
     ListResponsibleComponent,
     ListProjectsComponent,
     ListCategoriasComponent,
-    ShowForRolesDirective,
-    HidenForRolesDirectiveDirective,
-    HasRoleDirective
 ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'

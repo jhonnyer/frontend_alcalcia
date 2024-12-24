@@ -20,7 +20,7 @@ export const unauthenticatedGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  // Si hay un token válido y el usuario está activo, redirigir (por ejemplo, al dashboard)
+  // Si hay un token válido y el usuario está activo, redirigir al dashboard
   router.navigate(['/dashboard']);
   return false;
 };

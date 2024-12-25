@@ -9,10 +9,12 @@ import { ProductosService } from '../../../../core/services/productos.service';
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import * as XLSX from 'xlsx';
 
+import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, HasRoleDirective],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })

@@ -21,11 +21,12 @@ import {
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './responsibles-columns-definitions';
 import { IResponsable } from '../../../../core/models/responsable.model';
+import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 
 @Component({
   selector: 'app-responsibles-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
   templateUrl: './responsibles-list.component.html',
   styles: ``,
 })

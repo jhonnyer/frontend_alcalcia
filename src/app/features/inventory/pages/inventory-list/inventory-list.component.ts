@@ -21,11 +21,12 @@ import {
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './inventory-columns-definitions';
 import { IProducto } from '../../../../core/models/products.model';
+import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 
 @Component({
   selector: 'app-inventory-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
   templateUrl: './inventory-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

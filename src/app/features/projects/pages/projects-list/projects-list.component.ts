@@ -21,11 +21,12 @@ import {
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './projects-columns-definitions';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
+import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 
 @Component({
   selector: 'app-projects-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
   templateUrl: './projects-list.component.html',
   styles: ``
 })

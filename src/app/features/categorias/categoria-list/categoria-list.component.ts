@@ -21,11 +21,12 @@ import {
 import { TableFilterComponent } from '../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './categorias-columns-definitions';
 import { ICategorias } from '../../../core/models/categorias.model';
+import { HasRoleDirective } from '../../../core/directives/has-role/has-role-directive.directive';
 
 @Component({
   selector: 'app-categoria-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
   templateUrl: './categoria-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

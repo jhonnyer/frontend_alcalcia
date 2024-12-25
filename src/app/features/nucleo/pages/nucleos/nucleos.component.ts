@@ -8,11 +8,12 @@ import { Column, ColumnFiltersState, FlexRenderDirective, PaginationState, Row, 
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './nucleo-columns-definitions';
 import { INucleoUpdate } from '../../../../core/models/nucleo.model';
+import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 
 @Component({
   selector: 'app-nucleos',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
   templateUrl: './nucleos.component.html',
   styles: '',
   changeDetection: ChangeDetectionStrategy.OnPush,

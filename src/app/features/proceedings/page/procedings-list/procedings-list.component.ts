@@ -21,11 +21,12 @@ import {
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './procedings-columns-definitions';
 import { IActa } from '../../../../core/models/acta.model';
+import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 
 @Component({
   selector: 'app-procedings-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
   styles: ``,
   templateUrl: './procedings-list.component.html'
 })

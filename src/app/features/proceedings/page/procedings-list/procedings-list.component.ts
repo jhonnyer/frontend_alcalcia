@@ -1,109 +1,140 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
-
-import { SearchService } from '../../../../core/services/search.service';
+import { Component, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
-
 import { ActasService } from '../../../../core/services/actas.service';
-
-import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
-import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
-import { IActa } from '../../../../core/models/acta.model';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import {
+  Column,
+  ColumnFiltersState,
+  FlexRenderDirective,
+  PaginationState,
+  Row,
+  RowSelectionState,
+  SortingState,
+  createAngularTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel
+} from '@tanstack/angular-table';
+import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
+import { defaultColumns } from './procedings-columns-definitions';
+import { IActa } from '../../../../core/models/acta.model';
 
 @Component({
   selector: 'app-procedings-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, TableTemplateComponent, StepperPaginationComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
   styles: ``,
   templateUrl: './procedings-list.component.html'
 })
 export class ProcedingsListComponent implements OnInit {
-  private searchService = inject(SearchService);
+  private actasService = inject(ActasService);
   injector = inject(Injector);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
-
-  currentPage = 0;
   data = signal<IActa[]>([]);
-  totalPage!: number;
 
-  private actasService = inject(ActasService);
+  // Estados para la tabla
+  public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
+  public readonly rowSelectionState = signal<RowSelectionState>({});
+  public copyOnClipboard = signal<number | null>(null);
+  public readonly columnFilters = signal<ColumnFiltersState>([]);
 
-  displayedColumns: (keyof IActa | 'controls')[] = [
-    'idActa',
-    'fechaCreacion',
-    'estado',
-    'fechaEntrega',
-    'ubicacionEntrega',
-    'observaciones',
-    'prioridad',
-    'tiposSolicitud',
-    'responsableVisita',
-    'controls'
-  ]
+  public readonly paginationState = signal<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10
+  });
 
-  columnSearch = 'estado';
-
-  sorteablesColumns: string[] = [
-    'fechaCreacion',
-    'estado',
-    'fechaEntrega'
-  ]
-
-  stickyColumns = [
-    "idActa"
-  ]
+  public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Lista de actas');
-    this.trackSearchTerm();
     this.getAll();
   }
 
   getAll() {
     this.actasService.getAll().subscribe({
       next: response => {
-        // console.log("All actas: ", response.content);
-        this.data.set(response)
-        this.totalPage = 1;
+        this.data.set(response);
       },
       error: error => {
-        console.log("Error getAll actas: ", error)
+        console.error("Error getAll actas:", error);
       }
-    })
+    });
   }
 
-  nextPage() {
-    this.currentPage++;
-    console.log("Siguiente: ", this.currentPage)
-    this.getAll();
+  public dataTable = createAngularTable(() => ({
+    data: this.data(),
+    getCoreRowModel: getCoreRowModel(),
+    columns: defaultColumns,
+
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+
+    state: {
+      pagination: this.paginationState(),
+      sorting: this.sortingState(),
+      rowSelection: this.rowSelectionState(),
+      columnFilters: this.columnFilters(),
+    },
+
+    onPaginationChange: (valueOrFunction) => {
+      typeof valueOrFunction === 'function'
+        ? this.paginationState.update(valueOrFunction)
+        : this.paginationState.set(valueOrFunction);
+    },
+
+    onSortingChange: (valueSorting) => {
+      typeof valueSorting === 'function'
+        ? this.sortingState.update(valueSorting)
+        : this.sortingState.set(valueSorting);
+    },
+
+    onRowSelectionChange: (valueOrFunction) => {
+      valueOrFunction instanceof Function
+        ? this.rowSelectionState.update(valueOrFunction)
+        : this.rowSelectionState.set(valueOrFunction);
+    },
+
+    onColumnFiltersChange: updater => {
+      updater instanceof Function
+        ? this.columnFilters.update(updater)
+        : this.columnFilters.set(updater);
+    },
+  }));
+
+  onChangeValueSizePageSelect(e: Event) {
+    const element = (e.target as HTMLSelectElement);
+    this.dataTable.setPageSize(+element.value);
   }
 
-  previousPage() {
-    if (this.currentPage >= 0) {
-      this.currentPage--;
-      console.log("previo: ", this.currentPage)
-      this.getAll();
-    }
+  onSortingColumn(column: Column<IActa>) {
+    column.toggleSorting();
   }
 
-  trackSearchTerm(){
-    effect(()=> {
-      const search = this.searchService.getSearchTerm()();
-      // this.dataSource.searchData(search);
-    }, {injector: this.injector})
+  onCopyOnClipboard(row: Row<IActa>) {
+    this.copyOnClipboard.set(row.original.idActa);
   }
 
-  delete(item: IActa){
-    console.log("Eliminar: ", item)
+  onSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.dataTable.setColumnFilters([
+      {
+        id: 'estado',
+        value: value,
+      },
+    ]);
   }
 
-  update(item: IActa){
-    console.log("update/: ", item)
-    this.router.navigate(["proceedings/update/", item.idActa]);
+  delete(item: Row<IActa>) {
+    this.actasService.deleteById(item.original.idActa.toString());
+    console.log("Eliminar:", item.original);
   }
 
-
+  update(item: Row<IActa>) {
+    this.router.navigate(["proceedings/update/", item.original.idActa]);
+  }
 }

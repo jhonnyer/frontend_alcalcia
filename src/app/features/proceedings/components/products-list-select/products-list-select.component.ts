@@ -1,8 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
-import { IProducto, ISelectedProduct } from '../../../../core/models/products.model';
+import { IProducto, IProductoFk, ISelectedProduct } from '../../../../core/models/products.model';
 import { ProductosService } from '../../../../core/services/productos.service';
+import { CategoriasService } from '../../../../core/services/categorias.service';
+import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { CommonModule } from '@angular/common';
+import { IProyecto, IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
+import { ICategorias } from '../../../../core/models/categorias.model';
 
 interface DialogData {
   idProyecto: number | null;
@@ -31,28 +35,74 @@ export class ProductsListSelectComponent implements OnInit{
   data = inject<DialogData>(DIALOG_DATA);
   dialogRef = inject<DialogRef<ISelectedProduct[]>>(DialogRef<ISelectedProduct[]>);
   private productosService = inject(ProductosService);
-  products: IProducto[] = [];
+  private categoriasService = inject(CategoriasService);
+  private proyectosService = inject(ProyectosService);
+
+  proyecto = signal<IProyectoAndCategoriaArray | null>(null);
+  categoriaSeleccionada = signal<ICategorias | null>(null);
+  products: IProductoFk[] = [];
   selectedProducts: ISelectedProduct[] = [];
 
   ngOnInit(): void {
-    console.log("ID Proyecto recibido:", this.data.idProyecto);
-    this.getProductos();
+    if (this.data.idProyecto) {
+      this.getProjectById();
+    } else {
+      alert("No se ha seleccionado un proyecto");
+      this.close();
+    }
   }
 
-  getProductos() {
-    this.productosService.getAll().subscribe({
+  getCategoryById(){
+    if (this.data.idProyecto) {
+      this.getProjectById();
+    } else {
+      alert("No se ha seleccionado un proyecto");
+      this.close();
+    }
+  }
+
+  getProjectById() {
+    this.proyectosService.getById(this.data.idProyecto!.toString()).subscribe({
       next: response => {
-        console.log("Productos: ",response);
-        this.products = response;
+        if (response.estado === 'exito') {
+          this.proyecto.set(response.respuesta);
+        }
       },
       error: error => {
-        console.log("Error al traer productos")
+        console.error("Error al cargar proyecto:", error);
+        alert("Error al cargar información del proyecto");
       }
-    })
+    });
+  }
+
+  onCategoriaChange(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    const categoriaId = select.value;
+
+    if (categoriaId) {
+      this.loadProductosCategoria(categoriaId);
+    } else {
+      this.categoriaSeleccionada.set(null);
+      this.products = [];
+    }
+  }
+
+  loadProductosCategoria(categoriaId: string) {
+    this.categoriasService.getById(categoriaId).subscribe({
+      next: response => {
+        this.categoriaSeleccionada.set(response);
+        this.products = response.productos || [];
+        console.log("Productos de la categoría:", this.products);
+      },
+      error: error => {
+        console.error("Error al cargar productos de la categoría:", error);
+        alert("Error al cargar productos");
+      }
+    });
   }
 
 
-  onQuantityChange(product: IProducto, input: HTMLInputElement, checkbox: HTMLInputElement) {
+  onQuantityChange(product: IProductoFk, input: HTMLInputElement, checkbox: HTMLInputElement) {
     const quantity = Number(input.value);
     console.log("Cambio", quantity)
 
@@ -65,26 +115,26 @@ export class ProductsListSelectComponent implements OnInit{
     if (checkbox.checked && quantity > 0) {
       // Add or update selected product
       const existingIndex = this.selectedProducts.findIndex(
-        sp => sp.idProductoFk === product.idProducto
+        sp => sp.idProductoFk === product.idProductoFk
       );
 
       if (existingIndex !== -1) {
         this.selectedProducts[existingIndex].cantidad = quantity;
       } else {
         this.selectedProducts.push({
-          idProductoFk: product.idProducto,
+          idProductoFk: product.idProductoFk,
           cantidad: quantity
         });
       }
     } else {
       // Remove from selected products
       this.selectedProducts = this.selectedProducts.filter(
-        sp => sp.idProductoFk !== product.idProducto
+        sp => sp.idProductoFk !== product.idProductoFk
       );
     }
   }
 
-  removeProduct(product: IProducto, checkbox: HTMLInputElement, input: HTMLInputElement) {
+  removeProduct(product: IProductoFk, checkbox: HTMLInputElement, input: HTMLInputElement) {
     // Uncheck checkbox
     checkbox.checked = false;
 
@@ -93,7 +143,7 @@ export class ProductsListSelectComponent implements OnInit{
 
     // Remove from selected products
     this.selectedProducts = this.selectedProducts.filter(
-      sp => sp.idProductoFk !== product.idProducto
+      sp => sp.idProductoFk !== product.idProductoFk
     );
   }
 

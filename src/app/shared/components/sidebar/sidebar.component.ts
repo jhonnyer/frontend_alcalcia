@@ -22,7 +22,7 @@ import { HasRoleDirective } from '../../../core/directives/has-role/has-role-dir
     ListNucleoComponent,
     ListInventoryComponent,
     ListBeneficiaryComponent,
-    ListAuthComponent,
+    // ListAuthComponent,
     ListProceedingsComponent,
     ListResponsibleComponent,
     ListProjectsComponent,

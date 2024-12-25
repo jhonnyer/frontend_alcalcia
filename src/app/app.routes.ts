@@ -9,6 +9,7 @@ import { authGuard } from './core/guards/auth.guard'; // Vieja
 import { roleGuard } from './core/guards/role.guard';
 import { authenticationGuard } from './core/guards/authentication.guard';
 import { unauthenticatedGuard } from './core/guards/unauthenticated.guard';
+import { hasRoleGuard } from './core/guards/has-role-guard.guard';
 
 export const routes: Routes = [
   {
@@ -32,7 +33,8 @@ export const routes: Routes = [
       {
 
         path: 'nucleo',
-        data: { role: 'ADMIN' },
+        canActivate: [hasRoleGuard],
+        data: { allowedRoles: ['ADMIN', 'RESP'] },
         loadChildren: () => import('./features/nucleo/nucleo.routes').then(m=> m.NUCLEO_ROUTES)
       },
       {

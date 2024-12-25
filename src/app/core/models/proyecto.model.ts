@@ -1,7 +1,7 @@
 import { ICategorias } from './categorias.model';
 
-type EstadoProyecto = 'A' | 'I' | 'P';
-type TipoProyecto = 'D' | 'M';
+export type EstadoProyecto = 'A' | 'I' | 'P';
+export type TipoProyecto = 'D' | 'M';
 
 export type ColumnKeys<T> = Array<keyof T>;
 

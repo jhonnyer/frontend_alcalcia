@@ -49,4 +49,8 @@ export class ProyectosService {
   addCategory(idProyecto: string, idCategory: string): Observable<ResponseStandar<IProyecto>>{
     return this.http.patch<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idProyecto}/estado/${idCategory}`, { context: checkToken() });
   }
+
+  delete(idProject: number) {
+    this.http.delete(`${this.URL}/proyectos/${idProject}`, { context: checkToken() });
+  }
 }

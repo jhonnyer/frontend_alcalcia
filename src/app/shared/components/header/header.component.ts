@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { SearchService } from '../../../core/services/search.service';
 import { PageTitleService } from '../../../core/services/pageTitle.service';
 import { TokenService } from '../../../core/services/token.service';
@@ -36,6 +36,7 @@ export class HeaderComponent implements OnInit {
   public pageTitleService = inject(PageTitleService);
   public tokenService = inject(TokenService);
   public route = inject(Router);
+  public userRole = signal<string | null>(null);
 
   loginUser: boolean = false;
 
@@ -43,10 +44,13 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     console.log(this.pageTitleService.getCurrentPage());
+    this.loginState();
   }
 
   loginState(){
     // Primero verificar si el usuario está logueado (token no expirado)
+    this.userRole.set(this.tokenService.getUserRole());
+    // console.log("RALANDO",this.userRole());
     this.loginUser = !this.tokenService.getToken();
   }
 

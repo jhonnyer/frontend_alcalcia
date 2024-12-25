@@ -23,6 +23,9 @@
 
     <div class="flex items-center" cdkMenuBar>
       <p>{{pageTitleService.currentPage()}}</p>
+      @if(userRole() !== null){
+        <p>{{userRole()}}</p>
+      }
       <!-- @if(pageTitleService.getCurrentPage() !== 'Login' && pageTitleService.getCurrentPage() !== 'Registro de usuario'){
         <div class="mr-auto md:mr-4 md:w-56">
           <div class="relative w-full min-w-[200px] h-10">
@@ -61,6 +64,7 @@
           </span>
         </button>
       </a> -->
+
 
       <a (click)="logout()">
         <button class="middle none font-sans font-bold center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-xs py-3 rounded-lg text-gray-500 hover:bg-blue-gray-500/10 active:bg-blue-gray-500/30 hidden items-center gap-1 px-4 xl:flex" type="button">

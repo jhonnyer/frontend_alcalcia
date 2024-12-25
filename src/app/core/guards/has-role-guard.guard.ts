@@ -12,8 +12,8 @@ export const hasRoleGuard: CanActivateFn = (route, state) => {
   // Obtener el rol del usuario
   const userRole = tokenService.getUserRole();
 
-  console.log('Rol del usuario:', userRole);
-  console.log('Rol del ruta:', allowedRoles);
+  // console.log('Rol del usuario:', userRole);
+  // console.log('Rol del ruta:', allowedRoles);
 
   if (!userRole || !allowedRoles) {
     console.log('No hay rol de usuario o roles permitidos');

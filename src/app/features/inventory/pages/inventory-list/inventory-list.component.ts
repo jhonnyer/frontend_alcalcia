@@ -1,107 +1,140 @@
 import { CommonModule } from '@angular/common';
-import { Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
-
-import { SearchService } from '../../../../core/services/search.service';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
-
 import { ProductosService } from '../../../../core/services/productos.service';
-
-import { TableTemplateComponent } from '../../../../shared/components/table-template/table-template.component';
-import { StepperPaginationComponent } from '../../../../shared/components/stepper-pagination/stepper-pagination.component';
-import { IProducto } from '../../../../core/models/products.model';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import {
+  Column,
+  ColumnFiltersState,
+  FlexRenderDirective,
+  PaginationState,
+  Row,
+  RowSelectionState,
+  SortingState,
+  createAngularTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel
+} from '@tanstack/angular-table';
+import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
+import { defaultColumns } from './inventory-columns-definitions';
+import { IProducto } from '../../../../core/models/products.model';
 
 @Component({
   selector: 'app-inventory-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, TableTemplateComponent, StepperPaginationComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
   templateUrl: './inventory-list.component.html',
-  styleUrl: './inventory-list.component.scss'
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class InventoryListComponent implements OnInit{
-  private searchService = inject(SearchService);
-  injector = inject(Injector);
-  private router = inject(Router);
-  private pageTitleService = inject(PageTitleService);
-
-  currentPage = 0;
-  data = signal<IProducto[]>([]);
-  totalPage!: number;
-
+export class InventoryListComponent implements OnInit {
   private productosService = inject(ProductosService);
+  private pageTitleService = inject(PageTitleService);
+  private router = inject(Router);
 
-  displayedColumns: (keyof IProducto | 'controls')[] = [
-    'idProducto',
-    'nombre',
-    'descripcion',
-    'stock',
-    'fechaIngreso',
-    'controls'
-  ]
+  data = signal<IProducto[]>([]);
 
-  columnSearch = 'idProyecto';
+  // Estados para la tabla
+  public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
+  public readonly rowSelectionState = signal<RowSelectionState>({});
+  public copyOnClipboard = signal<number | null>(null);
+  public readonly columnFilters = signal<ColumnFiltersState>([]);
 
-  sorteablesColumns: string[] = [
-    'idProducto',
-    'nombre',
-    'descripcion',
-    'stock',
-    'fechaIngreso'
-  ]
+  public readonly paginationState = signal<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10
+  });
 
-  stickyColumns = [
-    "idProducto"
-  ]
+  public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Lista de productos');
-    this.trackSearchTerm();
     this.getAll();
   }
 
   getAll() {
     this.productosService.getAll().subscribe({
       next: response => {
-        this.data.set(response)
-        console.log(response)
-        this.totalPage = 1;
+        this.data.set(response);
       },
       error: error => {
-        console.log("Error getAll ineventarios: ", error)
+        console.error("Error al cargar productos:", error);
       }
-    })
+    });
   }
 
-  nextPage() {
-    this.currentPage++;
-    console.log("Siguiente: ", this.currentPage)
-    this.getAll();
+  public dataTable = createAngularTable(() => ({
+    data: this.data(),
+    getCoreRowModel: getCoreRowModel(),
+    columns: defaultColumns,
+
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+
+    state: {
+      pagination: this.paginationState(),
+      sorting: this.sortingState(),
+      rowSelection: this.rowSelectionState(),
+      columnFilters: this.columnFilters(),
+    },
+
+    onPaginationChange: (valueOrFunction) => {
+      typeof valueOrFunction === 'function'
+        ? this.paginationState.update(valueOrFunction)
+        : this.paginationState.set(valueOrFunction);
+    },
+
+    onSortingChange: (valueSorting) => {
+      typeof valueSorting === 'function'
+        ? this.sortingState.update(valueSorting)
+        : this.sortingState.set(valueSorting);
+    },
+
+    onRowSelectionChange: (valueOrFunction) => {
+      valueOrFunction instanceof Function
+        ? this.rowSelectionState.update(valueOrFunction)
+        : this.rowSelectionState.set(valueOrFunction);
+    },
+
+    onColumnFiltersChange: updater => {
+      updater instanceof Function
+        ? this.columnFilters.update(updater)
+        : this.columnFilters.set(updater);
+    },
+  }));
+
+  onChangeValueSizePageSelect(e: Event) {
+    const element = (e.target as HTMLSelectElement);
+    this.dataTable.setPageSize(+element.value);
   }
 
-  previousPage() {
-    if (this.currentPage >= 0) {
-      this.currentPage--;
-      console.log("previo: ", this.currentPage)
-      this.getAll();
-    }
+  onSortingColumn(column: Column<IProducto>) {
+    column.toggleSorting();
   }
 
-  trackSearchTerm(){
-    effect(()=> {
-      const search = this.searchService.getSearchTerm()();
-      // this.dataSource.searchData(search);
-    }, {injector: this.injector})
+  onCopyOnClipboard(row: Row<IProducto>) {
+    this.copyOnClipboard.set(row.original.idProducto);
   }
 
-  delete(item: IProducto){
-    console.log("Eliminar: ", item)
+  onSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.dataTable.setColumnFilters([
+      {
+        id: 'nombre', // Búsqueda por nombre del producto
+        value: value,
+      },
+    ]);
   }
 
-  update(item: IProducto){
-    console.log("List update/: ", item.idProducto)
-    this.router.navigate(["inventory/update/", item.idProducto]);
+  delete(item: Row<IProducto>) {
+    console.log("Eliminar:", item.original);
   }
 
-
+  update(item: Row<IProducto>) {
+    console.log("List update:", item.original.idProducto);
+    this.router.navigate(["inventory/update/", item.original.idProducto]);
+  }
 }

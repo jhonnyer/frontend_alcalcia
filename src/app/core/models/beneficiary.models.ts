@@ -2,7 +2,7 @@ import { INucleoUpdate } from "./nucleo.model";
 type Sexo = 'M' | 'F';
 
 export interface IBeneficiario {
-  idBeneficiario: number | null;
+  idBeneficiario: number;
   primerNombre: string;
   segundoNombre: string;
   primerApellido: string;

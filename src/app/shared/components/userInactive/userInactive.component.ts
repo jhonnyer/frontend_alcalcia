@@ -8,11 +8,11 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [],
   template: `
     <div class="container">
-    <h2>Cuenta Inactiva</h2>
-    <p>Su cuenta está actualmente inactiva.</p>
-    <p>Por favor, contacte al administrador para solicitar la activación de su cuenta.</p>
-    <button (click)="logout()">Cerrar Sesión</button>
-  </div>
+      <h2>Cuenta Inactiva</h2>
+      <p>Su cuenta está actualmente inactiva.</p>
+      <p>Por favor, contacte al administrador para solicitar la activación de su cuenta.</p>
+      <button (click)="logout()">Cerrar Sesión</button>
+    </div>
   `,
   styleUrl: './userInactive.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

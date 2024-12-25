@@ -39,6 +39,8 @@ export const routes: Routes = [
       },
       {
         path: 'inventory',
+        canActivate: [hasRoleGuard],
+        data: { allowedRoles: ['ADMIN'] },
         loadChildren: () => import('./features/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES)
       },
       {

@@ -23,7 +23,7 @@
 
     <div class="flex items-center" cdkMenuBar>
       <p>{{pageTitleService.currentPage()}}</p>
-      @if(pageTitleService.getCurrentPage() !== 'Login' && pageTitleService.getCurrentPage() !== 'Registro de usuario'){
+      <!-- @if(pageTitleService.getCurrentPage() !== 'Login' && pageTitleService.getCurrentPage() !== 'Registro de usuario'){
         <div class="mr-auto md:mr-4 md:w-56">
           <div class="relative w-full min-w-[200px] h-10">
             <input
@@ -38,7 +38,7 @@
             </label>
           </div>
         </div>
-      }
+      } -->
 
       <button cdkMenuItem [cdkMenuTriggerFor]="edit" class="relative middle none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-10 max-w-[40px] h-10 max-h-[40px] rounded-lg text-xs text-gray-500 hover:bg-blue-gray-500/10 active:bg-blue-gray-500/30 grid xl:hidden" type="button">
         <span class="absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">

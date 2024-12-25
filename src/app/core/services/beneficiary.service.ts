@@ -79,4 +79,8 @@ export class BeneficiaryService {
     const date = new Date(dateString);
     return date.toISOString().split('T')[0]; // Extraemos solo la parte de la fecha
   }
+
+  // delete(idBeneficiario: string) {
+  //   this.http.delete(`${this.URL}/beneficiarios/${idBeneficiario}`, { context: checkToken() });
+  // }
 }

@@ -130,7 +130,8 @@ export class BeneficiaryListComponent implements OnInit {
   }
 
   delete(item: Row<IBeneficiario>) {
-    console.log("Eliminar:", item.original);
+    console.log("Delete Beneficiario:", item.original);
+    // this.beneficiaryService.delete(item.original.idBeneficiario);
   }
 
   update(item: Row<IBeneficiario>) {

@@ -130,7 +130,7 @@ export class CategoriaListComponent implements OnInit {
   }
 
   delete(item: Row<ICategorias>) {
-    console.log("Eliminar:", item.original);
+    this.categoriasService.delete(item.original.idCategoria.toString());
   }
 
   update(item: Row<ICategorias>) {

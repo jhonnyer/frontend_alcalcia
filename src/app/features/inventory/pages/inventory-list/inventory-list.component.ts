@@ -130,7 +130,7 @@ export class InventoryListComponent implements OnInit {
   }
 
   delete(item: Row<IProducto>) {
-    console.log("Eliminar:", item.original);
+    this.productosService.delete(item.original.idProducto.toString());
   }
 
   update(item: Row<IProducto>) {

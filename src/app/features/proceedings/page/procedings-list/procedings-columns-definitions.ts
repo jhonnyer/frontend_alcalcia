@@ -111,8 +111,8 @@ export const defaultColumns: ColumnDef<IActa>[] = [
     meta: { filterVariant: 'text' }
   },
   {
-    id: 'tiposSolicitud',
-    accessorFn: (row) => row.tiposSolicitud,
+    id: 'tipoSolicitud',
+    accessorFn: (row) => row.tipoSolicitud,
     cell: info => info.getValue(),
     header: 'Tipo Solicitud',
     filterFn: 'includesString',

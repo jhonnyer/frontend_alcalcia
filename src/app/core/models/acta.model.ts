@@ -24,7 +24,7 @@ export interface IActa {
   ubicacionEntrega: string;
   observaciones: string;
   prioridad: PrioridadActa;
-  tiposSolicitud: string;
+  tipoSolicitud: string;
   responsableVisita: string;
 }
 

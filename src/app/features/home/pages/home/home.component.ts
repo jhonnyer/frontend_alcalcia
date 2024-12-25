@@ -154,7 +154,7 @@ export class HomeComponent implements OnInit{
           // Datos del acta
           'Ubicación Entrega': acta.ubicacionEntrega,
           'Prioridad': acta.prioridad,
-          'Tipo Solicitud': acta.tiposSolicitud,
+          'Tipo Solicitud': acta.tipoSolicitud,
           'Responsable Visita': acta.responsableVisita,
           'Observaciones': acta.observaciones
         }));

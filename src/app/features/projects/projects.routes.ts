@@ -4,6 +4,7 @@ import { ProjectCreateComponent } from "./pages/project-create/project-create.co
 import { ProjectUpdateComponent } from "./pages/project-update/project-update.component";
 import { AddBeneficiaryProjectComponent } from "./pages/add-beneficiary-project/add-beneficiary-project.component";
 import { BeneficiarioProyectoListComponent } from "./pages/beneficiario-proyecto-list/beneficiario-proyecto-list.component";
+import { BeneficiarioProyectoUpdateComponent } from "./pages/beneficiario-proyecto-update/beneficiario-proyecto-update.component";
 
 export const PROJECTS_ROUTES: Routes = [
   {
@@ -25,5 +26,9 @@ export const PROJECTS_ROUTES: Routes = [
   {
     path: 'add-beneficiary/list',
     component: BeneficiarioProyectoListComponent
+  },
+  {
+    path: 'add-beneficiary/update/:id',
+    component: BeneficiarioProyectoUpdateComponent
   }
 ]

@@ -61,7 +61,7 @@ export class BeneficiarioProyectoService {
     );
   }
 
-  asignarBeneficiarioAProyecto(proyectoId: string,beneficiarioProyecto: Partial<IBeneficiarioProyecto>): Observable<IBeneficiarioProyecto> {
+  updateById(proyectoId: string, beneficiarioProyecto: Partial<IBeneficiarioProyecto>): Observable<IBeneficiarioProyecto> {
     return this.http.put<IBeneficiarioProyecto>(`${this.URL}/beneficiarios-proyectos/${proyectoId}`, beneficiarioProyecto, { context: checkToken() }).pipe(
       tap(beneficiario => {
         if(beneficiario.fechaFin){

@@ -113,6 +113,6 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   }
 
   update(item: Row<IBeneficiarioProyecto>) {
-    this.router.navigate(["add-beneficiary/update/", item.original.idBeneficiarioProyecto]);
+    this.router.navigate(["/projects/add-beneficiary/update/", item.original.idBeneficiarioProyecto]);
   }
 }

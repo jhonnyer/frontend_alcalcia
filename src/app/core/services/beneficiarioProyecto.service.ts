@@ -61,7 +61,7 @@ export class BeneficiarioProyectoService {
     );
   }
 
-  deleteById(id: string) {
+  deleteById(id: string): void {
     this.http.delete(`${this.URL}/beneficiarios-proyectos/${id}`, { context: checkToken() });
   }
 

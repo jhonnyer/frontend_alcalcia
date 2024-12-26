@@ -27,6 +27,17 @@ export class BeneficiarioProyectoService {
     );
   }
 
+  getAllById(id: string): Observable<IBeneficiarioProyecto> {
+    return this.http.get<IBeneficiarioProyecto>(`${this.URL}/beneficiarios-proyectos/${id}`, { context: checkToken() }).pipe(
+      tap(beneficiario => {
+        if(beneficiario.fechaFin){
+          beneficiario.fechaFin = this.formatDate(beneficiario.fechaFin);
+        }
+        beneficiario.fechaInicio = this.formatDate(beneficiario.fechaInicio);
+      })
+    );
+  }
+
   getBeneficiarioByIdProyecto(idProyecto: string): Observable<IBeneficiarioProyecto> {
     return this.http.get<IBeneficiarioProyecto>(`${this.URL}/beneficiarios-proyectos/${idProyecto}`, { context: checkToken() }).pipe(
       tap(beneficiario => {

@@ -63,6 +63,8 @@ export const defaultColumns: ColumnDef<INucleoUpdate>[] = [
     cell: (info) => 'actions', // Esto es importante para que se detecte la columna
     header: 'Acciones'
   }
+];
+
   // {
   //   id: 'beneficiarios',
   //   accessorFn: (row) => row.beneficiarios,
@@ -71,7 +73,4 @@ export const defaultColumns: ColumnDef<INucleoUpdate>[] = [
   //   filterFn: 'includesString',
   //   meta: { filterVariant: 'text'}
   // },
-
-
-];
 

@@ -1,7 +1,7 @@
 import { ICategorias } from './categorias.model';
 
-export type EstadoProyecto = 'A' | 'I' | 'P';
-export type TipoProyecto = 'D' | 'M';
+export type EstadoProyecto = 'A' | 'I' | 'P'; // Activo, Inactivo, Pendiente
+export type TipoProyecto = 'D' | 'M'; // Departamental, Municipal
 
 export type ColumnKeys<T> = Array<keyof T>;
 

@@ -1,5 +1,5 @@
 import { IBeneficiario } from "./beneficiary.models"
-import { IProyecto } from "./proyecto.model"
+import { IProyecto, EstadoProyecto} from "./proyecto.model"
 
 export interface IBeneficiarioProyecto     {
   idBeneficiarioProyecto: number;
@@ -9,6 +9,8 @@ export interface IBeneficiarioProyecto     {
   fechaInicio: string;
   fechaFin: string | null;
   observaciones: string;
+  nombreProyecto: string;
+  numDocumentoBeneficiario: string;
+  estadoProyecto: EstadoProyecto;
 }
-
 

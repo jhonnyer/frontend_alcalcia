@@ -47,6 +47,7 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
   private loadBeneficiarioProyecto(): void {
     this.beneficiarioProyectoService.getAllById(this.beneficiarioProyectoId).subscribe({
       next: (response) => {
+        console.log(response)
         this.loadBeneficiarioInfo(response.idBeneficiario.toString());
         this.form.patchValue({
           idBeneficiario: response.idBeneficiario,
@@ -92,11 +93,12 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
     if (this.form.valid) {
       const formData = {
         ...this.form.value,
-        fechaInicio: this.form.get('fechaInicio')?.value
+        idBeneficiario: this.form.get('idBeneficiario')?.getRawValue(),
+        fechaInicio: this.form.get('fechaInicio')?.getRawValue()
       };
 
       this.beneficiarioProyectoService.updateById(this.beneficiarioProyectoId, formData).subscribe({
-        next: (response) => {
+        next: () => {
           alert('Actualización exitosa');
           this.router.navigate(['/projects/add-beneficiary/list']);
         },

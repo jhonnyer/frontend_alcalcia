@@ -37,7 +37,7 @@ export class ProjectCreateComponent {
       fechaFin: [''],
       estado: ['A', [Validators.required]],
       descripcion: [''],
-      categorias: [''],
+      categorias: ['', [Validators.required]],
     });
   }
 

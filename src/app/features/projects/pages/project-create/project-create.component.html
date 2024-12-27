@@ -85,6 +85,11 @@
           <label>{{ categoria.nombre }}</label>
         </div>
       }
+      @if(formFamilyCore.get('categorias')?.hasError('required') && formFamilyCore.get('categorias')?.touched) {
+        <p class="text-red-500">
+          * Este campo es requerido
+        </p>
+      }
     </div>
 
     <div class="flex flex-wrap justify-between">

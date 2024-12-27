@@ -93,13 +93,23 @@ export class NucleoRegisterComponent implements OnDestroy {
       email: [''],
       telefono: ['', [Validators.required]],
       esVivo: [true, [Validators.required]],
-      idNucleoFk: [null]
+      idNucleoFk: [null],
+      discapacidad: [false, [Validators.required]],
+      certificadoDiscapacidad: [false, [Validators.required]]
     });
 
     formGroup.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
       if (fecha) {
         const edad = this.calcularEdad(fecha);
         formGroup.get('edad')?.setValue(edad.toString(), { emitEvent: false });
+      }
+    });
+
+    formGroup.get('certificadoDiscapacidad')?.valueChanges.subscribe(tieneCertificado => {
+      if (tieneCertificado) {
+        formGroup.patchValue({
+          discapacidad: true
+        }, { emitEvent: false });
       }
     });
 
@@ -157,7 +167,14 @@ export class NucleoRegisterComponent implements OnDestroy {
           this.router.navigate(["nucleo"]);
         },
         error: error => {
-          alert('Ha ocurrido un error al cargar los datos');
+          const errorStr = JSON.stringify(error.error);
+          if(errorStr.includes('Duplicate entry')) {
+            alert('Ya existe un beneficiario registrado con este número de documento');
+          } else {
+            const errorMessage = 'Ha ocurrido un error al registrar los datos verifica las cedulas pueden estar duplicadas'; // error.error?.mensaje || error.message ||
+            alert(errorMessage);
+          }
+          console.error('Error detallado:', error);
         }
       })
 	  }else{

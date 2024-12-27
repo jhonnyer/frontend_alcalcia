@@ -228,6 +228,31 @@
               }
             </div>
 
+            <!-- Discapacidad -->
+            <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+              <label>¿Tiene discapacidad?: </label>
+              <input formControlName="discapacidad" type="radio" [value]="false" class="input-radio-base"> No
+              <input formControlName="discapacidad" type="radio" [value]="true" class="input-radio-base"> Si
+
+              @if(beneficiario.get('discapacidad')?.hasError('required') && beneficiario.get('discapacidad')?.touched) {
+                <p class="text-red-500">
+                  * Este campo es requerido
+                </p>
+              }
+            </div>
+
+            <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+              <label>¿Tiene certificado de discapacidad?: </label>
+              <input formControlName="certificadoDiscapacidad" type="radio" [value]="false" class="input-radio-base"> No
+              <input formControlName="certificadoDiscapacidad" type="radio" [value]="true" class="input-radio-base"> Si
+
+              @if(beneficiario.get('certificadoDiscapacidad')?.hasError('required') && beneficiario.get('certificadoDiscapacidad')?.touched) {
+                <p class="text-red-500">
+                  * Este campo es requerido
+                </p>
+              }
+            </div>
+
           </div>
 
           <div class="w-full">

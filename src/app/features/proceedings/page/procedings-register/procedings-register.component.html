@@ -59,22 +59,6 @@
     }
 </div>
 
-  <!-- Seleccionar proyecto -->
-  <!-- <div class="w-full px-4 pb-4">
-    <label for="selectProyecto" class="label-base">Selecciona el proyecto</label>
-    <select [formControl]="selectProyecto" id="selectProyecto" class="input-base">
-      @for(proyecto of proyectos(); track proyecto){
-        <option [value]="proyecto.proyecto.idProyecto" class="input-base capitalize">{{proyecto.proyecto.nombre}}</option>
-      }
-    </select>
-
-    @if(formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
-      <p class="text-red-500">
-        * Este campo es requerido
-      </p>
-    }
-  </div> -->
-
   <!-- Responsable -->
   <div class="w-full px-4">
     <label for="selectResponsable" class="label-base">Responsable del acta</label>
@@ -100,18 +84,6 @@
     >
 
       <div class="flex flex-wrap justify-between">
-       <!-- <div class="flex flex-col">
-          <div class="relative flex items-center gap-2">
-            <label for="fechaCreacion">Fecha de creación</label>
-            <input formControlName="fechaCreacion" id="fechaCreacion" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 ">
-          </div>
-          @if(formActa.get('fechaCreacion')?.hasError('required') && formActa.get('fechaCreacion')?.touched) {
-            <p class="text-red-500">
-              * Este campo es requerido
-            </p>
-          }
-        </div> -->
-
         <div class="flex flex-col">
           <div class="relative flex items-center gap-2">
             <label for="fechaEntrega">Fecha de entrega</label>
@@ -124,22 +96,6 @@
           }
         </div>
 
-        <!-- <div class="w-full md:w-[49%]">
-          <label for="estadoActa" class="label-base">Estado del acta</label>
-          <select formControlName="estado" id="estadoActa" class="input-base">
-            <option value="R" class="input-base capitalize">Recibida</option>
-            <option value="P" class="input-base capitalize">Procesada</option>
-            <option value="A" class="input-base capitalize">Autorizado</option>
-            <option value="RC" class="input-base capitalize">Rechazada</option>
-            <option value="E" class="input-base capitalize">Entregada</option>
-          </select>
-
-          @if(formActa.get('estado')?.hasError('required') && formActa.get('estado')?.touched) {
-            <p class="text-red-500">
-              * Este campo es requerido
-            </p>
-          }
-        </div> -->
       </div>
 
       <div class="flex flex-wrap md:flex-nowrap justify-between gap-5">

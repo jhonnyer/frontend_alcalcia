@@ -154,7 +154,7 @@ export const defaultColumns: ColumnDef<IBeneficiario>[] = [
   },
   {
     id: 'discapacidad',
-    accessorFn: (row) => row.discapacidad,
+    accessorFn: (row) => row.discapacidad.toString(),
     cell: info => info.getValue(),
     header: 'Discapacidad',
     filterFn: 'includesString',
@@ -162,7 +162,7 @@ export const defaultColumns: ColumnDef<IBeneficiario>[] = [
   },
   {
     id: 'certificadoDiscapacidad',
-    accessorFn: (row) => row.certificadoDiscapacidad,
+    accessorFn: (row) => row.certificadoDiscapacidad.toString(),
     cell: info => info.getValue(),
     header: 'Certificado discapacidad',
     filterFn: 'includesString',

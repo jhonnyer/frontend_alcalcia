@@ -1,0 +1,30 @@
+<div class="p-6 bg-white rounded-lg shadow-lg max-w-md">
+  <h2 class="text-xl font-semibold text-red-600 mb-4">¡Advertencia!</h2>
+
+  <p class="mb-4">
+    Está a punto de eliminar permanentemente este beneficiario.
+    Esta acción no se puede deshacer y es bajo su responsabilidad.
+  </p>
+
+  <div class="border-l-4 border-yellow-500 bg-yellow-50 p-4 mb-6">
+    <p class="text-sm text-yellow-700">
+      Esta acción eliminará todos los datos asociados al beneficiario
+      y no podrán ser recuperados.
+    </p>
+  </div>
+
+  <div class="flex justify-end gap-4">
+    <button
+      (click)="dialog.close(false)"
+      class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+    >
+      Cancelar
+    </button>
+    <button
+      (click)="dialog.close(true)"
+      class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+    >
+      Sí, eliminar
+    </button>
+  </div>
+</div>

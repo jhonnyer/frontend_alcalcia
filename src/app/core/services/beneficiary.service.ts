@@ -80,7 +80,7 @@ export class BeneficiaryService {
     return date.toISOString().split('T')[0]; // Extraemos solo la parte de la fecha
   }
 
-  delete(idBeneficiario: string) {
-    this.http.delete(`${this.URL}/beneficiarios/eliminar/${idBeneficiario}`, { context: checkToken() });
+  delete(idBeneficiario: string): Observable<any> {
+    return this.http.delete(`${this.URL}/beneficiarios/eliminar/${idBeneficiario}`, { context: checkToken() });
   }
 }

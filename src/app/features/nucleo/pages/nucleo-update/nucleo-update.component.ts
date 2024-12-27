@@ -11,12 +11,17 @@ import { IZona } from '../../../../core/models/zona.models';
 import { IBarrio } from '../../../../core/models/barrio.model';
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
+import { ConfirmDeleteDialogComponent } from '../../components/confirm-delete-dialog/confirm-delete-dialog.component';
+import { Dialog, DialogModule, DialogRef } from '@angular/cdk/dialog';
 
 @Component({
   selector: 'app-nucleo-update',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule
+    CommonModule,
+    ReactiveFormsModule,
+    DialogModule
   ],
   styles: ``,
   templateUrl: './nucleo-update.component.html',
@@ -28,6 +33,8 @@ export class NucleoUpdateComponent implements OnInit{
   private readonly zonaService = inject(ZonaService);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
+  private beneficiaryService = inject(BeneficiaryService);
+  private dialog = inject(Dialog);
 
   nucleo = signal<INucleoUpdate| null>(null);
   // nucleoId!: number;
@@ -73,30 +80,30 @@ export class NucleoUpdateComponent implements OnInit{
 
   private initBeneficiaries(beneficiaries: IBeneficiario[]): void {
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
-  beneficiaries.forEach((beneficiary) => {
-    beneficiariosArray.push(this.initFormBeneficiary());
-    const beneficiaryForm = beneficiariosArray.at(beneficiariosArray.length - 1);
-    beneficiaryForm.setValue({
-      idBeneficiario: beneficiary.idBeneficiario,
-      primerNombre: beneficiary.primerNombre,
-      segundoNombre: beneficiary.segundoNombre,
-      primerApellido: beneficiary.primerApellido,
-      segundoApellido: beneficiary.segundoApellido,
-      tipoDocumento: beneficiary.tipoDocumento,
-      numeroDocumento: beneficiary.numeroDocumento,
-      sexo: beneficiary.sexo,
-      genero: beneficiary.genero,
-      victimaConflicto: beneficiary.victimaConflicto,
-      fechaNacimiento: beneficiary.fechaNacimiento,
-      edad: beneficiary.edad,
-      etnia: beneficiary.etnia,
-      email: beneficiary.email,
-      telefono: beneficiary.telefono,
-      esVivo: beneficiary.esVivo,
-      discapacidad: beneficiary.discapacidad,
-      certificadoDiscapacidad: beneficiary.certificadoDiscapacidad,
-      idNucleoFk: parseInt(this.nucleoID)
-    }, { emitEvent: true });
+    beneficiaries.forEach((beneficiary) => {
+      beneficiariosArray.push(this.initFormBeneficiary());
+      const beneficiaryForm = beneficiariosArray.at(beneficiariosArray.length - 1);
+      beneficiaryForm.setValue({
+        idBeneficiario: beneficiary.idBeneficiario,
+        primerNombre: beneficiary.primerNombre,
+        segundoNombre: beneficiary.segundoNombre,
+        primerApellido: beneficiary.primerApellido,
+        segundoApellido: beneficiary.segundoApellido,
+        tipoDocumento: beneficiary.tipoDocumento,
+        numeroDocumento: beneficiary.numeroDocumento,
+        sexo: beneficiary.sexo,
+        genero: beneficiary.genero,
+        victimaConflicto: beneficiary.victimaConflicto,
+        fechaNacimiento: beneficiary.fechaNacimiento,
+        edad: beneficiary.edad,
+        etnia: beneficiary.etnia,
+        email: beneficiary.email,
+        telefono: beneficiary.telefono,
+        esVivo: beneficiary.esVivo,
+        discapacidad: beneficiary.discapacidad,
+        certificadoDiscapacidad: beneficiary.certificadoDiscapacidad,
+        idNucleoFk: parseInt(this.nucleoID)
+      }, { emitEvent: true });
 
       beneficiaryForm.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
         if (fecha) {
@@ -202,7 +209,37 @@ export class NucleoUpdateComponent implements OnInit{
 
   deletePerson(index: number): void {
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
-    beneficiariosArray.removeAt(index);
+    const beneficiario = beneficiariosArray.at(index);
+    const idBeneficiario = beneficiario.get('idBeneficiario')?.value;
+
+    if (idBeneficiario) {
+      const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent);
+
+      dialogRef.closed.subscribe(result => {
+        if (result) {
+          this.beneficiaryService.delete(idBeneficiario.toString()).subscribe({
+            next: () => {
+              beneficiariosArray.removeAt(index);
+              alert('Beneficiario eliminado exitosamente');
+              this.initFormFamilyCore();
+              this.getAllZonas();
+              this.changeZona();
+              this.getNucleoById();
+            },
+            error: (error) => {
+              this.initFormFamilyCore();
+              this.getAllZonas();
+              this.changeZona();
+              this.getNucleoById();
+              // const errorMessage = error.error?.mensaje || 'Error al eliminar el beneficiario';
+              // alert(errorMessage);
+            }
+          });
+        }
+      });
+    } else {
+      beneficiariosArray.removeAt(index);
+    }
   }
 
   calcularEdad(fechaNacimiento: string): number {
@@ -238,7 +275,7 @@ export class NucleoUpdateComponent implements OnInit{
           this.router.navigate(["nucleo"]);
         },
         error: error => {
-          alert('Ha ocurrido un error al cargar los datos');
+          alert('Ha ocurrido un error al cargar los datos, es posible que un documento ya exista');
         }
       })
 	  }else
@@ -252,5 +289,9 @@ export class NucleoUpdateComponent implements OnInit{
     if (this.zonasSubscription) {
       this.zonasSubscription.unsubscribe();
     }
+  }
+
+  cancelar() {
+    this.router.navigate(['/nucleo']);
   }
 }

@@ -1,9 +1,56 @@
 <div class="p-6 bg-white rounded-lg shadow">
   <h2 class="text-2xl font-semibold mb-6">Asignar Beneficiario a Proyecto</h2>
 
+   <!-- Buscador de Beneficiario -->
+  <div class="flex flex-col">
+    <div class="flex flex-col gap-2">
+      <label for="buscarBeneficiario" class="label-base">Buscar beneficiario</label>
+      <input
+        type="text"
+        id="buscarBeneficiario"
+        class="input-base"
+        placeholder="Ingresa la cedula"
+        [formControl]="searchBeneficiario"
+        min="0"
+        oninput="this.value = Math.abs(this.value)"
+      >
+      @if(searchBeneficiario.errors && searchBeneficiario.touched){
+        @if(searchBeneficiario.hasError('minlength')){
+          <p class="text-red-500">* Minimo 6 digitos</p>
+        }
+        @if(searchBeneficiario.hasError('maxlength')){
+          <p class="text-red-500">* Minimo 14 digitos</p>
+        }
+        @if(searchBeneficiario.hasError('pattern')){
+          <p class="text-red-500">* Solo se aceptan números</p>
+        }
+      }
+      @if(beneficiarioNoEncontrado){
+        <p class="text-red-500">* Esta cedula no esta registrada</p>
+      }
+    </div>
+
+    @if(beneficiario() !== null){
+      <div class="flex flex-col justify-center items-start gap-4 w-full mt-4 p-4 border rounded-lg bg-gray-50">
+        <div class="flex justify-between gap-5 w-full">
+          <p class="w-1/2">Primer nombre: {{beneficiario()?.primerNombre}}</p>
+          <p class="w-1/2">Segundo nombre: {{beneficiario()?.segundoNombre}}</p>
+        </div>
+        <div class="flex justify-between gap-5 w-full">
+          <p class="w-1/2">Primer apellido: {{beneficiario()?.primerApellido}}</p>
+          <p class="w-1/2">Segundo apellido: {{beneficiario()?.segundoApellido}}</p>
+        </div>
+        <div class="flex justify-between gap-5 w-full">
+          <p class="w-1/2">Tipo de documento: {{beneficiario()?.tipoDocumento}}</p>
+          <p class="w-1/2">Número de documento: {{beneficiario()?.numeroDocumento}}</p>
+        </div>
+      </div>
+    }
+  </div>
+
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
     <!-- Beneficiario -->
-    <div>
+    <!-- <div>
       <label for="idBeneficiario" class="block text-sm font-medium text-gray-700 mb-1">
         Beneficiario *
       </label>
@@ -21,7 +68,7 @@
       @if(form.get('idBeneficiario')?.hasError('required') && form.get('idBeneficiario')?.touched) {
         <p class="mt-1 text-sm text-red-600">El beneficiario es requerido</p>
       }
-    </div>
+    </div> -->
 
     <!-- Proyecto -->
     <div>

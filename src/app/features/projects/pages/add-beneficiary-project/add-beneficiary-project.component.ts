@@ -1,12 +1,15 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
 import { Router } from '@angular/router';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
-import { IBeneficiario } from '../../../../core/models/beneficiary.models';
+import { IBeneficiario, IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
 import { IProyecto } from '../../../../core/models/proyecto.model';
+
+import { debounceTime } from 'rxjs';
+import { timer } from 'rxjs';
 
 
 @Component({
@@ -26,6 +29,16 @@ export class AddBeneficiaryProjectComponent implements OnInit {
   beneficiarios: IBeneficiario[] = [];
   proyectos: IProyecto[] = [];
 
+  beneficiarioNoEncontrado = false;
+  beneficiario = signal<IBeneficiarioUnique | null>(null);
+
+  searchBeneficiario = new FormControl('', [
+    Validators.required,
+    Validators.minLength(6),
+    Validators.maxLength(14),
+    Validators.pattern('^[0-9]*$')
+  ]);
+
   form: FormGroup = this.fb.group({
     idBeneficiario: ['', [Validators.required]],
     idProyecto: ['', [Validators.required]],
@@ -36,18 +49,50 @@ export class AddBeneficiaryProjectComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadBeneficiarios();
+    this.onSearchBeneficiario();
     this.loadProyectos();
   }
 
-  private loadBeneficiarios(): void {
-    this.beneficiarioService.getAll().subscribe({
-      next: (beneficiarios) => {
-        this.beneficiarios = beneficiarios;
-      },
-      error: (error) => {
-        console.error('Error al cargar beneficiarios:', error);
-        alert('Error al cargar la lista de beneficiarios');
+
+  onSearchBeneficiario() {
+    this.searchBeneficiario.valueChanges
+    .pipe(
+      debounceTime(400)
+    )
+    .subscribe({
+      next: (value: string | null) => {
+        if (value && value.length >= 6) {
+          this.beneficiarioService.getByCedula(value).subscribe({
+            next: resp => {
+              if (resp !== undefined) {
+                this.beneficiario.set(resp);
+                this.form.patchValue({
+                  idBeneficiario: resp.idBeneficiario
+                });
+              } else {
+                this.beneficiarioNoEncontrado = true;
+                this.beneficiario.set(null);
+                this.form.patchValue({
+                  idBeneficiario: ''
+                });
+                timer(1500).subscribe(() => {
+                  this.beneficiarioNoEncontrado = false;
+                });
+              }
+            },
+            error: error => {
+              this.beneficiarioNoEncontrado = true;
+              this.beneficiario.set(null);
+              this.form.patchValue({
+                idBeneficiario: ''
+              });
+              timer(2500).subscribe(() => {
+                this.beneficiarioNoEncontrado = false;
+              });
+              console.error(error);
+            }
+          });
+        }
       }
     });
   }
@@ -78,7 +123,7 @@ export class AddBeneficiaryProjectComponent implements OnInit {
         next: (response) => {
           console.log('Asignación exitosa:', response);
           alert('Beneficiario asignado correctamente');
-          this.router.navigate(['/projects']);
+          this.router.navigate(['/projects/add-beneficiary/list']);
         },
         error: (error) => {
           console.error('Error en la asignación:', error);
@@ -91,6 +136,6 @@ export class AddBeneficiaryProjectComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/projects']);
+    this.router.navigate(['/projects/add-beneficiary/list']);
   }
 }

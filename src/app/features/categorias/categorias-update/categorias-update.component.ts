@@ -71,4 +71,7 @@ export class CategoriasUpdateComponent implements OnInit {
     }
   }
 
+  cancelar() {
+    this.router.navigate(['/nucleo']);
+  }
 }

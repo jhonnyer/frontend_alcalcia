@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-beneficiary-register',
@@ -17,6 +18,7 @@ export class BeneficiaryRegisterComponent {
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
   private pageTitleService = inject(PageTitleService);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.initFormFamilyCore();
@@ -82,5 +84,9 @@ export class BeneficiaryRegisterComponent {
 	  }else{
 		  this.formFamilyCore.markAllAsTouched();
 	  }
+  }
+
+  cancelar() {
+    this.router.navigate(['/nucleo']);
   }
 }

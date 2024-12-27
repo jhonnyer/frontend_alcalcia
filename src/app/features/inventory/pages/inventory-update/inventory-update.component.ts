@@ -83,4 +83,8 @@ export class InventoryUpdateComponent {
       this.formFamilyCore.markAllAsTouched();
     }
   }
+
+  cancelar(): void {
+    this.router.navigate(['/inventory']);
+  }
 }

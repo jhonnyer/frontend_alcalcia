@@ -188,4 +188,8 @@ export class NucleoRegisterComponent implements OnDestroy {
       this.zonasSubscription.unsubscribe();
     }
   }
+
+  cancelar() {
+    this.router.navigate(['/nucleo']);
+  }
 }

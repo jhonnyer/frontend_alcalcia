@@ -26,7 +26,7 @@ import { HasRoleDirective } from '../../../core/directives/has-role/has-role-dir
 @Component({
   selector: 'app-categoria-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
   templateUrl: './categoria-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

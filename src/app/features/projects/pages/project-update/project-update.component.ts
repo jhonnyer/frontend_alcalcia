@@ -150,4 +150,8 @@ export class ProjectUpdateComponent implements OnInit {
       this.formFamilyCore.markAllAsTouched();
     }
   }
+
+  cancelar(): void {
+    this.router.navigate(["projects"]);
+  }
 }

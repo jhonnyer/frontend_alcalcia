@@ -52,4 +52,8 @@ export class ResponsibleCreateComponent {
 		  this.formFamilyCore.markAllAsTouched();
 	  }
   }
+
+  cancelar() {
+    console.log('Cancelar');
+  }
 }

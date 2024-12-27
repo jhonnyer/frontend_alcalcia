@@ -140,4 +140,8 @@ export class InventoryCreateComponent implements OnInit {
       alert('Formulario inválido, revisa los campos');
 	  }
   }
+
+  cancelar() {
+    this.router.navigate(['/inventory']);
+  }
 }

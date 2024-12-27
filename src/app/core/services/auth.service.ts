@@ -25,6 +25,7 @@ export class AuthService {
   login(data: any): Observable<IResponseLogin> {
     console.log("LOGEARSE: ", data)
     return this.http.post<IResponseLogin>(`/api/auth/login`, data)
+    // return this.http.post<IResponseLogin>(`${this.URL}/auth/login`, data)
       .pipe(
         tap(response => {
           // Guardar toda la respuesta de login

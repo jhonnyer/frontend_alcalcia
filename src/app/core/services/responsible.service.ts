@@ -29,7 +29,7 @@ export class ResponsibleService {
   post(responsable: Partial<IResponsable>): Observable<IResponsable> {
     console.log(`${this.URL}/responsables`)
     console.log(`responsables: ${responsable}`)
-    return this.http.post<IResponsable>(`${this.URL}/responsables`, responsable, { context: checkToken() });
+    return this.http.post<IResponsable>(`${this.URL}/responsables/create`, responsable, { context: checkToken() });
   }
 
   updateById(idResponsable: string,responsable: Partial<IResponsable>): Observable<IResponsable> {

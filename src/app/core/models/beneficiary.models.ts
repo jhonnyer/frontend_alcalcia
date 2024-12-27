@@ -24,6 +24,8 @@ export interface IBeneficiario {
   barrio: string;
   zona: string;
   ubicacion: string;
+  discapacidad: boolean;
+  certificadoDiscapacidad: boolean;
 }
 
 export interface IBeneficiarioUnique {

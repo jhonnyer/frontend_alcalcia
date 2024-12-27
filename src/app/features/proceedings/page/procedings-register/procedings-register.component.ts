@@ -110,34 +110,53 @@ export class ProcedingsRegisterComponent implements OnInit{
       debounceTime(400)
     )
     .subscribe({
-      next: (value:string) => {
+      next: (value: string) => {
         if(value.length >= 6 ){
-          this.beneficiaryService.getByCedula(value).subscribe({
+          // Primero buscamos en beneficiario-proyecto
+          this.beneficiarioProyectoService.getBeneficiarioProyectoByCedula(value).subscribe({
             next: resp => {
+              console.log("Beneficiario-Proyecto: ", resp);
               if(resp !== undefined){
-                this.beneficiario.set(resp);
-                console.log("Llamado exitoso", resp)
-              }else{
-                this.beneficiarioNoEncontrado = true;
-                this.beneficiario.set(null);
-                timer(1500).subscribe(() => {
-                  this.beneficiarioNoEncontrado = false;
-                })
+                this.beneficiarioProyecto.set(resp);
+                // Actualizar el formulario con los IDs
+                this.formActa.patchValue({
+                  idBeneficiario: resp.idBeneficiario,
+                  idProyecto: resp.idProyecto
+                });
+                this.proyectoSelect.set(+resp.idProyecto);
+                console.log("Form Beneficiario-Proyecto: ", this.formActa.value);
+
+                // Buscar información adicional del beneficiario para mostrarla
+                this.beneficiaryService.getByCedula(value).subscribe({
+                  next: beneficiarioInfo => {
+                    this.beneficiario.set(beneficiarioInfo);
+                  },
+                  error: error => console.error('Error al obtener información del beneficiario:', error)
+                });
+              } else {
+                this.handleBeneficiarioNoEncontrado();
               }
-              // alert(resp)
             },
             error: error => {
-              this.beneficiarioNoEncontrado = true;
-              this.beneficiario.set(null);
-              timer(2500).subscribe(() => {
-                this.beneficiarioNoEncontrado = false;
-              })
-              console.log(error)
+              this.handleBeneficiarioNoEncontrado();
+              console.error('Error en la búsqueda:', error);
             }
-          })
+          });
         }
-        console.log(value)
       }
+    });
+  }
+
+  private handleBeneficiarioNoEncontrado() {
+    this.beneficiarioNoEncontrado = true;
+    this.beneficiarioProyecto.set(null);
+    this.beneficiario.set(null);
+    this.formActa.patchValue({
+      idBeneficiario: '',
+      idProyecto: ''
+    });
+    timer(1500).subscribe(() => {
+      this.beneficiarioNoEncontrado = false;
     });
   }
 
@@ -281,16 +300,17 @@ export class ProcedingsRegisterComponent implements OnInit{
       console.log(this.formActa.value);
       this.actasService.post(this.formActa.value).subscribe({
         next: resp => {
+          alert("Acta registrada correctamente");
           console.log("Acta registrada correctamente");
           this.router.navigate(['proceedings']);
         },
         error: error => {
-          console.log("Algo salio mal intenta de nuevo");
+          alert("Algo salio mal intenta de nuevo");
           console.log(error);
         }
       })
 	  }else{
-      console.log("Formulario no valido revisa los campos", this.formActa.value);
+      alert("Formulario no valido revisa los campos");
 		  this.formActa.markAllAsTouched();
 	  }
   }

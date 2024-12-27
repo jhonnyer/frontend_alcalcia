@@ -73,28 +73,30 @@ export class NucleoUpdateComponent implements OnInit{
 
   private initBeneficiaries(beneficiaries: IBeneficiario[]): void {
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
-    beneficiaries.forEach((beneficiary) => {
-      beneficiariosArray.push(this.initFormBeneficiary());
-      const beneficiaryForm = beneficiariosArray.at(beneficiariosArray.length - 1);
-      beneficiaryForm.setValue({
-        idBeneficiario: beneficiary.idBeneficiario,
-        primerNombre: beneficiary.primerNombre,
-        segundoNombre: beneficiary.segundoNombre,
-        primerApellido: beneficiary.primerApellido,
-        segundoApellido: beneficiary.segundoApellido,
-        tipoDocumento: beneficiary.tipoDocumento,
-        numeroDocumento: beneficiary.numeroDocumento,
-        sexo: beneficiary.sexo,
-        genero: beneficiary.genero,
-        victimaConflicto: beneficiary.victimaConflicto,
-        fechaNacimiento: beneficiary.fechaNacimiento,
-        edad: beneficiary.edad,
-        etnia: beneficiary.etnia,
-        email: beneficiary.email,
-        telefono: beneficiary.telefono,
-        esVivo: beneficiary.esVivo,
-        idNucleoFk: parseInt(this.nucleoID)
-      }, { emitEvent: true });
+  beneficiaries.forEach((beneficiary) => {
+    beneficiariosArray.push(this.initFormBeneficiary());
+    const beneficiaryForm = beneficiariosArray.at(beneficiariosArray.length - 1);
+    beneficiaryForm.setValue({
+      idBeneficiario: beneficiary.idBeneficiario,
+      primerNombre: beneficiary.primerNombre,
+      segundoNombre: beneficiary.segundoNombre,
+      primerApellido: beneficiary.primerApellido,
+      segundoApellido: beneficiary.segundoApellido,
+      tipoDocumento: beneficiary.tipoDocumento,
+      numeroDocumento: beneficiary.numeroDocumento,
+      sexo: beneficiary.sexo,
+      genero: beneficiary.genero,
+      victimaConflicto: beneficiary.victimaConflicto,
+      fechaNacimiento: beneficiary.fechaNacimiento,
+      edad: beneficiary.edad,
+      etnia: beneficiary.etnia,
+      email: beneficiary.email,
+      telefono: beneficiary.telefono,
+      esVivo: beneficiary.esVivo,
+      discapacidad: beneficiary.discapacidad,
+      certificadoDiscapacidad: beneficiary.certificadoDiscapacidad,
+      idNucleoFk: parseInt(this.nucleoID)
+    }, { emitEvent: true });
 
       beneficiaryForm.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
         if (fecha) {
@@ -160,6 +162,8 @@ export class NucleoUpdateComponent implements OnInit{
       email: [''],
       telefono: ['', [Validators.required]],
       esVivo: [true, [Validators.required]],
+      discapacidad: [false, [Validators.required]],
+      certificadoDiscapacidad: [false, [Validators.required]],
       idNucleoFk: [parseInt(this.nucleoID), [Validators.required]]
     });
 
@@ -169,6 +173,15 @@ export class NucleoUpdateComponent implements OnInit{
         formGroup.get('edad')?.setValue(edad.toString(), { emitEvent: false });
       }
     });
+
+    formGroup.get('certificadoDiscapacidad')?.valueChanges.subscribe(tieneCertificado => {
+      if (tieneCertificado) {
+        formGroup.patchValue({
+          discapacidad: true
+        }, { emitEvent: false });
+      }
+    });
+
     return formGroup;
   }
 

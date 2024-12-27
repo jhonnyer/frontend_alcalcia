@@ -87,7 +87,7 @@ export class ProcedingsUpdateComponent implements OnInit {
   private readonly TRANSICIONES: Record<EstadoActa, EstadoTransition[]> = {
     'R': [{ label: 'Procesado', value: 'P' }],
     'P': [
-      { label: 'Autorizado', value: 'A', requiereProductos: true },
+      { label: 'Autorizado', value: 'A'},
       { label: 'Rechazado', value: 'RC' }
     ],
     'A': [{ label: 'Entregado', value: 'E' }],

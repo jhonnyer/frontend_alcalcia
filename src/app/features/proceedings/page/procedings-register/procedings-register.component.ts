@@ -115,7 +115,6 @@ export class ProcedingsRegisterComponent implements OnInit{
           // Primero buscamos en beneficiario-proyecto
           this.beneficiarioProyectoService.getBeneficiarioProyectoByCedula(value).subscribe({
             next: resp => {
-              console.log("Beneficiario-Proyecto: ", resp);
               if(resp !== undefined){
                 this.beneficiarioProyecto.set(resp);
                 // Actualizar el formulario con los IDs
@@ -124,7 +123,6 @@ export class ProcedingsRegisterComponent implements OnInit{
                   idProyecto: resp.idProyecto
                 });
                 this.proyectoSelect.set(+resp.idProyecto);
-                console.log("Form Beneficiario-Proyecto: ", this.formActa.value);
 
                 // Buscar información adicional del beneficiario para mostrarla
                 this.beneficiaryService.getByCedula(value).subscribe({
@@ -163,7 +161,6 @@ export class ProcedingsRegisterComponent implements OnInit{
   onChangesSelectProyecto(){
     this.selectProyecto.valueChanges.subscribe({
       next: value => {
-        console.log("Proyecto: ", value);
         this.proyectoSelect.set(+value);
       }
     });
@@ -172,7 +169,6 @@ export class ProcedingsRegisterComponent implements OnInit{
   onChangesSelectResponsableActa(){
     this.selectResponsable.valueChanges.subscribe({
       next: value => {
-        console.log("Responsable: ", value);
         this.responsableActa.set(+value);
       }
     });
@@ -181,7 +177,6 @@ export class ProcedingsRegisterComponent implements OnInit{
   getProyectos() {
     this.proyectosService.getAll().subscribe({
       next: (response) => {
-        console.log("Proyectos", response.respuesta)
         this.proyectos.set(response.respuesta);
       },
       error: error => {
@@ -193,7 +188,6 @@ export class ProcedingsRegisterComponent implements OnInit{
   getResponsables() {
     this.responsibleService.getAll().subscribe({
       next: response => {
-        console.log("Responsables: ",response);
         this.responsables.set(response);
       },
       error: error => {
@@ -296,17 +290,13 @@ export class ProcedingsRegisterComponent implements OnInit{
       this.formActa.value.beneficiario =  {idBeneficiario: this.beneficiario()?.idBeneficiario};
       this.formActa.value.proyecto =      {idProyecto:     this.proyectoSelect()};
       this.formActa.value.responsable =   {idResponsable:  this.responsableActa()};
-      console.log("Formulario valido Acta");
-      console.log(this.formActa.value);
       this.actasService.post(this.formActa.value).subscribe({
         next: resp => {
           alert("Acta registrada correctamente");
-          console.log("Acta registrada correctamente");
           this.router.navigate(['proceedings']);
         },
         error: error => {
           alert("Algo salio mal intenta de nuevo");
-          console.log(error);
         }
       })
 	  }else{

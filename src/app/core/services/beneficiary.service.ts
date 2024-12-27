@@ -70,8 +70,6 @@ export class BeneficiaryService {
   }
 
   updateById(idBeneficiario: string, beneficiario: Partial<IBeneficiarioUnique>):Observable<IBeneficiarioUnique> {
-    console.log("Se envia: ", idBeneficiario)
-    console.log("Se envia: ", beneficiario)
     return this.http.put<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${idBeneficiario}`, beneficiario, { context: checkToken() });
   }
 

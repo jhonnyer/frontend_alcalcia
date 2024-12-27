@@ -28,7 +28,6 @@ export class InventoryUpdateComponent {
     this.pageTitleService.setCurrentPage('Actualizar Producto');
     this.initFormFamilyCore();
     this.loadProductData();
-    console.log('Producto ID:', this.productoId);
   }
 
   private initFormFamilyCore(): void {

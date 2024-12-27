@@ -47,7 +47,6 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
   private loadBeneficiarioProyecto(): void {
     this.beneficiarioProyectoService.getAllById(this.beneficiarioProyectoId).subscribe({
       next: (response) => {
-        console.log(response)
         this.loadBeneficiarioInfo(response.idBeneficiario.toString());
         this.form.patchValue({
           idBeneficiario: response.idBeneficiario,

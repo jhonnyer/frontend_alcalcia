@@ -27,22 +27,4 @@ export const roleGuard: CanActivateFn = (route, state) => {
 
   return true;
 };
-/*
-  const tokenService = inject(TokenService);
-  const router = inject(Router);
 
-  // Obtener el rol requerido de la ruta
-  const requiredRole = route.data['role'] as PerfilUsuario;
-  console.log('Role Usuario: ', requiredRole);
-
-  // Obtener el rol del usuario actual
-  const userRole = tokenService.getUserRole();
-
-  // Verificar si el rol del usuario coincide con el rol requerido
-  if (!requiredRole || userRole !== requiredRole) {
-    router.navigate(['/access-denied']);
-    return false;
-  }
-
-  return true;
-*/

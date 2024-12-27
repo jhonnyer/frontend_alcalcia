@@ -16,7 +16,6 @@ export const hasRoleGuard: CanActivateFn = (route, state) => {
   // console.log('Rol del ruta:', allowedRoles);
 
   if (!userRole || !allowedRoles) {
-    console.log('No hay rol de usuario o roles permitidos');
     router.navigate(['/no-autorizado']);
     return false;
   }
@@ -26,7 +25,6 @@ export const hasRoleGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  console.log('Usuario no tiene el rol requerido');
   router.navigate(['/no-autorizado']);
   return false;
 };

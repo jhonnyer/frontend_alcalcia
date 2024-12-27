@@ -120,7 +120,6 @@ export class AddBeneficiaryProjectComponent implements OnInit {
 
       this.beneficiarioProyectoService.post(formData).subscribe({
         next: (response) => {
-          console.log('Asignación exitosa:', response);
           alert('Beneficiario asignado correctamente');
           this.router.navigate(['/projects/add-beneficiary/list']);
         },

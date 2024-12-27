@@ -121,28 +121,21 @@ export class InventoryCreateComponent implements OnInit {
       // this.formFamilyCore.get('idProyecto')?.setValue(Number(this.formFamilyCore.get('idProyecto')?.value));
       this.formFamilyCore.value.idProyecto = Number(this.formFamilyCore.value.idProyecto);
       this.formFamilyCore.value.idCategoria = Number(this.formFamilyCore.value.idCategoria);
-      console.log("Form");
-      console.log(this.formFamilyCore.value);
 
       this.productosService.post(this.formFamilyCore.value).subscribe({
         next: response => {
-          console.log("Producto creado: ", response);
           alert('Producto creado correctamente');
           this.router.navigate(['/inventory']);
         },
         error: error => {
-          console.log("Error: ", error);
           alert('Error al crear el producto');
         }
       });
 
 	  }else{
-      console.log('Formulario inválido');
       // this.formFamilyCore.get('idProyecto')?.setValue(Number(this.formFamilyCore.get('idProyecto')?.value));
       this.formFamilyCore.value.idProyecto = Number(this.formFamilyCore.value.idProyecto);
       this.formFamilyCore.value.idCategoria = Number(this.formFamilyCore.value.idCategoria);
-
-      console.log(this.formFamilyCore.value);
 		  this.formFamilyCore.markAllAsTouched();
       alert('Formulario inválido, revisa los campos');
 	  }

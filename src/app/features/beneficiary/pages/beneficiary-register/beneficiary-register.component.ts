@@ -77,8 +77,8 @@ export class BeneficiaryRegisterComponent {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
-      console.log("Form Family Core");
-      console.log(this.formFamilyCore.value);
+      // console.log("Form Family Core");
+      // console.log(this.formFamilyCore.value);
 	  }else{
 		  this.formFamilyCore.markAllAsTouched();
 	  }

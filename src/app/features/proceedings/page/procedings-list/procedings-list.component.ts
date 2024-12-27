@@ -132,7 +132,6 @@ export class ProcedingsListComponent implements OnInit {
 
   delete(item: Row<IActa>) {
     this.actasService.deleteById(item.original.idActa.toString());
-    console.log("Eliminar:", item.original);
   }
 
   update(item: Row<IActa>) {

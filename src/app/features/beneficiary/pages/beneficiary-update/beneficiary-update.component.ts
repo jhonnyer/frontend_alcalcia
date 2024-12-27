@@ -32,7 +32,6 @@ export class BeneficiaryUpdateComponent implements OnInit {
   getBeneficiarioById(){
     this.beneficiaryService.getById(this.beneficiarioId).subscribe({
       next: response => {
-        console.log("BENEFICIAROIO BY ID: ",response)
         this.initProject(response);
       }
     })

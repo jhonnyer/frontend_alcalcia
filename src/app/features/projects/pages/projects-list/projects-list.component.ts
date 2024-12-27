@@ -136,7 +136,6 @@ export class ProjectsListComponent {
 
   delete(item: Row<IProyectoAndCategoriaArray>) {
     this.proyectosService.delete(item.original.proyecto.idProyecto); // Eliminar proyecto
-    console.log("Eliminar:", item.original.proyecto);
   }
 
   update(item: Row<IProyectoAndCategoriaArray>) {

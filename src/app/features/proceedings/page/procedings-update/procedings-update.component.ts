@@ -97,7 +97,6 @@ export class ProcedingsUpdateComponent implements OnInit {
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Actualizar Acta');
-    console.log("ID Acta recibido:", this.idActa);
     this.initFormActa();
     this.loadActaData();
     this.getProyectos();
@@ -175,7 +174,6 @@ export class ProcedingsUpdateComponent implements OnInit {
         if (response.estado === 'exito') {
           const acta = response.respuesta;
           this.actaData.set(acta);
-          console.log("Acta:", acta);
 
           // Verificar si el acta es editable
           const esEditable = !this.ESTADOS_FINALES.includes(acta.estado);
@@ -220,7 +218,6 @@ export class ProcedingsUpdateComponent implements OnInit {
             paquetes: null
           });
 
-          console.log("Form Acta: ", this.formActa.value)
 
           // Procesar productos si existen
           if (acta.detallesActaProductos?.length > 0) {
@@ -481,7 +478,6 @@ export class ProcedingsUpdateComponent implements OnInit {
 
       this.actasService.update(dataToUpdate).subscribe({
         next: () => {
-          console.log("Acta actualizada correctamente");
           this.router.navigate(['proceedings']);
         },
         error: error => {

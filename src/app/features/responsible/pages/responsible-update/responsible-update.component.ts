@@ -83,10 +83,7 @@ export class ResponsibleUpdateComponent implements OnInit{
   }
 
   onSubmit() {
-    console.log(this.formFamilyCore.value);
     if(this.formFamilyCore.valid){
-      console.log("Form Family Core");
-      console.log(this.formFamilyCore.value);
       this.responsibleService.updateById(this.responsableId, this.formFamilyCore.value).subscribe({
         next: response => {
           alert('El perfil se ha actualizado correctamente');
@@ -94,7 +91,6 @@ export class ResponsibleUpdateComponent implements OnInit{
         }
       })
 	  }else{
-      console.log("Form Error");
       alert('Verifica los campos del formulario de registro');
 		  this.formFamilyCore.markAllAsTouched();
 	  }

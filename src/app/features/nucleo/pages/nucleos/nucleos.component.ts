@@ -137,7 +137,6 @@ export class NucleosComponent implements OnInit{
   }
 
   update(item: Row<INucleoUpdate>){
-    console.log("update/: ", item.original)
     this.router.navigate(["nucleo/update/", item.original.idNucleo]);
   }
 }

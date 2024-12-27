@@ -33,21 +33,15 @@ export class LoginComponent {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
-      console.log("Formulario");
-      console.log(this.formFamilyCore.value);
       this.authService.login(this.formFamilyCore.value).subscribe({
         next: response => {
-          console.log(response);
           alert('Inicio de sesión exitoso');
         },
         error: error=> {
           alert('Verifica tus credenciales con un administrador');
-          console.log("Error en el servicio")
         }
       })
 	  }else{
-      console.log("Form Error");
-      console.log(this.formFamilyCore.value);
 		  this.formFamilyCore.markAllAsTouched();
 	  }
   }

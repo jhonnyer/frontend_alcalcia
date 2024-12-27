@@ -92,10 +92,8 @@ export class ProductsListSelectComponent implements OnInit{
       next: response => {
         this.categoriaSeleccionada.set(response);
         this.products = response.productos || [];
-        console.log("Productos de la categoría:", this.products);
       },
       error: error => {
-        console.error("Error al cargar productos de la categoría:", error);
         alert("Error al cargar productos");
       }
     });
@@ -104,7 +102,6 @@ export class ProductsListSelectComponent implements OnInit{
 
   onQuantityChange(product: IProductoFk, input: HTMLInputElement, checkbox: HTMLInputElement) {
     const quantity = Number(input.value);
-    console.log("Cambio", quantity)
 
     // Validate quantity doesn't exceed stock
     if (quantity > product.stock) {

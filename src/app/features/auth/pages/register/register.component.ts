@@ -56,8 +56,6 @@ export class RegisterComponent {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
-      console.log("Form Family Core");
-      console.log(this.formFamilyCore.value);
       delete this.formFamilyCore.value.confirmPassword;
       this.responsibleService.post(this.formFamilyCore.value).subscribe({
         next: response => {
@@ -66,7 +64,6 @@ export class RegisterComponent {
         }
       })
 	  }else{
-      console.log("Form Error");
       alert('Verifica los campos del formulario de registro');
 		  this.formFamilyCore.markAllAsTouched();
 	  }

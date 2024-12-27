@@ -54,7 +54,6 @@ export class ProjectUpdateComponent implements OnInit {
     this.proyectosService.getById(this.proyectoId).subscribe({
       next: response => {
         const { proyecto, categorias } = response.respuesta;
-        console.log("Proyecto: ", response.respuesta);
         this.initProject(proyecto, categorias);
       },
       error: error => {

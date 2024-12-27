@@ -135,7 +135,6 @@ export class InventoryListComponent implements OnInit {
   }
 
   update(item: Row<IProducto>) {
-    console.log("List update:", item.original.idProducto);
     this.router.navigate(["inventory/update/", item.original.idProducto]);
   }
 }

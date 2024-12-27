@@ -43,14 +43,12 @@ export class HeaderComponent implements OnInit {
   searchTerm = this.searchService.getSearchTerm();
 
   ngOnInit(): void {
-    console.log(this.pageTitleService.getCurrentPage());
     this.loginState();
   }
 
   loginState(){
     // Primero verificar si el usuario está logueado (token no expirado)
     this.userRole.set(this.tokenService.getUserRole());
-    // console.log("RALANDO",this.userRole());
     this.loginUser = !this.tokenService.getToken();
   }
 

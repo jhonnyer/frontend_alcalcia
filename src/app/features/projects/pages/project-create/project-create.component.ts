@@ -44,7 +44,6 @@ export class ProjectCreateComponent {
   getAllCategorias(): void {
     this.categoriasService.getAll().subscribe({
       next: response => {
-        console.log("Categorias: ", response)
         this.categorias.set(response);
       },
       error: error => {
@@ -96,11 +95,8 @@ export class ProjectCreateComponent {
   }
 
   onSubmit() {
-    console.log("Proyectos: ", this.formFamilyCore.value)
     if(this.formFamilyCore.valid){
-      console.log("Valido: ", this.formFamilyCore.value);
       const dataToSend = this.getTransformedData() as IProyectoAndCategoria;
-      console.log("Transformado: ", dataToSend);
       this.proyectosService.post(dataToSend).subscribe({
         next: response => {
           alert('Se ha guardado correctamente el proyecto');
@@ -108,7 +104,6 @@ export class ProjectCreateComponent {
         },
         error: error => {
           alert('Ha ocurrido un error al cargar los datos');
-          console.log(error)
         }
       })
 	  }else{

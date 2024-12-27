@@ -14,11 +14,7 @@ export class ProyectosService {
   private http = inject(HttpClient);
 
   getAll(): Observable<ResponseStandar<IProyectoAndCategoriaArray>> {
-    return this.http.get<ResponseStandar<IProyectoAndCategoriaArray>>(`${this.URL}/proyectos/list`, { context: checkToken() }).pipe(
-      tap(response => {
-        console.log(response)
-      })
-    );
+    return this.http.get<ResponseStandar<IProyectoAndCategoriaArray>>(`${this.URL}/proyectos/list`, { context: checkToken() });
   }
 
   getById(id: string | number): Observable<ResponseStandarUnique<IProyectoAndCategoriaArray>> {

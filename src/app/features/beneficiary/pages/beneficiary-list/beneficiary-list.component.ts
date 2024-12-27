@@ -57,7 +57,6 @@ export class BeneficiaryListComponent implements OnInit {
     this.beneficiaryService.getAll().subscribe({
       next: (response) => {
         this.data.set(response);
-        console.log("Beneficiarios:", response);
       },
       error: error => {
         console.error("Error getAll Beneficiarios:", error);
@@ -130,7 +129,7 @@ export class BeneficiaryListComponent implements OnInit {
   }
 
   delete(item: Row<IBeneficiario>) {
-    console.log("Delete Beneficiario:", item.original);
+    //console.log("Delete Beneficiario:", item.original);
     // this.beneficiaryService.delete(item.original.idBeneficiario);
   }
 

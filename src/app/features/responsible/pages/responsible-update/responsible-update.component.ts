@@ -92,7 +92,6 @@ export class ResponsibleUpdateComponent implements OnInit{
       })
 	  }else{
       alert('Verifica los campos del formulario de registro');
-      console.log("Fallo",this.formFamilyCore);
 		  this.formFamilyCore.markAllAsTouched();
 	  }
   }

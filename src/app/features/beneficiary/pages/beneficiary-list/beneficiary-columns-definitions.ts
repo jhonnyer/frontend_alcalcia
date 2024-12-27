@@ -136,11 +136,35 @@ export const defaultColumns: ColumnDef<IBeneficiario>[] = [
     filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },
+  // {
+  //   id: 'idNucleoFk',
+  //   accessorFn: (row) => row.idNucleoFk,
+  //   cell: info => info.getValue(),
+  //   header: 'Id núucleo',
+  //   filterFn: 'includesString',
+  //   meta: { filterVariant: 'text' }
+  // },
   {
-    id: 'idNucleoFk',
-    accessorFn: (row) => row.idNucleoFk,
+    id: 'nombreNucleo',
+    accessorFn: (row) => row.nombreNucleo,
     cell: info => info.getValue(),
-    header: 'Id núucleo',
+    header: 'Nombre núucleo',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' }
+  },
+  {
+    id: 'discapacidad',
+    accessorFn: (row) => row.discapacidad,
+    cell: info => info.getValue(),
+    header: 'Discapacidad',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' }
+  },
+  {
+    id: 'certificadoDiscapacidad',
+    accessorFn: (row) => row.certificadoDiscapacidad,
+    cell: info => info.getValue(),
+    header: 'Certificado discapacidad',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },

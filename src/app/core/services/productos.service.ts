@@ -11,7 +11,7 @@ import { ResponseStandar, ResponseStandarUnique } from '../models/response.model
   providedIn: 'root'
 })
 export class ProductosService {
-  private readonly URL = environment.URL_API;
+  private URL = environment.URL_API;
   private http = inject(HttpClient);
 
   getAll(): Observable<IProducto[]> {

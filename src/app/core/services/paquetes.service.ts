@@ -10,7 +10,7 @@ import { checkToken } from '../interceptors/token-interceptor.interceptor';
 })
 export class PaquetesService {
 
-  private readonly URL = environment.URL_API;
+  private URL = environment.URL_API;
   private http = inject(HttpClient);
 
   getAll(): Observable<IPaquete[]> {

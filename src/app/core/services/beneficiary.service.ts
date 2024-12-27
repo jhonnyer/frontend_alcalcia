@@ -10,7 +10,7 @@ import { PaginatedResponse } from '../models/pagination.model';
   providedIn: 'root'
 })
 export class BeneficiaryService {
-  private readonly URL = environment.URL_API;
+  private URL = environment.URL_API;
   private http = inject(HttpClient);
 
   getAll(): Observable<IBeneficiario[]> {

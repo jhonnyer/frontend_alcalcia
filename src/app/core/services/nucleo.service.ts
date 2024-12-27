@@ -10,7 +10,7 @@ import { checkToken } from '../interceptors/token-interceptor.interceptor';
   providedIn: 'root'
 })
 export class NucleoService {
-  private readonly URL = environment.URL_API;
+  private URL = environment.URL_API;
   private http = inject(HttpClient);
 
   getAll(page: number): Observable<PaginatedResponse<INucleoUpdate>> {

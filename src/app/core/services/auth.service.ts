@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
+  private URL = environment.URL_API;
 
   private http = inject(HttpClient);
   private tokenService = inject(TokenService);
@@ -17,14 +18,8 @@ export class AuthService {
 
   role = signal('');
 
-  proxyUrl = "/auth/login";
-
-  private readonly URL = environment.URL_API;
-
-
   login(data: any): Observable<IResponseLogin> {
-    return this.http.post<IResponseLogin>(`/api/auth/login`, data)
-    // return this.http.post<IResponseLogin>(`${this.URL}/auth/login`, data)
+    return this.http.post<IResponseLogin>(`${this.URL}/auth/login`, data)
       .pipe(
         tap(response => {
           // Guardar toda la respuesta de login

@@ -12,8 +12,8 @@ import { ResponseStandar, ResponseStandarUnique } from '../models/response.model
   providedIn: 'root'
 })
 export class ActasService {
-  // private readonly URL = environment.URL_API;
-  private readonly URL = '/api';
+  private URL = environment.URL_API;
+  //private readonly URL = '/api';
   private http = inject(HttpClient);
 
   getAll(): Observable<IActa[]> {

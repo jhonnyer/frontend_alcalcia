@@ -22,6 +22,7 @@ import { IResponsable } from '../../../../core/models/responsable.model';
 import { IProducto, ISelectedProduct, ProductoWithCantidad } from '../../../../core/models/products.model';
 
 import { Router } from '@angular/router';
+import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProyecto.model';
 
 interface DialogData {
   idProyecto: number | null;
@@ -64,6 +65,9 @@ export class ProcedingsRegisterComponent implements OnInit{
   private actasService = inject(ActasService);
 
   selectedProductsInfo = signal<ProductoWithCantidad[]>([]);
+
+  beneficiarioProyecto = signal<IBeneficiarioProyecto | null>(null);
+
 
   searchBeneficiario = new FormControl('', {
     nonNullable: true,

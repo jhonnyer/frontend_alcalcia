@@ -11,7 +11,6 @@ import { IProyecto } from '../../../../core/models/proyecto.model';
 import { debounceTime } from 'rxjs';
 import { timer } from 'rxjs';
 
-
 @Component({
   selector: 'app-add-beneficiary-project',
   standalone: true,

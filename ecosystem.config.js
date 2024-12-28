@@ -10,17 +10,12 @@ module.exports = {
       env: {
         NODE_ENV: 'development',
         PORT: 4200,
-        API_URL: 'http://192.168.1.112:8080/api'
+        API_URL: 'http://localhost:8080/api'
       },
       env_production: {
         NODE_ENV: 'production',
         PORT: 4200,
-<<<<<<< HEAD
         API_URL: 'http://192.168.1.112:8080/api'
-=======
-        //API_URL: 'http://192.168.1.112:8080/api'
-        API_URL: 'http://192.168.195.219:8080/api'
->>>>>>> 7556c6f6a4577848ebd22aa011cb0d7faa46831e
       }
     }
   ]

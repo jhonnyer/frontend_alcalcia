@@ -118,7 +118,7 @@ export class NucleoUpdateComponent implements OnInit{
     this.formFamilyCore = this.fb.group({
       idZonaFk: ['', [Validators.required, Validators.nullValidator]],
       idBarrioFk: ['', [Validators.required, Validators.nullValidator]],
-      direccion: ['', [Validators.required]],
+      direccion: [''],
       nombreNucleo: ['', [Validators.required]],
       numeroIntegrantes: [0],
       beneficiarios: this.fb.array([])
@@ -258,7 +258,7 @@ export class NucleoUpdateComponent implements OnInit{
   onSubmit() {
     if(this.formFamilyCore.valid){
       const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
-      const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
+      const barrio = Number(this.formFamilyCore.get("idBarrioFk")?.value);
 
       this.formFamilyCore.patchValue({
         numeroIntegrantes: null,

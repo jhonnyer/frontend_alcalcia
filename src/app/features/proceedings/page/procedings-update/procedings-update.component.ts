@@ -35,6 +35,7 @@ export class ProcedingsUpdateComponent implements OnInit {
 
   private pageTitleService = inject(PageTitleService);
   private fb = inject(FormBuilder);
+  productosSoloLectura = signal(false);
 
   // Signals para manejar el estado
   actaData = signal<IActaById | null>(null);
@@ -184,6 +185,11 @@ export class ProcedingsUpdateComponent implements OnInit {
             this.selectProyecto.disable();
             this.selectResponsable.disable();
           }
+
+          // Verificar si se puede cambiar los valores de los productos
+          const soloLectura = acta.estado === 'A' || acta.estado === 'E' || acta.estado === 'RC';
+          this.productosSoloLectura.set(soloLectura);
+
 
           // Cargar el estado inicial del acta
           this.estadoInicialActa.set(acta.estado);

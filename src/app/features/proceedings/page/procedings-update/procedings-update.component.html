@@ -188,6 +188,7 @@
                     <input type="number"
                       [value]="product.cantidad"
                       [readonly]="!formularioEditable()"
+                      [attr.readonly]="productosSoloLectura() ? true : null"
                       class="w-24 px-2 py-1 border rounded"
                       [readonly]="!formularioEditable()"
                       min="1"

@@ -4,7 +4,7 @@
   >
     <div class="flex flex-wrap justify-between">
       <div class="w-full md:w-[49%]">
-        <label for="nombre" class="label-base">Nombre</label>
+        <label for="nombre" class="label-base">*Nombre</label>
         <input [formControlName]="'nombre'" type="text" id="nombre" class="input-base" placeholder="Nombre">
 
         @if(formFamilyCore.get('nombre')?.hasError('required') && formFamilyCore.get('nombre')?.touched) {
@@ -15,7 +15,7 @@
       </div>
 
       <div class="w-full md:w-[49%]">
-        <label for="tipoProyecto" class="label-base">Tipo de proyecto</label>
+        <label for="tipoProyecto" class="label-base">*Tipo de proyecto</label>
         <select formControlName="tipoProyecto" id="tipoProyecto" class="input-base">
           <option value="M" class="input-base capitalize">Municipal</option>
           <option value="D" class="input-base capitalize">Departamental</option>
@@ -32,7 +32,7 @@
     <div class="flex flex-col md:flex-row md:flex-nowrap gap-5">
       <div class="w-full flex flex-col">
         <div class="relative flex flex-col  items-start gap-2">
-          <label for="fechaInicio">Fecha inicio</label>
+          <label for="fechaInicio">*Fecha inicio</label>
           <input formControlName="fechaInicio" id="fechaInicio" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 " placeholder="Select date">
         </div>
         @if(formFamilyCore.get('fechaInicio')?.hasError('required') && formFamilyCore.get('fechaInicio')?.touched) {
@@ -59,7 +59,7 @@
 
     <div class="flex flex-wrap justify-between">
       <div class="flex flex-col border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
-        <label>Estado:</label>
+        <label>*Estado:</label>
         <div class="flex gap-4">
           <input formControlName="estado" type="radio" value="A" class="input-radio-base"> Activo
           <input formControlName="estado" type="radio" value="I" class="input-radio-base"> Inactivo
@@ -75,7 +75,7 @@
 
     <!-- Sección de Categorías -->
     <div class="flex flex-col py-4 px-2 border rounded-lg border-gray-300">
-      <label>Selecciona las categorías</label>
+      <label>*Selecciona las categorías</label>
       @for(categoria of categorias(); track categoria.idCategoria) {
         <div class="flex items-center gap-2">
           <input
@@ -100,7 +100,5 @@
       </button>
       <button type="submit" class="btn-action-blue">Guardar cambios</button>
     </div>
-
-
   </form>
 </div>

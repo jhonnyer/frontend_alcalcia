@@ -4,7 +4,7 @@
   >
     <div class="flex flex-wrap justify-between">
       <div class="w-full md:w-[49%]">
-        <label for="zona" class="label-base">Seleccionar zona</label>
+        <label for="zona" class="label-base">*Seleccionar zona</label>
         <select formControlName="zona" name="zona" id="zona" class="input-base">
           <option value="zona urbana" class="input-base capitalize" selected>Zona Urbana</option>
           <option value="chilco" class="input-base capitalize" >achiral</option>
@@ -19,7 +19,7 @@
       </div>
 
       <div class="w-full md:w-[49%]">
-        <label for="barrio" class="label-base">Seleccionar barrio</label>
+        <label for="barrio" class="label-base">*Seleccionar barrio</label>
         <select formControlName="barrio" name="barrio" id="barrio" class="input-base">
           <option value="sin_corregimiento" class="input-base capitalize" selected>Sin Corregimiento</option>
           <option value="chilco" class="input-base capitalize" >Chilco</option>
@@ -36,7 +36,7 @@
 
     <div class="flex flex-wrap justify-between">
       <div class="w-full md:w-[49%]">
-        <label for="direccion" class="label-base">Dirección</label>
+        <label for="direccion" class="label-base">*Dirección</label>
         <input [formControlName]="'direccion'" type="text" id="direccion" class="input-base" placeholder="Dirección">
 
         @if(formFamilyCore.get('direccion')?.hasError('required') && formFamilyCore.get('direccion')?.touched) {
@@ -47,7 +47,7 @@
       </div>
 
       <div class="w-full md:w-[49%]">
-        <label for="nombreNucleo" class="label-base">Nombre núcleo familiar</label>
+        <label for="nombreNucleo" class="label-base">*Nombre núcleo familiar</label>
         <input
           formControlName="nombreNucleo"
           type="text"

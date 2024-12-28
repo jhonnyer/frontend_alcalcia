@@ -1,6 +1,6 @@
-import { Component, EventEmitter, inject, OnInit, Output, signal, OnChanges } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormArray, FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { ProductsListSelectComponent } from '../../components/products-list-select/products-list-select.component';
@@ -12,14 +12,13 @@ import { BeneficiaryService } from '../../../../core/services/beneficiary.servic
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
 import { ProductosService } from '../../../../core/services/productos.service';
-import { PaquetesService } from '../../../../core/services/paquetes.service';
 import { ActasService } from '../../../../core/services/actas.service';
 import { IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
 import { debounceTime } from 'rxjs';
 import { timer } from 'rxjs';
-import { IProyecto, IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
+import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { IResponsable } from '../../../../core/models/responsable.model';
-import { IProducto, ISelectedProduct, ProductoWithCantidad } from '../../../../core/models/products.model';
+import { ISelectedProduct, ProductoWithCantidad } from '../../../../core/models/products.model';
 
 import { Router } from '@angular/router';
 import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProyecto.model';

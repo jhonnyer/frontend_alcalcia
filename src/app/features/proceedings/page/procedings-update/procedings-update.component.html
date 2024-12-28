@@ -21,7 +21,7 @@
     }
     <!-- Datos del beneficiario -->
     <div class="flex flex-col p-4 border-b">
-      <h2 class="text-lg font-semibold mb-4">Datos del Beneficiario</h2>
+      <h2 class="text-lg font-semibold mb-4">Datos del beneficiario</h2>
       @if(actaData()?.beneficiario) {
         <div class="flex flex-col justify-center items-start gap-4 w-full">
           <div class="flex justify-between gap-5 w-full">
@@ -44,7 +44,7 @@
     <div class="w-full px-4 py-4">
       <div class="flex flex-col md:flex-row gap-4">
         <div class="w-full md:w-1/2">
-          <label for="selectProyecto" class="label-base">Proyecto</label>
+          <label for="selectProyecto" class="label-base">*Proyecto</label>
           <select [formControl]="selectProyecto" id="selectProyecto" class="input-base">
             @for(proyecto of proyectos(); track proyecto) {
               <option [value]="proyecto.proyecto.idProyecto" class="input-base capitalize">
@@ -55,7 +55,7 @@
         </div>
 
         <div class="w-full md:w-1/2">
-          <label for="selectResponsable" class="label-base">Responsable del acta</label>
+          <label for="selectResponsable" class="label-base">*Responsable del acta</label>
           <select [formControl]="selectResponsable" id="selectResponsable" class="input-base">
             @for(responsable of responsables(); track responsable) {
               <option [value]="responsable.idResponsable" class="input-base capitalize">
@@ -85,14 +85,14 @@
         </div>
 
         <div class="w-full md:w-1/3">
-          <label for="fechaEntrega" class="label-base">Fecha de entrega</label>
+          <label for="fechaEntrega" class="label-base">*Fecha de entrega</label>
           <input formControlName="fechaEntrega" id="fechaEntrega" type="date"
             class="input-base">
         </div>
 
         <!-- Reemplazar el input de estado por este select -->
         <div class="w-full md:w-1/3">
-          <label for="estado" class="label-base">Estado</label>
+          <label for="estado" class="label-base">*Estado</label>
           <select formControlName="estado" id="estado" class="input-base">
             @for(estado of estadosPermitidos(); track estado.value) {
               <option [value]="estado.value">{{ estado.label }}</option>
@@ -107,7 +107,7 @@
       <!-- Ubicación y Prioridad -->
       <div class="flex flex-wrap md:flex-nowrap justify-between gap-5">
         <div class="w-full md:w-1/2">
-          <label for="ubicacionEntrega" class="label-base">Ubicación de la entrega</label>
+          <label for="ubicacionEntrega" class="label-base">*Ubicación de la entrega</label>
           <input formControlName="ubicacionEntrega" type="text" id="ubicacionEntrega"
             class="input-base" placeholder="Ubicación de la entrega">
 
@@ -117,7 +117,7 @@
         </div>
 
         <div class="w-full md:w-1/2">
-          <label for="prioridad" class="label-base">Prioridad</label>
+          <label for="prioridad" class="label-base">*Prioridad</label>
           <select formControlName="prioridad" id="prioridad" class="input-base">
             <option value="A">Alta</option>
             <option value="M">Media</option>
@@ -133,7 +133,7 @@
       <!-- Responsable Visita y Tipo Solicitud -->
       <div class="flex flex-wrap md:flex-nowrap justify-between gap-5">
         <div class="w-full md:w-1/2">
-          <label for="responsableVisita" class="label-base">Responsable visita</label>
+          <label for="responsableVisita" class="label-base">*Responsable visita</label>
           <input formControlName="responsableVisita" type="text" id="responsableVisita"
             class="input-base" placeholder="Responsable Visita">
 
@@ -143,7 +143,7 @@
         </div>
 
         <div class="w-full md:w-1/2">
-          <label for="tipoSolicitud" class="label-base">Tipo de solicitud</label>
+          <label for="tipoSolicitud" class="label-base">*Tipo de solicitud</label>
           <input formControlName="tipoSolicitud" type="text" id="tipoSolicitud"
             class="input-base" placeholder="Tipo de solicitud">
 
@@ -164,7 +164,7 @@
       <!-- Productos -->
       <div class="mt-4">
         <div class="flex justify-between items-center">
-          <h2 class="text-lg font-semibold">Productos Seleccionados</h2>
+          <h2 class="text-lg font-semibold">*Productos Seleccionados</h2>
           @if (selectedProductsInfo().length === 0) {
             <button type="button"
               (click)="openDialog()"

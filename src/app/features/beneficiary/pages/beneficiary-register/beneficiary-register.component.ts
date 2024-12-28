@@ -29,7 +29,7 @@ export class BeneficiaryRegisterComponent {
     this.formFamilyCore = this.fb.group({
       zona: ['', [Validators.required]],
       barrio: ['', [Validators.required]],
-      direccion: ['', [Validators.required]],
+      direccion: [''],
       nombreNucleo: ['', [Validators.required]],
       beneficiarios: this.fb.array([])
     });
@@ -40,9 +40,9 @@ export class BeneficiaryRegisterComponent {
     // Retorna el formulario que estará anidado
     return this.fb.group({
       nombre1: ['', [Validators.required]],
-      nombre2: ['', [Validators.required]],
+      nombre2: [''],
       apellido1: ['', [Validators.required]],
-      apellido2: ['', [Validators.required]],
+      apellido2: [''],
       tipoDocumento: ['', [Validators.required]],
       numeroDocumento: ['', [Validators.required]],
       sexo: ['', [Validators.required]],
@@ -51,7 +51,7 @@ export class BeneficiaryRegisterComponent {
       fechaNacimiento: ['', [Validators.required]],
       edad: ['', [Validators.required]],
       etnia: ['', [Validators.required]],
-      email: ['', [Validators.required]],
+      email: [''],
       telefono: ['', [Validators.required]],
     });
   }

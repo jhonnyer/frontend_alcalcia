@@ -3,7 +3,7 @@
   <!-- Buscador de Beneficiario -->
  <div class="flex flex-col p-4">
     <div class="flex flex-col gap-2">
-      <label for="buscarBeneficiario" class="label-base">Buscar beneficiario</label>
+      <label for="buscarBeneficiario" class="label-base">*Buscar beneficiario</label>
       <input
         type="text"
         id="buscarBeneficiario"
@@ -61,7 +61,7 @@
 
   <!-- Responsable -->
   <div class="w-full px-4">
-    <label for="selectResponsable" class="label-base">Responsable del acta</label>
+    <label for="selectResponsable" class="label-base">*Responsable del acta</label>
     <select [formControl]="selectResponsable" id="selectResponsable" class="input-base">
       @for(responsable of responsables(); track responsable){
         <option [value]="responsable.idResponsable" class="input-base capitalize">
@@ -86,7 +86,7 @@
       <div class="flex flex-wrap justify-between">
         <div class="flex flex-col">
           <div class="relative flex items-center gap-2">
-            <label for="fechaEntrega">Fecha de entrega</label>
+            <label for="fechaEntrega">*Fecha de entrega</label>
             <input formControlName="fechaEntrega" id="fechaEntrega" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 ">
           </div>
           @if(formActa.get('fechaEntrega')?.hasError('required') && formActa.get('fechaEntrega')?.touched) {
@@ -111,7 +111,7 @@
         </div>
 
         <div class="w-full">
-          <label for="prioridad" class="label-base">Prioridad</label>
+          <label for="prioridad" class="label-base">*Prioridad</label>
           <select formControlName="prioridad" id="prioridad" class="input-base">
             <option value="A" class="input-base capitalize">Alta</option>
             <option value="M" class="input-base capitalize">Media</option>
@@ -128,7 +128,7 @@
 
       <div class="flex flex-wrap md:flex-nowrap justify-between gap-5">
         <div class="w-full flex flex-col">
-          <label for="responsableVisita" class="label-base">Responsable visita</label>
+          <label for="responsableVisita" class="label-base">*Responsable visita</label>
           <input [formControlName]="'responsableVisita'" type="text" id="responsableVisita" class="input-base" placeholder="Responsable Visita">
 
           @if(formActa.get('responsableVisita')?.hasError('required') && formActa.get('responsableVisita')?.touched) {
@@ -139,7 +139,7 @@
         </div>
 
         <div class="w-full flex flex-col">
-          <label for="tipoSolicitud" class="label-base">Tipo de solicitud</label>
+          <label for="tipoSolicitud" class="label-base">*Tipo de solicitud</label>
           <input [formControlName]="'tipoSolicitud'" type="text" id="tipoSolicitud" class="input-base" placeholder="Tipo de solicitud">
 
           @if(formActa.get('tipoSolicitud')?.hasError('required') && formActa.get('tipoSolicitud')?.touched) {
@@ -157,7 +157,7 @@
 
       <div class="mt-4">
         <div class="flex justify-between items-center">
-          <h2 class="text-lg font-semibold">Productos Seleccionados</h2>
+          <h2 class="text-lg font-semibold">*Productos Seleccionados</h2>
           <button type="button"
             (click)="openDialog()"
             class="btn-action-green">

@@ -212,7 +212,19 @@
             }
           </div>
         }
+
+        <!-- Validaciones -->
+        @if (formActa.get('productos')?.hasError('required') &&
+            formActa.get('productos')?.touched &&
+            formActa.get('estado')?.value === 'A' &&
+            selectedProductsInfo().length === 0) {
+          <p class="text-red-500 mt-2">
+            * Debe seleccionar al menos un producto cuando el estado es Autorizado
+          </p>
+        }
       </div>
+
+
 
       <!-- Botones de acción -->
       <div class="flex justify-end space-x-4 mt-6">

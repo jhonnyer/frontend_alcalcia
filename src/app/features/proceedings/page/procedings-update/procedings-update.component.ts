@@ -1,6 +1,6 @@
 import { Component, inject, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActasService } from '../../../../core/services/actas.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { EstadoActa, EstadoTransition, IActaById } from '../../../../core/models/acta.model';
@@ -120,9 +120,50 @@ export class ProcedingsUpdateComponent implements OnInit {
       paquetes: [null],
       observaciones: ['']
     });
+
+    // Listener para el campo estado
+    this.formActa.get('estado')?.valueChanges.subscribe(estado => {
+      this.updateProductosValidators(estado);
+    });
   }
 
-  // Agregar estos métodos
+  private updateProductosValidators(estado: string): void {
+    const productosControl = this.formActa.get('productos');
+
+    if (estado === 'A') { // Si el estado es Autorizado
+      // Actualizamos el valor del control con los productos actuales para activar submit
+      const currentProducts = this.selectedProductsInfo().map(p => ({
+        idProductoFk: p.idProducto,
+        cantidad: p.cantidad
+      }));
+
+      productosControl?.setValue(currentProducts);
+      productosControl?.addValidators([
+        Validators.required,
+        this.productosArrayValidator()
+      ]);
+    } else {
+      productosControl?.clearValidators();
+    }
+
+    productosControl?.updateValueAndValidity();
+  }
+
+  private productosArrayValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const productos = control.value;
+      const selectedProducts = this.selectedProductsInfo();
+
+      // Validamos usando tanto el control como el signal
+      if ((!productos || !Array.isArray(productos) || productos.length === 0) &&
+          selectedProducts.length === 0) {
+        return { requiredProducts: true };
+      }
+      return null;
+    };
+  }
+
+  // Estados permitidos
   private actualizarEstadosPermitidos(estado: EstadoActa): void {
     const transicionesDisponibles = this.TRANSICIONES[estado];
 
@@ -393,6 +434,21 @@ export class ProcedingsUpdateComponent implements OnInit {
               .filter((product): product is ProductoWithCantidadUpdate => product !== null);
 
             this.selectedProductsInfo.set(productsWithQuantity);
+
+            // Actualizar el control del formulario
+            const formProducts = productsWithQuantity.map(p => ({
+              idProductoFk: p.idProducto,
+              cantidad: p.cantidad
+            }));
+
+            this.formActa.patchValue({
+              productos: formProducts
+            });
+
+            // Forzar la revalidación si el estado es 'A'
+            if (this.formActa.get('estado')?.value === 'A') {
+              this.formActa.get('productos')?.updateValueAndValidity();
+            }
           },
           error: (error) => {
             console.error('Error al cargar información de productos:', error);
@@ -459,6 +515,13 @@ export class ProcedingsUpdateComponent implements OnInit {
   onSubmit() {
     if (this.formActa.valid) {
       const nuevoEstado = this.formActa.get('estado')?.value as EstadoActa;
+      const productos = this.selectedProductsInfo();
+
+      // Validación específica para estado Autorizado
+      if (nuevoEstado === 'A' && (!productos || productos.length === 0)) {
+        alert('Debe seleccionar al menos un producto cuando el estado es Autorizado');
+        return;
+      }
 
       // Si el estado no cambió, mostrar mensaje
       if (nuevoEstado === this.estadoInicialActa()) {

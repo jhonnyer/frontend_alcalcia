@@ -220,7 +220,7 @@ export class NucleoUpdateComponent implements OnInit{
         if(response===0){
           if (idBeneficiario) {
             const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent);
-      
+
             dialogRef.closed.subscribe(result => {
               if (result) {
                 this.beneficiaryService.delete(idBeneficiario.toString()).subscribe({
@@ -247,14 +247,14 @@ export class NucleoUpdateComponent implements OnInit{
             beneficiariosArray.removeAt(index);
           }
         }else{
-          alert("El beneficiario con id "+idBeneficiario+ " no puede eliminarse porque tiene asociado un proceso de solicitud de beneficios por medio de un acta");
+          alert("El beneficiario con id "+ idBeneficiario + " no puede eliminarse porque tiene asociado un proceso de solicitud de beneficios por medio de un acta");
         }
       },
-      error:(err)=>{
-        alert("Error: "+err);
+      error:(error)=>{
+        alert("Error al eliminar el beneficiario " + error);
       }
     })
-    
+
 
   }
 

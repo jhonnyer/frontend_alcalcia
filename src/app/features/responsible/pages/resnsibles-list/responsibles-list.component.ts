@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, Injector, OnInit, signal } from '@angular/core';
+import { Component, inject, Injector, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
@@ -21,12 +21,12 @@ import {
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './responsibles-columns-definitions';
 import { IResponsable } from '../../../../core/models/responsable.model';
-import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+// import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 
 @Component({
   selector: 'app-responsibles-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
   templateUrl: './responsibles-list.component.html',
   styles: ``,
 })

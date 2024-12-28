@@ -484,11 +484,14 @@ export class ProcedingsUpdateComponent implements OnInit {
 
       this.actasService.update(dataToUpdate).subscribe({
         next: () => {
-          this.router.navigate(['proceedings']);
+          alert("Acta actualizada con éxito");
+          this.router.navigate([`proceedings/update/${this.idActa}`]).then(() => {
+            window.location.reload();
+          });
         },
         error: error => {
           console.error("Error al actualizar:", error);
-          alert("Error al actualizar el acta");
+          alert("Error al actualizar el acta"+ error.mensaje);
         }
       });
     } else {

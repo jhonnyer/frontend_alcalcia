@@ -26,6 +26,10 @@ export class ActasService {
     );
   }
 
+  getCountActas(idBeneficiario: string): Observable<number> {
+    return this.http.get<number>(`${this.URL}/actas/counActas/${idBeneficiario}`, { context: checkToken() });
+  }
+
   getById(idActa: string): Observable<ResponseStandarUnique<IActaById>> {
     return this.http.get<ResponseStandarUnique<IActaById>>(`${this.URL}/actas/${idActa}`, { context: checkToken() })
     // .pipe(

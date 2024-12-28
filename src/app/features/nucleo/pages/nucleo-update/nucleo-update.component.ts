@@ -14,6 +14,9 @@ import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { ConfirmDeleteDialogComponent } from '../../components/confirm-delete-dialog/confirm-delete-dialog.component';
 import { Dialog, DialogModule, DialogRef } from '@angular/cdk/dialog';
+import { ActasService } from '../../../../core/services/actas.service';
+import { response } from 'express';
+import { error } from 'console';
 
 @Component({
   selector: 'app-nucleo-update',
@@ -34,6 +37,7 @@ export class NucleoUpdateComponent implements OnInit{
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
   private beneficiaryService = inject(BeneficiaryService);
+  private actasService = inject(ActasService);
   private dialog = inject(Dialog);
 
   nucleo = signal<INucleoUpdate| null>(null);
@@ -118,7 +122,7 @@ export class NucleoUpdateComponent implements OnInit{
     this.formFamilyCore = this.fb.group({
       idZonaFk: ['', [Validators.required, Validators.nullValidator]],
       idBarrioFk: ['', [Validators.required, Validators.nullValidator]],
-      direccion: ['', [Validators.required]],
+      direccion: [''],
       nombreNucleo: ['', [Validators.required]],
       numeroIntegrantes: [0],
       beneficiarios: this.fb.array([])
@@ -211,35 +215,47 @@ export class NucleoUpdateComponent implements OnInit{
     const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
     const beneficiario = beneficiariosArray.at(index);
     const idBeneficiario = beneficiario.get('idBeneficiario')?.value;
-
-    if (idBeneficiario) {
-      const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent);
-
-      dialogRef.closed.subscribe(result => {
-        if (result) {
-          this.beneficiaryService.delete(idBeneficiario.toString()).subscribe({
-            next: () => {
-              beneficiariosArray.removeAt(index);
-              alert('Beneficiario eliminado exitosamente');
-              this.initFormFamilyCore();
-              this.getAllZonas();
-              this.changeZona();
-              this.getNucleoById();
-            },
-            error: (error) => {
-              this.initFormFamilyCore();
-              this.getAllZonas();
-              this.changeZona();
-              this.getNucleoById();
-              // const errorMessage = error.error?.mensaje || 'Error al eliminar el beneficiario';
-              // alert(errorMessage);
-            }
-          });
+    this.actasService.getCountActas(idBeneficiario).subscribe({
+      next:(response)=>{
+        if(response===0){
+          if (idBeneficiario) {
+            const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent);
+      
+            dialogRef.closed.subscribe(result => {
+              if (result) {
+                this.beneficiaryService.delete(idBeneficiario.toString()).subscribe({
+                  next: () => {
+                    beneficiariosArray.removeAt(index);
+                    alert('Beneficiario eliminado exitosamente');
+                    this.initFormFamilyCore();
+                    this.getAllZonas();
+                    this.changeZona();
+                    this.getNucleoById();
+                  },
+                  error: (error) => {
+                    this.initFormFamilyCore();
+                    this.getAllZonas();
+                    this.changeZona();
+                    this.getNucleoById();
+                    // const errorMessage = error.error?.mensaje || 'Error al eliminar el beneficiario';
+                    // alert(errorMessage);
+                  }
+                });
+              }
+            });
+          } else {
+            beneficiariosArray.removeAt(index);
+          }
+        }else{
+          alert("El beneficiario con id "+idBeneficiario+ " no puede eliminarse porque tiene asociado un proceso de solicitud de beneficios por medio de un acta");
         }
-      });
-    } else {
-      beneficiariosArray.removeAt(index);
-    }
+      },
+      error:(err)=>{
+        alert("Error: "+err);
+      }
+    })
+    
+
   }
 
   calcularEdad(fechaNacimiento: string): number {

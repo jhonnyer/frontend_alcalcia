@@ -97,8 +97,12 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
       };
 
       this.beneficiarioProyectoService.updateById(this.beneficiarioProyectoId, formData).subscribe({
-        next: () => {
-          alert('Actualización exitosa');
+        next: (response) => {
+          if(response.idProyecto===0){
+            alert(response.observaciones);
+          }else{
+            alert('Actualización exitosa');
+          }
           this.router.navigate(['/projects/add-beneficiary/list']);
         },
         error: (error) => {

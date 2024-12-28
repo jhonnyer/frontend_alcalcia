@@ -223,14 +223,21 @@ export class NucleoUpdateComponent implements OnInit{
 
             dialogRef.closed.subscribe(result => {
               if (result) {
+                const igualAUno = this.nucleo()?.beneficiarios.length === 1;
+
                 this.beneficiaryService.delete(idBeneficiario.toString()).subscribe({
                   next: () => {
-                    beneficiariosArray.removeAt(index);
-                    alert('Beneficiario eliminado exitosamente');
-                    this.initFormFamilyCore();
-                    this.getAllZonas();
-                    this.changeZona();
-                    this.getNucleoById();
+                    if(igualAUno){
+                      this.router.navigate(['/nucleo']);
+                    }else{
+                      beneficiariosArray.removeAt(index);
+                      alert('Beneficiario eliminado exitosamente');
+                      this.initFormFamilyCore();
+                      this.getAllZonas();
+                      this.changeZona();
+                      this.getNucleoById();
+
+                    }
                   },
                   error: (error) => {
                     this.initFormFamilyCore();

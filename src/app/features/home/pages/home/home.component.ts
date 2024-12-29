@@ -31,6 +31,11 @@ export class HomeComponent implements OnInit{
     this.pageTitleService.setCurrentPage('Home');
   }
 
+  private getFormattedDate(): string {
+    const today = new Date();
+    return today.toISOString().split('T')[0]; // Retorna YYYY-MM-DD
+  }
+
   downloadGlobalReport() {
     this.actasService.getExcelActas().subscribe({
       next: (blob: Blob) => {
@@ -40,7 +45,7 @@ export class HomeComponent implements OnInit{
         // Crear elemento a temporal
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'Informe global.xlsx';
+        link.download = `Informe global ${this.getFormattedDate()}.xlsx`;
 
         // Simular click para descargar
         document.body.appendChild(link);
@@ -78,7 +83,7 @@ export class HomeComponent implements OnInit{
           'Teléfono': b.telefono,
           'Email': b.email,
           'Estado': b.esVivo ? 'Vivo' : 'Fallecido',
-          'ID Núcleo': b.idNucleoFk
+          'ID Núcleo': b.nombreNucleo
         }));
 
         // Crear el libro de Excel
@@ -87,7 +92,7 @@ export class HomeComponent implements OnInit{
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Beneficiarios');
 
         // Generar el archivo
-        XLSX.writeFile(workbook, 'Beneficiarios.xlsx');
+        XLSX.writeFile(workbook, `Beneficiarios ${this.getFormattedDate()}.xlsx`);
       },
       error: (error) => {
         console.error('Error al obtener beneficiarios:', error);
@@ -120,7 +125,7 @@ export class HomeComponent implements OnInit{
         worksheet['!cols'] = wscols;
 
         // Generar el archivo
-        XLSX.writeFile(workbook, 'Categorias.xlsx');
+        XLSX.writeFile(workbook, `Categorias ${this.getFormattedDate()}.xlsx`);
       },
       error: (error) => {
         console.error('Error al obtener categorías:', error);
@@ -195,7 +200,7 @@ export class HomeComponent implements OnInit{
         worksheet['!cols'] = wscols;
 
         // Generar y descargar el archivo
-        XLSX.writeFile(workbook, 'Actas.xlsx');
+        XLSX.writeFile(workbook, `Actas ${this.getFormattedDate()}.xlsx`);
       },
       error: (error) => {
         console.error('Error al obtener actas:', error);
@@ -246,7 +251,7 @@ export class HomeComponent implements OnInit{
         worksheet['!cols'] = wscols;
 
         // Generar el archivo
-        XLSX.writeFile(workbook, 'Responsables.xlsx');
+        XLSX.writeFile(workbook, `Responsables ${this.getFormattedDate()}.xlsx`);
       },
       error: (error) => {
         console.error('Error al obtener responsables:', error);
@@ -283,7 +288,7 @@ export class HomeComponent implements OnInit{
         worksheet['!cols'] = wscols;
 
         // Generar el archivo
-        XLSX.writeFile(workbook, 'Productos.xlsx');
+        XLSX.writeFile(workbook, `Productos ${this.getFormattedDate()}.xlsx`);
       },
       error: (error) => {
         console.error('Error al obtener productos:', error);
@@ -336,7 +341,7 @@ export class HomeComponent implements OnInit{
         worksheet['!rows'] = wsrows;
 
         // Generar el archivo
-        XLSX.writeFile(workbook, 'NucleosFamiliares.xlsx');
+        XLSX.writeFile(workbook, `NucleosFamiliares ${this.getFormattedDate()}.xlsx`);
       },
       error: (error) => {
         console.error('Error al obtener núcleos familiares:', error);

@@ -125,7 +125,7 @@ export class AddBeneficiaryProjectComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error en la asignación:', error);
-          alert('Error al asignar beneficiario al proyecto');
+          alert('Error al asignar beneficiario al proyecto. Es posible que un miembro del núcleo familiar ya esta asignado a un proyecto.');
         }
       });
     } else {

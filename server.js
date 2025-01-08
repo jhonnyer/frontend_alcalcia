@@ -6,8 +6,8 @@ const app = express();
 const port = process.env.PORT || 4200;
 
 // URL del backend
-//const backendUrl = process.env.API_URL || 'http://192.168.1.112:8080/api';
-const backendUrl = process.env.API_URL || 'http://192.168.195.219:8080/api';
+const backendUrl = process.env.API_URL || 'http://192.168.1.112:8080/api';
+//const backendUrl = process.env.API_URL || 'http://192.168.195.219:8080/api';
 
 // Configuración de CORS para permitir la comunicación con el backend
 app.use((req, res, next) => {

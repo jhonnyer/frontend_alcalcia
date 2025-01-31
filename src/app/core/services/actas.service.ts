@@ -113,6 +113,13 @@ export class ActasService {
     });
   }
 
+  getExcelProductosProyecto(): Observable<Blob> {
+    return this.http.get(`${this.URL}/proyectos/producto-excel`, {
+      responseType: 'blob',
+      context: checkToken()
+    });
+  }
+
   getPdfActaById(idActa: string): Observable<Blob> {
     return this.http.get(`${this.URL}/actas/pdf/${idActa}`, {
       responseType: 'blob',

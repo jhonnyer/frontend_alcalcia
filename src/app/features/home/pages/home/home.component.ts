@@ -62,6 +62,32 @@ export class HomeComponent implements OnInit{
     });
   }
 
+  downloadProductProjectReport() {
+    this.actasService.getExcelProductosProyecto().subscribe({
+      next: (blob: Blob) => {
+        // Crear URL del blob
+        const url = window.URL.createObjectURL(blob);
+
+        // Crear elemento a temporal
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Informe productos por proyecto ${this.getFormattedDate()}.xlsx`;
+
+        // Simular click para descargar
+        document.body.appendChild(link);
+        link.click();
+
+        // Limpieza
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      },
+      error: error => {
+        console.error('Error al descargar el Excel:', error);
+        alert('Error al descargar el archivo Excel');
+      }
+    });
+  }
+
   downloadBeneficiarios() {
     this.beneficiaryService.getAll().subscribe({
       next: (beneficiarios) => {

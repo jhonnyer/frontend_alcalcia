@@ -153,7 +153,7 @@ export class NucleoRegisterComponent implements OnDestroy {
   onSubmit() {
     if(this.formFamilyCore.valid){
       const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
-      const barrio = Number(this.formFamilyCore.get("idZonaFk")?.value);
+      const barrio = Number(this.formFamilyCore.get("idBarrioFk")?.value);
 
       this.formFamilyCore.patchValue({
         numeroIntegrantes: null,

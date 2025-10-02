@@ -22,8 +22,8 @@ export interface INucleoUpdate {
   idNucleo: number;
   idZonaFk: number;
   idBarrioFk: number;
-  nombreZona: string;
-  nombreBarrio: string;
+  nombreZona: string | null;
+  nombreBarrio: string | null;
   numeroIntegrantes: number;
   direccion: string;
   nombreNucleo: string;

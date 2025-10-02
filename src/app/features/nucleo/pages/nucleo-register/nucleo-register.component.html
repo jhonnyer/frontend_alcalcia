@@ -1,13 +1,13 @@
-<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
-  <form [formGroup]="formFamilyCore" class="form" (ngSubmit)="onSubmit()"
-    class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
-  >
+<div class="font-std max-w-4xl mx-auto font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
+
+  <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()"
+  class="form scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5">
     <div class="flex flex-wrap justify-between">
-      <div class="w-full md:w-[49%]">
-        <label for="idZonaFk" class="label-base">*Seleccionar zona</label>
-        <select formControlName="idZonaFk" name="idZonaFk" id="idZonaFk" class="input-base">
+      <fieldset class="w-full md:w-[49%]">
+        <legend  for="idZonaFk" class="legend-base">*Seleccionar zona</legend>
+        <select formControlName="idZonaFk" name="idZonaFk" id="idZonaFk" class="input-base text-sm py-1.5 px-2">
           @for(item of zonas(); track item.idZona){
-            <option [value]="item.idZona" class="input-base capitalize">{{item.nombreZona}}</option>
+            <option [value]="item.idZona" class="input-base text-sm py-1.5 px-2 capitalize">{{item.nombreZona}}</option>
           }
         </select>
 
@@ -16,50 +16,65 @@
             * Este campo es requerido
           </p>
         }
-      </div>
+      </fieldset>
 
-      <div class="w-full md:w-[49%]">
-        <label for="idBarrioFk" class="label-base">*Seleccionar barrio</label>
-        <select formControlName="idBarrioFk" id="idBarrioFk" class="input-base">
-          @for(item of barrios(); track item.idBarrio){
-            <option [value]="item.idBarrio" class="input-base capitalize">{{item.nombre}}</option>
+      <fieldset class="w-full md:w-[49%]">
+        <legend  for="idBarrioFk" class="legend-base">*Seleccionar barrio</legend>
+        <select
+          id="idBarrioFk"
+          formControlName="idBarrioFk"
+          class="input-base text-sm py-1.5 px-2 capitalize"
+          [disabled]="!formFamilyCore.get('idZonaFk')?.value"
+        >
+        <option [disabled]="true" [selected]="!formFamilyCore.get('idZonaFk')?.value">
+          {{ !formFamilyCore.get('idZonaFk')?.value ? 'Seleccione una zona' : 'Seleccione un barrio' }}
+        </option>
+
+        @if (formFamilyCore.get('idZonaFk')?.value) {
+          @for (item of barrios(); track item.idBarrio) {
+            <option [value]="item.idBarrio" class="capitalize">
+              {{ item.nombre }}
+            </option>
           }
+        }
         </select>
 
-        @if(formFamilyCore.get('idBarrioFk')?.invalid && formFamilyCore.get('idBarrioFk')?.touched) {
-          @if(formFamilyCore.get('idBarrioFk')?.hasError('required')){
+        <!-- Validación: campo requerido -->
+        @if (formFamilyCore.get('idBarrioFk')?.invalid && formFamilyCore.get('idBarrioFk')?.touched) {
+          @if (formFamilyCore.get('idBarrioFk')?.hasError('required')) {
             <p class="text-red-500">
               * Este campo es requerido
             </p>
           }
         }
-        @if(barrios().length<=0  && formFamilyCore.get('idBarrioFk')?.touched){
+        <!-- Validación: no hay barrios por zona -->
+        @if (barrios().length <= 0 && formFamilyCore.get('idBarrioFk')?.touched) {
           <p class="text-red-500">
             * Debes seleccionar la zona primero
           </p>
         }
-      </div>
+      </fieldset>
     </div>
 
     <div class="flex flex-wrap justify-between">
-      <div class="w-full md:w-[49%]">
-        <label for="direccion" class="label-base">Dirección</label>
-        <input [formControlName]="'direccion'" type="text" id="direccion" class="input-base" placeholder="Dirección">
+      <fieldset class="w-full md:w-[49%]">
+        <legend  for="direccion" class="legend-base">Dirección</legend>
+        <input [formControlName]="'direccion'" type="text" id="direccion" class="input-base text-sm py-1.5 px-2" placeholder="Dirección">
 
         @if(formFamilyCore.get('direccion')?.hasError('required') && formFamilyCore.get('direccion')?.touched) {
           <p class="text-red-500">
             * Este campo es requerido
           </p>
         }
-      </div>
+      </fieldset>
 
-      <div class="w-full md:w-[49%]">
-        <label for="nombreNucleo" class="label-base">*Nombre núcleo</label>
+      <fieldset class="w-full md:w-[49%]">
+        <legend  for="nombreNucleo" class="legend-base">*Nombre núcleo</legend>
         <input
           formControlName="nombreNucleo"
           type="text"
           id="nombreNucleo"
-          class="input-base"
+          class="input-base text-sm py-1.5 px-2"
           placeholder="Nombre núcleo"
         >
         @if(formFamilyCore.get('nombreNucleo')?.hasError('required') && formFamilyCore.get('nombreNucleo')?.touched) {
@@ -67,57 +82,57 @@
             * Este campo es requerido
           </p>
         }
-      </div>
+      </fieldset>
     </div>
 
 
     <h2>Integrantes</h2>
     <!--  -->
     <div formArrayName="beneficiarios" >
-      <div class="flex justify-between flex-wrap gap-4 mb-4" *ngFor="let beneficiario of getCtrl('beneficiarios', formFamilyCore).controls; index as formBeneficiary" >
-        <div class="flex flex-col w-full border border-gray-400 rounded-2xl p-4" [formGroupName]="formBeneficiary">
+      <div class="bg-gray-50 border border-gray-300 rounded-xl p-4 shadow-sm max-w-4xl mx-auto" [formGroup]="beneficiarioForm">
+        <div class="w-full flex flex-wrap justify-between">
 
           <div class="w-full flex flex-wrap justify-between">
-            <div class="w-full md:w-[49%]">
-              <label for="nombre_1" class="label-base">*Primer nombre</label>
-              <input formControlName="primerNombre" type="text" id="nombre_1" class="input-base" placeholder="Primer nombre">
+            <fieldset class="w-full md:w-[49%]">
+              <legend  for="nombre_1" class="legend-base">*Primer nombre</legend>
+              <input formControlName="primerNombre" type="text" id="nombre_1" class="input-base text-sm py-1.5 px-2 text-sm py-1.5 px-2" placeholder="Primer nombre">
 
-              @if(beneficiario.get('primerNombre')?.hasError('required') && beneficiario.get('primerNombre')?.touched) {
+              @if(beneficiarioForm.get('primerNombre')?.hasError('required') && beneficiarioForm.get('primerNombre')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
               }
-            </div>
+            </fieldset>
 
-            <div class="w-full md:w-[49%]">
-              <label for="nombre_2" class="label-base">Segundo nombre</label>
-              <input formControlName="segundoNombre" type="text" id="nombre_2" class="input-base" placeholder="Segundo nombre">
+            <fieldset class="w-full md:w-[49%]">
+              <legend  for="nombre_2" class="legend-base">Segundo nombre</legend>
+              <input formControlName="segundoNombre" type="text" id="nombre_2" class="input-base text-sm py-1.5 px-2 text-sm py-1.5 px-2" placeholder="Segundo nombre">
 
-              @if(beneficiario.get('segundoNombre')?.hasError('required') && beneficiario.get('segundoNombre')?.touched) {
+              @if(beneficiarioForm.get('segundoNombre')?.hasError('required') && beneficiarioForm.get('segundoNombre')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
               }
-            </div>
+            </fieldset>
           </div>
 
           <div class="w-full flex flex-wrap justify-between">
-            <div class="w-full md:w-[49%] my-2">
-              <label for="apellido_1" class="label-base">* Primer apellido</label>
-              <input formControlName="primerApellido" type="text" id="apellido_1" class="input-base" placeholder="Primer apellido">
+            <fieldset class="w-full md:w-[49%] my-2">
+              <legend  for="apellido_1" class="legend-base">* Primer apellido</legend>
+              <input formControlName="primerApellido" type="text" id="apellido_1" class="input-base text-sm py-1.5 px-2" placeholder="Primer apellido">
 
-              @if(beneficiario.get('primerApellido')?.hasError('required') && beneficiario.get('primerApellido')?.touched) {
+              @if(beneficiarioForm.get('primerApellido')?.hasError('required') && beneficiarioForm.get('primerApellido')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
               }
-            </div>
+            </fieldset>
 
             <div class="w-full md:w-[49%] my-2">
-              <label for="apellido_2" class="label-base">Segundo apellido</label>
-              <input formControlName="segundoApellido" type="text" id="apellido_2" class="input-base" placeholder="Segundo apellido">
+              <legend  for="apellido_2">Segundo apellido</legend>
+              <input formControlName="segundoApellido" type="text" id="apellido_2" class="input-base text-sm py-1.5 px-2" placeholder="Segundo apellido">
 
-              @if(beneficiario.get('segundoApellido')?.hasError('required') && beneficiario.get('segundoApellido')?.touched) {
+              @if(beneficiarioForm.get('segundoApellido')?.hasError('required') && beneficiarioForm.get('segundoApellido')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -127,15 +142,15 @@
 
           <div class="w-full flex justify-between md:gap-5 flex-wrap md:flex-nowrap">
             <div class="w-full md:w-52">
-              <label for="tipo_documento" class="label-base">* Tipo de documento</label>
-              <select formControlName="tipoDocumento" name="tipo_documento" id="tipo_documento" class="input-base">
-                <option value="CC" class="input-base capitalize">Cedula de Ciudadania</option>
-                <option value="TI" class="input-base capitalize" >Tarjeta de identidad</option>
-                <option value="pasaporte" class="input-base capitalize" >Pasaporte</option>
-                <option value="CE" class="input-base capitalize" >Cedula extranjera</option>
+              <legend  for="tipo_documento" class="legend-base">* Tipo de documento</legend>
+              <select formControlName="tipoDocumento" name="tipo_documento" id="tipo_documento" class="input-base text-sm py-1.5 px-2">
+                <option value="CC" class="input-base text-sm py-1.5 px-2 capitalize">Cedula de Ciudadania</option>
+                <option value="TI" class="input-base text-sm py-1.5 px-2 capitalize" >Tarjeta de identidad</option>
+                <option value="pasaporte" class="input-base text-sm py-1.5 px-2 capitalize" >Pasaporte</option>
+                <option value="CE" class="input-base text-sm py-1.5 px-2 capitalize" >Cedula extranjera</option>
               </select>
 
-              @if(beneficiario.get('tipoDocumento')?.hasError('required') && beneficiario.get('tipoDocumento')?.touched) {
+              @if(beneficiarioForm.get('tipoDocumento')?.hasError('required') && beneficiarioForm.get('tipoDocumento')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -143,10 +158,10 @@
             </div>
 
             <div class="w-full">
-              <label for="id" class="label-base">* Número de documento</label>
-              <input formControlName="numeroDocumento" type="text" id="id" class="input-base" placeholder="Documento">
+              <legend  for="id" class="legend-base">* Número de documento</legend>
+              <input formControlName="numeroDocumento" type="text" id="id" class="input-base text-sm py-1.5 px-2" placeholder="Documento">
 
-              @if(beneficiario.get('numeroDocumento')?.hasError('required') && beneficiario.get('numeroDocumento')?.touched) {
+              @if(beneficiarioForm.get('numeroDocumento')?.hasError('required') && beneficiarioForm.get('numeroDocumento')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -157,11 +172,11 @@
           <div class="w-full flex flex-wrap justify-between my-4 gap-4">
 
             <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
-              <label>* Sexo: </label>
-              <input formControlName="sexo" name="sexo" type="radio" value="f" class="input-radio-base"> Femenino
-              <input formControlName="sexo" name="sexo" type="radio" value="m" class="input-radio-base"> Masculino
-
-              @if(beneficiario.get('sexo')?.hasError('required') && beneficiario.get('sexo')?.touched) {
+              <legend >* Sexo: </legend>
+              <label><input formControlName="sexo" type="radio" value="f" class="input-radio-base"> Femenino</label>
+              <label><input formControlName="sexo" type="radio" value="m" class="input-radio-base"> Masculino</label>
+              
+              @if(beneficiarioForm.get('sexo')?.hasError('required') && beneficiarioForm.get('sexo')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -169,11 +184,11 @@
             </div>
 
             <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
-              <label>* Genero: </label>
-              <input formControlName="genero" name="genero" type="radio" value="na"   class="input-radio-base"> No aplica
-              <input formControlName="genero" name="genero" type="radio" value="LGBTI" class="input-radio-base"> LGBTI
+              <legend >* Genero: </legend>
+              <label><input formControlName="genero" name="genero" type="radio" value="na"   class="input-radio-base"> No aplica</label>
+              <label><input formControlName="genero" name="genero" type="radio" value="LGBTI" class="input-radio-base"> LGBTI</label>
 
-              @if(beneficiario.get('genero')?.hasError('required') && beneficiario.get('genero')?.touched) {
+              @if(beneficiarioForm.get('genero')?.hasError('required') && beneficiarioForm.get('genero')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -181,11 +196,23 @@
             </div>
 
             <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
-              <label>* Victima del conflicto: </label>
-              <input formControlName="victimaConflicto" type="radio" [value]="false" class="input-radio-base"> No
-              <input formControlName="victimaConflicto" type="radio" [value]="true" class="input-radio-base"> Si
+              <legend >* Victima del conflicto: </legend>
+              <label><input formControlName="victimaConflicto" type="radio" [value]="false" class="input-radio-base"> No</label>
+              <label><input formControlName="victimaConflicto" type="radio" [value]="true" class="input-radio-base"> Si</label>
 
-              @if(beneficiario.get('victimaConflicto')?.hasError('required') && beneficiario.get('victimaConflicto')?.touched) {
+              @if(beneficiarioForm.get('victimaConflicto')?.hasError('required') && beneficiarioForm.get('victimaConflicto')?.touched) {
+                <p class="text-red-500">
+                  * Este campo es requerido
+                </p>
+              }
+            </div>
+
+            <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
+              <legend >* Vivo: </legend>
+              <label><input formControlName="esVivo" type="radio" [value]="true" class="input-radio-base"> Sí</label>
+              <label><input formControlName="esVivo" type="radio" [value]="false" class="input-radio-base"> No</label>
+
+              @if(beneficiarioForm.get('esVivo')?.hasError('required') && beneficiarioForm.get('esVivo')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -194,10 +221,10 @@
 
             <div class="flex flex-col">
               <div class="relative flex  items-center gap-2">
-                <label for="birthdate">*Nacimiento</label>
-                <input formControlName="fechaNacimiento" id="birthdate" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 " placeholder="Select date">
+                <legend for="birthdate">*Nacimiento</legend>
+                <label><input formControlName="fechaNacimiento" id="birthdate" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 " placeholder="Select date"></label>
               </div>
-              @if(beneficiario.get('fechaNacimiento')?.hasError('required') && beneficiario.get('fechaNacimiento')?.touched) {
+              @if(beneficiarioForm.get('fechaNacimiento')?.hasError('required') && beneficiarioForm.get('fechaNacimiento')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -206,22 +233,10 @@
 
             <div class="flex flex-col">
               <div class="flex items-center gap-4">
-                <label for="edad" class="label-base">* Edad</label>
-                <input readonly formControlName="edad" type="number" id="edad" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="0">
+                <legend for="edad" class="legend-base">* Edad</legend>
+                <label><input readonly formControlName="edad" type="number" id="edad" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="0"></label>
               </div>
-              @if(beneficiario.get('edad')?.hasError('required') && beneficiario.get('edad')?.touched) {
-                <p class="text-red-500">
-                  * Este campo es requerido
-                </p>
-              }
-            </div>
-
-            <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
-              <label>* Vivo: </label>
-              <input formControlName="esVivo" type="radio" [value]="true" class="input-radio-base"> Sí
-              <input formControlName="esVivo" type="radio" [value]="false" class="input-radio-base"> No
-
-              @if(beneficiario.get('esVivo')?.hasError('required') && beneficiario.get('esVivo')?.touched) {
+              @if(beneficiarioForm.get('edad')?.hasError('required') && beneficiarioForm.get('edad')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -230,11 +245,11 @@
 
             <!-- Discapacidad -->
             <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
-              <label>* ¿Tiene discapacidad?: </label>
+              <label >* ¿Tiene discapacidad?: </label>
               <input formControlName="discapacidad" type="radio" [value]="false" class="input-radio-base"> No
               <input formControlName="discapacidad" type="radio" [value]="true" class="input-radio-base"> Si
 
-              @if(beneficiario.get('discapacidad')?.hasError('required') && beneficiario.get('discapacidad')?.touched) {
+              @if(beneficiarioForm.get('discapacidad')?.hasError('required') && beneficiarioForm.get('discapacidad')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -242,11 +257,11 @@
             </div>
 
             <div class="border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
-              <label>* ¿Tiene certificado de discapacidad?: </label>
+              <label >* ¿Tiene certificado de discapacidad?: </label>
               <input formControlName="certificadoDiscapacidad" type="radio" [value]="false" class="input-radio-base"> No
               <input formControlName="certificadoDiscapacidad" type="radio" [value]="true" class="input-radio-base"> Si
 
-              @if(beneficiario.get('certificadoDiscapacidad')?.hasError('required') && beneficiario.get('certificadoDiscapacidad')?.touched) {
+              @if(beneficiarioForm.get('certificadoDiscapacidad')?.hasError('required') && beneficiarioForm.get('certificadoDiscapacidad')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
                 </p>
@@ -256,14 +271,14 @@
           </div>
 
           <div class="w-full">
-            <label for="etnia" class="label-base">* Etnia</label>
-            <select formControlName="etnia" name="etnia" id="etnia" class="input-base">
-              <option value="N" class="input-base capitalize" selected>No Aplica</option>
-              <option value="C" class="input-base capitalize" selected>Campesino</option>
-              <option value="I" class="input-base capitalize" selected>Indigena</option>
-              <option value="A" class="input-base capitalize" selected>Afrocolombiano</option>
-              <option value="E" class="input-base capitalize" selected>Extranjero</option>
-              <option value="M" class="input-base capitalize" selected>Mestizo</option>
+            <legend for="etnia" class="legend-base">* Etnia</legend>
+            <select formControlName="etnia" name="etnia" id="etnia" class="input-base text-sm py-1.5 px-2">
+              <option value="N" class="input-base text-sm py-1.5 px-2 capitalize" selected>No Aplica</option>
+              <option value="C" class="input-base text-sm py-1.5 px-2 capitalize" selected>Campesino</option>
+              <option value="I" class="input-base text-sm py-1.5 px-2 capitalize" selected>Indigena</option>
+              <option value="A" class="input-base text-sm py-1.5 px-2 capitalize" selected>Afrocolombiano</option>
+              <option value="E" class="input-base text-sm py-1.5 px-2 capitalize" selected>Extranjero</option>
+              <option value="M" class="input-base text-sm py-1.5 px-2 capitalize" selected>Mestizo</option>
             </select>
 
             @if(formFamilyCore.get('etnia')?.hasError('required') && formFamilyCore.get('etnia')?.touched) {
@@ -273,31 +288,33 @@
             }
           </div>
 
-          <div class="flex flex-wrap md:flex-nowrap justify-between my-2">
-            <div class="w-full md:w-[49%]">
-              <label for="email" class="label-base">Email</label>
-              <input formControlName="email" type="email" id="email" class="input-base" placeholder="beneficiario@correo.com">
-              @if(beneficiario.get('email')?.hasError('required') && beneficiario.get('email')?.touched) {
-                <p class="text-red-500">
-                  * Este campo es requerido
-                </p>
-              }
-            </div>
+          <div class="w-full">
+            <div class="flex flex-col md:flex-row gap-4">
+              <div class="w-full md:w-1/2">
+                <legend  for="email" class="legend-base">Email</legend>
+                <label><input formControlName="email" type="email" id="email" class="input-base text-sm py-1.5 px-2" placeholder="beneficiario@correo.com"></label>
+                @if(beneficiarioForm.get('email')?.hasError('required') && beneficiarioForm.get('email')?.touched) {
+                  <p class="text-red-500">
+                    * Este campo es requerido
+                  </p>
+                }
+              </div>
 
-            <div class="w-full md:w-[49%]">
-              <label for="phone" class="label-base">*Teléfono</label>
-              <input formControlName="telefono" type="tel" id="phone" class="input-base" placeholder="+1 (555) 123-4567">
-              @if(beneficiario.get('telefono')?.hasError('required') && beneficiario.get('telefono')?.touched) {
-                <p class="text-red-500">
-                  * Este campo es requerido
-                </p>
-              }
+              <div class="w-full md:w-1/2">
+                <legend  for="phone" class="legend-base">*Teléfono</legend>
+                <label><input formControlName="telefono" type="tel" id="phone" class="input-base text-sm py-1.5 px-2" placeholder="+1 (555) 123-4567"></label>
+                @if(beneficiarioForm.get('telefono')?.hasError('required') && beneficiarioForm.get('telefono')?.touched) {
+                  <p class="text-red-500">
+                    * Este campo es requerido
+                  </p>
+                }
+              </div>
             </div>
           </div>
 
-          <button (click)="deletePerson(formBeneficiary)" type="button"
+          <!-- <button (click)="deletePerson(formBeneficiary)" type="button"
             class="btn-action-red"
-          >Eliminar</button>
+          >Eliminar</button> -->
 
         </div>
       </div>
@@ -312,10 +329,54 @@
       <button type="button"
         class="btn-action-gray" (click)="cancelar()"
       >Cancelar</button>
-      <button type="submit"
-        class="btn-action-blue">
+      <button type="button" class="btn-action-blue" (click)="confirmarYEnviar()">
         Guardar cambios
       </button>
     </div>
+
+    <h2 class="text-xl font-semibold mt-6 mb-2">Beneficiarios añadidos</h2>
+    <div>
+    <!-- <div class="overflow-x-auto rounded-xl shadow border border-gray-300"> -->
+      <table class="min-w-full text-sm text-left bg-white">
+        <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+          <tr class="bg-gray-200">
+            <th class="px-4 py-3">Nombre</th>
+            <th class="px-4 py-3">Apellido</th>
+            <th class="px-4 py-3">Documento</th>
+            <th class="px-4 py-3">Sexo</th>
+            <th class="px-4 py-3">Edad</th>
+            <th class="px-4 py-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of beneficiariosRegistrados; let i = index" class="hover:bg-gray-50 border-t">
+            <td class="px-4 py-2">{{ b.primerNombre }} {{ b.segundoNombre }}</td>
+            <td class="px-4 py-2">{{ b.primerApellido }} {{ b.segundoApellido }}</td>
+            <td class="px-4 py-2">{{ b.tipoDocumento }} - {{ b.numeroDocumento }}</td>
+            <td class="px-4 py-2">{{ b.sexo }}</td>
+            <td class="px-4 py-2">{{ b.edad }}</td>
+            <td class="px-4 py-2">
+              <button (click)="editarBeneficiario(i)" class="text-blue-600 hover:underline mr-2">Editar</button>
+              <button (click)="eliminarBeneficiario(i)" class="text-red-600 hover:underline">Eliminar</button>
+            </td>
+          </tr>
+          <tr *ngIf="beneficiariosRegistrados.length === 0">
+            <td colspan="6" class="text-center text-gray-500 py-4">No hay beneficiarios añadidos aún.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </form>
+  
 </div>
+
+<dialog #beneficiarioModal class="w-full max-w-2xl p-4 bg-white rounded-lg shadow-xl">
+  <form [formGroup]="beneficiarioForm" (ngSubmit)="guardarEdicion(beneficiarioForm.value)">
+    <!-- Reutilizas aquí los campos del formulario -->
+
+    <div class="flex justify-end gap-4 mt-4">
+      <button type="button" class="btn-action-gray" (click)="cerrarModal()">Cancelar</button>
+      <button type="submit" class="btn-action-blue">Guardar</button>
+    </div>
+  </form>
+</dialog>

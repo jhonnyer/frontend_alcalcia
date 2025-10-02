@@ -3,12 +3,13 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { tokenInterceptor } from './core/interceptors/token-interceptor.interceptor';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withFetch()),
-    provideHttpClient(withInterceptors([tokenInterceptor]))
+    provideHttpClient(withInterceptors([tokenInterceptor])), provideAnimationsAsync()
   ]
 };

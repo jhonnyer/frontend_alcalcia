@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -12,25 +12,61 @@ import { IBarrio } from '../../../../core/models/barrio.model';
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
-import { ConfirmDeleteDialogComponent } from '../../components/confirm-delete-dialog/confirm-delete-dialog.component';
-import { Dialog, DialogModule, DialogRef } from '@angular/cdk/dialog';
+import { DialogModule } from '@angular/cdk/dialog';
 import { ActasService } from '../../../../core/services/actas.service';
-import { response } from 'express';
-import { error } from 'console';
+import { MatDialog } from '@angular/material/dialog';
+import { BeneficiarioModalComponent } from '../beneficiario-modal/beneficiario-modal.component';
+import { ConfirmDeleteDialogComponent } from '../../components/confirm-delete-dialog/confirm-delete-dialog.component';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ConfirmDialogComponent } from '../../components/confirm-accion-dialog/confirm-dialog.component';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatToolbarModule } from '@angular/material/toolbar';
+
 
 @Component({
   selector: 'app-nucleo-update',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    DialogModule
-  ],
-  styles: ``,
+    CommonModule, 
+    ReactiveFormsModule, 
+    DialogModule, 
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatInputModule,
+    MatSnackBarModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatIconModule,
+    MatCardModule,
+    MatToolbarModule,
+    ],
   templateUrl: './nucleo-update.component.html',
 })
-export class NucleoUpdateComponent implements OnInit{
+export class NucleoUpdateComponent implements OnInit {
+  public tituloPagina = 'Registrar núcleo';  
   @Input('id') nucleoID!: string;
+  // columnas visibles en la tabla
+  // displayedColumns: string[] = ['primerNombre', 'primerApellido', 'numeroDocumento', 'edad', 'acciones'];
+
+  displayedColumns: string[] = ['nombreCompleto','documento','edad', 'acciones'];
+  // fuente de datos para la tabla Material
+  dataSource = new MatTableDataSource<IBeneficiario>([]);
+  /** Paginador de Material con tipo explícito */
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  
+  constructor(private dialog: MatDialog, private snackBar: MatSnackBar ) {}
 
   private readonly nucleoService = inject(NucleoService);
   private readonly zonaService = inject(ZonaService);
@@ -38,13 +74,10 @@ export class NucleoUpdateComponent implements OnInit{
   private pageTitleService = inject(PageTitleService);
   private beneficiaryService = inject(BeneficiaryService);
   private actasService = inject(ActasService);
-  private dialog = inject(Dialog);
 
-  nucleo = signal<INucleoUpdate| null>(null);
-  // nucleoId!: number;
+  nucleo = signal<INucleoUpdate | null>(null);
   zonas = signal<IZona[]>([]);
   listBeneficiaries = signal<IBeneficiario[]>([]);
-
   private zonasSubscription!: Subscription;
   barrios = signal<IBarrio[]>([]);
 
@@ -57,62 +90,91 @@ export class NucleoUpdateComponent implements OnInit{
     this.getAllZonas();
     this.changeZona();
     this.getNucleoById();
+    this.dataSource.data = this.beneficiariosForTable ?? [];
   }
 
-  getNucleoById(){
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
+  getNucleoById() {
     this.nucleoService.getById(this.nucleoID).subscribe({
-      next: ( response:INucleoUpdate ) => {
+      next: (response: INucleoUpdate) => {
         this.nucleo.set(response);
-        // this.nucleoId = response.idNucleo;
         this.initNucleo(response);
         this.listBeneficiaries.set(response.beneficiarios);
-        this.initBeneficiaries(response.beneficiarios)
-      }
-    })
+        this.initBeneficiaries(response.beneficiarios);
+        //Actualizar tabla beneficiarios 
+        this.actualizarTabla();
+      },
+    });
   }
 
+  actualizarTabla(): void {
+    this.dataSource.data = this.beneficiariosForTable.map((b) => ({
+      ...b,
+      nombreCompleto: `${b.primerNombre} ${b.segundoNombre ?? ''} ${b.primerApellido} ${b.segundoApellido ?? ''}`.trim(),
+      documento: `${b.tipoDocumento} - ${b.numeroDocumento}`,
+    }));
+  }
+
+
   private initNucleo(nucleo: INucleoUpdate): void {
-    this.formFamilyCore.setValue({
-      idZonaFk: nucleo.idZonaFk,
-      idBarrioFk: nucleo.idBarrioFk,
+  // 👉 primero seteamos lo que no depende de otros
+    this.formFamilyCore.patchValue({
+      idZonaFk:nucleo.idZonaFk,
+      idBarrioFk:nucleo.idBarrioFk
+    });
+    this.formFamilyCore.patchValue({
       direccion: nucleo.direccion,
       nombreNucleo: nucleo.nombreNucleo,
       numeroIntegrantes: nucleo.numeroIntegrantes,
       beneficiarios: []
-    }, { emitEvent: true })
+    },{emitEvent:true})
   }
 
   private initBeneficiaries(beneficiaries: IBeneficiario[]): void {
-    const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
+    const beneficiariosArray = this.formFamilyCore.get(
+      'beneficiarios'
+    ) as FormArray;
+
+    beneficiariosArray.clear();
+
     beneficiaries.forEach((beneficiary) => {
       beneficiariosArray.push(this.initFormBeneficiary());
-      const beneficiaryForm = beneficiariosArray.at(beneficiariosArray.length - 1);
-      beneficiaryForm.setValue({
-        idBeneficiario: beneficiary.idBeneficiario,
-        primerNombre: beneficiary.primerNombre,
-        segundoNombre: beneficiary.segundoNombre,
-        primerApellido: beneficiary.primerApellido,
-        segundoApellido: beneficiary.segundoApellido,
-        tipoDocumento: beneficiary.tipoDocumento,
-        numeroDocumento: beneficiary.numeroDocumento,
-        sexo: beneficiary.sexo,
-        genero: beneficiary.genero,
-        victimaConflicto: beneficiary.victimaConflicto,
-        fechaNacimiento: beneficiary.fechaNacimiento,
-        edad: beneficiary.edad,
-        etnia: beneficiary.etnia,
-        email: beneficiary.email,
-        telefono: beneficiary.telefono,
-        esVivo: beneficiary.esVivo,
-        discapacidad: beneficiary.discapacidad,
-        certificadoDiscapacidad: beneficiary.certificadoDiscapacidad,
-        idNucleoFk: parseInt(this.nucleoID)
-      }, { emitEvent: true });
+      const beneficiaryForm =
+        beneficiariosArray.at(beneficiariosArray.length - 1);
+      beneficiaryForm.patchValue(
+        {
+          idBeneficiario: beneficiary.idBeneficiario,
+          primerNombre: beneficiary.primerNombre,
+          segundoNombre: beneficiary.segundoNombre,
+          primerApellido: beneficiary.primerApellido,
+          segundoApellido: beneficiary.segundoApellido,
+          tipoDocumento: beneficiary.tipoDocumento,
+          numeroDocumento: beneficiary.numeroDocumento,
+          sexo: beneficiary.sexo,
+          genero: beneficiary.genero,
+          victimaConflicto: beneficiary.victimaConflicto,
+          fechaNacimiento: beneficiary.fechaNacimiento,
+          edad: beneficiary.edad,
+          etnia: beneficiary.etnia,
+          email: beneficiary.email,
+          telefono: beneficiary.telefono,
+          esVivo: beneficiary.esVivo,
+          discapacidad: beneficiary.discapacidad,
+          certificadoDiscapacidad: beneficiary.certificadoDiscapacidad,
+          idNucleoFk: parseInt(this.nucleoID),
+        },
+        { emitEvent: true }
+      );
 
-      beneficiaryForm.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
+      beneficiaryForm.get('fechaNacimiento')?.valueChanges.subscribe((fecha) => {
         if (fecha) {
           const edad = this.calcularEdad(fecha);
-          beneficiaryForm.get('edad')?.setValue(edad.toString(), { emitEvent: false });
+          beneficiaryForm
+            .get('edad')
+            ?.setValue(edad.toString(), { emitEvent: false });
         }
       });
     });
@@ -125,38 +187,37 @@ export class NucleoUpdateComponent implements OnInit{
       direccion: [''],
       nombreNucleo: ['', [Validators.required]],
       numeroIntegrantes: [0],
-      beneficiarios: this.fb.array([])
+      beneficiarios: this.fb.array([]),
     });
   }
 
-  getAllZonas(){
+  getAllZonas() {
     this.zonasSubscription = this.zonaService.getAll().subscribe({
-      next: (response:IZona[]) => {
+      next: (response: IZona[]) => {
         this.zonas.set(response);
       },
       error: (error) => {
-        console.log("Error en zonas: ", error);
-      }
+        console.log('Error en zonas: ', error);
+      },
     });
   }
 
-  changeZona(){
+  changeZona() {
     this.formFamilyCore.get('idZonaFk')?.valueChanges.subscribe({
-      next: option => {
-        if(option !== ''){
+      next: (option) => {
+        if (option !== '') {
           this.zonaService.getById(option).subscribe({
-            next: response => {
-              this.barrios.set(response.barrios as IBarrio[])
-            }
-          })
+            next: (response) => {
+              this.barrios.set(response.barrios as IBarrio[]);
+            },
+          });
         }
-      }
-    })
+      },
+    });
   }
 
   private initFormBeneficiary(): FormGroup {
-    // Retorna el formulario que estará anidado
-    const formGroup =  this.fb.group({
+    const formGroup = this.fb.group({
       idBeneficiario: [null],
       primerNombre: ['', [Validators.required]],
       segundoNombre: [''],
@@ -170,39 +231,94 @@ export class NucleoUpdateComponent implements OnInit{
       fechaNacimiento: ['', [Validators.required]],
       edad: ['', [Validators.required]],
       etnia: ['', [Validators.required]],
-      email: [''],
-      telefono: ['', [Validators.required]],
+      email: ['', [Validators.required, Validators.pattern(/^[\w._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
+      telefono: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       esVivo: [true, [Validators.required]],
       discapacidad: [false, [Validators.required]],
       certificadoDiscapacidad: [false, [Validators.required]],
-      idNucleoFk: [parseInt(this.nucleoID), [Validators.required]]
+      idNucleoFk: [parseInt(this.nucleoID), [Validators.required]],
     });
 
-    formGroup.get('fechaNacimiento')?.valueChanges.subscribe(fecha => {
+    formGroup.get('fechaNacimiento')?.valueChanges.subscribe((fecha) => {
       if (fecha) {
         const edad = this.calcularEdad(fecha);
         formGroup.get('edad')?.setValue(edad.toString(), { emitEvent: false });
       }
     });
 
-    formGroup.get('certificadoDiscapacidad')?.valueChanges.subscribe(tieneCertificado => {
-      if (tieneCertificado) {
-        formGroup.patchValue({
-          discapacidad: true
-        }, { emitEvent: false });
-      }
-    });
+    formGroup
+      .get('certificadoDiscapacidad')
+      ?.valueChanges.subscribe((tieneCertificado) => {
+        if (tieneCertificado) {
+          formGroup.patchValue(
+            {
+              discapacidad: true,
+            },
+            { emitEvent: false }
+          );
+        }
+      });
 
     return formGroup;
   }
 
-  //Agrega un nuevo formulario anidado de Persona
-  addBeneficiary(): void {
-    const refBeneficiary = this.formFamilyCore.get('beneficiarios') as FormArray;
-    refBeneficiary.push(this.initFormBeneficiary());
+  deletePerson(beneficiarioEliminar: IBeneficiario): void {
+     // 🔹 Buscar el índice real en el FormArray
+    const index = this.beneficiariosFormArray.controls.findIndex(
+      (ctrl) => ctrl.value.idBeneficiario === beneficiarioEliminar.idBeneficiario
+    );
+
+    if (index === -1) {
+      this.snackBar.open('❌ No se encontró el beneficiario en el formulario', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    const beneficiariosArray = this.formFamilyCore.get(
+      'beneficiarios'
+    ) as FormArray;
+    const beneficiario = beneficiariosArray.at(index);
+    const idBeneficiario = beneficiario.get('idBeneficiario')?.value;
+
+    this.actasService.getCountActas(idBeneficiario).subscribe({
+      next: (response) => {
+        if (response === 0) {
+          if (idBeneficiario) {
+            const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent);
+            dialogRef.afterClosed().subscribe((result) => {
+              if (result) {
+                this.beneficiaryService
+                  .delete(idBeneficiario.toString())
+                  .subscribe({
+                    next: () => {
+                      beneficiariosArray.removeAt(index);
+                      //Actualizar tabla beneficiarios 
+                      this.actualizarTabla();
+                      alert('Beneficiario eliminado exitosamente');
+                    },
+                    error: () => {
+                      alert(
+                        'Ha ocurrido un error al intentar eliminar el beneficiario'
+                      );
+                    },
+                  });
+              }
+            });
+          } else {
+            beneficiariosArray.removeAt(index);
+          }
+        } else {
+          alert(
+            'El beneficiario con id ' +
+              idBeneficiario +
+              ' no puede eliminarse porque tiene actas asociadas'
+          );
+        }
+      },
+      error: (error) => {
+        alert('Error al eliminar el beneficiario: ' + error);
+      },
+    });
   }
 
-  // Referencia cada campo que se crea en el html
   getCtrl(key: string, form: FormGroup): FormArray {
     return form.get(key) as FormArray;
   }
@@ -211,102 +327,105 @@ export class NucleoUpdateComponent implements OnInit{
     return this.formFamilyCore.get('beneficiarios') as FormArray;
   }
 
-  deletePerson(index: number): void {
-    const beneficiariosArray = this.formFamilyCore.get('beneficiarios') as FormArray;
-    const beneficiario = beneficiariosArray.at(index);
-    const idBeneficiario = beneficiario.get('idBeneficiario')?.value;
-    this.actasService.getCountActas(idBeneficiario).subscribe({
-      next:(response)=>{
-        if(response===0){
-          if (idBeneficiario) {
-            const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent);
-
-            dialogRef.closed.subscribe(result => {
-              if (result) {
-                const igualAUno = this.nucleo()?.beneficiarios.length === 1;
-
-                this.beneficiaryService.delete(idBeneficiario.toString()).subscribe({
-                  next: () => {
-                    if(igualAUno){
-                      this.router.navigate(['/nucleo']);
-                    }else{
-                      beneficiariosArray.removeAt(index);
-                      alert('Beneficiario eliminado exitosamente');
-                      this.initFormFamilyCore();
-                      this.getAllZonas();
-                      this.changeZona();
-                      this.getNucleoById();
-
-                    }
-                  },
-                  error: (error) => {
-                    this.initFormFamilyCore();
-                    this.getAllZonas();
-                    this.changeZona();
-                    this.getNucleoById();
-                    // const errorMessage = error.error?.mensaje || 'Error al eliminar el beneficiario';
-                    // alert(errorMessage);
-                  }
-                });
-              }
-            });
-          } else {
-            beneficiariosArray.removeAt(index);
-          }
-        }else{
-          alert("El beneficiario con id "+ idBeneficiario + " no puede eliminarse porque tiene asociado un proceso de solicitud de beneficios por medio de un acta");
-        }
-      },
-      error:(error)=>{
-        alert("Error al eliminar el beneficiario " + error);
-      }
-    })
-
-
-  }
-
   calcularEdad(fechaNacimiento: string): number {
     const fechaNacimientoDate = new Date(fechaNacimiento);
     const hoy = new Date();
-    let edad = hoy.getFullYear() - fechaNacimientoDate.getFullYear();  
+    let edad = hoy.getFullYear() - fechaNacimientoDate.getFullYear();
 
     const mes = hoy.getMonth() - fechaNacimientoDate.getMonth();
-    if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNacimientoDate.getDate())) {
+    if (
+      mes < 0 ||
+      (mes === 0 && hoy.getDate() < fechaNacimientoDate.getDate())
+    ) {
       edad--;
     }
-    return edad;
+    return edad < 0 ? 0 : edad;
   }
-
 
   onSubmit() {
-    if(this.formFamilyCore.valid){
-      const zona = Number(this.formFamilyCore.get("idZonaFk")?.value);
-      const barrio = Number(this.formFamilyCore.get("idBarrioFk")?.value);
-
-      this.formFamilyCore.patchValue({
-        numeroIntegrantes: null,
-        idZonaFk: zona,
-        idBarrioFk: barrio
+    if (this.formFamilyCore.invalid) {
+      console.log('❌ Formulario del núcleo inválido');
+      
+      // Errores de los controles raíz (zona, barrio, nombreNucleo, etc.)
+      Object.keys(this.formFamilyCore.controls).forEach(key => {
+        const control = this.formFamilyCore.get(key);
+        if (control?.invalid && key !== 'beneficiarios') {
+          console.warn(`Campo núcleo '${key}' inválido -> errores:`, control.errors, 'valor:', control.value);
+        }
       });
 
-      delete this.formFamilyCore.value.idNucleo;
-
-
-      this.nucleoService.updateById(this.nucleoID, this.formFamilyCore.value).subscribe({
-        next: response => {
-          alert('Se ha guardado correctamente el núcleo');
-          this.router.navigate(["nucleo"]);
-        },
-        error: error => {
-          alert('Ha ocurrido un error al cargar los datos, es posible que un documento ya exista');
+      // ✅ Errores de los beneficiarios
+      this.beneficiariosFormArray.controls.forEach((ctrl, index) => {
+        const formGroup = ctrl as FormGroup;
+        if (formGroup.invalid) {
+          console.warn(`❌ Beneficiario #${index + 1} inválido:`, formGroup.value);
+          Object.keys(formGroup.controls).forEach(key => {
+            const c = formGroup.get(key);
+            if (c?.invalid) {
+              console.warn(`   Campo '${key}' inválido -> errores:`, c.errors, 'valor:', c.value);
+            }
+          });
         }
-      })
-	  }else
-    {
-      alert('Verifica los campos de tu formulario');
+      });
+
       this.formFamilyCore.markAllAsTouched();
+      this.snackBar.open('⚠️ Verifica los campos del formulario (núcleo o beneficiarios)', 'Cerrar', { duration: 3000 });
+      return;
     }
+
+    // 🟢 Si es válido, arma el payload
+    const zona = Number(this.formFamilyCore.get('idZonaFk')?.value);
+    const barrio = Number(this.formFamilyCore.get('idBarrioFk')?.value);
+
+    const payload: INucleoUpdate = {
+      idNucleo: Number(this.nucleoID),
+      idZonaFk: zona,
+      idBarrioFk: barrio,
+      numeroIntegrantes: this.beneficiariosFormArray.length,
+      direccion: this.formFamilyCore.get('direccion')?.value,
+      nombreNucleo: this.formFamilyCore.get('nombreNucleo')?.value,
+      nombreZona: null,
+      nombreBarrio: null,
+      beneficiarios: this.beneficiariosFormArray.value.map((b: any) => ({
+        idBeneficiario: b.idBeneficiario,
+        primerNombre: b.primerNombre,
+        segundoNombre: b.segundoNombre,
+        primerApellido: b.primerApellido,
+        segundoApellido: b.segundoApellido,
+        sexo: b.sexo,
+        genero: b.genero,
+        etnia: b.etnia,
+        edad: b.edad,
+        victimaConflicto: b.victimaConflicto,
+        tipoDocumento: b.tipoDocumento,
+        numeroDocumento: b.numeroDocumento,
+        fechaNacimiento: b.fechaNacimiento,
+        telefono: b.telefono, 
+        email: b.email,
+        esVivo: b.esVivo,
+        discapacidad: b.discapacidad,
+        certificadoDiscapacidad: b.certificadoDiscapacidad,
+        idNucleoFk: parseInt(this.nucleoID),
+        nombreNucleo: null,
+        direccionNucleo: null,
+        barrio: null,
+        zona: null,
+        ubicacion: null
+      }))
+    };
+
+    // 🔥 Llamada al servicio
+    this.nucleoService.updateById(this.nucleoID, payload).subscribe({
+      next: () => {
+        this.snackBar.open('✅ Núcleo actualizado con éxito', 'Cerrar', { duration: 3000 });
+        this.router.navigate(['nucleo']);
+      },
+      error: () => {
+        this.snackBar.open('❌ Error al actualizar núcleo', 'Cerrar', { duration: 3000 });
+      }
+    });
   }
+
 
   ngOnDestroy() {
     if (this.zonasSubscription) {
@@ -317,4 +436,114 @@ export class NucleoUpdateComponent implements OnInit{
   cancelar() {
     this.router.navigate(['/nucleo']);
   }
+
+  //  Método para añadir beneficiario
+  addBeneficiario(): void {
+    const form = this.initFormBeneficiary();
+
+    const dialogRef = this.dialog.open(BeneficiarioModalComponent, {
+      width: '70%',
+      maxWidth: '90vw',
+      height: '90vh',
+      data: { form, isEdit: false }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // abrir confirmación
+        const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+          width: '350px',
+          data: { mensaje: '¿Desea crear este beneficiario?' }
+        });
+
+        confirmRef.afterClosed().subscribe(confirmado => {
+          if (confirmado) {
+            // llamar servicio
+            this.beneficiaryService.post(result).subscribe({
+              next: (nuevoBeneficiario) => {
+                // Usar el beneficiario que viene del backend
+                this.beneficiariosFormArray.push(this.initFormBeneficiary());
+                const form = this.beneficiariosFormArray.at(this.beneficiariosFormArray.length - 1);
+                form.patchValue(nuevoBeneficiario);
+                this.actualizarTabla();
+                this.snackBar.open('✅ Beneficiario creado con éxito', 'Cerrar', { duration: 3000 });
+              },
+              error: () => {
+                this.snackBar.open('❌ Error al crear beneficiario', 'Cerrar', {
+                  duration: 3000,
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  editBeneficiary(beneficiario: IBeneficiario): void {
+     // 🔹 Buscar el índice real en el FormArray
+    const index = this.beneficiariosFormArray.controls.findIndex(
+      (ctrl) => ctrl.value.idBeneficiario === beneficiario.idBeneficiario
+    );
+
+    if (index === -1) {
+      this.snackBar.open('❌ No se encontró el beneficiario en el formulario', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    const originalForm = this.beneficiariosFormArray.at(index) as FormGroup;
+    const tempForm = this.initFormBeneficiary();
+    tempForm.patchValue(originalForm.getRawValue(), { emitEvent: false })
+    
+    const dialogRef = this.dialog.open(BeneficiarioModalComponent, {
+      width: '70%',
+      maxWidth: '90vw',
+      height: '90vh',
+      data: { form: tempForm, isEdit: true},
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // 🟢 Abrir confirmación antes de guardar cambios
+        const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+          width: '350px',
+          data: { mensaje: '¿Desea guardar los cambios de este beneficiario?' }
+        });
+
+        confirmRef.afterClosed().subscribe((confirmado) => {
+          if (confirmado) {
+            // ✅ Llamamos al servicio update
+            const idBeneficiario = originalForm.get('idBeneficiario')?.value;
+
+            if (!idBeneficiario) {
+              this.snackBar.open('No se encontró el ID del beneficiario.', 'Cerrar', { duration: 3000 });
+              return;
+            }
+
+            this.beneficiaryService.update(idBeneficiario, result).subscribe({
+              next: (updated) => {
+                originalForm.patchValue(updated);
+                //Actualizar tabla beneficiarios 
+                this.actualizarTabla();
+                this.snackBar.open('✅ Beneficiario actualizado correctamente.', 'Cerrar', { duration: 3000 });
+              },
+              error: (err) => {
+                console.error('Error al actualizar beneficiario:', err);
+                this.snackBar.open('❌ Error al actualizar beneficiario.', 'Cerrar', { duration: 3000 });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
+  get beneficiariosForTable(): IBeneficiario[] {
+    return this.beneficiariosFormArray.value as IBeneficiario[];
+  }
+
 }

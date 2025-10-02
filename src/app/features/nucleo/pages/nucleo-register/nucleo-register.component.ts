@@ -11,6 +11,7 @@ import { Subscription } from 'rxjs';
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-nucleo-register',
@@ -21,6 +22,7 @@ import { PageTitleService } from '../../../../core/services/pageTitle.service';
 })
 export class NucleoRegisterComponent implements OnDestroy {
   public formFamilyCore: FormGroup = new FormGroup({});
+  public beneficiariosRegistrados: any[] = [];
   private fb = inject(FormBuilder);
   private zonaService = inject(ZonaService);
   private nucleoService = inject(NucleoService);
@@ -30,6 +32,13 @@ export class NucleoRegisterComponent implements OnDestroy {
   zonas = signal<IZona[]>([]);
   private zonasSubscription!: Subscription;
   barrios = signal<IBarrio[]>([]);
+
+  beneficiarioForm: FormGroup = this.initFormBeneficiary();
+
+  modoEdicion = false;
+  beneficiarioSeleccionado: any = null;
+  indiceEditado: number | null = null;
+  isConfirmed = false;
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Registrar un núcleo');
@@ -70,9 +79,8 @@ export class NucleoRegisterComponent implements OnDestroy {
       direccion: [''],
       nombreNucleo: ['', [Validators.required]],
       numeroIntegrantes: [0],
-      beneficiarios: this.fb.array([])
+      beneficiarios: [this.beneficiariosRegistrados]
     });
-    this.addBeneficiary();
   }
 
   initFormBeneficiary(): FormGroup {
@@ -118,9 +126,33 @@ export class NucleoRegisterComponent implements OnDestroy {
 
   //Agrega un nuevo formulario anidado de Persona
   addBeneficiary(): void {
-    const refBeneficiary = this.formFamilyCore.get('beneficiarios') as FormArray;
-    refBeneficiary.push(this.initFormBeneficiary());
+    if (this.beneficiarioForm.valid) {
+      const data = this.beneficiarioForm.value;
+
+      this.beneficiariosRegistrados.push(data);
+
+      // Limpia el formulario
+      this.beneficiarioForm.reset({
+        tipoDocumento: 'cc',
+        esVivo: true,
+        discapacidad: false,
+        certificadoDiscapacidad: false
+      });
+
+      // Actualiza el array del form principal para el submit final
+      this.formFamilyCore.get('beneficiarios')?.setValue(this.beneficiariosRegistrados);
+    } else {
+      this.beneficiarioForm.markAllAsTouched();
+      alert('Completa todos los campos requeridos del beneficiario antes de añadirlo.');
+    }
   }
+
+  eliminarBeneficiario(index: number): void {
+    this.beneficiariosRegistrados.splice(index, 1);
+    this.formFamilyCore.get('beneficiarios')?.setValue(this.beneficiariosRegistrados);
+  }
+
+
 
   // Referencia cada campo que se crea en el html
   getCtrl(key: string, form: FormGroup): FormArray {
@@ -192,4 +224,54 @@ export class NucleoRegisterComponent implements OnDestroy {
   cancelar() {
     this.router.navigate(['/nucleo']);
   }
+
+  editarBeneficiario(index: number) {
+    this.indiceEditado = index;
+    this.beneficiarioSeleccionado = this.beneficiariosRegistrados[index];
+    this.modoEdicion = true;
+  }
+
+  cerrarModal() {
+    this.modoEdicion = false;
+    this.beneficiarioSeleccionado = null;
+  }
+
+  guardarEdicion(data: any) {
+    if (this.indiceEditado !== null) {
+      this.beneficiariosRegistrados[this.indiceEditado] = data;
+      this.formFamilyCore.get('beneficiarios')?.setValue(this.beneficiariosRegistrados);
+    }
+    this.cerrarModal();
+  }
+
+  confirmarYEnviar() {
+    if (this.formFamilyCore.invalid) {
+      this.formFamilyCore.markAllAsTouched();
+      alert('Verifica los campos de tu formulario');
+      return;
+    }
+
+    if (this.beneficiariosRegistrados.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Debes agregar al menos un integrante',
+        text: 'Para guardar un núcleo familiar es necesario agregar al menos un beneficiario.',
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: '¿Deseas guardar los cambios?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, guardar',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.isConfirmed = true;
+        this.onSubmit();
+      }
+    });
+  }
+
 }

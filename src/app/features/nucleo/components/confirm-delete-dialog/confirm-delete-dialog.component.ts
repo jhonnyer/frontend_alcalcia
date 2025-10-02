@@ -1,6 +1,6 @@
-import { DialogRef } from '@angular/cdk/dialog';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-confirm-delete-dialog',
@@ -11,5 +11,16 @@ import { Component } from '@angular/core';
 
 })
 export class ConfirmDeleteDialogComponent {
-  constructor(public dialog: DialogRef) {}
+  constructor(
+    public dialogRef: MatDialogRef<ConfirmDeleteDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { mensaje: string }
+  ) {}
+
+  confirmar(): void {
+    this.dialogRef.close(true);  // devuelve true si confirma
+  }
+
+  cancelar(): void {
+    this.dialogRef.close(false); // devuelve false si cancela
+  }
 }

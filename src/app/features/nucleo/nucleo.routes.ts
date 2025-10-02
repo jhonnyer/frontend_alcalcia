@@ -10,7 +10,7 @@ export const NUCLEO_ROUTES: Routes = [
   },
   {
     path: 'register',
-    component: NucleoRegisterComponent
+    component: NucleoUpdateComponent
   },
   {
     path: 'update/:id',

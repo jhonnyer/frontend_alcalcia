@@ -1,0 +1,194 @@
+<div class="flex items-center justify-between px-4 pt-3 pb-2 border-b border-gray-200">
+  <!-- Título -->
+  <h2 class="text-sm font-medium text-gray-700 leading-tight m-0">
+    {{ isEdit ? 'Editar beneficiario' : 'Añadir beneficiario' }}
+  </h2>
+
+  <!-- Botón cerrar -->
+  <button mat-icon-button (click)="cancelar()" aria-label="Cerrar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
+
+<mat-dialog-content [formGroup]="beneficiarioForm" class="h-[70vh] overflow-y-auto p-2 scrollbar-custom">
+  <div class="flex flex-col gap-3">
+
+    <!-- Información personal -->
+    <section class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+      <h3 class="text-base font-medium mb-2 text-gray-700">Información personal</h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+        <!-- Nombres -->
+        <div>
+          <label class="label-base">*Primer nombre</label>
+          <input formControlName="primerNombre" type="text" class="input-base" 
+            (input)="beneficiarioForm.get('primerNombre')?.updateValueAndValidity()"/>
+          <p *ngIf="beneficiarioForm.get('primerNombre')?.hasError('required') && beneficiarioForm.get('primerNombre')?.touched"
+            class="text-red-500 text-xs">⚠️ El primer nombre es obligatorio</p>
+        </div>
+        <div>
+          <label class="label-base">Segundo nombre</label>
+          <input formControlName="segundoNombre" type="text" class="input-base" />
+        </div>
+
+        <!-- Apellidos -->
+        <div>
+          <label class="label-base">*Primer apellido</label>
+          <input formControlName="primerApellido" type="text" class="input-base" />
+          <p *ngIf="beneficiarioForm.get('primerApellido')?.hasError('required') && beneficiarioForm.get('primerApellido')?.touched"
+            class="text-red-500 text-xs">⚠️ El primer apellido es obligatorio</p>
+        </div>
+        <div>
+          <label class="label-base">Segundo apellido</label>
+          <input formControlName="segundoApellido" type="text" class="input-base" />
+        </div>
+
+        <!-- Documento -->
+        <div>
+          <label class="label-base">*Tipo de documento</label>
+          <select formControlName="tipoDocumento" class="input-base">
+            <option value="CC">Cédula de Ciudadanía</option>
+            <option value="TI">Tarjeta de Identidad</option>
+            <option value="Pasaporte">Pasaporte</option>
+            <option value="CE">Cédula Extranjera</option>
+          </select>
+          <p *ngIf="beneficiarioForm.get('tipoDocumento')?.hasError('required') && beneficiarioForm.get('tipoDocumento')?.touched"
+          class="text-red-500 text-xs">⚠️ El tipo de documento es obligatorio</p>
+        </div>
+        <div>
+          <label class="label-base">*Número de documento</label>
+          <input formControlName="numeroDocumento" type="text" class="input-base" />
+          <p *ngIf="beneficiarioForm.get('numeroDocumento')?.hasError('required') && beneficiarioForm.get('numeroDocumento')?.touched"
+            class="text-red-500 text-xs">⚠️ El número de documento es obligatorio</p>
+        </div>
+
+        <!-- Nacimiento y Edad -->
+        <div>
+          <label class="label-base">*Fecha de nacimiento</label>
+          <input formControlName="fechaNacimiento" type="date" class="input-base" />
+          <p *ngIf="beneficiarioForm.get('fechaNacimiento')?.hasError('required') && beneficiarioForm.get('fechaNacimiento')?.touched"
+            class="text-red-500 text-xs">⚠️ La fecha de nacimiento es obligatoria</p>
+        </div>
+        <div>
+          <label class="label-base">Edad</label>
+          <input readonly formControlName="edad" type="number" class="input-base bg-gray-100" />
+          <p *ngIf="beneficiarioForm.get('edad')?.hasError('required') && beneficiarioForm.get('edad')?.touched"
+            class="text-red-500 text-xs">⚠️ La edad es obligatoria</p>
+        </div>
+
+        <!-- Sexo -->
+        <div>
+          <label class="font-medium">*Sexo</label>
+          <div class="flex gap-4 mt-1">
+            <label><input formControlName="sexo" type="radio" value="F" /> Femenino</label>
+            <label><input formControlName="sexo" type="radio" value="M" /> Masculino</label>
+          </div>
+          <p *ngIf="beneficiarioForm.get('sexo')?.hasError('required') && beneficiarioForm.get('sexo')?.touched"
+            class="text-red-500 text-xs">⚠️ Debe seleccionar el sexo</p>
+        </div>
+
+        <!-- Género -->
+        <div>
+          <label class="font-medium">*Género</label>
+          <div class="flex gap-4 mt-1">
+            <label><input formControlName="genero" type="radio" value="na" /> No aplica</label>
+            <label><input formControlName="genero" type="radio" value="LGBTI" /> LGBTI</label>
+          </div>
+          <p *ngIf="beneficiarioForm.get('genero')?.hasError('required') && beneficiarioForm.get('genero')?.touched"
+            class="text-red-500 text-xs">⚠️ Debe seleccionar el genero</p>
+        </div>
+
+        <!-- Víctima -->
+        <div>
+          <label class="font-medium">*Víctima del conflicto</label>
+          <div class="flex gap-4 mt-1">
+            <label><input formControlName="victimaConflicto" type="radio" [value]="false" /> No</label>
+            <label><input formControlName="victimaConflicto" type="radio" [value]="true" /> Sí</label>
+          </div>
+          <p *ngIf="beneficiarioForm.get('victimaConflicto')?.hasError('required') && beneficiarioForm.get('victimaConflicto')?.touched"
+            class="text-red-500 text-xs">⚠️ Debe indicar si es víctima del conflicto armado</p>
+        </div>
+
+        <!-- Vivo -->
+        <div>
+          <label class="font-medium">Vivo</label>
+          <div class="flex gap-4 mt-1">
+            <label><input formControlName="esVivo" type="radio" [value]="true" /> Sí</label>
+            <label><input formControlName="esVivo" type="radio" [value]="false" /> No</label>
+          </div>
+          <p *ngIf="beneficiarioForm.get('esVivo')?.hasError('required') && beneficiarioForm.get('esVivo')?.touched"
+            class="text-red-500 text-xs">⚠️ Debe indicar si esta vivo</p>
+        </div>
+
+        <!-- Discapacidad -->
+        <div>
+          <label class="font-medium">*Discapacidad</label>
+          <div class="flex gap-4 mt-1">
+            <label><input formControlName="discapacidad" type="radio" [value]="false" /> No</label>
+            <label><input formControlName="discapacidad" type="radio" [value]="true" /> Sí</label>
+          </div>
+          <p *ngIf="beneficiarioForm.get('discapacidad')?.hasError('required') && beneficiarioForm.get('discapacidad')?.touched"
+            class="text-red-500 text-xs">⚠️ Debe indicar si tiene o no una discapacidad</p>
+        </div>
+
+        <!-- Certificado discapacidad -->
+        <div *ngIf="beneficiarioForm.get('discapacidad')?.value">
+          <label class="font-medium">*Certificado de discapacidad</label>
+          <div class="flex gap-4 mt-1">
+            <label><input formControlName="certificadoDiscapacidad" type="radio" [value]="false" /> No</label>
+            <label><input formControlName="certificadoDiscapacidad" type="radio" [value]="true" /> Sí</label>
+          </div>
+        </div>
+
+        <!-- Etnia -->
+        <div>
+          <label class="label-base">*Etnia</label>
+          <select formControlName="etnia" class="input-base">
+            <option value="N">No Aplica</option>
+            <option value="C">Campesino</option>
+            <option value="I">Indígena</option>
+            <option value="A">Afrocolombiano</option>
+            <option value="E">Extranjero</option>
+            <option value="M">Mestizo</option>
+          </select>
+          <p *ngIf="beneficiarioForm.get('etnia')?.hasError('required') && beneficiarioForm.get('etnia')?.touched"
+            class="text-red-500 text-xs">⚠️ La selección de una etnia es obligatorio</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contacto -->
+    <section class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+      <h3 class="text-base font-medium mb-2 text-gray-700">Contacto</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <label class="label-base">*Email</label>
+          <input formControlName="email" type="email" class="input-base" />
+          <p *ngIf="beneficiarioForm.get('email')?.hasError('required') && beneficiarioForm.get('email')?.touched"
+            class="text-red-500 text-xs">⚠️ El correo es obligatorio</p>
+          <p *ngIf="beneficiarioForm.get('email')?.hasError('pattern') && beneficiarioForm.get('email')?.touched"
+            class="text-red-500 text-xs">⚠️ El formato del correo debe ser válido - ej: correo&#64;gmail.com</p>
+        </div>
+        <div>
+          <label class="label-base">*Teléfono</label>
+          <input formControlName="telefono" type="tel" class="input-base" maxlength="10" placeholder="3000000000"/>
+          <p *ngIf="beneficiarioForm.get('telefono')?.hasError('required') && beneficiarioForm.get('telefono')?.touched"
+            class="text-red-500 text-xs">⚠️ El teléfono es obligatorio</p>
+          <p *ngIf="beneficiarioForm.get('telefono')?.hasError('pattern') && beneficiarioForm.get('telefono')?.touched"
+            class="text-red-500 text-xs">⚠️ Número de celular de 10 digitos</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</mat-dialog-content>
+
+
+<mat-dialog-actions align="end" class="mt-2">
+  <button mat-stroked-button color="warn" (click)="cancelar()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="guardar()"
+        [disabled]="beneficiarioForm.invalid">
+    {{ isEdit ? 'Guardar cambios' : 'Añadir' }}
+  </button>
+</mat-dialog-actions>

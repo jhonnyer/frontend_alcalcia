@@ -53,7 +53,7 @@ export class BeneficiaryService {
   }
 
   post(beneficiario: Partial<IBeneficiario>): Observable<IBeneficiario>{
-    return this.http.post<IBeneficiario>(`${this.URL}/beneficiarios}`, beneficiario, { context: checkToken() }).pipe(
+    return this.http.post<IBeneficiario>(`${this.URL}/beneficiarios`, beneficiario, { context: checkToken() }).pipe(
       tap(item => {
         item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
       })
@@ -62,7 +62,7 @@ export class BeneficiaryService {
 
   update(idBeneficiario: string, beneficiario: Partial<IBeneficiarioUnique>): Observable<IBeneficiarioUnique>{
 
-    return this.http.put<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${idBeneficiario}}`, beneficiario, { context: checkToken() }).pipe(
+    return this.http.put<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${idBeneficiario}`, beneficiario, { context: checkToken() }).pipe(
       tap(item => {
         item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
       })

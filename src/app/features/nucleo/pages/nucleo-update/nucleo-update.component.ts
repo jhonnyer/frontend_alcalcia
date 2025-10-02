@@ -103,10 +103,24 @@ export class NucleoUpdateComponent implements OnInit {
     this.getAllZonas();
     this.changeZona();
     this.dataSource.data = this.beneficiariosForTable ?? [];
+    // 🔹 Configurar filtro personalizado
+    this.dataSource.filterPredicate = (data: IBeneficiario, filter: string) => {
+      const search = filter.trim().toLowerCase();
+      return (
+        (data.primerNombre?.toLowerCase().includes(search)) ||
+        (data.segundoNombre?.toLowerCase().includes(search)) ||
+        (data.primerApellido?.toLowerCase().includes(search)) ||
+        (data.segundoApellido?.toLowerCase().includes(search)) ||
+        (data.numeroDocumento?.toLowerCase().includes(search))  
+      );
+    };
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+    this.dataSource.paginator.page.subscribe(() => {
+      this.applyFilter({ target: { value: '' } } as any); 
+    });
   }
 
   getNucleoById() {
@@ -357,7 +371,6 @@ export class NucleoUpdateComponent implements OnInit {
 
   onSubmit() {
     if (this.formFamilyCore.invalid) {
-      console.log('❌ Formulario del núcleo inválido');
       
       // Errores de los controles raíz (zona, barrio, nombreNucleo, etc.)
       Object.keys(this.formFamilyCore.controls).forEach(key => {
@@ -386,76 +399,86 @@ export class NucleoUpdateComponent implements OnInit {
       return;
     }
 
-    // 🟢 Si es válido, arma el payload
-    const zona = Number(this.formFamilyCore.get('idZonaFk')?.value);
-    const barrio = Number(this.formFamilyCore.get('idBarrioFk')?.value);
+    // 🟢 Si es válido, pedimos confirmación
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { mensaje: this.nucleoID ? '¿Desea actualizar este núcleo?' : '¿Desea crear este núcleo?' }
+    });
 
-    const payload: INucleoUpdate = {
-      idNucleo: Number(this.nucleoID),
-      idZonaFk: zona,
-      idBarrioFk: barrio,
-      numeroIntegrantes: this.beneficiariosFormArray.length,
-      direccion: this.formFamilyCore.get('direccion')?.value,
-      nombreNucleo: this.formFamilyCore.get('nombreNucleo')?.value,
-      nombreZona: null,
-      nombreBarrio: null,
-      beneficiarios: this.beneficiariosFormArray.value.map((b: any) => ({
-        idBeneficiario: b.idBeneficiario,
-        primerNombre: b.primerNombre,
-        segundoNombre: b.segundoNombre,
-        primerApellido: b.primerApellido,
-        segundoApellido: b.segundoApellido,
-        sexo: b.sexo,
-        genero: b.genero,
-        etnia: b.etnia,
-        edad: b.edad,
-        victimaConflicto: b.victimaConflicto,
-        tipoDocumento: b.tipoDocumento,
-        numeroDocumento: b.numeroDocumento,
-        fechaNacimiento: b.fechaNacimiento,
-        telefono: b.telefono, 
-        email: b.email,
-        esVivo: b.esVivo,
-        discapacidad: b.discapacidad,
-        certificadoDiscapacidad: b.certificadoDiscapacidad,
-        idNucleoFk: this.nucleoID ? parseInt(this.nucleoID) : null,
-        nombreNucleo: null,
-        direccionNucleo: null,
-        barrio: null,
-        zona: null,
-        ubicacion: null
-      }))
-    };
+    confirmRef.afterClosed().subscribe(confirmado => {
+      if (!confirmado) return;
 
-    // 🔥 Llamada al servicio
-    if (!this.nucleoID) {
-      this.nucleoService.post(payload).subscribe({
-        next: (nuevoNucleo) => {
-          this.snackBar.open('✅ Núcleo creado con éxito', 'Cerrar', { duration: 3000 });
+      // 🟢 Si es válido, arma el payload
+      const zona = Number(this.formFamilyCore.get('idZonaFk')?.value);
+      const barrio = Number(this.formFamilyCore.get('idBarrioFk')?.value);
 
-          // guardar el id para futuros beneficiarios
-          this.nucleoID = nuevoNucleo.idNucleo.toString();
-          this.isNucleoCreado = true; 
- 
-          // me quedo en la misma vista, no hago navigate
-          this.formFamilyCore.patchValue({ idNucleo: this.nucleoID });
-        },
-        error: () => {
-          this.snackBar.open('❌ Error al crear núcleo', 'Cerrar', { duration: 3000 });
-        }
-      });
-    } else {
-      // Actualizar
-      this.nucleoService.updateById(this.nucleoID, payload).subscribe({
-        next: () => {
-          this.snackBar.open('✅ Núcleo actualizado con éxito', 'Cerrar', { duration: 3000 });
-          this.router.navigate(['nucleo']);
-        },
-        error: () => {
-          this.snackBar.open('❌ Error al actualizar núcleo', 'Cerrar', { duration: 3000 });
-        }
-      });
-    }
+      const payload: INucleoUpdate = {
+        idNucleo: Number(this.nucleoID),
+        idZonaFk: zona,
+        idBarrioFk: barrio,
+        numeroIntegrantes: this.beneficiariosFormArray.length,
+        direccion: this.formFamilyCore.get('direccion')?.value,
+        nombreNucleo: this.formFamilyCore.get('nombreNucleo')?.value,
+        nombreZona: null,
+        nombreBarrio: null,
+        beneficiarios: this.beneficiariosFormArray.value.map((b: any) => ({
+          idBeneficiario: b.idBeneficiario,
+          primerNombre: b.primerNombre,
+          segundoNombre: b.segundoNombre,
+          primerApellido: b.primerApellido,
+          segundoApellido: b.segundoApellido,
+          sexo: b.sexo,
+          genero: b.genero,
+          etnia: b.etnia,
+          edad: b.edad,
+          victimaConflicto: b.victimaConflicto,
+          tipoDocumento: b.tipoDocumento,
+          numeroDocumento: b.numeroDocumento,
+          fechaNacimiento: b.fechaNacimiento,
+          telefono: b.telefono, 
+          email: b.email,
+          esVivo: b.esVivo,
+          discapacidad: b.discapacidad,
+          certificadoDiscapacidad: b.certificadoDiscapacidad,
+          idNucleoFk: this.nucleoID ? parseInt(this.nucleoID) : null,
+          nombreNucleo: null,
+          direccionNucleo: null,
+          barrio: null,
+          zona: null,
+          ubicacion: null
+        }))
+      };
+
+      // 🔥 Llamada al servicio
+      if (!this.nucleoID) {
+        this.nucleoService.post(payload).subscribe({
+          next: (nuevoNucleo) => {
+            this.snackBar.open('✅ Núcleo creado con éxito', 'Cerrar', { duration: 3000 });
+
+            // guardar el id para futuros beneficiarios
+            this.nucleoID = nuevoNucleo.idNucleo.toString();
+            this.isNucleoCreado = true; 
+  
+            // me quedo en la misma vista, no hago navigate
+            this.formFamilyCore.patchValue({ idNucleo: this.nucleoID });
+          },
+          error: () => {
+            this.snackBar.open('❌ Error al crear núcleo', 'Cerrar', { duration: 3000 });
+          }
+        });
+      } else {
+        // Actualizar
+        this.nucleoService.updateById(this.nucleoID, payload).subscribe({
+          next: () => {
+            this.snackBar.open('✅ Núcleo actualizado con éxito', 'Cerrar', { duration: 3000 });
+            this.router.navigate(['nucleo']);
+          },
+          error: () => {
+            this.snackBar.open('❌ Error al actualizar núcleo', 'Cerrar', { duration: 3000 });
+          }
+        });
+      }
+    });
   }
 
 

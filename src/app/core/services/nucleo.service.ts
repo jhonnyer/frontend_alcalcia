@@ -40,7 +40,7 @@ export class NucleoService {
   }
 
   deleteById(id: string) {
-    this.http.delete(`${this.URL}/nucleosFamiliares/${id}`, { context: checkToken() });
+    return this.http.delete(`${this.URL}/nucleosFamiliares/${id}`, { context: checkToken() });
   }
 
   private formatDate(dateString: string): string {

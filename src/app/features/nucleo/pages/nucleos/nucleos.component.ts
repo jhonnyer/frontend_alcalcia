@@ -9,20 +9,30 @@ import { TableFilterComponent } from '../../../../shared/components/table-filter
 import { defaultColumns } from './nucleo-columns-definitions';
 import { INucleoUpdate } from '../../../../core/models/nucleo.model';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { ConfirmDeleteDialogComponent } from '../../components/confirm-delete-dialog/confirm-delete-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActasService } from '../../../../core/services/actas.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-nucleos',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective, MatCardModule, MatIconModule],
   templateUrl: './nucleos.component.html',
   styles: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NucleosComponent implements OnInit{
+  constructor(private dialog: MatDialog, private snackBar: MatSnackBar ) {}
+  Math = Math;
   private nucleoService = inject(NucleoService);
   injector = inject(Injector);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
+  private readonly actasService = inject(ActasService);
   data = signal<INucleoUpdate[]>([]);
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -32,13 +42,13 @@ export class NucleosComponent implements OnInit{
 
   public readonly paginationState = signal<PaginationState>({
     pageIndex: 0,
-    pageSize: 10
+    pageSize: 5
   })
 
   public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Núcleos familiares');
+    this.pageTitleService.setCurrentPage('Gestión de núcleos familiares');
     this.getAll();
   }
 
@@ -131,10 +141,52 @@ export class NucleosComponent implements OnInit{
     ]);
   }
 
-  delete(item: Row<INucleoUpdate>){
-    this.nucleoService.deleteById(item.original.idNucleo.toString());
-    // console.log("Eliminar: ", item.original.idNucleo)
+  async delete(row: Row<INucleoUpdate>) {
+    const idNucleo = row.original.idNucleo;
+
+    // 1️⃣ Confirmación
+    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+      width: '350px',
+      data: { mensaje: `¿Estás seguro de eliminar el núcleo "${row.original.nombreNucleo}"?` }
+    });
+
+    const confirmado = await firstValueFrom(dialogRef.afterClosed());
+    if (!confirmado) return;
+
+    // 2️⃣ Verificar beneficiarios con actas
+    const beneficiarios = row.original.beneficiarios ?? [];
+
+    const results: number[] = await Promise.all(
+      beneficiarios.map(b =>
+        firstValueFrom(this.actasService.getCountActas(b.idBeneficiario.toString()))
+          .then(res => res ?? 0) // aseguramos number
+      )
+    );
+
+    for (let i = 0; i < results.length; i++) {
+      if (results[i] > 0) {
+        this.snackBar.open(
+          `❌ El núcleo no puede eliminarse porque el beneficiario "${beneficiarios[i].primerNombre} ${beneficiarios[i].primerApellido}" tiene actas asociadas.`,
+          'Cerrar',
+          { duration: 5000 }
+        );
+        return; // 🚫 detenemos la eliminación
+      }
+    }
+
+    // 3️⃣ Si no hay actas, eliminamos el núcleo
+    this.nucleoService.deleteById(idNucleo.toString()).subscribe({
+      next: () => {
+        this.snackBar.open('✅ Núcleo eliminado correctamente.', 'Cerrar', { duration: 3000 });
+        this.getAll(); // 🔄 refrescar tabla
+      },
+      error: (err) => {
+        console.error('Error eliminando núcleo:', err);
+        this.snackBar.open('❌ Error al eliminar núcleo.', 'Cerrar', { duration: 3000 });
+      }
+    });
   }
+
 
   update(item: Row<INucleoUpdate>){
     this.router.navigate(["nucleo/update/", item.original.idNucleo]);

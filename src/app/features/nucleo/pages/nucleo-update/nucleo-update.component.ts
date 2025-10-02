@@ -9,7 +9,7 @@ import { ZonaService } from '../../../../core/services/zona.service';
 import { Subscription } from 'rxjs';
 import { IZona } from '../../../../core/models/zona.models';
 import { IBarrio } from '../../../../core/models/barrio.model';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { DialogModule } from '@angular/cdk/dialog';
@@ -55,25 +55,27 @@ import { MatToolbarModule } from '@angular/material/toolbar';
   templateUrl: './nucleo-update.component.html',
 })
 export class NucleoUpdateComponent implements OnInit {
+  // 👉 dinámico
   public tituloPagina = 'Registrar núcleo';  
-  @Input('id') nucleoID!: string;
-  // columnas visibles en la tabla
-  // displayedColumns: string[] = ['primerNombre', 'primerApellido', 'numeroDocumento', 'edad', 'acciones'];
-
   displayedColumns: string[] = ['nombreCompleto','documento','edad', 'acciones'];
-  // fuente de datos para la tabla Material
+  isNucleoCreado = false;
+
+  // Si viene con id es actualización
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
+  public nucleoID: string | null = null;
+
   dataSource = new MatTableDataSource<IBeneficiario>([]);
-  /** Paginador de Material con tipo explícito */
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  
+
   constructor(private dialog: MatDialog, private snackBar: MatSnackBar ) {}
 
   private readonly nucleoService = inject(NucleoService);
   private readonly zonaService = inject(ZonaService);
-  private router = inject(Router);
-  private pageTitleService = inject(PageTitleService);
-  private beneficiaryService = inject(BeneficiaryService);
-  private actasService = inject(ActasService);
+  private readonly pageTitleService = inject(PageTitleService);
+  private readonly beneficiaryService = inject(BeneficiaryService);
+  private readonly actasService = inject(ActasService);
 
   nucleo = signal<INucleoUpdate | null>(null);
   zonas = signal<IZona[]>([]);
@@ -85,11 +87,21 @@ export class NucleoUpdateComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Actualizar núcleo');
+    this.nucleoID = this.route.snapshot.paramMap.get('id');
+
+    if (this.nucleoID) {
+      this.tituloPagina = 'Actualizar núcleo';
+      this.isNucleoCreado = true;
+      this.pageTitleService.setCurrentPage(this.tituloPagina);
+      this.getNucleoById(); // carga datos
+    } else {
+      this.tituloPagina = 'Registrar núcleo';
+      this.pageTitleService.setCurrentPage(this.tituloPagina);
+    }
+
     this.initFormFamilyCore();
     this.getAllZonas();
     this.changeZona();
-    this.getNucleoById();
     this.dataSource.data = this.beneficiariosForTable ?? [];
   }
 
@@ -98,13 +110,14 @@ export class NucleoUpdateComponent implements OnInit {
   }
 
   getNucleoById() {
+  if (!this.nucleoID) return; // si es null, no hace nada
+
     this.nucleoService.getById(this.nucleoID).subscribe({
       next: (response: INucleoUpdate) => {
         this.nucleo.set(response);
         this.initNucleo(response);
         this.listBeneficiaries.set(response.beneficiarios);
         this.initBeneficiaries(response.beneficiarios);
-        //Actualizar tabla beneficiarios 
         this.actualizarTabla();
       },
     });
@@ -164,7 +177,7 @@ export class NucleoUpdateComponent implements OnInit {
           esVivo: beneficiary.esVivo,
           discapacidad: beneficiary.discapacidad,
           certificadoDiscapacidad: beneficiary.certificadoDiscapacidad,
-          idNucleoFk: parseInt(this.nucleoID),
+          idNucleoFk: this.nucleoID ? parseInt(this.nucleoID) : null,
         },
         { emitEvent: true }
       );
@@ -236,7 +249,7 @@ export class NucleoUpdateComponent implements OnInit {
       esVivo: [true, [Validators.required]],
       discapacidad: [false, [Validators.required]],
       certificadoDiscapacidad: [false, [Validators.required]],
-      idNucleoFk: [parseInt(this.nucleoID), [Validators.required]],
+      idNucleoFk: [this.nucleoID ? parseInt(this.nucleoID) : null, [Validators.required]],
     });
 
     formGroup.get('fechaNacimiento')?.valueChanges.subscribe((fecha) => {
@@ -405,7 +418,7 @@ export class NucleoUpdateComponent implements OnInit {
         esVivo: b.esVivo,
         discapacidad: b.discapacidad,
         certificadoDiscapacidad: b.certificadoDiscapacidad,
-        idNucleoFk: parseInt(this.nucleoID),
+        idNucleoFk: this.nucleoID ? parseInt(this.nucleoID) : null,
         nombreNucleo: null,
         direccionNucleo: null,
         barrio: null,
@@ -415,15 +428,34 @@ export class NucleoUpdateComponent implements OnInit {
     };
 
     // 🔥 Llamada al servicio
-    this.nucleoService.updateById(this.nucleoID, payload).subscribe({
-      next: () => {
-        this.snackBar.open('✅ Núcleo actualizado con éxito', 'Cerrar', { duration: 3000 });
-        this.router.navigate(['nucleo']);
-      },
-      error: () => {
-        this.snackBar.open('❌ Error al actualizar núcleo', 'Cerrar', { duration: 3000 });
-      }
-    });
+    if (!this.nucleoID) {
+      this.nucleoService.post(payload).subscribe({
+        next: (nuevoNucleo) => {
+          this.snackBar.open('✅ Núcleo creado con éxito', 'Cerrar', { duration: 3000 });
+
+          // guardar el id para futuros beneficiarios
+          this.nucleoID = nuevoNucleo.idNucleo.toString();
+          this.isNucleoCreado = true; 
+ 
+          // me quedo en la misma vista, no hago navigate
+          this.formFamilyCore.patchValue({ idNucleo: this.nucleoID });
+        },
+        error: () => {
+          this.snackBar.open('❌ Error al crear núcleo', 'Cerrar', { duration: 3000 });
+        }
+      });
+    } else {
+      // Actualizar
+      this.nucleoService.updateById(this.nucleoID, payload).subscribe({
+        next: () => {
+          this.snackBar.open('✅ Núcleo actualizado con éxito', 'Cerrar', { duration: 3000 });
+          this.router.navigate(['nucleo']);
+        },
+        error: () => {
+          this.snackBar.open('❌ Error al actualizar núcleo', 'Cerrar', { duration: 3000 });
+        }
+      });
+    }
   }
 
 

@@ -22,6 +22,9 @@ import { ISelectedProduct, ProductoWithCantidad } from '../../../../core/models/
 
 import { Router } from '@angular/router';
 import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProyecto.model';
+import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 interface DialogData {
   idProyecto: number | null;
@@ -37,6 +40,7 @@ interface DialogData {
   templateUrl: './procedings-register.component.html'
 })
 export class ProcedingsRegisterComponent implements OnInit{
+  constructor(private dialogModal: MatDialog, private snackBar: MatSnackBar ) {}
   public formActa: FormGroup = new FormGroup({});
   // public searchFormProyecto: FormGroup = new FormGroup({});
 
@@ -283,24 +287,41 @@ export class ProcedingsRegisterComponent implements OnInit{
   }
 
   onSubmit() {
-    console.log("ID Beneficiario: ", this.beneficiario()?.idBeneficiario)
+    console.log("ID Beneficiario: ", this.beneficiario()?.idBeneficiario);
 
-    if(this.formActa.valid){
-      this.formActa.value.beneficiario =  {idBeneficiario: this.beneficiario()?.idBeneficiario};
-      this.formActa.value.proyecto =      {idProyecto:     this.proyectoSelect()};
-      this.formActa.value.responsable =   {idResponsable:  this.responsableActa()};
-      this.actasService.post(this.formActa.value).subscribe({
+    if (this.formActa.invalid) {
+      this.formActa.markAllAsTouched();
+      this.snackBar.open('⚠️ Formulario no válido. Revisa los campos.', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    // 🟢 Confirmación antes de enviar
+    const confirmRef = this.dialogModal.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { mensaje: '¿Desea registrar esta acta?' }
+    });
+
+    confirmRef.afterClosed().subscribe(confirmado => {
+      if (!confirmado) return;
+
+      // Arma el payload
+      const payload = {
+        ...this.formActa.value,
+        beneficiario: { idBeneficiario: this.beneficiario()?.idBeneficiario },
+        proyecto:     { idProyecto: this.proyectoSelect() },
+        responsable:  { idResponsable: this.responsableActa() }
+      };
+
+      this.actasService.post(payload).subscribe({
         next: resp => {
-          alert("Acta registrada correctamente");
+          this.snackBar.open('✅ Acta registrada correctamente', 'Cerrar', { duration: 3000 });
           this.router.navigate(['proceedings']);
         },
         error: error => {
-          alert("Algo salio mal intenta de nuevo");
+          this.snackBar.open('❌ Algo salió mal, intenta de nuevo', 'Cerrar', { duration: 3000 });
         }
-      })
-	  }else{
-      alert("Formulario no valido revisa los campos");
-		  this.formActa.markAllAsTouched();
-	  }
+      });
+    });
   }
+
 }

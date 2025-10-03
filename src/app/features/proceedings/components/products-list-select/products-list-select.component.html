@@ -1,96 +1,142 @@
-<div class="bg-white p-5 rounded-lg">
+<div class="bg-white p-5 rounded-lg h-[90vh] flex flex-col">
   <!-- Botones de acción -->
   <div class="flex h-[40px] justify-end space-x-4 m-4">
     <button (click)="close()" type="button" class="btn-action-gray">
       Cancelar
     </button>
-    <button (click)="closeWithRta()" type="button" class="btn-action-blue">
+    <button (click)="closeWithRta()" type="button" class="btn-action-blue"
+      class="btn-action-blue disabled:opacity-50 disabled:cursor-not-allowed"
+      [disabled]="selectedProducts.length === 0">
       Agregar lista de productos
     </button>
   </div>
 
-  <!-- Información del proyecto -->
-  @if (proyecto()) {
-    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-      <h2 class="text-lg font-semibold mb-2">{{ proyecto()?.proyecto?.nombre }}</h2>
-      <p class="text-gray-600">{{ proyecto()?.proyecto?.descripcion }}</p>
-      <div class="mt-2 text-sm">
-        <span class="font-medium">Fecha: </span>
-        {{ proyecto()?.proyecto?.fechaInicio }} - {{ proyecto()?.proyecto?.fechaFin || 'Sin fecha fin' }}
+  <!-- Contenido con scroll general -->
+  <div class="flex-1 overflow-y-auto scrollbar-custom pr-2">
+    
+    <!-- Información del proyecto -->
+    @if (proyecto()) {
+      <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+        <h2 class="text-lg font-semibold mb-2">{{ proyecto()?.proyecto?.nombre }}</h2>
+        <p class="text-gray-600">{{ proyecto()?.proyecto?.descripcion }}</p>
+        <div class="mt-2 text-sm">
+          <span class="font-medium">Fecha: </span>
+          {{ proyecto()?.proyecto?.fechaInicio }} - {{ proyecto()?.proyecto?.fechaFin || 'Sin fecha fin' }}
+        </div>
       </div>
-    </div>
 
-    <!-- Selector de categoría -->
-    <div class="mb-6">
-      <label for="categoria" class="block text-sm font-medium text-gray-700 mb-2">
-        Seleccione una categoría
-      </label>
-      <select
-        id="categoria"
-        class="w-full px-3 py-2 border border-gray-300 rounded-md"
-        (change)="onCategoriaChange($event)">
-        <option value="">Seleccione una categoría</option>
-        @for (categoria of proyecto()?.categorias; track categoria.idCategoria) {
-          <option [value]="categoria.idCategoria">
-            {{ categoria.nombre }} - {{ categoria.descripcion }}
-          </option>
-        }
-      </select>
-    </div>
-  }
+      <!-- Selector de categoría -->
+      <div class="mb-6">
+        <label for="categoria" class="block text-sm font-medium text-gray-700 mb-2">
+          Seleccione una categoría
+        </label>
+        <select
+          id="categoria"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md"
+          (change)="onCategoriaChange($event)">
+          <option value="">Seleccione una categoría</option>
+          @for (categoria of proyecto()?.categorias; track categoria.idCategoria) {
+            <option [value]="categoria.idCategoria">
+              {{ categoria.nombre }} - {{ categoria.descripcion }}
+            </option>
+          }
+        </select>
+      </div>
+    }
+    
+    <!-- Tabla de productos -->
+    @if (categoriaSeleccionada() && products.length > 0) {
 
-  <!-- Tabla de productos -->
-  @if (categoriaSeleccionada() && products.length > 0) {
-    <div class="w-full h-[calc(90vh-300px)] overflow-y-auto">
-      <table class="w-full text-sm text-left text-gray-500"
-        style="border-collapse: separate; border-spacing: 0 10px;">
-        <thead class="border-b-2">
-          <tr>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Stock</th>
-            <th>Agregar</th>
-            <th>Cantidad</th>
-            <th>Eliminar</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for(product of products; track product.idProductoFk) {
-            <tr class="px-2">
+      <!-- Filtro y tamaño de página -->
+      <div class="flex justify-between items-center mb-3">
+        <input
+          type="text"
+          placeholder="🔍 Buscar producto..."
+          [(ngModel)]="searchTerm"
+          class="w-1/2 px-3 py-2 border border-gray-300 rounded-md"
+        />
+
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">Mostrar:</label>
+          <select (change)="onPageSizeChange($event)"
+            class="px-2 py-1 border border-gray-300 rounded-md text-sm">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Contenedor de la tabla con scroll -->
+      <div class="overflow-y-auto scrollbar-custom max-h-[50vh] border rounded">
+        <table class="w-full text-sm text-left text-gray-600">
+          <thead class="bg-gray-100 sticky top-0">
+            <tr>
+              <th class="px-2 py-2">Nombre</th>
+              <th class="px-2 py-2">Descripción</th>
+              <th class="px-2 py-2">Stock</th>
+              <th class="px-2 py-2">Agregar</th>
+              <th class="px-2 py-2">Cantidad</th>
+              <th class="px-2 py-2">Eliminar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of filteredProducts">
               <td class="py-2">{{ product.nombreProducto }}</td>
               <td class="py-2">{{ product.descripcion }}</td>
               <td class="py-2">{{ product.stock }}</td>
               <td class="py-2">
-                <input
-                  type="checkbox"
+                <input type="checkbox"
                   #checkbox
-                  (change)="onQuantityChange(product, quantityInput, checkbox)"
-                >
+                  (change)="onQuantityChange(product, quantityInput, checkbox)">
               </td>
               <td class="py-2">
                 <input
-                  class="w-full px-3 py-0 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  class="w-full px-2 py-1 border border-gray-300 rounded-md"
                   #quantityInput
                   type="number"
                   min="1"
                   [max]="product.stock"
-                  (input)="onQuantityChange(product, quantityInput, checkbox)"
-                >
+                  (input)="onQuantityChange(product, quantityInput, checkbox)">
               </td>
               <td class="py-2">
                 <button type="button" (click)="removeProduct(product, checkbox, quantityInput)">
-                  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#b91c1c"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+                  <mat-icon class="text-red-600">delete</mat-icon>
                 </button>
               </td>
             </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  } @else if (categoriaSeleccionada() && products.length === 0) {
-    <div class="text-center py-8 text-gray-500">
-      Esta categoría no tiene productos asociados
-    </div>
-  }
-</div>
+          </tbody>
+        </table>
+      </div>
 
+      <!-- Paginación -->
+      <div class="flex justify-between items-center mt-3 text-sm text-gray-600">
+        <span>
+          Mostrando {{ pageIndex * pageSize + 1 }} - 
+          {{ Math.min((pageIndex + 1) * pageSize, totalFiltered) }} 
+          de {{ totalFiltered }}
+        </span>
+
+        <div class="flex gap-2">
+          <button 
+            (click)="onPageChange(pageIndex - 1)" 
+            [disabled]="pageIndex === 0"
+            class="btn-action-gray px-3 py-1"
+          >
+            Anterior
+          </button>
+          <button 
+            (click)="onPageChange(pageIndex + 1)" 
+            [disabled]="(pageIndex + 1) * pageSize >= totalFiltered"
+            class="btn-action-gray px-3 py-1"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+
+    } @else if (categoriaSeleccionada() && products.length === 0) {
+      <div class="text-center py-8 text-gray-500">
+        Esta categoría no tiene productos asociados
+      </div>
+    }
+  </div>
+</div>

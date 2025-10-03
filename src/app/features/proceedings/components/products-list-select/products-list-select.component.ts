@@ -7,6 +7,10 @@ import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { CommonModule } from '@angular/common';
 import { IProyecto, IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { ICategorias } from '../../../../core/models/categorias.model';
+import { MatIconModule } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
+import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface DialogData {
   idProyecto: number | null;
@@ -15,7 +19,7 @@ interface DialogData {
 @Component({
   selector: 'app-products-list-select',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule, FormsModule],
   styles: `
     th, td {
       border-bottom: 1px solid #e5e7eb; /* Gris claro */
@@ -30,6 +34,7 @@ interface DialogData {
   }
 })
 export class ProductsListSelectComponent implements OnInit{
+  constructor(private dialog: MatDialog) {}
 
   // data = inject(DIALOG_DATA);
   data = inject<DialogData>(DIALOG_DATA);
@@ -37,11 +42,20 @@ export class ProductsListSelectComponent implements OnInit{
   private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private proyectosService = inject(ProyectosService);
+  Math= Math;
 
   proyecto = signal<IProyectoAndCategoriaArray | null>(null);
   categoriaSeleccionada = signal<ICategorias | null>(null);
   products: IProductoFk[] = [];
   selectedProducts: ISelectedProduct[] = [];
+
+  // Paginación
+  pageIndex = 0;
+  pageSize = 2; // Número de filas por página
+  pageSizeOptions = [5, 10, 20];
+
+  // Filtro de búsqueda
+  searchTerm: string = '';
 
   ngOnInit(): void {
     if (this.data.idProyecto) {
@@ -149,6 +163,64 @@ export class ProductsListSelectComponent implements OnInit{
   }
 
   closeWithRta() {
-    this.dialogRef.close(this.selectedProducts);
+    if (this.selectedProducts.length === 0) {
+      return; // no debería entrar aquí porque el botón ya está disabled
+    }
+
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { mensaje: '¿Desea agregar esta lista de productos?' }
+    });
+
+    confirmRef.afterClosed().subscribe(confirmado => {
+      if (confirmado) {
+        this.dialogRef.close(this.selectedProducts);
+      }
+    });
+  }
+
+
+  get filteredProducts() {
+    let filtered = this.products;
+
+    // 🔎 Filtro por nombre o descripción
+    if (this.searchTerm.trim() !== '') {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.nombreProducto.toLowerCase().includes(term) ||
+        (p.descripcion?.toLowerCase().includes(term))
+      );
+    }
+
+    // 📄 Paginación
+    const start = this.pageIndex * this.pageSize;
+    return filtered.slice(start, start + this.pageSize);
+  }
+
+  get totalFiltered() {
+    let filtered = this.products;
+
+    if (this.searchTerm.trim() !== '') {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.nombreProducto.toLowerCase().includes(term) ||
+        (p.descripcion?.toLowerCase().includes(term))
+      );
+    }
+
+    return filtered.length;
+  }
+
+  // Cambiar página
+  onPageChange(newIndex: number) {
+    if (newIndex >= 0 && newIndex < Math.ceil(this.totalFiltered / this.pageSize)) {
+      this.pageIndex = newIndex;
+    }
+  }
+
+  // Cambiar tamaño de página
+  onPageSizeChange(event: Event) {
+    this.pageSize = +(event.target as HTMLSelectElement).value;
+    this.pageIndex = 0; // reset
   }
 }

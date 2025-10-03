@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
-import { IProducto, IProductoFk, ISelectedProduct } from '../../../../core/models/products.model';
+import { IProducto, IProductoFk, ISelectedProduct, ProductsDialogResult } from '../../../../core/models/products.model';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { CategoriasService } from '../../../../core/services/categorias.service';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
@@ -15,6 +15,7 @@ import { MatDialog } from '@angular/material/dialog';
 interface DialogData {
   idProyecto: number | null;
   productosSeleccionados?: ISelectedProduct[];
+  idCategoriaSeleccionada?: number | null;
 }
 
 @Component({
@@ -39,7 +40,7 @@ export class ProductsListSelectComponent implements OnInit{
 
   // data = inject(DIALOG_DATA);
   data = inject<DialogData>(DIALOG_DATA);
-  dialogRef = inject<DialogRef<ISelectedProduct[]>>(DialogRef<ISelectedProduct[]>);
+  dialogRef = inject<DialogRef<ProductsDialogResult>>(DialogRef<ProductsDialogResult>);
   private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private proyectosService = inject(ProyectosService);
@@ -49,6 +50,7 @@ export class ProductsListSelectComponent implements OnInit{
   categoriaSeleccionada = signal<ICategorias | null>(null);
   products: IProductoFk[] = [];
   selectedProducts: ISelectedProduct[] = [];
+  selectedCategoriaId = signal<number | null>(null);
 
   // Paginación
   pageIndex = 0;
@@ -83,8 +85,29 @@ export class ProductsListSelectComponent implements OnInit{
   getProjectById() {
     this.proyectosService.getById(this.data.idProyecto!.toString()).subscribe({
       next: response => {
-        if (response.estado === 'exito') {
+        if (response.estado === 'exito' && response.respuesta) {
           this.proyecto.set(response.respuesta);
+
+          // Si viene del padre con categoría seleccionada
+          let categoriaId = this.data.idCategoriaSeleccionada ?? null;
+
+          // 👉 Si no vino, tomamos la primera categoría
+          if (categoriaId === null && response.respuesta.categorias?.length > 0) {
+            categoriaId = response.respuesta.categorias[0].idCategoria;
+          }
+
+          if (categoriaId !== null) {
+            this.selectedCategoriaId.set(categoriaId);
+
+            const categoria = response.respuesta.categorias?.find(
+              (c: ICategorias) => c.idCategoria === categoriaId
+            );
+
+            if (categoria) {
+              this.categoriaSeleccionada.set(categoria);
+              this.products = categoria.productos ?? [];
+            }
+          }
         }
       },
       error: error => {
@@ -94,17 +117,29 @@ export class ProductsListSelectComponent implements OnInit{
     });
   }
 
-  onCategoriaChange(event: Event) {
-    const select = event.target as HTMLSelectElement;
-    const categoriaId = select.value;
 
-    if (categoriaId) {
-      this.loadProductosCategoria(categoriaId);
-    } else {
+
+  onCategoriaChange(categoriaId: number | string | null) {
+    if (!categoriaId) {
       this.categoriaSeleccionada.set(null);
       this.products = [];
+      return;
+    }
+
+    // Guardar en el signal
+    this.selectedCategoriaId.set(+categoriaId);
+
+    // Buscar en el proyecto actual
+    const categoria = this.proyecto()?.categorias?.find(
+      c => c.idCategoria === +categoriaId
+    );
+
+    if (categoria) {
+      this.categoriaSeleccionada.set(categoria);
+      this.products = categoria.productos ?? [];
     }
   }
+
 
   loadProductosCategoria(categoriaId: string) {
     this.categoriasService.getById(categoriaId).subscribe({
@@ -179,7 +214,10 @@ export class ProductsListSelectComponent implements OnInit{
 
     confirmRef.afterClosed().subscribe(confirmado => {
       if (confirmado) {
-        this.dialogRef.close(this.selectedProducts);
+        this.dialogRef.close({
+          productos: this.selectedProducts,
+          categoriaId: this.categoriaSeleccionada()?.idCategoria ?? null
+        });
       }
     });
   }

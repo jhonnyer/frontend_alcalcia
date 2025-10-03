@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl, V
 import { ActasService } from '../../../../core/services/actas.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { EstadoActa, EstadoTransition, IActaById } from '../../../../core/models/acta.model';
-import { ISelectedProduct, ProductoWithCantidad } from '../../../../core/models/products.model';
+import { ISelectedProduct, ProductoWithCantidad, ProductsDialogResult } from '../../../../core/models/products.model';
 import { Router } from '@angular/router';
 import { DialogModule, Dialog } from '@angular/cdk/dialog';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
@@ -17,6 +17,7 @@ import { ProductsListSelectComponent } from '../../components/products-list-sele
 interface DialogData {
   idProyecto: number | null;
   productosSeleccionados?: ISelectedProduct[];
+  idCategoriaSeleccionada?: number | null;
 }
 
 interface ProductoWithCantidadUpdate extends ProductoWithCantidad {
@@ -119,7 +120,8 @@ export class ProcedingsUpdateComponent implements OnInit {
       tipoSolicitud: ['', [Validators.required]],
       productos: [null],
       paquetes: [null],
-      observaciones: ['']
+      observaciones: [''],
+      categoria: [null]  
     });
 
     // Listener para el campo estado
@@ -401,37 +403,36 @@ export class ProcedingsUpdateComponent implements OnInit {
 
   openDialog() {
     const estadoActual = this.formActa.get('estado')?.value as EstadoActa;
+
     // Permitir solo en estados Recibido (R) y Procesado (P)
     if (!(estadoActual === 'R' || estadoActual === 'P')) {
       alert('Solo puede modificar productos en estados Recibido o Procesado');
       return;
     }
-    // Solo permitir abrir el diálogo si no hay productos
-    // if (this.selectedProductsInfo().length > 0) {
-    //   alert('Esta acta ya tiene productos asociados');
-    //   return;
-    // }
 
     if (!this.proyectoSelect()) {
       alert('Por favor seleccione un proyecto primero');
       return;
     }
 
-    const dialogRef = this.dialog.open<ISelectedProduct[]>(ProductsListSelectComponent, {
+    const dialogRef = this.dialog.open<ProductsDialogResult>(ProductsListSelectComponent, {
       data: {
         idProyecto: this.proyectoSelect(),
         productosSeleccionados: this.selectedProductsInfo().map(p => ({
           idProductoFk: p.idProducto,
           cantidad: p.cantidad
-        }))
+        })),
+        idCategoriaSeleccionada: this.formActa.get('categoria')?.value
       } as DialogData
     });
 
-    dialogRef.closed.subscribe(selectedProducts => {
-      if (selectedProducts && selectedProducts.length > 0) {
+    dialogRef.closed.subscribe((result: ProductsDialogResult | undefined) => {
+      if (result && result.productos.length > 0) {
+        const { productos, categoriaId } = result;
+
         this.productosService.getAll().subscribe({
           next: (allProducts) => {
-            const productsWithQuantity: ProductoWithCantidadUpdate[] = selectedProducts
+            const productsWithQuantity: ProductoWithCantidadUpdate[] = productos
               .map(selected => {
                 const productInfo = allProducts.find(p => p.idProducto === selected.idProductoFk);
                 if (!productInfo) return null;
@@ -446,17 +447,16 @@ export class ProcedingsUpdateComponent implements OnInit {
 
             this.selectedProductsInfo.set(productsWithQuantity);
 
-            // Actualizar el control del formulario
-            const formProducts = productsWithQuantity.map(p => ({
-              idProductoFk: p.idProducto,
-              cantidad: p.cantidad
-            }));
-
+            // Actualizar formulario con productos y categoría
             this.formActa.patchValue({
-              productos: formProducts
+              productos: productsWithQuantity.map(p => ({
+                idProductoFk: p.idProducto,
+                cantidad: p.cantidad
+              })),
+              categoria: categoriaId // 👈 aquí guardamos la categoría seleccionada
             });
 
-            // Forzar la revalidación si el estado es 'A'
+            // Forzar revalidación si el estado es 'A'
             if (this.formActa.get('estado')?.value === 'A') {
               this.formActa.get('productos')?.updateValueAndValidity();
             }

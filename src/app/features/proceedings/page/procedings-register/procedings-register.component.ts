@@ -18,7 +18,7 @@ import { debounceTime } from 'rxjs';
 import { timer } from 'rxjs';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { IResponsable } from '../../../../core/models/responsable.model';
-import { ISelectedProduct, ProductoWithCantidad } from '../../../../core/models/products.model';
+import { ISelectedProduct, ProductoWithCantidad, ProductsDialogResult } from '../../../../core/models/products.model';
 
 import { Router } from '@angular/router';
 import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProyecto.model';
@@ -28,6 +28,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 interface DialogData {
   idProyecto: number | null;
+  productosSeleccionados?: ISelectedProduct[];
+  idCategoriaSeleccionada?: number | null;
 }
 
 @Component({
@@ -204,8 +206,8 @@ export class ProcedingsRegisterComponent implements OnInit{
       fechaCreacion: [this.getFechaActual(), [Validators.required]],
       estado: ['R', [Validators.required]],
       fechaEntrega: [''],
-      // proyecto:     [{idProyecto: this.proyectoSelect()}, [Validators.required]],
-      // responsable:  [{idResponsable: this.responsableActa()}, [Validators.required]],
+      proyecto:     [{idProyecto: this.proyectoSelect()}],
+      responsable:  [{idResponsable: this.responsableActa()}],
       ubicacionEntrega: ['', [Validators.required]],
       prioridad: ['', [Validators.required]],
       responsableVisita: ['', [Validators.required]],
@@ -213,6 +215,7 @@ export class ProcedingsRegisterComponent implements OnInit{
       productos: [null],
       paquetes: [null],
       observaciones: [''],
+      categoria: [null]  
     });
   }
 
@@ -230,23 +233,32 @@ export class ProcedingsRegisterComponent implements OnInit{
       alert('Por favor seleccione un proyecto primero');
       return;
     }
-    const dialogRef = this.dialog.open<ISelectedProduct[]>(ProductsListSelectComponent, {
+
+    const dialogRef = this.dialog.open<ProductsDialogResult>(ProductsListSelectComponent, {
       data: {
-        idProyecto: this.proyectoSelect()
+        idProyecto: this.proyectoSelect(),
+        productosSeleccionados: this.selectedProductsInfo().map(p => ({
+          idProductoFk: p.idProducto,
+          cantidad: p.cantidad
+        })),
+        idCategoriaSeleccionada: this.formActa.get('categoria')?.value
       } as DialogData
     });
 
-    dialogRef.closed.subscribe(selectedProducts => {
-      if (selectedProducts && selectedProducts.length > 0) {
-        // Actualizamos el formulario con los productos seleccionados
+    dialogRef.closed.subscribe((result: ProductsDialogResult | undefined) => {
+      if (result && result.productos.length > 0) {
+        const { productos, categoriaId } = result;
+
+        // ✅ Guardar en el formulario
         this.formActa.patchValue({
-          productos: selectedProducts
+          productos: productos,
+          categoria: categoriaId
         });
 
-        // Obtenemos la información completa de los productos
+        // ✅ Reconstruir los productos con info completa desde el servicio
         this.productosService.getAll().subscribe({
           next: (allProducts) => {
-            const productsWithQuantity: ProductoWithCantidad[] = selectedProducts
+            const productsWithQuantity: ProductoWithCantidad[] = productos
               .map(selected => {
                 const productInfo = allProducts.find(p => p.idProducto === selected.idProductoFk);
                 if (!productInfo) return null;
@@ -267,6 +279,7 @@ export class ProcedingsRegisterComponent implements OnInit{
       }
     });
   }
+
 
   removeSelectedProduct(productId: number) {
     // Remover del signal de información

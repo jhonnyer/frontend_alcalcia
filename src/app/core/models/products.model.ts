@@ -44,3 +44,8 @@ export interface IProductoAndProyecto {
   idCategoria: number;
   productos: Array<Omit<IProductoFk, 'idProductoFk' | 'cantidad'>>;
 }
+
+export interface ProductsDialogResult {
+  productos: ISelectedProduct[];
+  categoriaId: number | null;
+}

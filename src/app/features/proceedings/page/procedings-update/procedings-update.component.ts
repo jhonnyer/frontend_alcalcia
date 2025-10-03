@@ -16,6 +16,7 @@ import { ProductsListSelectComponent } from '../../components/products-list-sele
 
 interface DialogData {
   idProyecto: number | null;
+  productosSeleccionados?: ISelectedProduct[];
 }
 
 interface ProductoWithCantidadUpdate extends ProductoWithCantidad {
@@ -399,11 +400,17 @@ export class ProcedingsUpdateComponent implements OnInit {
   }
 
   openDialog() {
-    // Solo permitir abrir el diálogo si no hay productos
-    if (this.selectedProductsInfo().length > 0) {
-      alert('Esta acta ya tiene productos asociados');
+    const estadoActual = this.formActa.get('estado')?.value as EstadoActa;
+    // Permitir solo en estados Recibido (R) y Procesado (P)
+    if (!(estadoActual === 'R' || estadoActual === 'P')) {
+      alert('Solo puede modificar productos en estados Recibido o Procesado');
       return;
     }
+    // Solo permitir abrir el diálogo si no hay productos
+    // if (this.selectedProductsInfo().length > 0) {
+    //   alert('Esta acta ya tiene productos asociados');
+    //   return;
+    // }
 
     if (!this.proyectoSelect()) {
       alert('Por favor seleccione un proyecto primero');
@@ -412,7 +419,11 @@ export class ProcedingsUpdateComponent implements OnInit {
 
     const dialogRef = this.dialog.open<ISelectedProduct[]>(ProductsListSelectComponent, {
       data: {
-        idProyecto: this.proyectoSelect()
+        idProyecto: this.proyectoSelect(),
+        productosSeleccionados: this.selectedProductsInfo().map(p => ({
+          idProductoFk: p.idProducto,
+          cantidad: p.cantidad
+        }))
       } as DialogData
     });
 

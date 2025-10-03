@@ -14,6 +14,7 @@ import { MatDialog } from '@angular/material/dialog';
 
 interface DialogData {
   idProyecto: number | null;
+  productosSeleccionados?: ISelectedProduct[];
 }
 
 @Component({
@@ -60,6 +61,10 @@ export class ProductsListSelectComponent implements OnInit{
   ngOnInit(): void {
     if (this.data.idProyecto) {
       this.getProjectById();
+      // ✅ Inicializar con productos seleccionados
+      if (this.data.productosSeleccionados?.length) {
+        this.selectedProducts = [...this.data.productosSeleccionados];
+      }
     } else {
       alert("No se ha seleccionado un proyecto");
       this.close();
@@ -223,4 +228,14 @@ export class ProductsListSelectComponent implements OnInit{
     this.pageSize = +(event.target as HTMLSelectElement).value;
     this.pageIndex = 0; // reset
   }
+
+  isProductSelected(productId: number): boolean {
+    return this.selectedProducts.some(sp => sp.idProductoFk === productId);
+  }
+
+  getProductQuantity(productId: number): number | '' {
+    const found = this.selectedProducts.find(sp => sp.idProductoFk === productId);
+    return found ? found.cantidad : '';
+  }
+
 }

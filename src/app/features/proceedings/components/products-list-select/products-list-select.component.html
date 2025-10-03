@@ -83,11 +83,17 @@
               <td class="py-2">{{ product.nombreProducto }}</td>
               <td class="py-2">{{ product.descripcion }}</td>
               <td class="py-2">{{ product.stock }}</td>
+
+              <!-- Checkbox -->
               <td class="py-2">
-                <input type="checkbox"
+                <input
+                  type="checkbox"
                   #checkbox
+                  [checked]="isProductSelected(product.idProductoFk)"
                   (change)="onQuantityChange(product, quantityInput, checkbox)">
               </td>
+
+              <!-- Cantidad -->
               <td class="py-2">
                 <input
                   class="w-full px-2 py-1 border border-gray-300 rounded-md"
@@ -95,8 +101,11 @@
                   type="number"
                   min="1"
                   [max]="product.stock"
+                  [value]="getProductQuantity(product.idProductoFk)"
                   (input)="onQuantityChange(product, quantityInput, checkbox)">
               </td>
+
+              <!-- Botón eliminar -->
               <td class="py-2">
                 <button type="button" (click)="removeProduct(product, checkbox, quantityInput)">
                   <mat-icon class="text-red-600">delete</mat-icon>

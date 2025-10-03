@@ -15,7 +15,7 @@ import { MatDialog } from '@angular/material/dialog';
 interface DialogData {
   idProyecto: number | null;
   productosSeleccionados?: ISelectedProduct[];
-  idCategoriaSeleccionada?: number | null;
+  idCategoriaSeleccionada?: number | null ;
 }
 
 @Component({
@@ -50,7 +50,7 @@ export class ProductsListSelectComponent implements OnInit{
   categoriaSeleccionada = signal<ICategorias | null>(null);
   products: IProductoFk[] = [];
   selectedProducts: ISelectedProduct[] = [];
-  selectedCategoriaId = signal<number | null>(null);
+  selectedCategoriaId = signal<number>(-1); // -1 = no seleccionada
 
   // Paginación
   pageIndex = 0;
@@ -91,11 +91,6 @@ export class ProductsListSelectComponent implements OnInit{
           // Si viene del padre con categoría seleccionada
           let categoriaId = this.data.idCategoriaSeleccionada ?? null;
 
-          // 👉 Si no vino, tomamos la primera categoría
-          if (categoriaId === null && response.respuesta.categorias?.length > 0) {
-            categoriaId = response.respuesta.categorias[0].idCategoria;
-          }
-
           if (categoriaId !== null) {
             this.selectedCategoriaId.set(categoriaId);
 
@@ -107,6 +102,11 @@ export class ProductsListSelectComponent implements OnInit{
               this.categoriaSeleccionada.set(categoria);
               this.products = categoria.productos ?? [];
             }
+          }else{
+            // ❗️sin categoría => mostrar “Seleccione una categoría”
+            this.selectedCategoriaId.set(-1);
+            this.categoriaSeleccionada.set(null);
+            this.products = [];
           }
         }
       },
@@ -117,21 +117,22 @@ export class ProductsListSelectComponent implements OnInit{
     });
   }
 
+  onCategoriaChange(categoriaId: number | string) {
+    const id = +categoriaId; // convertir siempre a number
 
-
-  onCategoriaChange(categoriaId: number | string | null) {
-    if (!categoriaId) {
+    if (id === -1) {
       this.categoriaSeleccionada.set(null);
       this.products = [];
+      this.selectedCategoriaId.set(-1); // 👈 aseguramos el valor en el signal
       return;
     }
 
     // Guardar en el signal
-    this.selectedCategoriaId.set(+categoriaId);
+    this.selectedCategoriaId.set(id);
 
     // Buscar en el proyecto actual
     const categoria = this.proyecto()?.categorias?.find(
-      c => c.idCategoria === +categoriaId
+      c => c.idCategoria === id
     );
 
     if (categoria) {
@@ -139,7 +140,6 @@ export class ProductsListSelectComponent implements OnInit{
       this.products = categoria.productos ?? [];
     }
   }
-
 
   loadProductosCategoria(categoriaId: string) {
     this.categoriasService.getById(categoriaId).subscribe({

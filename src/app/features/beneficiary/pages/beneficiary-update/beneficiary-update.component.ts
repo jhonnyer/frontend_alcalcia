@@ -4,29 +4,41 @@ import { BeneficiaryService } from '../../../../core/services/beneficiary.servic
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { IBeneficiario, IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
+import { MatIconModule } from '@angular/material/icon';
+import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-beneficiary-update',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
-  styles: ``,
+  imports: [ReactiveFormsModule, CommonModule, MatIconModule],
+  styleUrls: ['./beneficiary-update.component.scss'],
   templateUrl: './beneficiary-update.component.html'
 })
 export class BeneficiaryUpdateComponent implements OnInit {
-  @Input('id') beneficiarioId!: string;
   private pageTitleService = inject(PageTitleService);
   private beneficiaryService = inject(BeneficiaryService);
-
-  private router = inject(Router);
-  public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private dialog = inject(MatDialog);
+
+  public formFamilyCore!: FormGroup;
+  private beneficiarioId!: string;
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Actualizar beneficiario');
+
+    // 📌 Tomamos el ID de la ruta
+    this.beneficiarioId = this.route.snapshot.paramMap.get('id')!;
+
     this.initFormFamilyCore();
     this.getBeneficiarioById();
+    this.formFamilyCore.valueChanges.subscribe(() => {
+      this.formFamilyCore.updateValueAndValidity({ onlySelf: false, emitEvent: false });
+    });
   }
 
   getBeneficiarioById(){
@@ -38,7 +50,7 @@ export class BeneficiaryUpdateComponent implements OnInit {
   }
 
   private initProject(beneficiario: IBeneficiarioUnique){
-    this.formFamilyCore.setValue({
+    this.formFamilyCore.patchValue({
       primerNombre: beneficiario.primerNombre,
       segundoNombre: beneficiario.segundoNombre,
       primerApellido: beneficiario.primerApellido,
@@ -54,7 +66,9 @@ export class BeneficiaryUpdateComponent implements OnInit {
       telefono: beneficiario.telefono,
       email: beneficiario.email,
       idNucleoFk: beneficiario.nucleoFamiliar.idNucleo,
-      esVivo: beneficiario.esVivo
+      esVivo: beneficiario.esVivo,
+      discapacidad: beneficiario.discapacidad,
+      certificadoDiscapacidad: beneficiario.certificadoDiscapacidad
     }, { emitEvent: true })
   }
 
@@ -64,18 +78,57 @@ export class BeneficiaryUpdateComponent implements OnInit {
       segundoNombre: [''],
       primerApellido: ['', Validators.required],
       segundoApellido: [''],
-      sexo: ['', Validators.required],
-      genero: ['', Validators.required],
-      etnia: [''],
-      edad: ['', Validators.required],
-      victimaConflicto: ['', Validators.required],
       tipoDocumento: ['', Validators.required],
       numeroDocumento: ['', Validators.required],
       fechaNacimiento: ['', Validators.required],
-      telefono: ['', Validators.required],
-      email: [''],
+      edad: ['', Validators.required],
+      sexo: ['', Validators.required],
+      genero: ['', Validators.required],
+      victimaConflicto: ['', Validators.required],
       esVivo: ['', Validators.required],
+      discapacidad: ['', Validators.required],
+      certificadoDiscapacidad: [{ value: '', disabled: true }, Validators.required],
+      etnia: ['', Validators.required],
+      email: ['', [Validators.required, Validators.pattern(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)]],
+      telefono: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       idNucleoFk: ['']
+    });
+
+    // 🔄 Calcular edad automáticamente (con mínimo en 0)
+    this.formFamilyCore.get('fechaNacimiento')?.valueChanges.subscribe(date => {
+      if (date) {
+        const today = new Date();
+        const birthDate = new Date(date);
+
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+
+        // ✅ Evitar valores negativos
+        if (age < 0) {
+          age = 0;
+        }
+
+        this.formFamilyCore.get('edad')?.setValue(age, { emitEvent: false });
+      } else {
+        // Si no hay fecha → dejar en 0
+        this.formFamilyCore.get('edad')?.setValue(0, { emitEvent: false });
+      }
+    });
+
+
+    // 🔄 Habilitar certificado si discapacidad = true
+    this.formFamilyCore.get('discapacidad')?.valueChanges.subscribe(value => {
+      const certCtrl = this.formFamilyCore.get('certificadoDiscapacidad');
+      if (value === true) {
+        certCtrl?.enable();
+      } else {
+        certCtrl?.disable();
+        certCtrl?.reset('');
+      }
     });
   }
 
@@ -85,20 +138,29 @@ export class BeneficiaryUpdateComponent implements OnInit {
   }
 
   onSubmit() {
-    if(this.formFamilyCore.valid){
-      this.beneficiaryService.updateById(this.beneficiarioId, this.formFamilyCore.value).subscribe({
-        next: response => {
-          alert('Se ha guardado correctamente el beneficiario');
-          this.router.navigate(["/beneficary"]);
-        },
-        error: error => {
-          alert('Ha ocurrido un error al cargar los datos');
+    if (this.formFamilyCore.valid) {
+      // 🔹 Mostrar confirmación antes de guardar
+      const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '350px',
+        data: { mensaje: '¿Desea guardar los cambios de este beneficiario?' }
+      });
+
+      confirmRef.afterClosed().subscribe(confirmado => {
+        if (confirmado) {
+          this.beneficiaryService.updateById(this.beneficiarioId, this.formFamilyCore.value).subscribe({
+            next: () => {
+              this.router.navigate(['/beneficary']);
+            },
+            error: () => {
+              alert('❌ Ha ocurrido un error al guardar el beneficiario');
+            }
+          });
         }
-      })
-	  }else
-    {
-      alert('Verifica los campos de tu formulario');
+      });
+    } else {
       this.formFamilyCore.markAllAsTouched();
+      alert('⚠️ Verifica los campos de tu formulario');
     }
   }
+
 }

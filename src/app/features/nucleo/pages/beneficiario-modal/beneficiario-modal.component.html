@@ -58,7 +58,9 @@
         </div>
         <div>
           <label class="label-base">*Número de documento</label>
-          <input formControlName="numeroDocumento" type="text" class="input-base" />
+          <input formControlName="numeroDocumento" type="text" class="input-base" 
+            (input)="beneficiarioForm.get('numeroDocumento')?.updateValueAndValidity()" />
+          />
           <p *ngIf="beneficiarioForm.get('numeroDocumento')?.hasError('required') && beneficiarioForm.get('numeroDocumento')?.touched"
             class="text-red-500 text-xs">⚠️ El número de documento es obligatorio</p>
         </div>
@@ -66,13 +68,15 @@
         <!-- Nacimiento y Edad -->
         <div>
           <label class="label-base">*Fecha de nacimiento</label>
-          <input formControlName="fechaNacimiento" type="date" class="input-base" />
+          <input formControlName="fechaNacimiento" type="date" class="input-base" 
+                      (input)="beneficiarioForm.get('fechaNacimiento')?.updateValueAndValidity()"/>
           <p *ngIf="beneficiarioForm.get('fechaNacimiento')?.hasError('required') && beneficiarioForm.get('fechaNacimiento')?.touched"
             class="text-red-500 text-xs">⚠️ La fecha de nacimiento es obligatoria</p>
         </div>
         <div>
           <label class="label-base">Edad</label>
-          <input readonly formControlName="edad" type="number" class="input-base bg-gray-100" />
+          <input readonly formControlName="edad" type="number" class="input-base bg-gray-100" 
+            (input)="beneficiarioForm.get('edad')?.updateValueAndValidity()"/>
           <p *ngIf="beneficiarioForm.get('edad')?.hasError('required') && beneficiarioForm.get('edad')?.touched"
             class="text-red-500 text-xs">⚠️ La edad es obligatoria</p>
         </div>
@@ -164,7 +168,8 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label class="label-base">*Email</label>
-          <input formControlName="email" type="email" class="input-base" />
+          <input formControlName="email" type="email" class="input-base" 
+            (input)="beneficiarioForm.get('email')?.updateValueAndValidity()"/>
           <p *ngIf="beneficiarioForm.get('email')?.hasError('required') && beneficiarioForm.get('email')?.touched"
             class="text-red-500 text-xs">⚠️ El correo es obligatorio</p>
           <p *ngIf="beneficiarioForm.get('email')?.hasError('pattern') && beneficiarioForm.get('email')?.touched"
@@ -172,7 +177,8 @@
         </div>
         <div>
           <label class="label-base">*Teléfono</label>
-          <input formControlName="telefono" type="tel" class="input-base" maxlength="10" placeholder="3000000000"/>
+          <input formControlName="telefono" type="tel" class="input-base" maxlength="10" placeholder="3000000000"
+            (input)="beneficiarioForm.get('telefono')?.updateValueAndValidity()"/>
           <p *ngIf="beneficiarioForm.get('telefono')?.hasError('required') && beneficiarioForm.get('telefono')?.touched"
             class="text-red-500 text-xs">⚠️ El teléfono es obligatorio</p>
           <p *ngIf="beneficiarioForm.get('telefono')?.hasError('pattern') && beneficiarioForm.get('telefono')?.touched"

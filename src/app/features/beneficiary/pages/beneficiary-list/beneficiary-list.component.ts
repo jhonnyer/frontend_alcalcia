@@ -21,15 +21,22 @@ import {
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './beneficiary-columns-definitions';
 import { IBeneficiario } from '../../../../core/models/beneficiary.models';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+import { ConfirmDeleteDialogComponent } from '../../../nucleo/components/confirm-delete-dialog/confirm-delete-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-beneficiary-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, MatCardModule, MatIconModule, HasRoleDirective],
   templateUrl: './beneficiary-list.component.html',
   styles: ``,
 })
 export class BeneficiaryListComponent implements OnInit {
+  constructor(private dialog: MatDialog, private snackBar: MatSnackBar ) {}
   private beneficiaryService = inject(BeneficiaryService);
   injector = inject(Injector);
   private router = inject(Router);
@@ -43,13 +50,13 @@ export class BeneficiaryListComponent implements OnInit {
 
   public readonly paginationState = signal<PaginationState>({
     pageIndex: 0,
-    pageSize: 10
+    pageSize: 5
   });
 
   public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Beneficiarios');
+    this.pageTitleService.setCurrentPage('Gestión de Beneficiarios');
     this.getAll();
   }
 
@@ -128,13 +135,32 @@ export class BeneficiaryListComponent implements OnInit {
     ]);
   }
 
-  delete(item: Row<IBeneficiario>) {
-    //console.log("Delete Beneficiario:", item.original);
-    // this.beneficiaryService.delete(item.original.idBeneficiario);
-  }
-
   update(item: Row<IBeneficiario>) {
     this.router.navigate(["/beneficary/update/", item.original.idBeneficiario]);
+  }
+
+  delete(row: Row<IBeneficiario>) {
+    const beneficiario = row.original;
+
+    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+      width: '350px',
+      data: { mensaje: `¿Estás seguro de eliminar a "${beneficiario.primerNombre} ${beneficiario.primerApellido}"?` }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmado => {
+      if (!confirmado) return;
+
+      this.beneficiaryService.delete(beneficiario.idBeneficiario.toString()).subscribe({
+        next: () => {
+          this.snackBar.open('✅ Beneficiario eliminado correctamente.', 'Cerrar', { duration: 3000 });
+          this.getAll(); // refrescar tabla
+        },
+        error: (err) => {
+          console.error('Error eliminando beneficiario:', err);
+          this.snackBar.open('❌ Error al eliminar beneficiario.', 'Cerrar', { duration: 3000 });
+        }
+      });
+    });
   }
 
 }

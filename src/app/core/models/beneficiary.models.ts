@@ -45,6 +45,8 @@ export interface IBeneficiarioUnique {
   telefono: string;
   email: string;
   esVivo: boolean;
+  discapacidad:boolean;
+  certificadoDiscapacidad: boolean;
   nucleoFamiliar: INucleoUpdate;
   proyectoAsociado: INucleoUpdate;
 }

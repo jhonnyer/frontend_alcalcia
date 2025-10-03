@@ -105,14 +105,16 @@
       <button 
         [disabled]="!dataTable.getCanPreviousPage()" 
         (click)="dataTable.previousPage()" 
-        class="px-3 py-1 border rounded text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+        class="btn-navigate-black"
+        type="button"
       >
         ⬅ Anterior
       </button>
       <button 
         [disabled]="!dataTable.getCanNextPage()" 
         (click)="dataTable.nextPage()" 
-        class="px-3 py-1 border rounded text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+        class="btn-navigate-black"
+        type="button"
       >
         Siguiente ➡
       </button>

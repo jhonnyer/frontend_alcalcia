@@ -16,6 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActasService } from '../../../../core/services/actas.service';
 import { firstValueFrom } from 'rxjs';
+import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 
 @Component({
   selector: 'app-nucleos',
@@ -33,6 +34,7 @@ export class NucleosComponent implements OnInit{
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
   private readonly actasService = inject(ActasService);
+  private readonly beneficiaryService=inject(BeneficiaryService);
   data = signal<INucleoUpdate[]>([]);
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -143,19 +145,18 @@ export class NucleosComponent implements OnInit{
 
   async delete(row: Row<INucleoUpdate>) {
     const idNucleo = row.original.idNucleo;
+    const beneficiarios = row.original.beneficiarios ?? [];
 
     // 1️⃣ Confirmación
     const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
       width: '350px',
-      data: { mensaje: `¿Estás seguro de eliminar el núcleo "${row.original.nombreNucleo}"?` }
+      data: { mensaje: `¿Estás seguro de eliminar el núcleo "${row.original.nombreNucleo}" y todos sus beneficiarios?` }
     });
 
     const confirmado = await firstValueFrom(dialogRef.afterClosed());
     if (!confirmado) return;
 
     // 2️⃣ Verificar beneficiarios con actas
-    const beneficiarios = row.original.beneficiarios ?? [];
-
     const results: number[] = await Promise.all(
       beneficiarios.map(b =>
         firstValueFrom(this.actasService.getCountActas(b.idBeneficiario.toString()))
@@ -174,10 +175,21 @@ export class NucleosComponent implements OnInit{
       }
     }
 
-    // 3️⃣ Si no hay actas, eliminamos el núcleo
+    // 3️⃣ Eliminar beneficiarios primero
+    for (const b of beneficiarios) {
+      try {
+        await firstValueFrom(this.beneficiaryService.delete(b.idBeneficiario.toString()));
+      } catch (err) {
+        console.error(`Error eliminando beneficiario ${b.idBeneficiario}:`, err);
+        this.snackBar.open(`❌ Error al eliminar beneficiario "${b.primerNombre} ${b.primerApellido}"`, 'Cerrar', { duration: 3000 });
+        return; // 🚫 detenemos todo si un beneficiario no se elimina
+      }
+    }
+
+    // 4️⃣ Ahora sí eliminamos el núcleo
     this.nucleoService.deleteById(idNucleo.toString()).subscribe({
       next: () => {
-        this.snackBar.open('✅ Núcleo eliminado correctamente.', 'Cerrar', { duration: 3000 });
+        this.snackBar.open('✅ Núcleo y beneficiarios eliminados correctamente.', 'Cerrar', { duration: 3000 });
         this.getAll(); // 🔄 refrescar tabla
       },
       error: (err) => {
@@ -186,7 +198,6 @@ export class NucleosComponent implements OnInit{
       }
     });
   }
-
 
   update(item: Row<INucleoUpdate>){
     this.router.navigate(["nucleo/update/", item.original.idNucleo]);

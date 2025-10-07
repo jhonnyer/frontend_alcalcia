@@ -15,7 +15,6 @@ import { ProductosService } from '../../../../core/services/productos.service';
 import { ActasService } from '../../../../core/services/actas.service';
 import { IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
 import { debounceTime } from 'rxjs';
-import { timer } from 'rxjs';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { IResponsable } from '../../../../core/models/responsable.model';
 import { ISelectedProduct, ProductoWithCantidad, ProductsDialogResult } from '../../../../core/models/products.model';
@@ -25,6 +24,7 @@ import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProye
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
 
 interface DialogData {
   idProyecto: number | null;
@@ -36,7 +36,10 @@ interface DialogData {
   selector: 'app-procedings-register',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, DialogModule
+    CommonModule, 
+    ReactiveFormsModule, 
+    DialogModule,
+    MatIconModule
   ],
   styles: ``,
   templateUrl: './procedings-register.component.html'
@@ -109,44 +112,80 @@ export class ProcedingsRegisterComponent implements OnInit{
     this.getResponsables();
   }
 
-  onSearchBeneficiario(){
+  onSearchBeneficiario() {
     this.searchBeneficiario.valueChanges
-    .pipe(
-      debounceTime(400)
-    )
-    .subscribe({
-      next: (value: string) => {
-        if(value.length >= 6 ){
-          // Primero buscamos en beneficiario-proyecto
-          this.beneficiarioProyectoService.getBeneficiarioProyectoByCedula(value).subscribe({
-            next: resp => {
-              if(resp !== undefined){
-                this.beneficiarioProyecto.set(resp);
-                // Actualizar el formulario con los IDs
-                this.formActa.patchValue({
-                  idBeneficiario: resp.idBeneficiario,
-                  idProyecto: resp.idProyecto
-                });
-                this.proyectoSelect.set(+resp.idProyecto);
+      .pipe(debounceTime(400))
+      .subscribe({
+        next: (value: string) => {
+          if (value.length >= 6) {
+            // Buscar beneficiario
+            this.beneficiarioNoEncontrado = false; 
+            this.beneficiarioProyectoService.getBeneficiarioProyectoByCedula(value).subscribe({
+              next: resp => {
+                if (resp) {
+                  this.beneficiarioProyecto.set(resp);
 
-                // Buscar información adicional del beneficiario para mostrarla
-                this.beneficiaryService.getByCedula(value).subscribe({
-                  next: beneficiarioInfo => {
-                    this.beneficiario.set(beneficiarioInfo);
-                  },
-                  error: error => console.error('Error al obtener información del beneficiario:', error)
-                });
-              } else {
+                  // Asigna IDs
+                  this.formActa.patchValue({
+                    idBeneficiario: resp.idBeneficiario,
+                    idProyecto: resp.idProyecto
+                  });
+                  this.proyectoSelect.set(+resp.idProyecto);
+
+                  // Carga la info del beneficiario
+                  this.beneficiaryService.getByCedula(value).subscribe({
+                    next: beneficiarioInfo => {
+                      this.beneficiario.set(beneficiarioInfo);
+                      this.beneficiarioNoEncontrado = false;
+                    },
+                    error: error => console.error('Error al obtener información del beneficiario:', error)
+                  });
+                } else {
+                  this.resetFormularioCompleto(); 
+                  this.handleBeneficiarioNoEncontrado();
+                }
+              },
+              error: error => {
+                this.resetFormularioCompleto();
                 this.handleBeneficiarioNoEncontrado();
+                console.error('Error en la búsqueda:', error);
               }
-            },
-            error: error => {
-              this.handleBeneficiarioNoEncontrado();
-              console.error('Error en la búsqueda:', error);
-            }
-          });
+            });
+          } else {
+            // Si el usuario borra el campo o escribe menos de 6 caracteres
+            this.resetFormularioCompleto();
+          }
         }
-      }
+      });
+  }
+
+  private resetFormularioCompleto() {
+    // Limpia signals y variables
+    this.beneficiario.set(null);
+    this.beneficiarioProyecto.set(null);
+    this.proyectoSelect.set(null);
+    this.responsableActa.set(null);
+    this.selectedProductsInfo.set([]);
+
+    // Reinicia controles individuales
+    this.selectResponsable.reset('');
+    this.selectProyecto.reset('');
+
+    // Reinicia formulario principal
+    this.formActa.reset({
+      fechaCreacion: this.getFechaActual(),
+      estado: 'R',
+      proyecto: null,
+      responsable: null,
+      productos: null,
+      categoria: null,
+      paquetes: null
+    });
+
+    // Muestra mensaje opcional
+    this.snackBar.open('Formulario reiniciado por cambio de beneficiario', 'Cerrar', {
+      duration: 2500,
+      panelClass: ['snackbar-info']
     });
   }
 
@@ -157,9 +196,6 @@ export class ProcedingsRegisterComponent implements OnInit{
     this.formActa.patchValue({
       idBeneficiario: '',
       idProyecto: ''
-    });
-    timer(1500).subscribe(() => {
-      this.beneficiarioNoEncontrado = false;
     });
   }
 
@@ -207,7 +243,9 @@ export class ProcedingsRegisterComponent implements OnInit{
       estado: ['R', [Validators.required]],
       fechaEntrega: [''],
       proyecto:     [{idProyecto: this.proyectoSelect()}],
-      responsable:  [{idResponsable: this.responsableActa()}],
+      responsable: this.responsableActa()
+      ? [{ idResponsable: this.responsableActa() }]
+      : [null],
       ubicacionEntrega: ['', [Validators.required]],
       prioridad: ['', [Validators.required]],
       responsableVisita: ['', [Validators.required]],
@@ -328,9 +366,16 @@ export class ProcedingsRegisterComponent implements OnInit{
       this.actasService.post(payload).subscribe({
         next: resp => {
           this.snackBar.open('✅ Acta registrada correctamente', 'Cerrar', { duration: 3000 });
-          this.router.navigate(['proceedings']);
+          const idActa = resp?.respuesta?.idActa;
+          // Redirigir al formulario de actualización
+          if (idActa) {
+            this.router.navigate([`/proceedings/update/${idActa}`]);
+          } else {
+            // Si el backend no devuelve el id, fallback a listado
+            this.router.navigate(['/proceedings']);
+          }
         },
-        error: error => {
+        error: () => {
           this.snackBar.open('❌ Algo salió mal, intenta de nuevo', 'Cerrar', { duration: 3000 });
         }
       });

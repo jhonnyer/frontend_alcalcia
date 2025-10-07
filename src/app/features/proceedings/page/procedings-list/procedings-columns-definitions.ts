@@ -1,4 +1,4 @@
-import { ColumnDef } from '@tanstack/angular-table';
+import { ColumnDef, FilterFn } from '@tanstack/angular-table';
 import { IActa, PrioridadActa, EstadoActa } from '../../../../core/models/acta.model';
 
 declare module '@tanstack/angular-table' {
@@ -22,116 +22,117 @@ const prioridadLabel: Record<PrioridadActa, string> = {
   'B': 'Baja'
 };
 
+const estadoFilter: FilterFn<IActa> = (row, columnId, filterValue) => {
+  const value = (row.getValue(columnId) as string)?.toUpperCase() || '';
+  const search = filterValue.trim().toUpperCase();
+
+  // Mapeo de etiquetas completas
+  const mapEstados: Record<string, string> = {
+    'R': 'RECIBIDO',
+    'P': 'PROCESADO',
+    'A': 'AUTORIZADO',
+    'RC': 'RECHAZADO',
+    'E': 'ENTREGADO',
+  };
+
+  // Obtener el label legible
+  const label = mapEstados[value] || '';
+
+  // Coincide si el texto del usuario está en el código o en el label
+  return value.includes(search) || label.includes(search);
+};
+
+const prioridadFilter: FilterFn<IActa> = (row, columnId, filterValue) => {
+  const value = (row.getValue(columnId) as string)?.toUpperCase() || '';
+  const search = filterValue.trim().toUpperCase();
+
+  // Mapeo de etiquetas completas
+  const mapPrioridad: Record<string, string> = {
+    'A': 'ALTA',
+    'M': 'MEDIA',
+    'B': 'BAJA',
+  };
+
+  const label = mapPrioridad[value] || '';
+
+  // Coincidencia si el texto del usuario aparece en el código o la etiqueta
+  return value.includes(search) || label.includes(search);
+};
 
 export const defaultColumns: ColumnDef<IActa>[] = [
   {
-    id: 'idActa',
-    accessorFn: (row) => row.idActa,
-    cell: info => info.getValue(),
-    header: 'ID',
-    filterFn: 'includesString',
-    meta: { filterVariant: 'text' }
-  },
-  {
-    id: 'fechaCreacion',
-    accessorFn: (row) => row.fechaCreacion,
-    cell: info => info.getValue(),
-    header: 'Fecha Creación',
-    filterFn: 'includesString',
-    meta: { filterVariant: 'text' }
-  },
-  {
-    id: 'estado',
-    accessorFn: (row) => row.estado,
+    id: 'idFecha',
+    accessorFn: (row) => `${row.idActa} - ${row.fechaCreacion}`,
+    header: 'Acta / Fecha',
     cell: info => {
-      const estado = info.getValue() as EstadoActa;
-      return estadosLabel[estado];
+      const [id, fecha] = (info.getValue() as string).split(' - ');
+      return `<div>
+                <span class="font-semibold text-gray-800">#${id}</span><br>
+                <span class="text-xs text-gray-500">${fecha}</span>
+              </div>`;
     },
-    header: 'Estado',
-    filterFn: 'includesString',
-    meta: { filterVariant: 'text' }
-  },
-  {
-    id: 'fechaEntrega',
-    accessorFn: (row) => row.fechaEntrega,
-    cell: info => info.getValue() || 'No establecida',
-    header: 'Fecha Entrega',
-    filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },
   {
     id: 'beneficiario',
     accessorFn: (row) => `${row.beneficiario.primerNombre} ${row.beneficiario.primerApellido}`,
-    cell: info => info.getValue(),
     header: 'Beneficiario',
-    filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },
   {
     id: 'proyecto',
     accessorFn: (row) => row.proyecto.nombre,
-    cell: info => info.getValue(),
     header: 'Proyecto',
-    filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },
   {
-    id: 'responsable',
-    accessorFn: (row) => `${row.responsable.primerNombre} ${row.responsable.primerApellido}`,
-    cell: info => info.getValue(),
-    header: 'Responsable',
-    filterFn: 'includesString',
-    meta: { filterVariant: 'text' }
-  },
-  {
-    id: 'ubicacionEntrega',
-    accessorFn: (row) => row.ubicacionEntrega,
-    cell: info => info.getValue(),
-    header: 'Ubicación Entrega',
-    filterFn: 'includesString',
-    meta: { filterVariant: 'text' }
-  },
-  {
-    id: 'observaciones',
-    accessorFn: (row) => row.observaciones,
-    cell: info => info.getValue() || 'Sin observaciones',
-    header: 'Observaciones',
-    filterFn: 'includesString',
+    id: 'estado',
+    accessorFn: (row) => row.estado,
+    header: 'Estado',
+    filterFn: estadoFilter,
+    cell: info => {
+      const estado = info.getValue() as EstadoActa;
+      const colorMap = {
+        'R': 'bg-yellow-100 text-yellow-800',
+        'P': 'bg-blue-100 text-blue-800',
+        'A': 'bg-green-100 text-green-800',
+        'RC': 'bg-red-100 text-red-800',
+        'E': 'bg-gray-200 text-gray-700',
+      };
+      return `<span class="px-2 py-1 rounded-md text-xs font-medium ${colorMap[estado]}">
+                ${estadosLabel[estado]}
+              </span>`;
+    },
     meta: { filterVariant: 'text' }
   },
   {
     id: 'prioridad',
     accessorFn: (row) => row.prioridad,
+    header: 'Prioridad',
+    filterFn: prioridadFilter,
     cell: info => {
       const prioridad = info.getValue() as PrioridadActa;
-      return prioridadLabel[prioridad];
+      const colorMap = {
+        'A': 'bg-red-100 text-red-700',
+        'M': 'bg-yellow-100 text-yellow-700',
+        'B': 'bg-green-100 text-green-700',
+      };
+      return `<span class="px-2 py-1 rounded-md text-xs font-medium ${colorMap[prioridad]}">
+                ${prioridadLabel[prioridad]}
+              </span>`;
     },
-    header: 'Prioridad',
-    filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },
   {
-    id: 'tipoSolicitud',
-    accessorFn: (row) => row.tipoSolicitud,
-    cell: info => info.getValue(),
-    header: 'Tipo Solicitud',
-    filterFn: 'includesString',
-    meta: { filterVariant: 'text' }
-  },
-  {
-    id: 'responsableVisita',
-    accessorFn: (row) => row.responsableVisita,
-    cell: info => info.getValue(),
-    header: 'Responsable Visita',
-    filterFn: 'includesString',
+    id: 'fechaEntrega',
+    accessorFn: (row) => row.fechaEntrega || 'Pendiente',
+    header: 'Entrega',
     meta: { filterVariant: 'text' }
   },
   {
     id: 'acciones',
+    header: 'Acciones',
     enableSorting: false,
-    enableHiding: false,
-    cell: (info) => 'actions',
-    header: 'Acciones'
-  }
+    cell: () => 'actions',
+  },
 ];
-

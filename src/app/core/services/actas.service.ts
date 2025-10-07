@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { IActa, IActaById, ICreateActa } from '../models/acta.model';
+import { IActa, IActaById, ICreateActa, ICreateActaResponse } from '../models/acta.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpHeaders  } from '@angular/common/http';
 import { TokenService } from './token.service';
@@ -76,17 +76,12 @@ export class ActasService {
     );
   }
 
-  post(acta:Partial<ICreateActa>): Observable<ICreateActa> {
-    return this.http.post<ICreateActa>(`${this.URL}/actas`, acta ,{ context: checkToken() });
+  post(acta:Partial<ICreateActa>): Observable<ICreateActaResponse> {
+    return this.http.post<ICreateActaResponse>(`${this.URL}/actas`, acta ,{ context: checkToken() });
   }
 
   update(acta:Partial<IActa>): Observable<ResponseStandarUnique<IActaById>> {
     return this.http.put<ResponseStandarUnique<IActaById>>(`${this.URL}/actas/${acta.idActa}`, acta ,{ context: checkToken() })
-    /*.pipe(
-      tap(acta => {
-        acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);
-      })
-    );*/
   }
 
   updateAdjudicarUnResponsable(idActa: string, idResponsable: string): Observable<IActa> {

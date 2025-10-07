@@ -101,6 +101,26 @@ export class ProcedingsUpdateComponent implements OnInit {
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Actualizar Acta');
     this.initFormActa();
+    this.formActa.get('estado')?.valueChanges.subscribe((nuevoEstado) => {
+      const observacionesCtrl = this.formActa.get('observaciones');
+      // Permitir escribir observaciones solo si el acta NO está cerrada
+      const estadoInicial = this.estadoInicialActa();
+
+      // Si el acta ya está cerrada (RC o E), mantener bloqueado
+      if (estadoInicial === 'RC' || estadoInicial === 'E') {
+        observacionesCtrl?.disable({ emitEvent: false });
+        return;
+      }
+
+      // Si cambia a RC o E (rechazado o entregado), permitir escribir observaciones
+      if (nuevoEstado === 'RC' || nuevoEstado === 'E') {
+        observacionesCtrl?.enable({ emitEvent: false });
+      } else {
+        // En cualquier otro estado (R, P, A), también permitir escribir
+        observacionesCtrl?.enable({ emitEvent: false });
+      }
+    });
+
     this.loadActaData();
     this.getProyectos();
     this.getResponsables();
@@ -229,6 +249,10 @@ export class ProcedingsUpdateComponent implements OnInit {
             this.selectProyecto.disable();
             this.selectResponsable.disable();
           }
+          else {
+            this.formActa.get('observaciones')?.enable();
+          }
+
 
           // Verificar si se puede cambiar los valores de los productos
           const soloLectura = acta.estado === 'A' || acta.estado === 'E' || acta.estado === 'RC';
@@ -266,6 +290,27 @@ export class ProcedingsUpdateComponent implements OnInit {
               cantidad: detalle.productos?.cantidad
             })) || null,
             paquetes: null
+          });
+
+          // Después de hacer patchValue(...)
+          const obsCtrl = this.formActa.get('observaciones');
+
+          // Si el acta no está cerrada, asegurar que esté habilitado
+          if (!this.ESTADOS_FINALES.includes(acta.estado)) {
+            obsCtrl?.enable({ emitEvent: false });
+          } else {
+            obsCtrl?.disable({ emitEvent: false });
+          }
+
+          // Forzar actualización visual del control
+          obsCtrl?.updateValueAndValidity();
+
+          // Forzar re-enlace del control de observaciones después de habilitarlo
+          setTimeout(() => {
+            const obsCtrl = this.formActa.get('observaciones');
+            if (obsCtrl && obsCtrl.enabled) {
+              obsCtrl.setValue(obsCtrl.value || '');
+            }
           });
 
 
@@ -528,26 +573,33 @@ export class ProcedingsUpdateComponent implements OnInit {
       const nuevoEstado = this.formActa.get('estado')?.value as EstadoActa;
       const productos = this.selectedProductsInfo();
 
-      // Validación específica para estado Autorizado
       if (nuevoEstado === 'A' && (!productos || productos.length === 0)) {
         alert('Debe seleccionar al menos un producto cuando el estado es Autorizado');
         return;
       }
 
-      // Si el estado no cambió, mostrar mensaje
       if (nuevoEstado === this.estadoInicialActa()) {
         alert('Debe cambiar el estado del acta para actualizarla');
         return;
       }
 
-      // Validar que la transición sea válida
       if (!this.validarTransicionEstado(this.estadoInicialActa()!, nuevoEstado)) {
         return;
       }
 
+      // Sincronizar observaciones manualmente
+      const obsCtrl = this.formActa.get('observaciones');
+      const textareaEl = document.getElementById('observaciones') as HTMLTextAreaElement;
+      if (obsCtrl && textareaEl) {
+        const currentValue = textareaEl.value?.trim() || '';
+        obsCtrl.setValue(currentValue);
+      }
+
+      const formValues = this.formActa.getRawValue();
+
       const dataToUpdate = {
-        ...this.formActa.value,
-        idActa: this.idActa,
+        ...formValues,
+        idActa: Number(this.idActa),
         proyecto: { idProyecto: this.proyectoSelect() },
         responsable: { idResponsable: this.responsableActa() },
         productos: this.selectedProductsInfo().map(p => ({
@@ -556,16 +608,17 @@ export class ProcedingsUpdateComponent implements OnInit {
         }))
       };
 
+
       this.actasService.update(dataToUpdate).subscribe({
         next: () => {
-          alert("Acta actualizada con éxito");
+          alert("✅ Acta actualizada con éxito");
           this.router.navigate([`proceedings/update/${this.idActa}`]).then(() => {
             window.location.reload();
           });
         },
         error: error => {
-          console.error("Error al actualizar:", error);
-          alert("Error al actualizar el acta"+ error.mensaje);
+          console.error("❌ Error al actualizar:", error);
+          alert("Error al actualizar el acta: " + error.mensaje);
         }
       });
     } else {

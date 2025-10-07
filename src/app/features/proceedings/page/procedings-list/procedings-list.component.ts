@@ -21,12 +21,18 @@ import {
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './procedings-columns-definitions';
 import { IActa } from '../../../../core/models/acta.model';
-import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-procedings-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
+  imports: [
+    CommonModule, 
+    CdkTableModule, 
+    FlexRenderDirective, 
+    TableFilterComponent, 
+    MatIconModule
+  ],
   styles: ``,
   templateUrl: './procedings-list.component.html'
 })
@@ -45,13 +51,13 @@ export class ProcedingsListComponent implements OnInit {
 
   public readonly paginationState = signal<PaginationState>({
     pageIndex: 0,
-    pageSize: 10
+    pageSize: 5
   });
 
   public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Lista de actas');
+    this.pageTitleService.setCurrentPage('Asignaciones');
     this.getAll();
   }
 

@@ -60,3 +60,8 @@ export interface ICreateActa {
   productos: ISelectedProduct[]
 }
 
+export interface ICreateActaResponse {
+  respuesta: ICreateActa;
+  mensaje: string;
+  estado: string;
+}

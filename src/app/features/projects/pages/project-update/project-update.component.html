@@ -68,7 +68,7 @@
         </mat-form-field>
 
         <!-- Estado -->
-        <div class="flex flex-col justify-center">
+        <div class="flex flex-col justify-center" *hasRole="['ADMIN']">
           <label class="text-gray-700 font-medium text-sm mb-1">Estado</label>
           <mat-radio-group formControlName="estado" class="flex flex-wrap gap-4">
             <mat-radio-button value="A" color="primary">Activo</mat-radio-button>
@@ -120,104 +120,174 @@
   </form>
 
   <!-- 🔹 SECCIÓN DE CATEGORÍAS Y PRODUCTOS -->
-  <div class="bg-white p-6 rounded-xl shadow-sm border mt-8">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-xl font-semibold text-gray-700">Categorías asociadas al proyecto</h2>
+  <div *ngIf="modo === 'editar'; else mensajeCreacion" class="bg-white p-6 rounded-xl shadow-sm border mt-8">
+    <h2 class="text-2xl font-bold text-gray-800">Categorías del proyecto</h2>
+        <!-- 🔹 Encabezado de Categorías -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+      <!-- 🔍 Buscador -->
+      <div class="relative w-full md:w-[300px]">
+        <input
+          [ngModel]="filtroCategorias()"
+          (ngModelChange)="filtroCategorias.set($event)"
+          placeholder="Buscar categoría..."
+          class="pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 
+                focus:ring-blue-500 w-full transition-shadow duration-200"
+        />
+        <mat-icon
+          class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-base cursor-pointer"
+          (click)="filtroCategorias.set('')"
+        >
+          {{ filtroCategorias() ? 'close' : 'search' }}
+        </mat-icon>
+      </div>
+
+      <!-- 🆕 Botón Nueva Categoría -->
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="abrirDialogNuevaCategoria()"
+        class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white 
+              font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-[1.03]"
+      >
+        <mat-icon class="text-white text-base">add_circle</mat-icon>
+        <span>Nueva Categoría</span>
+      </button>
     </div>
 
-    <div class="flex flex-col gap-6">
-      @for (categoria of categorias(); track categoria.idCategoria) {
-        <div class="border border-gray-300 rounded-lg p-5 bg-gray-50 hover:bg-gray-100 transition">
-          <!-- Header categoría -->
-          <div class="flex items-start justify-between mb-2">
-            <div>
-              <div class="font-semibold text-gray-800">{{ categoria.nombre }}</div>
-              <p class="text-xs text-gray-500">{{ categoria.descripcion }}</p>
-            </div>
+    <!-- 🔹 Listado de categorías -->
+    <div class="flex flex-col gap-4">
+      <div
+        *ngFor="let categoria of getCategoriasFiltradasPaginadas(); trackBy: trackByCategoriaId"
+        class="border border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition"
+      >
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="font-semibold text-gray-800">{{ categoria.nombre }}</div>
+            <p class="text-xs text-gray-500">{{ categoria.descripcion }}</p>
+          </div>
 
-            <button *ngIf="categoria.productos?.length"
-                    type="button"
-                    (click)="toggleProductos(categoria)"
-                    mat-icon-button
-                    [attr.aria-label]="'Ver productos de ' + categoria.nombre">
+          <!-- Botones alineados -->
+          <div class="flex items-center gap-2">
+            <!-- Botón editar -->
+            <button
+              mat-icon-button
+              class="text-blue-600 hover:bg-blue-50 transition-colors duration-200"
+              (click)="abrirDialogEditarCategoria(categoria)"
+              matTooltip="Editar categoría"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+
+            <!-- Botón eliminar -->
+            <button
+              mat-icon-button
+              color="warn"
+              class="text-red-600 hover:bg-red-50 transition-colors duration-200"
+              (click)="confirmarEliminacion(categoria)"
+              matTooltip="Eliminar categoría"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+
+            <!-- Expandir -->
+            <button
+              *ngIf="categoria.productos?.length"
+              mat-icon-button
+              class="text-gray-600 hover:bg-gray-100 transition-colors duration-200"
+              (click)="toggleProductos(categoria)"
+              matTooltip="Ver productos"
+            >
               <mat-icon>{{ categoria.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
             </button>
           </div>
+        </div>
 
-          <!-- Panel de productos -->
-          <div *ngIf="categoria.expanded" class="mt-4 border-t pt-4">
-            <!-- Tabla -->
-            <div class="overflow-x-auto">
-              <div class="min-w-[600px] md:min-w-0 w-full">
-                <table mat-table [dataSource]="getPagedData(categoria)"
-                      class="w-full text-sm mat-elevation-z2 rounded-md overflow-hidden">
+        <!-- Productos -->
+        <div *ngIf="categoria.expanded" class="mt-4 border-t pt-4">
+           <!-- 🔍 Buscador de productos -->
+          <div class="relative w-full md:w-[250px]">
+            <input
+              [(ngModel)]="categoria.filtro"
+              placeholder="Buscar producto..."
+              class="pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none
+                    focus:ring-2 focus:ring-blue-500 w-full transition-shadow duration-200"
+            />
+            <mat-icon
+              class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-base cursor-pointer"
+              (click)="categoria.filtro = ''"
+            >
+              {{ categoria.filtro ? 'close' : 'search' }}
+            </mat-icon>
+          </div>
+          <div class="overflow-x-auto">
+            <table mat-table [dataSource]="getPagedData(categoria)" class="w-full text-sm mat-elevation-z2 rounded-md overflow-hidden">
 
-                  <!-- 🟦 Columna Producto con filtro en el header -->
-                  <ng-container matColumnDef="nombreProducto">
-                    <th mat-header-cell *matHeaderCellDef class="text-left font-medium text-gray-700">
-                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-start gap-1 sm:gap-2">
-                        <span class="font-semibold">Producto</span>
+              <!-- 🟦 Columna Producto -->
+              <ng-container matColumnDef="nombreProducto">
+                <th mat-header-cell *matHeaderCellDef>Producto</th>
+                <td mat-cell *matCellDef="let product">{{ product.nombreProducto }}</td>
+              </ng-container>
 
-                        <!-- Campo de búsqueda compacto -->
-                        <div class="relative w-[100px] sm:w-[130px]">
-                          <input
-                            matInput
-                            [(ngModel)]="categoria.filtro"
-                            placeholder="Buscar..."
-                            class="pl-6 pr-2 py-[3px] text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
-                          />
-                          <mat-icon
-                            class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-500 text-sm cursor-pointer"
-                            (click)="categoria.filtro = ''; categoria.currentPage = 0"
-                          >
-                            {{ categoria.filtro ? 'close' : 'search' }}
-                          </mat-icon>
-                        </div>
-                      </div>
-                    </th>
-                    <td mat-cell *matCellDef="let product">{{ product.nombreProducto }}</td>
-                  </ng-container>
+              <!-- 🟦 Columna Stock -->
+              <ng-container matColumnDef="stock">
+                <th mat-header-cell *matHeaderCellDef>Stock</th>
+                <td mat-cell *matCellDef="let product">{{ product.stock }}</td>
+              </ng-container>
 
+              <!-- 🟦 Columna Fecha Ingreso -->
+              <ng-container matColumnDef="fechaIngreso">
+                <th mat-header-cell *matHeaderCellDef>Ingreso</th>
+                <td mat-cell *matCellDef="let product">{{ product.fechaIngreso }}</td>
+              </ng-container>
 
+              <!-- Filas -->
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            </table>
+          </div>
 
-                  <!-- Columna Stock -->
-                  <ng-container matColumnDef="stock">
-                    <th mat-header-cell *matHeaderCellDef class="text-left font-medium text-gray-700">Stock</th>
-                    <td mat-cell *matCellDef="let product">{{ product.stock }}</td>
-                  </ng-container>
-
-                  <!-- Columna Fecha Ingreso -->
-                  <ng-container matColumnDef="fechaIngreso">
-                    <th mat-header-cell *matHeaderCellDef class="text-left font-medium text-gray-700">Ingreso</th>
-                    <td mat-cell *matCellDef="let product">{{ product.fechaIngreso }}</td>
-                  </ng-container>
-
-                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-                </table>
-
-                <!-- 🔹 Paginador -->
-                <div class="flex justify-center mt-3">
-                  <mat-paginator
-                    [pageSizeOptions]="[3, 5, 10]"
-                    [length]="getFilteredLength(categoria)"
-                    [pageSize]="categoria.pageSize || 3"
-                    [pageIndex]="categoria.currentPage || 0"
-                    showFirstLastButtons
-                    (page)="onPageChange($event, categoria)">
-                  </mat-paginator>
-                </div>
-              </div>
-            </div>
+          <!-- 🔹 Paginador local para productos -->
+          <div class="flex justify-center mt-3">
+            <mat-paginator
+              [pageSizeOptions]="[3, 5, 10]"
+              [length]="getFilteredLength(categoria)"
+              [pageSize]="categoria.pageSize || 3"
+              [pageIndex]="categoria.currentPage || 0"
+              showFirstLastButtons
+              (page)="onPageChange($event, categoria)">
+            </mat-paginator>
           </div>
         </div>
-      }
+
+      </div>
     </div>
 
-    <!-- Sin categorías -->
-    <p *ngIf="categorias().length === 0" class="text-gray-500 text-sm italic text-center py-8">
-      ⚠️ No hay categorías asociadas a este proyecto.
-    </p>
+    <!-- 🔹 Paginador -->
+    <div class="flex justify-center mt-4">
+      <mat-paginator
+        [pageSizeOptions]="[3, 5, 10]"
+        [length]="getFilteredLengthGlobal()"
+        [pageSize]="pageSize"
+        [pageIndex]="pageIndex"
+        showFirstLastButtons
+        (page)="onPageChangeGlobal($event)"
+      ></mat-paginator>
+    </div>
+
+
+    <ng-template #sinSeleccion>
+      <p class="text-gray-500 text-sm italic text-center py-8">
+        ⚠️ Selecciona una categoría para ver sus productos.
+      </p>
+    </ng-template>
+
   </div>
+
+  <ng-template #mensajeCreacion>
+    <div class="bg-yellow-50 text-yellow-700 border border-yellow-200 p-5 rounded-lg mt-8 text-center">
+      ⚠️ Primero debes guardar el proyecto antes de añadir categorías.
+    </div>
+  </ng-template>
 
 </div>

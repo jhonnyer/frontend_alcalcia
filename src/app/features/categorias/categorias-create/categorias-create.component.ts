@@ -5,6 +5,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CategoriasService } from '../../../core/services/categorias.service';
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../core/services/pageTitle.service';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { ICategorias } from '../../../core/models/categorias.model';
+import { ConfirmDialogComponent } from '../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-categorias-create',
@@ -14,16 +17,43 @@ import { PageTitleService } from '../../../core/services/pageTitle.service';
   templateUrl: './categorias-create.component.html'
 })
 export class CategoriasCreateComponent {
+  constructor(private dialog: MatDialog) {}
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
   private categoriasService = inject(CategoriasService);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
+  private data = inject(MAT_DIALOG_DATA, { optional: true });
+  private dialogRef = inject(MatDialogRef<CategoriasCreateComponent>, { optional: true });
+  public idProyecto?: number;
+  public modo: 'crear' | 'editar' = 'crear';
+  public categoriaId?: number;
+  
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Crear una categoría');
+    this.pageTitleService.setCurrentPage('Gestión de Categoría');
+    
+    // ✅ Inicializa primero el formulario
     this.initFormFamilyCore();
+
+    if (this.data) {
+      this.idProyecto = this.data.idProyecto;
+      this.modo = this.data.modo || 'crear';
+
+      // 🔹 Si es editar, setear valores después de tener el formulario inicializado
+      if (this.modo === 'editar' && this.data.categoria) {
+        const categoria = this.data.categoria as ICategorias;
+        this.categoriaId = categoria.idCategoria;
+
+        // ✅ Cargar los datos existentes en el formulario
+        this.formFamilyCore.patchValue({
+          nombre: categoria.nombre,
+          descripcion: categoria.descripcion
+        });
+      }
+    }
   }
+
 
   initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
@@ -37,24 +67,83 @@ export class CategoriasCreateComponent {
     return form.get(key) as FormArray;
   }
 
-  onSubmit() {
-    if(this.formFamilyCore.valid){
-      this.categoriasService.post(this.formFamilyCore.value).subscribe({
-        next: response => {
-          alert('Se ha guardado correctamente la categoría');
-          this.router.navigate(["categorias"]);
+  onSubmit(): void {
+    if (this.formFamilyCore.invalid) {
+      this.formFamilyCore.markAllAsTouched();
+      return;
+    }
+
+    const payload: Partial<ICategorias> = {
+      ...this.formFamilyCore.value,
+      ...(this.idProyecto ? { idProyecto: this.idProyecto } : {})
+    };
+
+    // 🟦 Editar
+    if (this.modo === 'editar' && this.categoriaId) {
+      this.categoriasService.updateById(String(this.categoriaId), payload).subscribe({
+        next: (response) => {
+          alert('✅ Categoría actualizada correctamente');
+          if (this.dialogRef) {
+            this.dialogRef.close(response);
+          } else {
+            this.router.navigate(['/categorias']);
+          }
         },
-        error: error => {
-          alert('Ha ocurrido un error al cargar los datos');
+        error: (error) => {
+          console.error('❌ Error al actualizar la categoría:', error);
+          alert('⚠️ No se pudo actualizar la categoría. Intenta nuevamente.');
         }
-      })
-	  }else{
-		  this.formFamilyCore.markAllAsTouched();
-	  }
+      });
+
+    // 🟩 Crear
+    } else {
+      this.categoriasService.post(payload).subscribe({
+        next: (response) => {
+          alert('✅ Categoría creada correctamente');
+          if (this.dialogRef) {
+            this.dialogRef.close(response);
+          } else {
+            this.router.navigate(['/projects/update', this.idProyecto]);
+          }
+        },
+        error: (error) => {
+          console.error('❌ Error al crear la categoría:', error);
+          alert('⚠️ No se pudo crear la categoría. Verifica los datos e intenta nuevamente.');
+        }
+      });
+    }
+  }
+
+  confirmarGuardarCategoria(): void {
+    if (this.formFamilyCore.invalid) {
+      alert('⚠️ Verifica los campos del formulario');
+      this.formFamilyCore.markAllAsTouched();
+      return;
+    }
+
+    const mensaje =
+      this.modo === 'editar'
+        ? '¿Deseas guardar los cambios de esta categoría?'
+        : '¿Deseas crear esta nueva categoría?';
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { mensaje }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmado) => {
+      if (confirmado) {
+        this.onSubmit(); // Ejecuta la lógica normal
+      }
+    });
   }
 
   cancelar() {
-    this.router.navigate(['/categorias']);
+    if (this.dialogRef) {
+      this.dialogRef.close();
+    } else {
+      this.router.navigate(['/categorias']);
+    }
   }
 
 }

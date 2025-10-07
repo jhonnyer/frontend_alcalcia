@@ -4,10 +4,9 @@ import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } 
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ProyectosService } from '../../../../core/services/proyectos.service';
-import { CategoriasService } from '../../../../core/services/categorias.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
-import { IProyectoCategorias } from '../../../../core/models/proyecto.model';
+import { IProyecto, IProyectoCategorias } from '../../../../core/models/proyecto.model';
 import { ICategorias } from '../../../../core/models/categorias.model';
 
 import { MatCardModule } from '@angular/material/card';
@@ -20,6 +19,9 @@ import { MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+import { CategoriasCreateComponent } from '../../../categorias/categorias-create/categorias-create.component';
+import { CategoriasService } from '../../../../core/services/categorias.service';
+import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 
 interface ICategoriaUI extends ICategorias {
   expanded?: boolean;
@@ -43,6 +45,7 @@ interface ICategoriaUI extends ICategorias {
     MatPaginatorModule,
     MatTableModule,
     MatInputModule,
+    HasRoleDirective
   ],
   templateUrl: './project-update.component.html',
   styleUrl: './project-update.component.scss'
@@ -57,12 +60,18 @@ export class ProjectUpdateComponent implements OnInit {
   filtroCategoria = '';
   filtroProducto = '';
   displayedColumns: string[] = ['nombreProducto', 'stock', 'fechaIngreso'];
+  // 🔹 Filtro y selección de categoría
+  categoriaSeleccionada = signal<ICategoriaUI | null>(null);
+  filtroCategorias = signal<string>('');
+  pageIndex = 0;
+  pageSize = 5;
+  modoCreacion = false;
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private proyectosService = inject(ProyectosService);
-  private categoriasService = inject(CategoriasService);
   private pageTitleService = inject(PageTitleService);
+  private categoriasService = inject(CategoriasService);
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
 
@@ -71,26 +80,14 @@ export class ProjectUpdateComponent implements OnInit {
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage("Gestión de Proyecto");
     this.initFormFamilyCore();
-    this.getAllCategorias();
 
     // 🔹 Detecta el modo desde la ruta
-    this.modo = this.route.snapshot.data['modo'] || 'crear';
+    this.modo = (this.route.snapshot.data['modo'] as 'crear' | 'editar') || 'crear';
     this.proyectoId = this.route.snapshot.paramMap.get('id') || undefined;
 
     if (this.modo === 'editar' && this.proyectoId) {
       this.getProyectoById();
     }
-  }
-
-  private getAllCategorias(): void {
-    this.categoriasService.getAll().subscribe({
-      next: response => {
-        this.categorias.set(response);
-      },
-      error: error => {
-        console.error("Error al cargar categorías:", error);
-      }
-    });
   }
 
   // 🔹 Inicialización del formulario
@@ -100,7 +97,7 @@ export class ProjectUpdateComponent implements OnInit {
       tipoProyecto: ['', [Validators.required]],
       fechaInicio: ['', [Validators.required]],
       fechaFin: [''],
-      estado: ['', [Validators.required]],
+      estado: ['A', [Validators.required]],
       descripcion: [''],
       categorias: [[]]
     });
@@ -145,23 +142,19 @@ export class ProjectUpdateComponent implements OnInit {
   }
 
   // 🔹 Filtra categorías que se muestran actualmente
-  categoriasFiltradas(): ICategoriaUI[] {
-    return this.categorias().filter(
-      (cat) =>
-        cat.productos?.some((p) =>
-          p.nombreProducto.toLowerCase().includes(this.filtroProducto.toLowerCase())
-        ) || this.filtroProducto === ''
+  getCategoriasFiltradas(): ICategoriaUI[] {
+    const filtro = this.filtroCategorias().toLowerCase();
+    return this.categorias().filter(cat =>
+      cat.nombre.toLowerCase().includes(filtro)
     );
   }
 
-  // 🔹 Añadir categoría seleccionada
-  onCategoriaSeleccionada(categoria: ICategoriaUI): void {
-    const yaExiste = this.categorias().some((c) => c.idCategoria === categoria.idCategoria);
-    if (!yaExiste) {
-      this.categorias.update((prev) => [...prev, { ...categoria, expanded: false }]);
-    }
-    this.filtroCategoria = '';
+  // 🔹 Cuando el usuario selecciona una categoría del combo
+  onSeleccionarCategoria(categoria: ICategoriaUI): void {
+    this.categoriaSeleccionada.set(categoria);
+    categoria.expanded = true;
   }
+
 
   // 🔹 Verifica si una categoría está seleccionada
   isCategoriaSeleccionada(idCategoria: number): boolean {
@@ -169,22 +162,24 @@ export class ProjectUpdateComponent implements OnInit {
     return seleccionadas.some((c: any) => c.idCategoria === idCategoria);
   }
 
-  // Productos filtrados + paginados por categoría (usa filtro local `categoria.filtro`)
-  getPagedData(categoria: ICategoriaUI) {
-    const pageSize = categoria.pageSize || 3;
-    const page = categoria.currentPage || 0;
-    const q = (categoria.filtro || '').toLowerCase();
+  // 🔹 Devuelve los productos filtrados + paginados por categoría
+  getPagedData(categoria: any) {
+    if (!categoria.productos) return [];
 
-    const filtered = (categoria.productos || []).filter(p =>
-      p.nombreProducto.toLowerCase().includes(q)
+    const startIndex = (categoria.currentPage || 0) * (categoria.pageSize || 3);
+    const endIndex = startIndex + (categoria.pageSize || 3);
+
+    // 🔍 Si hay filtro aplicado por nombre
+    const filtro = categoria.filtro?.toLowerCase() || '';
+    const filtrados = categoria.productos.filter((p: any) =>
+      p.nombreProducto.toLowerCase().includes(filtro)
     );
 
-    const start = page * pageSize;
-    return filtered.slice(start, start + pageSize);
+    return filtrados.slice(startIndex, endIndex);
   }
 
-  // 🔹 Cambiar página
-  onPageChange(event: PageEvent, categoria: ICategoriaUI) {
+  // 🔹 Actualiza página actual por categoría
+  onPageChange(event: any, categoria: any) {
     categoria.currentPage = event.pageIndex;
     categoria.pageSize = event.pageSize;
   }
@@ -198,27 +193,46 @@ export class ProjectUpdateComponent implements OnInit {
   private getTransformedData(): IProyectoCategorias {
     const fv = this.formFamilyCore.value;
 
-    // Aseguramos que el control tenga los ids actuales
-    const categoriasSeleccionadas = this.categorias().map(c => ({ idCategoria: c.idCategoria }));
-    this.formFamilyCore.get('categorias')?.setValue(categoriasSeleccionadas);
+    const categoriasSeleccionadas = this.categorias().map(c => ({
+      idCategoria: Number(c.idCategoria),
+    }));
 
+    // Si estás editando, incluye idProyecto
+    if (this.proyectoId) {
+      return {
+        proyecto: {
+          idProyecto: Number(this.proyectoId),
+          nombre: fv.nombre?.trim(),
+          descripcion: fv.descripcion?.trim(),
+          estado: fv.estado,
+          fechaInicio: fv.fechaInicio,
+          fechaFin: fv.fechaFin,
+          tipoProyecto: fv.tipoProyecto,
+        },
+        categorias: categoriasSeleccionadas,
+      };
+    }
+
+    // Si estás creando, no envíes idProyecto
     return {
       proyecto: {
-        idProyecto: Number(this.proyectoId),
-        nombre: fv.nombre,
-        descripcion: fv.descripcion,
+        nombre: fv.nombre?.trim(),
+        descripcion: fv.descripcion?.trim(),
         estado: fv.estado,
-        fechaInicio: fv.fechaInicio,   // YYYY-MM-DD string
-        fechaFin: fv.fechaFin,         // YYYY-MM-DD string
-        tipoProyecto: fv.tipoProyecto
-      },
-      categorias: categoriasSeleccionadas
+        fechaInicio: fv.fechaInicio,
+        fechaFin: fv.fechaFin,
+        tipoProyecto: fv.tipoProyecto,
+        // sin idProyecto
+      } as IProyecto,
+      categorias: categoriasSeleccionadas,
     };
   }
+
 
   // 🔹 Guardar cambios
   onSubmit(): void {
     if (this.formFamilyCore.invalid) {
+      alert('⚠️ Por favor completa los campos requeridos antes de continuar.');
       this.formFamilyCore.markAllAsTouched();
       return;
     }
@@ -235,9 +249,16 @@ export class ProjectUpdateComponent implements OnInit {
       });
     } else {
       this.proyectosService.post(dataToSend).subscribe({
-        next: () => {
-          alert('✅ Proyecto creado correctamente');
-          this.router.navigate(['projects']);
+        next: (response) => {
+          const nuevoId = response?.respuesta?.proyecto?.idProyecto;
+          if (nuevoId) {
+            alert('✅ Proyecto creado correctamente');
+            // 🟢 Redirigimos al modo edición del nuevo proyecto
+            this.router.navigate(['projects/update', nuevoId]);
+          } else {
+            console.warn('⚠️ El backend no devolvió el idProyecto');
+            this.router.navigate(['projects']);
+          }
         },
         error: (error) => console.error('Error al crear:', error)
       });
@@ -250,9 +271,11 @@ export class ProjectUpdateComponent implements OnInit {
     this.router.navigate(['projects']);
   }
 
-  getFilteredLength(categoria: ICategoriaUI): number {
-    const filtro = (categoria.filtro || '').toLowerCase();
-    return (categoria.productos || []).filter(p =>
+  // 🔹 Longitud total de productos filtrados (para el paginador)
+  getFilteredLength(categoria: any): number {
+    if (!categoria.productos) return 0;
+    const filtro = categoria.filtro?.toLowerCase() || '';
+    return categoria.productos.filter((p: any) =>
       p.nombreProducto.toLowerCase().includes(filtro)
     ).length;
   }
@@ -276,5 +299,102 @@ export class ProjectUpdateComponent implements OnInit {
     });
   }
 
+  abrirDialogNuevaCategoria(): void {
+    const dialogRef = this.dialog.open(CategoriasCreateComponent, {
+      width: '500px',
+      data: { idProyecto: this.proyectoId },
+      autoFocus: false
+    });
+
+    dialogRef.afterClosed().subscribe((nuevaCategoria) => {
+      if (nuevaCategoria) {
+        // ✅ Añadir la categoría recién creada al proyecto actual
+        this.categorias.update(prev => [
+          ...prev,
+          { ...nuevaCategoria, expanded: false, currentPage: 0, pageSize: 3, filtro: '' }
+        ]);
+
+        // ✅ Actualizar el formControl 'categorias' (ids)
+        const actual = this.formFamilyCore.get('categorias')?.value || [];
+        this.formFamilyCore.get('categorias')?.setValue([
+          ...actual,
+          { idCategoria: nuevaCategoria.idCategoria }
+        ]);
+      }
+    });
+  }
+
+
+  getCategoriasFiltradasPaginadas(): ICategoriaUI[] {
+    const filtro = this.filtroCategorias().toLowerCase();
+    const filtradas = this.categorias().filter(cat =>
+      cat.nombre.toLowerCase().includes(filtro)
+    );
+    const start = this.pageIndex * this.pageSize;
+    return filtradas.slice(start, start + this.pageSize);
+  }
+
+  getFilteredLengthGlobal(): number {
+    const filtro = this.filtroCategorias().toLowerCase();
+    return this.categorias().filter(cat =>
+      cat.nombre.toLowerCase().includes(filtro)
+    ).length;
+  }
+
+  onPageChangeGlobal(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+  }
+
+  trackByCategoriaId(index: number, categoria: ICategoriaUI): number {
+    return categoria.idCategoria;
+  }
+
+  abrirDialogEditarCategoria(categoria: ICategorias): void {
+    const dialogRef = this.dialog.open(CategoriasCreateComponent, {
+      width: '500px',
+      data: { 
+        modo: 'editar',
+        categoria,
+        idProyecto: this.proyectoId
+      },
+      disableClose: true,
+      autoFocus: true
+    });
+
+    dialogRef.afterClosed().subscribe((resultado) => {
+      if (resultado) {
+        // Actualizar lista local después de editar
+        this.getProyectoById();
+      }
+    });
+  }
+
+  confirmarEliminacion(categoria: ICategorias): void {
+    if (categoria.productos && categoria.productos.length > 0) {
+      alert('⚠️ No se puede eliminar la categoría porque tiene productos asociados.');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { mensaje: `¿Deseas eliminar la categoría "${categoria.nombre}"?` }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmado) => {
+      if (confirmado) {
+        this.categoriasService.delete(String(categoria.idCategoria)).subscribe({
+          next: () => {
+            alert('✅ Categoría eliminada correctamente.');
+            this.getProyectoById(); // refresca lista
+          },
+          error: (error) => {
+            console.error('❌ Error al eliminar categoría:', error);
+            alert('⚠️ No se pudo eliminar la categoría. Intenta nuevamente.');
+          }
+        });
+      }
+    });
+  }
 
 }

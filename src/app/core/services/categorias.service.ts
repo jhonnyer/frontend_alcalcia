@@ -35,8 +35,8 @@ export class CategoriasService {
     return this.http.put<ICategorias>(`${environment.URL_API}/categorias/${idCategoria}`, categoria, { context: checkToken() });
   }
 
-  delete(idCategoria: string): void{
-    this.http.put<ICategorias>(`${environment.URL_API}/categorias/${idCategoria}`, { context: checkToken() });
+  delete(idCategoria: string): Observable<ICategorias>{
+    return this.http.delete<ICategorias>(`${environment.URL_API}/categorias/${idCategoria}`, { context: checkToken() });
   }
 
 }

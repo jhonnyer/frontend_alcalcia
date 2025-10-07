@@ -41,4 +41,13 @@ export class AuthService {
     this.tokenService.clearToken();
     this.router.navigate(['/auth']);
   }
+
+  hasRole(role: string | string[]): boolean {
+    const userRole = this.tokenService.getUserRole();
+
+    if (!userRole) return false;
+
+    const allowedRoles = Array.isArray(role) ? role : [role];
+    return allowedRoles.includes(userRole);
+  }
 }

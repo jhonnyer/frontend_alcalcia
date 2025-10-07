@@ -29,8 +29,8 @@ export class ProyectosService {
     return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idCategoria}`, { context: checkToken() });
   }
 
-  post(data:Partial<IProyectoCategorias>): Observable<ResponseStandar<IProyectoCategorias>> {
-    return this.http.post<ResponseStandar<IProyectoCategorias>>(`${this.URL}/proyectos`, data, { context: checkToken() });
+  post(data:Partial<IProyectoCategorias>): Observable<ResponseStandarUnique<IProyectoCategorias>> {
+    return this.http.post<ResponseStandarUnique<IProyectoCategorias>>(`${this.URL}/proyectos`, data, { context: checkToken() });
   }
 
   updateById(idProyecto: string, data:IProyectoCategorias): Observable<ResponseStandar<IProyectoCategorias>> {
@@ -46,7 +46,8 @@ export class ProyectosService {
     return this.http.patch<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idProyecto}/estado/${idCategory}`, { context: checkToken() });
   }
 
-  delete(idProject: number) {
-    this.http.delete(`${this.URL}/proyectos/${idProject}`, { context: checkToken() });
+  delete(idProject: number): Observable<ResponseStandarUnique<IProyectoAndCategoriaArray>> {
+    return this.http.delete<ResponseStandarUnique<IProyectoAndCategoriaArray>>(`${this.URL}/proyectos/${idProject}`, { context: checkToken() });
   }
+
 }

@@ -5,4 +5,5 @@ export interface ICategorias {
   nombre: string;
   descripcion: string;
   productos?: Array<IProductoFk> | null;
+  idProyectoFk?: number;
 }

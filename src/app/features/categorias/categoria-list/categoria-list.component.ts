@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
-import { Router } from '@angular/router';
 import { CategoriasService } from '../../../core/services/categorias.service';
 import { PageTitleService } from '../../../core/services/pageTitle.service';
 import {
@@ -21,19 +20,30 @@ import {
 import { TableFilterComponent } from '../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './categorias-columns-definitions';
 import { ICategorias } from '../../../core/models/categorias.model';
-import { HasRoleDirective } from '../../../core/directives/has-role/has-role-directive.directive';
+import { CategoriasCreateComponent } from '../categorias-create/categorias-create.component';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-categoria-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
+  imports: [
+    CommonModule, 
+    CdkTableModule, 
+    FlexRenderDirective, 
+    TableFilterComponent,
+    MatIconModule,
+    MatCardModule
+  ],
   templateUrl: './categoria-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoriaListComponent implements OnInit {
+  constructor(private dialog: MatDialog) {}
   private categoriasService = inject(CategoriasService);
   private pageTitleService = inject(PageTitleService);
-  private router = inject(Router);
 
   data = signal<ICategorias[]>([]);
 
@@ -130,11 +140,67 @@ export class CategoriaListComponent implements OnInit {
     ]);
   }
 
-  delete(item: Row<ICategorias>) {
-    this.categoriasService.delete(item.original.idCategoria.toString());
+  delete(item: Row<ICategorias>): void {
+    const categoria = item.original;
+
+    // 1️⃣ Consultar la categoría completa desde el backend
+    this.categoriasService.getById(categoria.idCategoria.toString()).subscribe({
+      next: (categoriaCompleta) => {
+        const tieneProductos =
+          Array.isArray(categoriaCompleta.productos) &&
+          categoriaCompleta.productos.length > 0;
+
+        if (tieneProductos) {
+          alert(`⚠️ No se puede eliminar la categoría "${categoriaCompleta.nombre}" porque tiene productos asociados.`);
+          return;
+        }
+
+        // 2️⃣ Si no tiene productos, abrir confirmación
+        const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+          width: '350px',
+          data: { mensaje: `¿Deseas eliminar la categoría "${categoriaCompleta.nombre}"?` },
+          disableClose: true,
+        });
+
+        dialogRef.afterClosed().subscribe((confirmado) => {
+          if (confirmado) {
+            this.categoriasService.delete(categoriaCompleta.idCategoria.toString()).subscribe({
+              next: () => {
+                alert('✅ Categoría eliminada correctamente');
+                this.getAll(); // Recarga la lista
+              },
+              error: (error) => {
+                console.error('❌ Error al eliminar categoría:', error);
+                alert('⚠️ No se pudo eliminar la categoría. Intenta nuevamente.');
+              },
+            });
+          }
+        });
+      },
+      error: (error) => {
+        console.error('❌ Error al obtener la categoría:', error);
+        alert('⚠️ No se pudo obtener la información de la categoría.');
+      },
+    });
   }
 
-  update(item: Row<ICategorias>) {
-    this.router.navigate(["categorias/update/", item.original.idCategoria]);
+  abrirDialogEditarCategoria(categoria: ICategorias): void {
+    const dialogRef = this.dialog.open(CategoriasCreateComponent, {
+      width: '500px',
+      data: { 
+        modo: 'editar',
+        categoria
+      },
+      disableClose: true,
+      autoFocus: true
+    });
+
+    dialogRef.afterClosed().subscribe((resultado) => {
+      if (resultado) {
+        this.data.set([]); // Limpia temporalmente
+        setTimeout(() => this.getAll(), 200); // Recarga con un leve retraso visual
+      }
+    });
   }
+
 }

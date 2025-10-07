@@ -64,14 +64,6 @@ export const defaultColumns: ColumnDef<IProyectoAndCategoriaArray>[] = [
     meta: { filterVariant: 'text' }
   },
   {
-    id: 'fechaFin',
-    accessorFn: (row) => row.proyecto.fechaFin || 'Sin fecha fin',
-    cell: info => info.getValue(),
-    header: 'Fecha Fin',
-    filterFn: 'includesString',
-    meta: { filterVariant: 'text' }
-  },
-  {
     id: 'tipoProyecto',
     accessorFn: (row) => row.proyecto.tipoProyecto,
     cell: info => {

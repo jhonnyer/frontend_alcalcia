@@ -1,0 +1,84 @@
+<div class="p-6 bg-white rounded-xl w-[450px] max-w-full">
+  <h2 class="text-lg font-semibold text-gray-800 mb-4">{{ titulo }}</h2>
+
+  <form [formGroup]="form" class="flex flex-col gap-4">
+
+    <!-- Nombre -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del producto</label>
+      <input
+        type="text"
+        formControlName="nombreProducto"
+        placeholder="Ej: Paquete de arroz"
+        class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+      />
+      <p *ngIf="form.get('nombreProducto')?.touched && form.get('nombreProducto')?.invalid"
+        class="text-xs text-red-500 mt-1">
+        ⚠️ Campo obligatorio.
+      </p>
+    </div>
+
+    <!-- Stock -->
+    <div>
+    <label class="block text-sm font-medium text-gray-700 mb-1">
+        {{ modo === 'editar' ? 'Cantidad a agregar' : 'Stock inicial' }}
+    </label>
+    <input
+        type="number"
+        formControlName="stock"
+        class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        [placeholder]="modo === 'editar' ? 'Ej: 20' : 'Ej: 100'"
+    />
+    <p *ngIf="modo === 'editar'" class="text-xs text-gray-500 mt-1">
+        ➕ Ingrese un número positivo para aumentar el stock actual ({{ producto?.stock || 0 }} unidades actuales).
+    </p>
+    <p *ngIf="form.get('stock')?.touched && form.get('stock')?.invalid" class="text-xs text-red-500 mt-1">
+        ⚠️ Ingresa un número válido.
+    </p>
+    </div>
+
+    <!-- Descripción -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+      <textarea
+        formControlName="descripcion"
+        rows="2"
+        class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+      ></textarea>
+    </div>
+
+    <!-- Fecha ingreso -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de ingreso</label>
+      <input
+        type="date"
+        formControlName="fechaIngreso"
+        class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+      />
+    </div>
+
+    <!-- Botones -->
+    <div class="flex justify-end gap-3 mt-4">
+      <button
+        type="button"
+        (click)="cancelar()"
+        class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
+      >
+        Cancelar
+      </button>
+      <button
+            type="button"
+            (click)="guardar()"
+            [disabled]="form.invalid"
+            [ngClass]="{
+            'bg-blue-600 hover:bg-blue-700 text-white': modo === 'crear' && !form.invalid,
+            'bg-green-600 hover:bg-green-700 text-white': modo === 'editar' && !form.invalid,
+            'bg-gray-300 text-gray-500 cursor-not-allowed': form.invalid
+            }"
+            class="px-4 py-2 text-sm rounded-md transition-all duration-200"
+        >
+            {{ modo === 'editar' ? 'Actualizar' : 'Guardar' }}
+        </button>
+    </div>
+  </form>
+</div>

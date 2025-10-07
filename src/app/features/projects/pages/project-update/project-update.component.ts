@@ -22,6 +22,9 @@ import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accio
 import { CategoriasCreateComponent } from '../../../categorias/categorias-create/categorias-create.component';
 import { CategoriasService } from '../../../../core/services/categorias.service';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
+import { IProductoFk } from '../../../../core/models/products.model';
+import { ConfirmDeleteDialogComponent } from '../../../nucleo/components/confirm-delete-dialog/confirm-delete-dialog.component';
 
 interface ICategoriaUI extends ICategorias {
   expanded?: boolean;
@@ -59,7 +62,7 @@ export class ProjectUpdateComponent implements OnInit {
   categorias = signal<ICategoriaUI[]>([]);
   filtroCategoria = '';
   filtroProducto = '';
-  displayedColumns: string[] = ['nombreProducto', 'stock', 'fechaIngreso'];
+  displayedColumns: string[] = ['nombreProducto', 'stock', 'fechaIngreso', 'acciones'];
   // 🔹 Filtro y selección de categoría
   categoriaSeleccionada = signal<ICategoriaUI | null>(null);
   filtroCategorias = signal<string>('');
@@ -395,6 +398,63 @@ export class ProjectUpdateComponent implements OnInit {
         });
       }
     });
+  }
+
+  editarProducto(producto: IProductoFk, categoria: ICategorias): void {
+    const idCategoriaActual = categoria.idCategoria; 
+    const dialogRef = this.dialog.open(ProductoModalComponent, {
+      width: '500px',
+      data: {
+        modo: 'editar',
+        idProyecto: Number(this.proyectoId),
+        idCategoria: categoria.idCategoria,
+        producto
+      },
+      autoFocus: false
+    });
+
+    dialogRef.afterClosed().subscribe((ok) => {
+      if (ok) {
+        this.refrescarCategoriaActiva(idCategoriaActual);
+      }
+    });
+  }
+  
+  abrirDialogNuevoProducto(categoria: ICategorias): void {
+    const idCategoriaActual = categoria.idCategoria;
+    const dialogRef = this.dialog.open(ProductoModalComponent, {
+      width: '500px',
+      data: {
+        modo: 'crear',
+        idProyecto: Number(this.proyectoId),
+        idCategoria: categoria.idCategoria
+      },
+      autoFocus: false
+    });
+
+    dialogRef.afterClosed().subscribe((ok) => {
+    if (ok) {
+        this.refrescarCategoriaActiva(idCategoriaActual);
+      }
+    });
+
+  }
+
+  private refrescarCategoriaActiva(idCategoria: number): void {
+    const categoriaExpandida = this.categorias().find(cat => cat.idCategoria === idCategoria);
+    const paginaActual = categoriaExpandida?.currentPage || 0;
+    const filtroActual = categoriaExpandida?.filtro || '';
+
+    this.getProyectoById();
+
+    setTimeout(() => {
+      const categoriaActualizada = this.categorias().find(cat => cat.idCategoria === idCategoria);
+      if (categoriaActualizada) {
+        categoriaActualizada.expanded = true;
+        categoriaActualizada.currentPage = paginaActual;
+        categoriaActualizada.filtro = filtroActual;
+      }
+    }, 300);
   }
 
 }

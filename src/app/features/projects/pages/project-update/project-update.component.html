@@ -205,40 +205,79 @@
 
         <!-- Productos -->
         <div *ngIf="categoria.expanded" class="mt-4 border-t pt-4">
-           <!-- 🔍 Buscador de productos -->
-          <div class="relative w-full md:w-[250px]">
-            <input
-              [(ngModel)]="categoria.filtro"
-              placeholder="Buscar producto..."
-              class="pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none
-                    focus:ring-2 focus:ring-blue-500 w-full transition-shadow duration-200"
-            />
-            <mat-icon
-              class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-base cursor-pointer"
-              (click)="categoria.filtro = ''"
-            >
-              {{ categoria.filtro ? 'close' : 'search' }}
-            </mat-icon>
-          </div>
-          <div class="overflow-x-auto">
-            <table mat-table [dataSource]="getPagedData(categoria)" class="w-full text-sm mat-elevation-z2 rounded-md overflow-hidden">
+          <!-- Cabecera de productos: buscador + botón añadir -->
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
 
+            <!-- Buscador -->
+            <div class="relative w-full md:w-[250px]">
+              <input
+                [(ngModel)]="categoria.filtro"
+                placeholder="Buscar producto..."
+                class="pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none
+                      focus:ring-2 focus:ring-blue-500 w-full transition-shadow duration-200"
+              />
+              <mat-icon
+                class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-base cursor-pointer"
+                (click)="categoria.filtro = ''"
+              >
+                {{ categoria.filtro ? 'close' : 'search' }}
+              </mat-icon>
+            </div>
+
+            <!-- 🆕 Botón Añadir Producto -->
+            <button
+              mat-flat-button
+              color="primary"
+              (click)="abrirDialogNuevoProducto(categoria)"
+              class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white 
+                    font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-[1.03]"
+            >
+              <mat-icon class="text-white text-base">add_circle</mat-icon>
+              <span>Añadir Producto</span>
+            </button>
+
+          </div>
+
+          <div class="overflow-x-auto mt-4">
+            <table
+              mat-table
+              [dataSource]="getPagedData(categoria)"
+              class="w-full text-sm mat-elevation-z2 rounded-md overflow-hidden border border-gray-200"
+            >
               <!-- 🟦 Columna Producto -->
               <ng-container matColumnDef="nombreProducto">
-                <th mat-header-cell *matHeaderCellDef>Producto</th>
-                <td mat-cell *matCellDef="let product">{{ product.nombreProducto }}</td>
+                <th mat-header-cell *matHeaderCellDef class="text-gray-700 font-semibold bg-gray-100">Producto</th>
+                <td mat-cell *matCellDef="let product" class="py-2 px-3">{{ product.nombreProducto }}</td>
               </ng-container>
 
               <!-- 🟦 Columna Stock -->
               <ng-container matColumnDef="stock">
-                <th mat-header-cell *matHeaderCellDef>Stock</th>
-                <td mat-cell *matCellDef="let product">{{ product.stock }}</td>
+                <th mat-header-cell *matHeaderCellDef class="text-gray-700 font-semibold bg-gray-100 text-center">Stock</th>
+                <td mat-cell *matCellDef="let product" class="text-center py-2">{{ product.stock }}</td>
               </ng-container>
 
               <!-- 🟦 Columna Fecha Ingreso -->
               <ng-container matColumnDef="fechaIngreso">
-                <th mat-header-cell *matHeaderCellDef>Ingreso</th>
-                <td mat-cell *matCellDef="let product">{{ product.fechaIngreso }}</td>
+                <th mat-header-cell *matHeaderCellDef class="text-gray-700 font-semibold bg-gray-100 text-center">Ingreso</th>
+                <td mat-cell *matCellDef="let product" class="text-center py-2">{{ product.fechaIngreso }}</td>
+              </ng-container>
+
+              <!-- 🟦 Columna de acciones -->
+              <ng-container matColumnDef="acciones">
+                <th mat-header-cell *matHeaderCellDef class="text-gray-700 font-semibold bg-gray-100 text-center">Acciones</th>
+                <td mat-cell *matCellDef="let product" class="text-center py-2">
+                  <div class="flex justify-center gap-3">
+                    <!-- ✏️ Editar -->
+                    <button
+                      mat-icon-button
+                      matTooltip="Editar producto"
+                      (click)="editarProducto(product, categoria)"
+                      class="hover:bg-blue-50"
+                    >
+                      <mat-icon class="text-blue-600 hover:text-blue-800 transition">edit</mat-icon>
+                    </button>
+                  </div>
+                </td>
               </ng-container>
 
               <!-- Filas -->

@@ -60,7 +60,6 @@
           <label class="label-base">*Número de documento</label>
           <input formControlName="numeroDocumento" type="text" class="input-base" 
             (input)="beneficiarioForm.get('numeroDocumento')?.updateValueAndValidity()" />
-          />
           <p *ngIf="beneficiarioForm.get('numeroDocumento')?.hasError('required') && beneficiarioForm.get('numeroDocumento')?.touched"
             class="text-red-500 text-xs">⚠️ El número de documento es obligatorio</p>
         </div>

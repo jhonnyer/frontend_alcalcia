@@ -6,7 +6,7 @@ import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { EstadoActa, EstadoTransition, IActaById } from '../../../../core/models/acta.model';
 import { ISelectedProduct, ProductoWithCantidad, ProductsDialogResult } from '../../../../core/models/products.model';
 import { Router } from '@angular/router';
-import { DialogModule, Dialog } from '@angular/cdk/dialog';
+import { Dialog } from '@angular/cdk/dialog';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';

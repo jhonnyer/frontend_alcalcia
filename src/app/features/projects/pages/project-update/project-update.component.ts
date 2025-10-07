@@ -1,42 +1,85 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { Router } from '@angular/router';
+import { Component, Input, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
+import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { CategoriasService } from '../../../../core/services/categorias.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
-import { IProyecto, IProyectoAndCategoria } from '../../../../core/models/proyecto.model';
+import { IProyectoCategorias } from '../../../../core/models/proyecto.model';
 import { ICategorias } from '../../../../core/models/categorias.model';
+
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatTableModule } from '@angular/material/table';
+import { MatInputModule } from '@angular/material/input';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+
+interface ICategoriaUI extends ICategorias {
+  expanded?: boolean;
+  currentPage?: number;
+  pageSize?: number;
+  filtro?: string;   
+}
 
 @Component({
   selector: 'app-project-update',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  styles: ``,
-  templateUrl: './project-update.component.html'
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatRadioModule,
+    MatSelectModule,
+    MatIconModule,
+    MatPaginatorModule,
+    MatTableModule,
+    MatInputModule,
+  ],
+  templateUrl: './project-update.component.html',
+  styleUrl: './project-update.component.scss'
 })
 export class ProjectUpdateComponent implements OnInit {
-  @Input('id') proyectoId!: string;
+  constructor(private dialog: MatDialog) {}
 
-  public formFamilyCore: FormGroup = new FormGroup({});
-  categorias = signal<ICategorias[]>([]);
+  @Input() modo: 'crear' | 'editar' = 'crear';
+
+  formFamilyCore: FormGroup = new FormGroup({});
+  categorias = signal<ICategoriaUI[]>([]);
+  filtroCategoria = '';
+  filtroProducto = '';
+  displayedColumns: string[] = ['nombreProducto', 'stock', 'fechaIngreso'];
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private proyectosService = inject(ProyectosService);
   private categoriasService = inject(CategoriasService);
   private pageTitleService = inject(PageTitleService);
+  private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
 
+  proyectoId?: string;
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage("Actualizar Proyecto");
+    this.pageTitleService.setCurrentPage("Gestión de Proyecto");
     this.initFormFamilyCore();
     this.getAllCategorias();
-    this.getProyectoById();
+
+    // 🔹 Detecta el modo desde la ruta
+    this.modo = this.route.snapshot.data['modo'] || 'crear';
+    this.proyectoId = this.route.snapshot.paramMap.get('id') || undefined;
+
+    if (this.modo === 'editar' && this.proyectoId) {
+      this.getProyectoById();
+    }
   }
 
   private getAllCategorias(): void {
@@ -50,43 +93,7 @@ export class ProjectUpdateComponent implements OnInit {
     });
   }
 
-  private getProyectoById(): void {
-    this.proyectosService.getById(this.proyectoId).subscribe({
-      next: response => {
-        const { proyecto, categorias } = response.respuesta;
-        this.initProject(proyecto, categorias);
-      },
-      error: error => {
-        console.error("Error al cargar proyecto:", error);
-        alert('Error al cargar los datos del proyecto');
-      }
-    });
-  }
-
-  private initProject(proyecto: IProyecto, categorias: ICategorias[]): void {
-    this.formFamilyCore.patchValue({
-      nombre: proyecto.nombre,
-      tipoProyecto: proyecto.tipoProyecto,
-      fechaInicio: proyecto.fechaInicio,
-      fechaFin: proyecto.fechaFin,
-      estado: proyecto.estado,
-      descripcion: proyecto.descripcion,
-      categorias: categorias.map(cat => ({ idCategoria: cat.idCategoria }))
-    });
-
-    // Pre-seleccionar categorías existentes
-    setTimeout(() => {
-      categorias.forEach(cat => {
-        const checkbox = document.querySelector(
-          `input[type="checkbox"][value="${cat.idCategoria}"]`
-        ) as HTMLInputElement;
-        if (checkbox) {
-          checkbox.checked = true;
-        }
-      });
-    });
-  }
-
+  // 🔹 Inicialización del formulario
   private initFormFamilyCore(): void {
     this.formFamilyCore = this.fb.group({
       nombre: ['', [Validators.required]],
@@ -98,60 +105,176 @@ export class ProjectUpdateComponent implements OnInit {
       categorias: [[]]
     });
   }
-
-  onCategoryCheckboxChange(event: Event): void {
-    const checkbox = event.target as HTMLInputElement;
-    const value = Number(checkbox.value);
-    const categoriaControl = this.formFamilyCore.get('categorias');
-    let selectedCategories: { idCategoria: number }[] = categoriaControl?.value || [];
-
-    if (checkbox.checked) {
-      selectedCategories.push({ idCategoria: value });
-    } else {
-      selectedCategories = selectedCategories.filter(
-        category => category.idCategoria !== value
-      );
+  
+  private getProyectoById(): void {
+    if (!this.proyectoId) {
+      console.warn('⚠️ No se proporcionó un ID de proyecto para cargar.');
+      return;
     }
 
-    categoriaControl?.setValue(selectedCategories);
+    const id = String(this.proyectoId);
+    this.proyectosService.getById(id).subscribe({
+      next: ({ respuesta }) => {
+        const { proyecto, categorias } = respuesta;
+
+        this.formFamilyCore.patchValue({
+          nombre: proyecto.nombre,
+          tipoProyecto: proyecto.tipoProyecto?.trim().toUpperCase() || '',
+          fechaInicio: proyecto.fechaInicio?.substring(0, 10) || '',
+          fechaFin: proyecto.fechaFin?.substring(0, 10) || '',
+          estado: proyecto.estado?.trim().toUpperCase() || '',
+          descripcion: proyecto.descripcion
+        });
+
+        // 🔹 Solo categorías del proyecto
+        this.categorias.set(
+          (categorias || []).map(cat => ({
+            ...cat,
+            expanded: false,
+            currentPage: 0,
+            pageSize: 3,
+            filtro: ''
+          }))
+        );
+
+        // para que Material refresque bind de select/radio si llegó tarde
+        this.cdr.detectChanges();
+      },
+      error: (e) => console.error('Error al cargar proyecto:', e)
+    });
   }
 
-  private getTransformedData(): IProyectoAndCategoria {
-    const formValue = this.formFamilyCore.value;
+  // 🔹 Filtra categorías que se muestran actualmente
+  categoriasFiltradas(): ICategoriaUI[] {
+    return this.categorias().filter(
+      (cat) =>
+        cat.productos?.some((p) =>
+          p.nombreProducto.toLowerCase().includes(this.filtroProducto.toLowerCase())
+        ) || this.filtroProducto === ''
+    );
+  }
+
+  // 🔹 Añadir categoría seleccionada
+  onCategoriaSeleccionada(categoria: ICategoriaUI): void {
+    const yaExiste = this.categorias().some((c) => c.idCategoria === categoria.idCategoria);
+    if (!yaExiste) {
+      this.categorias.update((prev) => [...prev, { ...categoria, expanded: false }]);
+    }
+    this.filtroCategoria = '';
+  }
+
+  // 🔹 Verifica si una categoría está seleccionada
+  isCategoriaSeleccionada(idCategoria: number): boolean {
+    const seleccionadas = this.formFamilyCore.get('categorias')?.value || [];
+    return seleccionadas.some((c: any) => c.idCategoria === idCategoria);
+  }
+
+  // Productos filtrados + paginados por categoría (usa filtro local `categoria.filtro`)
+  getPagedData(categoria: ICategoriaUI) {
+    const pageSize = categoria.pageSize || 3;
+    const page = categoria.currentPage || 0;
+    const q = (categoria.filtro || '').toLowerCase();
+
+    const filtered = (categoria.productos || []).filter(p =>
+      p.nombreProducto.toLowerCase().includes(q)
+    );
+
+    const start = page * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }
+
+  // 🔹 Cambiar página
+  onPageChange(event: PageEvent, categoria: ICategoriaUI) {
+    categoria.currentPage = event.pageIndex;
+    categoria.pageSize = event.pageSize;
+  }
+
+  // 🔹 Mostrar/Ocultar productos por categoría
+  toggleProductos(categoria: ICategoriaUI): void {
+    categoria.expanded = !categoria.expanded;
+  }
+
+  // 🔹 Transformar datos antes de enviar al backend
+  private getTransformedData(): IProyectoCategorias {
+    const fv = this.formFamilyCore.value;
+
+    // Aseguramos que el control tenga los ids actuales
+    const categoriasSeleccionadas = this.categorias().map(c => ({ idCategoria: c.idCategoria }));
+    this.formFamilyCore.get('categorias')?.setValue(categoriasSeleccionadas);
+
     return {
       proyecto: {
         idProyecto: Number(this.proyectoId),
-        nombre: formValue.nombre,
-        descripcion: formValue.descripcion,
-        estado: formValue.estado,
-        fechaInicio: formValue.fechaInicio,
-        fechaFin: formValue.fechaFin,
-        tipoProyecto: formValue.tipoProyecto,
+        nombre: fv.nombre,
+        descripcion: fv.descripcion,
+        estado: fv.estado,
+        fechaInicio: fv.fechaInicio,   // YYYY-MM-DD string
+        fechaFin: fv.fechaFin,         // YYYY-MM-DD string
+        tipoProyecto: fv.tipoProyecto
       },
-      categorias: formValue.categorias || []
+      categorias: categoriasSeleccionadas
     };
   }
 
+  // 🔹 Guardar cambios
   onSubmit(): void {
-    if (this.formFamilyCore.valid) {
-      const dataToSend = this.getTransformedData();
+    if (this.formFamilyCore.invalid) {
+      this.formFamilyCore.markAllAsTouched();
+      return;
+    }
+
+    const dataToSend = this.getTransformedData();
+
+    if (this.modo === 'editar' && this.proyectoId) {
       this.proyectosService.updateById(this.proyectoId, dataToSend).subscribe({
-        next: response => {
-          alert('Se ha actualizado correctamente el proyecto');
-          this.router.navigate(["projects"]);
+        next: () => {
+          alert('✅ Proyecto actualizado correctamente');
+          this.router.navigate(['projects']);
         },
-        error: error => {
-          console.error('Error:', error);
-          alert('Ha ocurrido un error al actualizar los datos');
-        }
+        error: (error) => console.error('Error al actualizar:', error)
       });
     } else {
-      alert('Verifica los campos de tu formulario');
-      this.formFamilyCore.markAllAsTouched();
+      this.proyectosService.post(dataToSend).subscribe({
+        next: () => {
+          alert('✅ Proyecto creado correctamente');
+          this.router.navigate(['projects']);
+        },
+        error: (error) => console.error('Error al crear:', error)
+      });
     }
   }
 
+
+  // 🔹 Cancelar
   cancelar(): void {
-    this.router.navigate(["projects"]);
+    this.router.navigate(['projects']);
   }
+
+  getFilteredLength(categoria: ICategoriaUI): number {
+    const filtro = (categoria.filtro || '').toLowerCase();
+    return (categoria.productos || []).filter(p =>
+      p.nombreProducto.toLowerCase().includes(filtro)
+    ).length;
+  }
+
+  confirmarActualizacion(): void {
+    if (this.formFamilyCore.invalid) {
+      alert('⚠️ Verifica los campos del formulario');
+      this.formFamilyCore.markAllAsTouched();
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { mensaje: '¿Deseas guardar los cambios de este proyecto?' }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmado) => {
+      if (confirmado) {
+        this.onSubmit(); // ejecuta la lógica normal de guardado
+      }
+    });
+  }
+
+
 }

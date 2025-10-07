@@ -1,104 +1,223 @@
-<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
-  <form [formGroup]="formFamilyCore" class="form" (ngSubmit)="onSubmit()"
-    class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
-  >
-    <div class="flex flex-wrap justify-between">
-      <div class="w-full md:w-[49%]">
-        <label for="nombre" class="label-base">*Nombre</label>
-        <input [formControlName]="'nombre'" type="text" id="nombre" class="input-base" placeholder="Nombre">
+<!-- 🔹 CONTENEDOR PRINCIPAL CON SCROLL GLOBAL -->
+<div class="h-[90vh] overflow-y-auto p-6 bg-gray-100 rounded-xl shadow-inner scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
 
-        @if(formFamilyCore.get('nombre')?.hasError('required') && formFamilyCore.get('nombre')?.touched) {
-          <p class="text-red-500">
-            * Este campo es requerido
-          </p>
-        }
+  <!-- 🔹 FORMULARIO DEL PROYECTO -->
+  <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" class="space-y-6">
+
+    <div class="bg-white p-8 rounded-2xl shadow-md border border-gray-200 transition-all hover:shadow-lg">
+
+      <!-- 🔹 Encabezado -->
+      <div class="flex justify-between items-center mb-6 border-b pb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-800">
+            {{ modo === 'crear' ? 'Registrar Proyecto' : 'Actualizar Proyecto' }}
+          </h2>
+           {{ modo === 'crear' ? 'Completa los datos para crear un nuevo proyecto' : 'Actualiza los datos del proyecto seleccionado' }}
+        </div>
+        <div class="flex gap-3">
+          <button
+            type="button"
+            mat-flat-button
+            color="primary"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg shadow-md transition-all duration-200 transform text-white"
+            [ngClass]="formFamilyCore.invalid 
+              ? 'bg-blue-400 hover:bg-blue-400 opacity-70 cursor-not-allowed' 
+              : '!bg-blue-600 hover:!bg-blue-700 hover:scale-[1.03]'"
+            [disabled]="formFamilyCore.invalid"
+            (click)="confirmarActualizacion()"
+          >
+            <mat-icon class="text-white text-base">save</mat-icon>
+            <span class="font-medium">Guardar</span>
+          </button>
+          <button
+            type="button"
+            mat-stroked-button
+            color="warn"
+            (click)="cancelar()"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-all duration-200 transform hover:scale-[1.03]"
+          >
+            <mat-icon class="text-gray-600">close</mat-icon>
+            <span class="font-medium">Cancelar</span>
+          </button>
+        </div>
       </div>
 
-      <div class="w-full md:w-[49%]">
-        <label for="tipoProyecto" class="label-base">*Tipo de proyecto</label>
-        <select formControlName="tipoProyecto" id="tipoProyecto" class="input-base">
-          <option value="M" class="input-base capitalize">Municipal</option>
-          <option value="D" class="input-base capitalize">Departamental</option>
-        </select>
+      <!-- 🔹 Campos en filas organizadas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        @if(formFamilyCore.get('tipoProyecto')?.hasError('required') && formFamilyCore.get('tipoProyecto')?.touched) {
-          <p class="text-red-500">
-            * Este campo es requerido
-          </p>
-        }
+        <!-- Nombre -->
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>* Nombre del Proyecto</mat-label>
+          <input matInput formControlName="nombre" placeholder="Ej: Proyecto de Salud" />
+          <mat-icon matSuffix>assignment</mat-icon>
+          <mat-error *ngIf="formFamilyCore.get('nombre')?.hasError('required') && formFamilyCore.get('nombre')?.touched">
+            ⚠️ El nombre del proyecto es obligatorio.
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Tipo Proyecto -->
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>* Tipo de Proyecto</mat-label>
+          <mat-select formControlName="tipoProyecto">
+            <mat-option value="M">Municipal</mat-option>
+            <mat-option value="D">Departamental</mat-option>
+          </mat-select>
+          <mat-error *ngIf="formFamilyCore.get('tipoProyecto')?.hasError('required') && formFamilyCore.get('tipoProyecto')?.touched">
+            ⚠️ Debes seleccionar un tipo de proyecto.
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Estado -->
+        <div class="flex flex-col justify-center">
+          <label class="text-gray-700 font-medium text-sm mb-1">Estado</label>
+          <mat-radio-group formControlName="estado" class="flex flex-wrap gap-4">
+            <mat-radio-button value="A" color="primary">Activo</mat-radio-button>
+            <mat-radio-button value="I" color="warn">Inactivo</mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <!-- Fechas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 lg:col-span-2">
+          <div>
+            <label for="fechaInicio" class="label-base block mb-1">* Fecha Inicio</label>
+            <input
+              type="date"
+              id="fechaInicio"
+              formControlName="fechaInicio"
+              class="w-full border border-gray-300 rounded-md p-2.5 text-gray-700 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-gray-50 appearance-none"
+            />
+            <p *ngIf="formFamilyCore.get('fechaInicio')?.hasError('required') && formFamilyCore.get('fechaInicio')?.touched"
+              class="text-red-500 text-xs mt-1">
+              ⚠️ La fecha de inicio es obligatoria.
+            </p>
+          </div>
+
+          <div>
+            <label for="fechaFin" class="label-base block mb-1">Fecha Fin</label>
+            <input
+              type="date"
+              id="fechaFin"
+              formControlName="fechaFin"
+              class="w-full border border-gray-300 rounded-md p-2.5 text-gray-700 text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all bg-gray-50 appearance-none"
+            />
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <mat-form-field appearance="fill" class="col-span-1 sm:col-span-2 lg:col-span-3">
+          <mat-label>Descripción</mat-label>
+          <textarea
+            matInput
+            rows="1"
+            formControlName="descripcion"
+            placeholder="Describe brevemente el propósito o alcance del proyecto...">
+          </textarea>
+          <mat-icon matSuffix>notes</mat-icon>
+        </mat-form-field>
       </div>
+
+    </div>
+  </form>
+
+  <!-- 🔹 SECCIÓN DE CATEGORÍAS Y PRODUCTOS -->
+  <div class="bg-white p-6 rounded-xl shadow-sm border mt-8">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-semibold text-gray-700">Categorías asociadas al proyecto</h2>
     </div>
 
-    <div class="flex flex-col md:flex-row md:flex-nowrap gap-5">
-      <div class="w-full flex flex-col">
-        <div class="relative flex flex-col  items-start gap-2">
-          <label for="fechaInicio">*Fecha inicio</label>
-          <input formControlName="fechaInicio" id="fechaInicio" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 " placeholder="Select date">
-        </div>
-        @if(formFamilyCore.get('fechaInicio')?.hasError('required') && formFamilyCore.get('fechaInicio')?.touched) {
-          <p class="text-red-500">
-            * Este campo es requerido
-          </p>
-        }
-      </div>
+    <div class="flex flex-col gap-6">
+      @for (categoria of categorias(); track categoria.idCategoria) {
+        <div class="border border-gray-300 rounded-lg p-5 bg-gray-50 hover:bg-gray-100 transition">
+          <!-- Header categoría -->
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <div class="font-semibold text-gray-800">{{ categoria.nombre }}</div>
+              <p class="text-xs text-gray-500">{{ categoria.descripcion }}</p>
+            </div>
 
-      <div class="w-full flex flex-col">
-        <div class="relative flex flex-col  items-start gap-2">
-          <label for="fechaFin">Fecha finalización</label>
-          <input formControlName="fechaFin" id="fechaFin" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 " placeholder="Select date">
-        </div>
-        @if(formFamilyCore.get('fechaFin')?.hasError('required') && formFamilyCore.get('fechaFin')?.touched) {
-          <p class="text-red-500">
-            * Este campo es requerido
-          </p>
-        }
-      </div>
+            <button *ngIf="categoria.productos?.length"
+                    type="button"
+                    (click)="toggleProductos(categoria)"
+                    mat-icon-button
+                    [attr.aria-label]="'Ver productos de ' + categoria.nombre">
+              <mat-icon>{{ categoria.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+          </div>
 
-    </div>
+          <!-- Panel de productos -->
+          <div *ngIf="categoria.expanded" class="mt-4 border-t pt-4">
+            <!-- Tabla -->
+            <div class="overflow-x-auto">
+              <div class="min-w-[600px] md:min-w-0 w-full">
+                <table mat-table [dataSource]="getPagedData(categoria)"
+                      class="w-full text-sm mat-elevation-z2 rounded-md overflow-hidden">
+
+                  <!-- 🟦 Columna Producto con filtro en el header -->
+                  <ng-container matColumnDef="nombreProducto">
+                    <th mat-header-cell *matHeaderCellDef class="text-left font-medium text-gray-700">
+                      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-start gap-1 sm:gap-2">
+                        <span class="font-semibold">Producto</span>
+
+                        <!-- Campo de búsqueda compacto -->
+                        <div class="relative w-[100px] sm:w-[130px]">
+                          <input
+                            matInput
+                            [(ngModel)]="categoria.filtro"
+                            placeholder="Buscar..."
+                            class="pl-6 pr-2 py-[3px] text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 w-full"
+                          />
+                          <mat-icon
+                            class="absolute left-1 top-1/2 -translate-y-1/2 text-gray-500 text-sm cursor-pointer"
+                            (click)="categoria.filtro = ''; categoria.currentPage = 0"
+                          >
+                            {{ categoria.filtro ? 'close' : 'search' }}
+                          </mat-icon>
+                        </div>
+                      </div>
+                    </th>
+                    <td mat-cell *matCellDef="let product">{{ product.nombreProducto }}</td>
+                  </ng-container>
 
 
-    <div class="flex flex-wrap justify-between">
-      <div class="flex flex-col border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2">
-        <label>*Estado:</label>
-        <div class="flex gap-4">
-          <input formControlName="estado" type="radio" value="A" class="input-radio-base"> Activo
-          <input formControlName="estado" type="radio" value="I" class="input-radio-base"> Inactivo
-        </div>
 
-        @if(formFamilyCore.get('estado')?.hasError('required') && formFamilyCore.get('estado')?.touched) {
-          <p class="text-red-500">
-            * Este campo es requerido
-          </p>
-        }
-      </div>
-    </div>
+                  <!-- Columna Stock -->
+                  <ng-container matColumnDef="stock">
+                    <th mat-header-cell *matHeaderCellDef class="text-left font-medium text-gray-700">Stock</th>
+                    <td mat-cell *matCellDef="let product">{{ product.stock }}</td>
+                  </ng-container>
 
-    <!-- Sección de Categorías -->
-    <div class="flex flex-col py-4 px-2 border rounded-lg border-gray-300">
-      <label>*Selecciona las categorías</label>
-      @for(categoria of categorias(); track categoria.idCategoria) {
-        <div class="flex items-center gap-2">
-          <input
-            type="checkbox"
-            [value]="categoria.idCategoria"
-            (change)="onCategoryCheckboxChange($event)"
-          />
-          <label>{{ categoria.nombre }}</label>
+                  <!-- Columna Fecha Ingreso -->
+                  <ng-container matColumnDef="fechaIngreso">
+                    <th mat-header-cell *matHeaderCellDef class="text-left font-medium text-gray-700">Ingreso</th>
+                    <td mat-cell *matCellDef="let product">{{ product.fechaIngreso }}</td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+
+                <!-- 🔹 Paginador -->
+                <div class="flex justify-center mt-3">
+                  <mat-paginator
+                    [pageSizeOptions]="[3, 5, 10]"
+                    [length]="getFilteredLength(categoria)"
+                    [pageSize]="categoria.pageSize || 3"
+                    [pageIndex]="categoria.currentPage || 0"
+                    showFirstLastButtons
+                    (page)="onPageChange($event, categoria)">
+                  </mat-paginator>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       }
     </div>
 
-    <div class="flex flex-wrap justify-between">
-      <label for="descripcion"class="block mb-2 text-sm font-medium text-gray-900 ">Descripción</label>
-      <textarea id="descripcion" formControlName="descripcion" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 " placeholder="Observacioes para está entrega..."></textarea>
-    </div>
+    <!-- Sin categorías -->
+    <p *ngIf="categorias().length === 0" class="text-gray-500 text-sm italic text-center py-8">
+      ⚠️ No hay categorías asociadas a este proyecto.
+    </p>
+  </div>
 
-
-    <div class="flex justify-end space-x-4">
-      <button routerLink='/projects' type="button" class="btn-action-gray" (click)="cancelar()">
-        Cancelar
-      </button>
-      <button type="submit" class="btn-action-blue">Guardar cambios</button>
-    </div>
-  </form>
 </div>

@@ -20,6 +20,12 @@ export interface IProyectoAndCategoria {
   categorias: ICategorias;
 }
 
+export interface IProyectoCategorias {
+  proyecto: IProyecto;
+  categorias: { idCategoria: number }[];  
+}
+
+
 export interface IProyectoAndCategoriaArray {
   proyecto: IProyecto;
   categorias: ICategorias[];

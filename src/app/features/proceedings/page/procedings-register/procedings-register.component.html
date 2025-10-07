@@ -1,67 +1,62 @@
 <div class="overflow-y-auto font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
 
-  <!-- Buscador de Beneficiario -->
-  <div class="flex flex-col p-4">
-    <div class="flex justify-between items-center mb-2">
-      <label for="buscarBeneficiario" class="label-base">*Buscar beneficiario</label>
-      
-      <!-- 🔹 Botón para cerrar / volver -->
+  <!-- 🔹 Buscador de beneficiario -->
+  <div class="flex flex-col p-5 border-b bg-gray-50">
+    <div class="flex justify-between items-center mb-3">
+      <label for="buscarBeneficiario" class="text-gray-800 font-semibold flex items-center gap-2">
+        <mat-icon color="primary">search</mat-icon> Buscar beneficiario (por cédula)
+      </label>
       <button
         type="button"
-        (click)=cancelar();
-        class="flex items-center gap-1 text-sm text-gray-600 hover:text-blue-700 transition"
+        (click)="cancelar()"
+        class="text-gray-600 hover:text-blue-700 flex items-center gap-1 text-sm transition"
       >
         <mat-icon class="text-base">close</mat-icon>
         Cerrar formulario
       </button>
     </div>
 
-    <!-- 🔹 Campo de búsqueda -->
-    <div class="flex flex-col gap-2">
+    <div class="flex gap-3">
       <input
-        type="text"
         id="buscarBeneficiario"
-        class="input-base"
-        placeholder="Ingresa la cédula"
+        type="text"
+        class="input-base w-full"
+        placeholder="Ingrese el número de documento del beneficiario"
         [formControl]="searchBeneficiario"
         inputmode="numeric"
         pattern="[0-9]*"
-      >
-
-      @if(searchBeneficiario.errors && searchBeneficiario.touched){
-        @if(searchBeneficiario.hasError('minlength')){ <p class="text-red-500">* Mínimo 6 dígitos</p> }
-        @if(searchBeneficiario.hasError('maxlength')){ <p class="text-red-500">* Máximo 14 dígitos</p> }
-        @if(searchBeneficiario.hasError('pattern')){ <p class="text-red-500">* Solo se aceptan números</p> }
-      }
-
-      @if(beneficiarioNoEncontrado){
-        <div class="mt-3 bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-yellow-800 text-sm text-center shadow-sm">
-          <div class="flex items-center justify-center gap-2">
-            <mat-icon class="text-yellow-600 text-base">info</mat-icon>
-            <span class="font-semibold">Beneficiario no encontrado o sin proyecto asignado</span>
-          </div>
-          <p class="mt-1 text-gray-700">
-            No se encontró un beneficiario activo con esta cédula o no tiene un proyecto vinculado.
-          </p>
-        </div>
-      }
+      />
     </div>
+
+    <!-- ⚠️ Validaciones de búsqueda -->
+    @if(searchBeneficiario.errors && searchBeneficiario.touched) {
+      <div class="mt-2 text-red-500 text-sm">
+        @if(searchBeneficiario.hasError('minlength')) { <p>* Mínimo 6 dígitos</p> }
+        @if(searchBeneficiario.hasError('maxlength')) { <p>* Máximo 14 dígitos</p> }
+        @if(searchBeneficiario.hasError('pattern')) { <p>* Solo se aceptan números</p> }
+      </div>
+    }
+
+    @if(beneficiarioNoEncontrado) {
+      <div class="mt-3 bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-yellow-800 text-sm text-center shadow-sm">
+        <mat-icon class="text-yellow-600 text-base">info</mat-icon>
+        <span class="font-semibold">Beneficiario no encontrado o sin proyecto vinculado</span>
+      </div>
+    }
   </div>
 
-  <!-- Información del Beneficiario y Proyecto -->
+  <!-- 🧾 Información del beneficiario y proyecto -->
   @if (beneficiario() !== null && beneficiarioProyecto() !== null) {
-    <div class="mt-4 grid md:grid-cols-2 gap-4 bg-gray-50 p-5 rounded-lg border border-gray-200 shadow-sm">
+    <div class="p-5 grid md:grid-cols-2 gap-5 border-b bg-gray-50">
       <!-- Beneficiario -->
       <div>
-        <h3 class="text-gray-800 font-semibold mb-2 flex items-center gap-2">
-          <mat-icon class="text-blue-500 text-base">person</mat-icon>
-          Información del beneficiario
+        <h3 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+          <mat-icon color="primary">person</mat-icon> Información del beneficiario
         </h3>
-        <p class="text-sm text-gray-700">Primer nombre: <b>{{ beneficiario()?.primerNombre }}</b></p>
-        <p class="text-sm text-gray-700">Primer apellido: <b>{{ beneficiario()?.primerApellido }}</b></p>
+        <p class="text-sm text-gray-700">Nombre: <b>{{ beneficiario()?.primerNombre }} {{ beneficiario()?.primerApellido }}</b></p>
         <p class="text-sm text-gray-700">Documento: <b>{{ beneficiario()?.numeroDocumento }}</b></p>
         <p class="text-sm text-gray-700">
-          Estado beneficiario:
+          Estado:
           <span
             [ngClass]="{
               'text-green-600 font-semibold': beneficiarioProyecto()?.esBeneficiarioActivo,
@@ -75,9 +70,8 @@
 
       <!-- Proyecto -->
       <div>
-        <h3 class="text-gray-800 font-semibold mb-2 flex items-center gap-2">
-          <mat-icon class="text-blue-500 text-base">folder_open</mat-icon>
-          Proyecto asignado
+        <h3 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+          <mat-icon color="primary">folder_open</mat-icon> Proyecto asignado
         </h3>
         <p class="text-sm text-gray-700">Proyecto: <b>{{ beneficiarioProyecto()?.nombreProyecto }}</b></p>
         <p class="text-sm text-gray-700">
@@ -109,156 +103,157 @@
       </div>
     }
     @else {
-      <!-- ✅ Si todo está activo, mostrar el resto del formulario -->
-      <div class="mt-4">
-        <!-- Aquí va el select de responsable y tu formulario completo -->
-        <div class="w-full px-4">
+      <!-- ✅ Formulario del acta -->
+      <form [formGroup]="formActa" (ngSubmit)="onSubmit()" class="p-5 flex flex-col gap-6 leading-relaxed pb-20 md:pb-5">
+
+        <!-- Responsable -->
+        <div class="w-full md:w-1/2">
           <label for="selectResponsable" class="label-base">*Responsable del acta</label>
-          <select
-            [formControl]="selectResponsable"
-            id="selectResponsable"
-            class="input-base"
-          >
+          <select [formControl]="selectResponsable" id="selectResponsable" class="input-base">
             <option value="" disabled selected>Seleccione un responsable</option>
             @for (responsable of responsables(); track responsable) {
               <option [value]="responsable.idResponsable">
-                {{ responsable.primerNombre }} 
-                {{ responsable.segundoNombre }} 
-                {{ responsable.primerApellido }} 
-                {{ responsable.segundoApellido }}
+                {{responsable.primerNombre}}
+                {{responsable.segundoNombre}}
+                {{responsable.primerApellido}}
+                {{responsable.segundoApellido}}
               </option>
             }
           </select>
+          @if(selectResponsable.hasError('required') && selectResponsable.touched) {
+            <p class="text-red-500 text-sm mt-1">* Este campo es requerido</p>
+          }
         </div>
 
-        <!-- 💡 Tu formulario actual -->
-        <form [formGroup]="formActa" class="form" (ngSubmit)="onSubmit()"
-            class="p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
-          >
+        <!-- Fechas y datos generales -->
+        <div class="flex flex-wrap md:flex-nowrap gap-5">
+          <div class="w-full md:w-1/3">
+            <label for="fechaEntrega" class="label-base">*Fecha de entrega</label>
+            <input formControlName="fechaEntrega" id="fechaEntrega" type="date" class="input-base" />
+            @if(formActa.get('fechaEntrega')?.hasError('required') && formActa.get('fechaEntrega')?.touched) {
+              <p class="text-red-500 text-sm">* Este campo es requerido</p>
+            }
+          </div>
 
-            <div class="flex flex-wrap justify-between">
-              <div class="flex flex-col">
-                <div class="relative flex items-center gap-2">
-                  <label for="fechaEntrega">*Fecha de entrega</label>
-                  <input formControlName="fechaEntrega" id="fechaEntrega" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 ">
-                </div>
-                @if(formActa.get('fechaEntrega')?.hasError('required') && formActa.get('fechaEntrega')?.touched) {
-                  <p class="text-red-500">
-                    * Este campo es requerido
-                  </p>
-                }
-              </div>
+          <div class="w-full md:w-1/3">
+            <label for="prioridad" class="label-base">*Prioridad</label>
+            <select formControlName="prioridad" id="prioridad" class="input-base">
+              <option value="A">Alta</option>
+              <option value="M">Media</option>
+              <option value="B">Baja</option>
+            </select>
+          </div>
 
+          <div class="w-full md:w-1/3">
+            <label for="tipoSolicitud" class="label-base">*Tipo de solicitud</label>
+            <input formControlName="tipoSolicitud" id="tipoSolicitud" type="text" class="input-base" placeholder="Ej: Alimentación" />
+          </div>
+        </div>
+
+        <!-- Ubicación y responsable visita -->
+        <div class="flex flex-wrap md:flex-nowrap gap-5">
+          <div class="w-full md:w-1/2">
+            <label for="ubicacionEntrega" class="label-base">*Ubicación de la entrega</label>
+            <input formControlName="ubicacionEntrega" id="ubicacionEntrega" type="text" class="input-base" placeholder="Ubicación" />
+          </div>
+          <div class="w-full md:w-1/2">
+            <label for="responsableVisita" class="label-base">*Responsable de visita</label>
+            <input formControlName="responsableVisita" id="responsableVisita" type="text" class="input-base" placeholder="Ej: Coordinador local" />
+          </div>
+        </div>
+
+        <!-- Observaciones -->
+        <div>
+          <label for="observaciones" class="label-base">Observaciones</label>
+          <textarea formControlName="observaciones" id="observaciones" rows="4" class="input-base" placeholder="Notas sobre la entrega..."></textarea>
+        </div>
+
+        <!-- 🛒 Productos -->
+        <div class="mt-6">
+          <div class="flex justify-between items-center mb-3">
+            <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
+              <mat-icon color="primary">inventory_2</mat-icon> Productos seleccionados
+            </h2>
+            <button
+              type="button"
+              (click)="openDialog()"
+              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-1 transition-all duration-200 shadow-sm"
+            >
+              <mat-icon>add_shopping_cart</mat-icon> Añadir productos
+            </button>
+          </div>
+
+          @if (selectedProductsInfo().length === 0) {
+            <div class="flex items-center justify-center h-32 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+              <p class="text-gray-500 text-sm">🛒 No hay productos seleccionados</p>
             </div>
-
-            <div class="flex flex-wrap md:flex-nowrap justify-between gap-5">
-              <div class="w-full">
-                <label for="ubicacionEntrega" class="label-base">Ubicación de la entrega</label>
-                <input [formControlName]="'ubicacionEntrega'" type="text" id="ubicacionEntrega" class="input-base" placeholder="Ubicación de la entrega">
-
-                @if(formActa.get('ubicacionEntrega')?.hasError('required') && formActa.get('ubicacionEntrega')?.touched) {
-                  <p class="text-red-500">
-                    * Este campo es requerido
-                  </p>
-                }
-              </div>
-
-              <div class="w-full">
-                <label for="prioridad" class="label-base">*Prioridad</label>
-                <select formControlName="prioridad" id="prioridad" class="input-base">
-                  <option value="A" class="input-base capitalize">Alta</option>
-                  <option value="M" class="input-base capitalize">Media</option>
-                  <option value="B" class="input-base capitalize">Baja</option>
-                </select>
-
-                @if(formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
-                  <p class="text-red-500">
-                    * Este campo es requerido
-                  </p>
-                }
-              </div>
-            </div>
-
-            <div class="flex flex-wrap md:flex-nowrap justify-between gap-5">
-              <div class="w-full flex flex-col">
-                <label for="responsableVisita" class="label-base">*Responsable visita</label>
-                <input [formControlName]="'responsableVisita'" type="text" id="responsableVisita" class="input-base" placeholder="Responsable Visita">
-
-                @if(formActa.get('responsableVisita')?.hasError('required') && formActa.get('responsableVisita')?.touched) {
-                  <p class="text-red-500">
-                    * Este campo es requerido
-                  </p>
-                }
-              </div>
-
-              <div class="w-full flex flex-col">
-                <label for="tipoSolicitud" class="label-base">*Tipo de solicitud</label>
-                <input [formControlName]="'tipoSolicitud'" type="text" id="tipoSolicitud" class="input-base" placeholder="Tipo de solicitud">
-
-                @if(formActa.get('tipoSolicitud')?.hasError('required') && formActa.get('tipoSolicitud')?.touched) {
-                  <p class="text-red-500">
-                    * Este campo es requerido
-                  </p>
-                }
-              </div>
-            </div>
-
-            <div class="flex flex-wrap justify-between">
-              <label for="message" class="block mb-2 text-sm font-medium text-gray-900 ">Observaciones</label>
-              <textarea formControlName="observaciones" id="message" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 " placeholder="Observacioes para está entrega..."></textarea>
-            </div>
-
-            <div class="mt-4">
-              <div class="flex justify-between items-center">
-                <h2 class="text-lg font-semibold">*Productos Seleccionados</h2>
-                <button type="button"
-                  (click)="openDialog()"
-                  class="btn-action-green">
-                  Seleccionar Productos
-                </button>
-              </div>
-
-              @if (selectedProductsInfo().length === 0) {
-                <p class="text-gray-500 mt-2">No hay productos seleccionados</p>
-              } @else {
-                <div class="mt-4 border rounded-lg divide-y">
+          } @else {
+            <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
+              <table class="w-full text-sm text-left text-gray-700">
+                <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                  <tr>
+                    <th class="px-4 py-3 w-[20%]">Nombre</th>
+                    <th class="px-4 py-3 w-[30%]">Descripción</th>
+                    <th class="px-4 py-3 text-center w-[10%]">Stock</th>
+                    <th class="px-4 py-3 text-center w-[10%]">Cantidad</th>
+                    <th class="px-4 py-3 text-center w-[10%]">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
                   @for (product of selectedProductsInfo(); track product.idProducto) {
-                    <div class="flex items-center justify-between p-4 hover:bg-gray-50">
-                      <div class="flex-1">
-                        <h3 class="font-medium">{{ product.nombre }}</h3>
-                        <p class="text-sm text-gray-600">{{ product.descripcion }}</p>
-                        <p class="text-sm text-gray-500">
-                          Cantidad seleccionada: <span class="font-medium">{{ product.cantidad }}</span>
-                          <span class="mx-2">|</span>
-                          Stock disponible: <span class="font-medium">{{ product.stock }}</span>
-                        </p>
-                      </div>
-                      <button type="button"
-                        (click)="removeSelectedProduct(product.idProducto)"
-                        class="text-red-600 hover:text-red-800 p-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
+                    <tr class="border-b hover:bg-gray-50 transition">
+                      <td class="px-4 py-3 font-medium text-gray-800">{{ product.nombre }}</td>
+                      <td class="px-4 py-3 text-gray-600">{{ product.descripcion }}</td>
+                      <td class="px-4 py-3 text-center">{{ product.stock }}</td>
+                      <td class="px-4 py-3 text-center">
+                        <input
+                          type="number"
+                          [value]="product.cantidad"
+                          min="1"
+                          [max]="product.stock"
+                          (change)="updateProductQuantity(product.idProducto, $event)"
+                          class="w-20 border border-gray-300 rounded-md text-center py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                        />
+                      </td>
+                      <td class="px-4 py-3 text-center">
+                        <button
+                          type="button"
+                          (click)="removeSelectedProduct(product.idProducto)"
+                          class="text-red-600 hover:text-red-800 transition"
+                          matTooltip="Eliminar producto"
+                        >
+                          <mat-icon>delete_forever</mat-icon>
+                        </button>
+                      </td>
+                    </tr>
                   }
-                </div>
-              }
+                </tbody>
+              </table>
             </div>
+          }
+        </div>
 
-            <div class="flex justify-end space-x-4">
-              <button type="button" class="btn-action-gray" (click)="cancelar()">Cancelar</button>
-              <button type="submit" 
-                class="btn-action-blue disabled:opacity-50 disabled:cursor-not-allowed"
-                [disabled]="formActa.invalid">
-                Guardar cambios
-              </button>
-            </div>
+        <!-- Acciones -->
+        <div class="flex justify-end space-x-4 mt-6">
+          <!-- Botón Cancelar -->
+          <button 
+            type="button" 
+            class="btn-action-gray" 
+            (click)="cancelar()">
+            Cancelar
+          </button>
 
-          </form>
-      </div>
+          <!-- Botón Guardar -->
+          <button 
+            type="submit" 
+            class="btn-action-blue flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="formActa.invalid"
+          >
+            <mat-icon>save</mat-icon>
+            Registrar Acta
+          </button>
+        </div>
+      </form>
     }
   }
 </div>
-
-

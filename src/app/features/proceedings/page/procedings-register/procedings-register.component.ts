@@ -39,7 +39,7 @@ interface DialogData {
     CommonModule, 
     ReactiveFormsModule, 
     DialogModule,
-    MatIconModule
+    MatIconModule,
   ],
   styles: ``,
   templateUrl: './procedings-register.component.html'
@@ -153,13 +153,21 @@ export class ProcedingsRegisterComponent implements OnInit{
             });
           } else {
             // Si el usuario borra el campo o escribe menos de 6 caracteres
-            this.resetFormularioCompleto();
+            this.beneficiarioNoEncontrado = false; // ✅ Quita el mensaje amarillo
+            this.beneficiario.set(null);
+            this.beneficiarioProyecto.set(null);
+            this.proyectoSelect.set(null);
+            this.selectedProductsInfo.set([]);
+            this.formActa.reset({
+              fechaCreacion: this.getFechaActual(),
+              estado: 'R'
+            });
           }
         }
       });
   }
 
-  private resetFormularioCompleto() {
+  resetFormularioCompleto() {
     // Limpia signals y variables
     this.beneficiario.set(null);
     this.beneficiarioProyecto.set(null);
@@ -355,6 +363,15 @@ export class ProcedingsRegisterComponent implements OnInit{
     confirmRef.afterClosed().subscribe(confirmado => {
       if (!confirmado) return;
 
+      // Sincronizar productos seleccionados antes de enviar
+      const productosSeleccionados = this.selectedProductsInfo().map(p => ({
+        idProductoFk: p.idProducto,
+        cantidad: p.cantidad
+      }));
+
+      this.formActa.patchValue({ productos: productosSeleccionados });
+
+
       // Arma el payload
       const payload = {
         ...this.formActa.value,
@@ -379,6 +396,43 @@ export class ProcedingsRegisterComponent implements OnInit{
           this.snackBar.open('❌ Algo salió mal, intenta de nuevo', 'Cerrar', { duration: 3000 });
         }
       });
+    });
+  }
+
+  updateProductQuantity(productId: number, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const newQuantity = parseInt(input.value);
+
+    // Validar que la cantidad sea válida
+    if (isNaN(newQuantity) || newQuantity < 1) {
+      alert('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    // Actualizar cantidad en el signal
+    const updatedProducts = this.selectedProductsInfo().map(product => {
+      if (product.idProducto === productId) {
+        // Validar contra el stock
+        if (newQuantity > product.stock) {
+          alert(`No hay suficiente stock. Stock disponible: ${product.stock}`);
+          input.value = product.cantidad.toString();
+          return product;
+        }
+        return { ...product, cantidad: newQuantity };
+      }
+      return product;
+    });
+
+    this.selectedProductsInfo.set(updatedProducts);
+
+    // Actualizar en el formulario
+    const formProducts = updatedProducts.map(p => ({
+      idProductoFk: p.idProducto,
+      cantidad: p.cantidad
+    }));
+
+    this.formActa.patchValue({
+      productos: formProducts
     });
   }
 

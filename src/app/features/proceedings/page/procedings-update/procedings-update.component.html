@@ -164,93 +164,136 @@
         placeholder="Observaciones para esta entrega..."></textarea>
     </div>
 
-      <!-- Productos -->
-      <div class="mt-4">
-        <div class="flex justify-between items-center">
-          <h2 class="text-lg font-semibold">*Productos Seleccionados</h2>
-          @if (formActa.get('estado')?.value === 'R' || formActa.get('estado')?.value === 'P') {
-            <button type="button"
-              (click)="openDialog()"
-              class="btn-action-green">
-              Seleccionar Productos
-            </button>
-          }
-        </div>
+    <!-- Productos -->
+    <div class="mt-6">
+      <div class="flex justify-between items-center mb-3">
+        <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
+          <mat-icon color="primary">inventory_2</mat-icon> Productos Seleccionados
+        </h2>
 
-        @if (selectedProductsInfo().length === 0) {
-          <p class="text-gray-500 mt-2">No hay productos seleccionados</p>
-        } @else {
-          <div class="mt-4 border rounded-lg divide-y">
-            @for (product of selectedProductsInfo(); track product.idProducto) {
-              <div class="flex items-center justify-between p-4 hover:bg-gray-50">
-                <div class="flex-1">
-                  <h3 class="font-medium">{{ product.nombre }}</h3>
-                  <p class="text-sm text-gray-600">{{ product.descripcion }}</p>
-                  <!-- Cantidad de productos -->
-                  <div class="flex items-center gap-2 mt-2">
-                    <input type="number"
-                      [value]="product.cantidad"
-                      [readonly]="!formularioEditable()"
-                      [attr.readonly]="productosSoloLectura() ? true : null"
-                      class="w-24 px-2 py-1 border rounded"
-                      [readonly]="!formularioEditable()"
-                      min="1"
-                      [max]="product.stock"
-                      (change)="updateProductQuantity(product.idProducto, $event)">
-                    <span class="text-sm text-gray-500">
-                      Stock disponible: {{ product.stock }}
-                    </span>
-                  </div>
-                </div>
-                @if (!product.isExisting) {
-                  <button type="button"
-                    (click)="removeSelectedProduct(product.idProducto)"
-                    class="text-red-600 hover:text-red-800 p-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                }
-              </div>
-            }
-          </div>
-        }
-
-        <!-- Validaciones -->
-        @if (formActa.get('productos')?.hasError('required') &&
-            formActa.get('productos')?.touched &&
-            formActa.get('estado')?.value === 'A' &&
-            selectedProductsInfo().length === 0) {
-          <p class="text-red-500 mt-2">
-            * Debe seleccionar al menos un producto cuando el estado es Autorizado
-          </p>
+        @if (formActa.get('estado')?.value === 'R' || formActa.get('estado')?.value === 'P') {
+          <button 
+            type="button"
+            (click)="openDialog()"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-1 transition-all duration-200 shadow-sm"
+          >
+            <mat-icon>add_shopping_cart</mat-icon>
+            Seleccionar Productos
+          </button>
         }
       </div>
 
+      @if (selectedProductsInfo().length === 0) {
+        <div class="flex items-center justify-center h-32 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          <p class="text-gray-500 text-sm">🛒 No hay productos seleccionados</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
+          <table class="w-full text-sm text-left text-gray-700">
+            <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+              <tr>
+                <th class="px-4 py-3 w-[20%]">Nombre</th>
+                <th class="px-4 py-3 w-[30%]">Descripción</th>
+                <th class="px-4 py-3 text-center w-[10%]">Stock</th>
+                <th class="px-4 py-3 text-center w-[10%]">Cantidad</th>
+                <th class="px-4 py-3 text-center w-[10%]">Acción</th>
+              </tr>
+            </thead>
 
+            <tbody>
+              @for (product of selectedProductsInfo(); track product.idProducto) {
+                <tr class="border-b hover:bg-gray-50 transition">
+                  <td class="px-4 py-3 font-medium text-gray-800">{{ product.nombre }}</td>
+                  <td class="px-4 py-3 text-gray-600">{{ product.descripcion }}</td>
+                  <td class="px-4 py-3 text-center">{{ product.stock }}</td>
+                  
+                  <!-- Cantidad -->
+                  <td class="px-4 py-3 text-center">
+                    <input 
+                      type="number"
+                      [value]="product.cantidad"
+                      [readonly]="!formularioEditable()"
+                      [attr.readonly]="productosSoloLectura() ? true : null"
+                      min="1"
+                      [max]="product.stock"
+                      (change)="updateProductQuantity(product.idProducto, $event)"
+                      class="w-20 border border-gray-300 rounded-md text-center py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                    />
+                  </td>
+
+                  <!-- Acción -->
+                  <td class="px-4 py-3 text-center">
+                    @if (formActa.get('estado')?.value === 'R' || formActa.get('estado')?.value === 'P') {
+                      <button 
+                        type="button"
+                        (click)="removeSelectedProduct(product.idProducto)"
+                        class="text-red-600 hover:text-red-800 transition"
+                        matTooltip="Eliminar producto"
+                      >
+                        <mat-icon>delete_forever</mat-icon>
+                      </button>
+                    } @else {
+                      <mat-icon class="text-gray-400">lock</mat-icon>
+                    }
+                  </td>
+
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- ⚠️ Validaciones -->
+      @if (
+        formActa.get('productos')?.hasError('required') &&
+        formActa.get('productos')?.touched &&
+        formActa.get('estado')?.value === 'A' &&
+        selectedProductsInfo().length === 0
+      ) {
+        <p class="text-red-500 mt-3 text-sm font-medium">
+          * Debe seleccionar al menos un producto cuando el estado es Autorizado.
+        </p>
+      }
+    </div>
 
       <!-- Botones de acción -->
       <div class="flex justify-end space-x-4 mt-6">
 
-        <button type="button"
+        <button 
+          type="button"
           (click)="downloadPdf()"
-          class="btn-action-black ">
+          class="btn-action-black flex items-center gap-2"
+        >
+          <mat-icon>picture_as_pdf</mat-icon>
           Descargar PDF
         </button>
 
-        <button type="button" (click)="cancelar()" class="btn-action-gray">
+        <button 
+          type="button" 
+          (click)="cancelar()" 
+          class="btn-action-gray flex items-center gap-2"
+        >
+          <mat-icon>arrow_back</mat-icon>
           @if (formularioEditable()) {
             Cancelar
           } @else {
             Volver
           }
         </button>
+
         @if (formularioEditable()) {
-          <button type="submit" class="btn-action-blue">
+          <button 
+            type="submit" 
+            class="btn-action-blue flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            [disabled]="formActa.invalid"
+          >
+            <mat-icon>save</mat-icon>
             Actualizar Acta
           </button>
         }
       </div>
+
     </form>
 
 

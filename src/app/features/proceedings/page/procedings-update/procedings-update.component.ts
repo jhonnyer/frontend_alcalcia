@@ -13,6 +13,7 @@ import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.mod
 import { IResponsable } from '../../../../core/models/responsable.model';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { ProductsListSelectComponent } from '../../components/products-list-select/products-list-select.component';
+import { MatIconModule } from '@angular/material/icon';
 
 interface DialogData {
   idProyecto: number | null;
@@ -27,7 +28,7 @@ interface ProductoWithCantidadUpdate extends ProductoWithCantidad {
 @Component({
   selector: 'app-procedings-update',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule],
   styles: ``,
   templateUrl: './procedings-update.component.html'
 })
@@ -516,24 +517,47 @@ export class ProcedingsUpdateComponent implements OnInit {
 
   // Agregar método para remover solo productos nuevos
   removeSelectedProduct(productId: number) {
-    const product = this.selectedProductsInfo().find(p => p.idProducto === productId);
+    const estadoActual = this.formActa.get('estado')?.value as EstadoActa;
 
-    if (product?.isExisting) {
-      alert('No se pueden eliminar productos ya registrados');
+    // Solo permitir eliminar productos si el acta está en R o P
+    if (!(estadoActual === 'R' || estadoActual === 'P')) {
+      alert('No se pueden eliminar productos en el estado actual del acta');
       return;
     }
 
-    // Remover del signal de información
-    const updatedInfo = this.selectedProductsInfo().filter(p => p.idProducto !== productId);
-    this.selectedProductsInfo.set(updatedInfo);
+    const productoAEliminar = this.selectedProductsInfo().find(p => p.idProducto === productId);
 
-    // Remover del formulario
-    const currentProducts = this.formActa.get('productos')?.value || [];
-    const updatedProducts = currentProducts.filter((p: ISelectedProduct) => p.idProductoFk !== productId);
+    // Si no se encuentra, salir
+    if (!productoAEliminar) return;
+
+    // Confirmar eliminación
+    const confirmar = confirm(`¿Desea eliminar el producto "${productoAEliminar.nombre}" del acta?`);
+    if (!confirmar) return;
+
+    // Eliminar del signal
+    const updatedList = this.selectedProductsInfo().filter(p => p.idProducto !== productId);
+    this.selectedProductsInfo.set(updatedList);
+
+    // Actualizar el form control
     this.formActa.patchValue({
-      productos: updatedProducts
+      productos: updatedList.map(p => ({
+        idProductoFk: p.idProducto,
+        cantidad: p.cantidad
+      }))
     });
+
+    // 🔥 Marcar producto como "eliminado" para persistir el cambio
+    // (solo si venía de la BD)
+    if (productoAEliminar.isExisting) {
+      if (!this.formActa.get('paquetes')?.value) this.formActa.patchValue({ paquetes: [] });
+      const eliminados = this.formActa.get('paquetes')?.value || [];
+      eliminados.push({ idProductoFk: productId, eliminado: true });
+      this.formActa.patchValue({ paquetes: eliminados });
+    }
+
+    console.log('🗑️ Producto eliminado:', productoAEliminar);
   }
+
 
   // Descargar pdf
   downloadPdf() {

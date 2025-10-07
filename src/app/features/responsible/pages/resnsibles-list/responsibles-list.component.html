@@ -1,43 +1,45 @@
-<section class="h-[calc(100vh-6rem)] scroll-auto scrollbar-custom  overflow-y-auto">
+<section class="h-[calc(100vh-6rem)] overflow-y-auto scrollbar-custom bg-white rounded-xl shadow-sm p-5">
   <!-- HEADER -->
   <header class="flex justify-between items-center mb-5">
-    <h1 class="text-2xl text-blue_primary">Responsables</h1>
+    <h1 class="text-2xl font-semibold text-gray-800">Responsables</h1>
   </header>
 
   <!-- TABLA -->
-  <div  class="overflow-x-auto">
-    <table class="w-full text-sm border">
-      <thead>
-        @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id){
-          <tr class="py-1">
-            @for(headerItem of headerGroup.headers; track headerItem.id){
-
-              <th scope="col" class="bg-gradient-to-br from-gray-800 to-gray-900 text-white h-5">
-                <div class="flex flex-col h-full justify-between px-1 pb-2">
+  <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+    <table class="min-w-full text-sm text-left text-gray-800">
+      <thead class="bg-gray-100 uppercase text-xs border-b border-gray-300">
+        @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
+          <tr>
+            @for(headerItem of headerGroup.headers; track headerItem.id) {
+              <th class="py-2 px-3 font-semibold text-gray-700 border-r border-gray-200 align-top">
+                <div class="flex flex-col gap-1 justify-between h-full">
                   <ng-container
-                    *flexRender = "
-                        headerItem.column.columnDef.header;
-                        props: headerItem.getContext();
-                        let header
-                      "
+                    *flexRender="
+                      headerItem.column.columnDef.header;
+                      props: headerItem.getContext();
+                      let header
+                    "
                   >
-                    <!-- Enviamos las columnas para ordenar los datos -->
-                    <button (click)="onSortingColumn(headerItem.column)" class="flex gap-2 items-center justify-between bg-transparent py-2 pr-4 text-left" type="button">
+                    <!-- Encabezado con icono de orden -->
+                    <button
+                      (click)="onSortingColumn(headerItem.column)"
+                      class="flex gap-1 items-center bg-transparent text-left hover:text-blue-700 transition"
+                      type="button"
+                    >
                       <div [innerHTML]="header"></div>
-                      @if(headerItem.column.id !== 'acciones'){
-                        <span class="material-icons text-white text-2xl">
-                          unfold_less
-                        </span>
+                      @if (headerItem.column.id !== 'acciones') {
+                        <mat-icon class="text-[16px]">unfold_more</mat-icon>
                       }
                     </button>
                   </ng-container>
 
-                  <!-- Agregamos el filtro solo para las columnas que lo necesitan -->
-                  @if(headerItem.column.columnDef.meta?.filterVariant === 'text'){
-                    <app-table-filter [column]="headerItem.column" />
+                  <!-- 🔍 Filtro por columna -->
+                  @if (headerItem.column.columnDef.meta?.filterVariant === 'text') {
+                    <div class="mt-1">
+                      <app-table-filter [column]="headerItem.column" />
+                    </div>
                   }
                 </div>
-
               </th>
             }
           </tr>
@@ -45,39 +47,41 @@
       </thead>
 
       <tbody>
-        @for(row of dataTable.getRowModel().rows; track row.id){
-          <tr>
-            @for(cell of row.getVisibleCells(); track cell.id){
-             <td class="py-1">
-              @if(cell.column.id === 'acciones'){
-                <ng-container
-                  *flexRender = "
-                    cell.column.columnDef.cell;
-                    props: cell.getContext();
-                    let cell
-                  "
-                >
-                  <!-- <button type="button" (click)="delete(row)" *hasRole="['ADMIN']">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#b91c1c"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-                  </button> -->
-                  <button type="button" (click)="update(row)">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#22c55e"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+        @for(row of dataTable.getRowModel().rows; track row.id) {
+          <tr class="hover:bg-gray-50 border-b border-gray-200 transition">
+            @for(cell of row.getVisibleCells(); track cell.id) {
+              <td class="py-2 px-3">
+                @if (cell.column.id === 'acciones') {
+                  <!-- Botones de acción -->
+                  <button
+                    type="button"
+                    (click)="update(row)"
+                    class="text-green-600 hover:text-green-800 transition"
+                    matTooltip="Editar responsable"
+                  >
+                    <mat-icon>edit</mat-icon>
                   </button>
-                </ng-container>
-              }
-              @else {
-                <ng-container
-                  *flexRender = "
-                    cell.column.columnDef.cell;
-                    props: cell.getContext();
-                    let cell
-                  "
-                >
-                  <div [innerHTML]="cell"></div>
-                </ng-container>
-              }
-             </td>
+                } @else {
+                  <ng-container
+                    *flexRender="
+                      cell.column.columnDef.cell;
+                      props: cell.getContext();
+                      let cell
+                    "
+                  >
+                    <div [innerHTML]="cell"></div>
+                  </ng-container>
+                }
+              </td>
             }
+          </tr>
+        }
+
+        @if (dataTable.getRowModel().rows.length === 0) {
+          <tr>
+            <td colspan="10" class="text-center py-6 text-gray-500">
+              No se encontraron responsables.
+            </td>
           </tr>
         }
       </tbody>
@@ -85,24 +89,54 @@
   </div>
 
   <!-- PAGINACIÓN -->
-  <div class="flex justify-between items-center p-5 ">
-    <div class="flex items-center">
-      <span>{{(dataTable.getRowModel().rows.length)}} de {{dataTable.getRowCount()}} datos</span>
+  <div class="flex justify-between items-center mt-4 text-sm text-gray-700">
+    <div>
+      Mostrando
+      <b>{{ dataTable.getRowModel().rows.length }}</b> de
+      <b>{{ dataTable.getRowCount() }}</b> registros
     </div>
 
-    <div class="flex gap-5">
-      <div class="flex items-center">
-        <span class="">{{dataTable.getState().pagination.pageIndex + 1 }} de {{dataTable.getPageCount()}} Páginas</span>
-      </div>
-
-      <select class="" (change)="onChangeValueSizePageSelect($event)">
-        @for(size of sizePage(); track size){
-          <option [value]="size" [selected]="size === dataTable.getState().pagination.pageSize">{{size}}</option>
+    <div class="flex items-center gap-3">
+      <!-- Selector de cantidad -->
+      <select
+        (change)="onChangeValueSizePageSelect($event)"
+        class="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+      >
+        @for(size of sizePage(); track size) {
+          <option
+            [value]="size"
+            [selected]="size === dataTable.getState().pagination.pageSize"
+          >
+            {{ size }}
+          </option>
         }
       </select>
 
-      <button [disabled]="!dataTable.getCanPreviousPage()" (click)="dataTable.previousPage()" class="btn-navigate-black" type="button">Anterior</button>
-      <button [disabled]="!dataTable.getCanNextPage()" (click)="dataTable.nextPage()" class="btn-navigate-black" type="button">Siguiente</button>
+      <!-- Botones juntos -->
+      <div class="flex gap-2">
+        <button
+          [disabled]="!dataTable.getCanPreviousPage()"
+          (click)="dataTable.previousPage()"
+          class="btn-navigate-black"
+        >
+          <mat-icon>chevron_left</mat-icon>
+          Anterior
+        </button>
+
+        <button
+          [disabled]="!dataTable.getCanNextPage()"
+          (click)="dataTable.nextPage()"
+          class="btn-navigate-black"
+        >
+          Siguiente
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+
+      <span>
+        Página <b>{{ dataTable.getState().pagination.pageIndex + 1 }}</b> de
+        <b>{{ dataTable.getPageCount() }}</b>
+      </span>
     </div>
   </div>
 </section>

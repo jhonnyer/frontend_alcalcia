@@ -18,17 +18,23 @@ import {
   getPaginationRowModel,
   getSortedRowModel
 } from '@tanstack/angular-table';
-import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './responsibles-columns-definitions';
 import { IResponsable } from '../../../../core/models/responsable.model';
-// import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+import { MatIconModule } from '@angular/material/icon';
+import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 
 @Component({
   selector: 'app-responsibles-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent],
+  imports: [
+    CommonModule, 
+    CdkTableModule, 
+    MatIconModule,
+    TableFilterComponent,
+    FlexRenderDirective
+  ],
   templateUrl: './responsibles-list.component.html',
-  styles: ``,
+  styleUrl: './responsibles-list.component.scss'
 })
 export class ResponsiblesListComponent {
   private responsibleService = inject(ResponsibleService);
@@ -45,7 +51,7 @@ export class ResponsiblesListComponent {
 
   public readonly paginationState = signal<PaginationState>({
     pageIndex: 0,
-    pageSize: 10
+    pageSize: 5
   });
 
   public readonly sortingState = signal<SortingState>([]);
@@ -138,3 +144,5 @@ export class ResponsiblesListComponent {
     this.router.navigate(["resposibles/update/", item.original.idResponsable]);
   }
 }
+
+

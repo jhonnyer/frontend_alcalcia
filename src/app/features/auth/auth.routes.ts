@@ -13,6 +13,5 @@ export const AUTH_ROUTES: Routes = [
     path: 'register',
     component: RegisterComponent,
     canActivate: [unauthenticatedGuard]
-
   }
 ]

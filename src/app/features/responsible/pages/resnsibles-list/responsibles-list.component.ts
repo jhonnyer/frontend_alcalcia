@@ -143,6 +143,11 @@ export class ResponsiblesListComponent {
   update(item: Row<IResponsable>) {
     this.router.navigate(["resposibles/update/", item.original.idResponsable]);
   }
+
+  nuevoResponsable(): void {
+    this.router.navigate(['resposibles/update/nuevo']);
+  }
+
 }
 
 

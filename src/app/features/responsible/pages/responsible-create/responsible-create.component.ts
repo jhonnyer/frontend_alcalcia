@@ -17,7 +17,7 @@ export class ResponsibleCreateComponent {
   private pageTitleService = inject(PageTitleService);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Crar responsable');
+    this.pageTitleService.setCurrentPage('Crear responsable');
     this.initFormFamilyCore();
   }
 

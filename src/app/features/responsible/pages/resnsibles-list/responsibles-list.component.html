@@ -2,6 +2,14 @@
   <!-- HEADER -->
   <header class="flex justify-between items-center mb-5">
     <h1 class="text-2xl font-semibold text-gray-800">Responsables</h1>
+    <button
+      type="button"
+      (click)="nuevoResponsable()"
+      class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition"
+    >
+      <mat-icon class="text-base">person_add</mat-icon>
+      Nuevo responsable
+    </button>
   </header>
 
   <!-- TABLA -->

@@ -22,11 +22,18 @@ import { TableFilterComponent } from '../../../../shared/components/table-filter
 import { defaultColumns } from './inventory-columns-definitions';
 import { IProducto } from '../../../../core/models/products.model';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-inventory-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
+  imports: [
+    CommonModule, 
+    CdkTableModule, 
+    FlexRenderDirective, 
+    TableFilterComponent, 
+    MatIconModule
+  ],
   templateUrl: './inventory-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -34,6 +41,7 @@ export class InventoryListComponent implements OnInit {
   private productosService = inject(ProductosService);
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
+  filtroActual = '';
 
   data = signal<IProducto[]>([]);
 
@@ -45,13 +53,13 @@ export class InventoryListComponent implements OnInit {
 
   public readonly paginationState = signal<PaginationState>({
     pageIndex: 0,
-    pageSize: 10
+    pageSize: 5
   });
 
   public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Lista de productos');
+    this.pageTitleService.setCurrentPage('Inventario');
     this.getAll();
   }
 
@@ -137,4 +145,5 @@ export class InventoryListComponent implements OnInit {
   update(item: Row<IProducto>) {
     this.router.navigate(["inventory/update/", item.original.idProducto]);
   }
+
 }

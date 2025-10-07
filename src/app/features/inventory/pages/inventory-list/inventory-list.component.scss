@@ -1,0 +1,8 @@
+.btn-navigate-black {
+  @apply px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50 transition;
+}
+
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #f3f4f6;
+}

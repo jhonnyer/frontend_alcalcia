@@ -24,7 +24,6 @@ import { CategoriasService } from '../../../../core/services/categorias.service'
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
 import { IProductoFk } from '../../../../core/models/products.model';
-import { ConfirmDeleteDialogComponent } from '../../../nucleo/components/confirm-delete-dialog/confirm-delete-dialog.component';
 
 interface ICategoriaUI extends ICategorias {
   expanded?: boolean;

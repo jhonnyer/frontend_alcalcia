@@ -1,106 +1,72 @@
-<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
-  <form [formGroup]="formFamilyCore" class="form" (ngSubmit)="onSubmit()"
-    class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
-  >
-    <div class="flex flex-wrap justify-between">
-      <div class="w-full md:w-[49%]">
-        <label for="proyecto" class="label-base">Seleccionar proyecto</label>
-        <select formControlName="idProyecto" name="proyecto" id="proyecto" class="input-base">
+<div class="p-6 bg-white rounded-2xl shadow-md border border-gray-200">
+  <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+
+    <!-- 🔹 Selección Proyecto y Categoría -->
+    <div class="flex flex-wrap justify-between gap-4">
+      <div class="w-full md:w-[48%]">
+        <label class="label-base">Proyecto</label>
+        <select formControlName="idProyecto" class="input-base">
           <option value="">Seleccione un proyecto</option>
-          @for(item of proyectos(); track item.proyecto.idProyecto) {
-            <option [value]="item.proyecto.idProyecto" class="input-base capitalize">
-              {{ item.proyecto.nombre }}
-            </option>
+          @for (item of proyectos(); track item.proyecto.idProyecto) {
+            <option [value]="item.proyecto.idProyecto">{{ item.proyecto.nombre }}</option>
           }
         </select>
-
-        @if(formFamilyCore.get('idProyecto')?.hasError('required') && formFamilyCore.get('idProyecto')?.touched) {
-          <p class="text-red-500">
-            * Este campo es requerido
-          </p>
-        }
       </div>
 
-      <div class="w-full md:w-[49%]">
-        <label for="categoria" class="label-base">Seleccionar categoría</label>
-        <select formControlName="idCategoria" name="categoria" id="categoria" class="input-base">
+      <div class="w-full md:w-[48%]">
+        <label class="label-base">Categoría</label>
+        <select formControlName="idCategoria" class="input-base">
           <option value="">Seleccione una categoría</option>
-          @for(categoria of categoriasDisponibles(); track categoria.idCategoria) {
-            <option [value]="categoria.idCategoria" class="input-base capitalize">
-              {{ categoria.nombre }}
-            </option>
+          @for (categoria of categoriasDisponibles(); track categoria.idCategoria) {
+            <option [value]="categoria.idCategoria">{{ categoria.nombre }}</option>
           }
         </select>
-
-        @if(formFamilyCore.get('categoria')?.hasError('required') && formFamilyCore.get('categoria')?.touched) {
-          <p class="text-red-500">
-            * Este campo es requerido
-          </p>
-        }
       </div>
     </div>
 
+    <!-- 🔹 Tabla de productos -->
+    <div formArrayName="productos">
+      <table class="w-full border-collapse border border-gray-300 text-sm rounded-md overflow-hidden">
+        <thead class="bg-gray-100">
+          <tr class="text-gray-700 text-left">
+            <th class="border p-2">Nombre</th>
+            <th class="border p-2 text-center">Stock</th>
+            <th class="border p-2">Descripción</th>
+            <th class="border p-2 text-center">Fecha Ingreso</th>
+            <th class="border p-2 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let producto of productosArray.controls; index as i" [formGroupName]="i">
+            <td class="border p-2">
+              <input type="text" formControlName="nombreProducto" class="input-base" placeholder="Ej: Jabon">
+            </td>
+            <td class="border p-2 text-center">
+              <input type="number" formControlName="stock" class="w-20 border rounded p-1 text-center" min="0">
+            </td>
+            <td class="border p-2">
+              <input type="text" formControlName="descripcion" class="input-base" placeholder="Descripción...">
+            </td>
+            <td class="border p-2 text-center">
+              <input type="date" formControlName="fechaIngreso" class="border rounded p-1">
+            </td>
+            <td class="border p-2 text-center">
+              <button type="button" class="text-red-600 hover:text-red-800 font-semibold"
+                      (click)="deleteProducto(i)">Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-    <h2>Productos</h2>
-    <!--  -->
-    <div formArrayName="productos" >
-      <div class="flex justify-between flex-wrap gap-4 mb-4" *ngFor="let producto of getCtrl('productos', formFamilyCore).controls; index as formProducts" >
-        <div class="flex flex-col w-full border border-gray-400 rounded-2xl p-4" [formGroupName]="formProducts">
-
-          <div class="w-full flex flex-wrap justify-between">
-            <div class="w-full md:w-[49%]">
-              <label for="nombre" class="label-base">Nombre producto</label>
-              <input formControlName="nombreProducto" type="text" id="nombre" class="input-base" placeholder="Nombre producto">
-
-              @if(producto.get('nombreProducto')?.hasError('required') && producto.get('nombreProducto')?.touched) {
-                <p class="text-red-500">
-                  * Este campo es requerido
-                </p>
-              }
-            </div>
-
-            <div class="w-full md:w-[49%]">
-              <label for="stock" class="label-base">Stock</label>
-              <input formControlName="stock" type="text" id="stock" class="input-base" placeholder="Stock">
-
-              @if(producto.get('stock')?.hasError('required') && producto.get('stock')?.touched) {
-                <p class="text-red-500">
-                  * Este campo es requerido
-                </p>
-              }
-            </div>
-          </div>
-
-          <div class="flex flex-wrap justify-between">
-            <label for="message" class="block mb-2 text-sm font-medium text-gray-900">Observacioes</label>
-            <textarea formControlName="descripcion" id="message" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 " placeholder="Observacioes para está entrega..."></textarea>
-          </div>
-
-
-          <button (click)="deleteProduct(formProducts)" type="button"
-            class="btn-action-red mt-5"
-          >Eliminar</button>
-
-        </div>
+      <div class="flex justify-end mt-3">
+        <button type="button" class="btn-action-green" (click)="addProducto()">➕ Agregar producto</button>
       </div>
-
     </div>
 
-
-
-    <div class="flex justify-end space-x-4">
-      <button (click)="addProducts()" type="button"
-        class="btn-action-green">Agregar producto</button>
-      <button type="button"
-        class="btn-action-gray"
-        routerLink="/inventory"
-        (click)="cancelar()"
-      >Cancelar</button>
-      <button type="submit"
-        class="btn-action-blue">
-        Guardar cambios
-      </button>
+    <!-- 🔹 Botones finales -->
+    <div class="flex justify-end gap-4 mt-6">
+      <button type="button" class="btn-action-gray" (click)="cancelar()">Cancelar</button>
+      <button type="submit" class="btn-action-blue">Guardar</button>
     </div>
   </form>
 </div>
-

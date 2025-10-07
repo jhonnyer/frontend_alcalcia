@@ -3,18 +3,17 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ICategorias } from './../../../../core/models/categorias.model';
+import { ICategorias } from '../../../../core/models/categorias.model';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
-import { RouterLink, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
 
 @Component({
   selector: 'app-inventory-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  styles: ``,
-  templateUrl: './inventory-create.component.html'
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './inventory-create.component.html',
 })
 export class InventoryCreateComponent implements OnInit {
   public formFamilyCore: FormGroup = new FormGroup({});
@@ -24,7 +23,6 @@ export class InventoryCreateComponent implements OnInit {
   private productosService = inject(ProductosService);
   private router = inject(Router);
 
-  // Usamos IProyectoAndCategoriaGetId que ya incluye la estructura correcta
   proyectos = signal<IProyectoAndCategoriaArray[]>([]);
   categoriasDisponibles = signal<ICategorias[]>([]);
 
@@ -44,7 +42,7 @@ export class InventoryCreateComponent implements OnInit {
       error: (error) => {
         console.error('Error al cargar proyectos:', error);
         alert('Error al cargar los proyectos');
-      }
+      },
     });
   }
 
@@ -52,32 +50,25 @@ export class InventoryCreateComponent implements OnInit {
     this.formFamilyCore = this.fb.group({
       idProyecto: ['', [Validators.required]],
       idCategoria: [{ value: '', disabled: true }, [Validators.required]],
-      productos: this.fb.array([], [Validators.required, Validators.min(1)])
+      productos: this.fb.array([], [Validators.required, Validators.minLength(1)]),
     });
 
-    // Escuchar cambios en la selección de proyecto
-    this.formFamilyCore.get('idProyecto')?.valueChanges.subscribe(idProyecto => {
+    this.formFamilyCore.get('idProyecto')?.valueChanges.subscribe((idProyecto) => {
       this.onProyectoChange(idProyecto);
     });
-
-    this.addProducts();
   }
 
   onProyectoChange(idProyecto: string): void {
     const proyectoSeleccionado = this.proyectos().find(
-      p => p.proyecto.idProyecto === Number(idProyecto)
+      (p) => p.proyecto.idProyecto === Number(idProyecto)
     );
 
     if (proyectoSeleccionado) {
-      // Actualizar categorías disponibles
       this.categoriasDisponibles.set(proyectoSeleccionado.categorias);
-
-      // Habilitar el select de categorías
       const categoriaControl = this.formFamilyCore.get('idCategoria');
       categoriaControl?.enable();
-      categoriaControl?.setValue(''); // Resetear la selección
+      categoriaControl?.setValue('');
     } else {
-      // Si no hay proyecto seleccionado, deshabilitar y limpiar categorías
       this.categoriasDisponibles.set([]);
       const categoriaControl = this.formFamilyCore.get('idCategoria');
       categoriaControl?.disable();
@@ -85,63 +76,59 @@ export class InventoryCreateComponent implements OnInit {
     }
   }
 
-  initFormProducts(): FormGroup {
-    // Retorna el formulario que estará anidado
-    return this.fb.group({
-      nombreProducto: ['', [Validators.required]],
-      stock: ['', [Validators.required]],
-      descripcion: ['', [Validators.required]],
-      fechaIngreso: [null]
-    });
-  }
-
-  //Agrega un nuevo formulario anidado de Persona
-  addProducts(): void {
-    const refProducts = this.formFamilyCore.get('productos') as FormArray;
-    refProducts.push(this.initFormProducts());
-  }
-
-  // Referencia cada campo que se crea en el html
-  getCtrl(key: string, form: FormGroup): FormArray {
-    return form.get(key) as FormArray;
-  }
-
-  get productosFormArray(): FormArray {
+  get productosArray(): FormArray {
     return this.formFamilyCore.get('productos') as FormArray;
   }
 
-  deleteProduct(index: number): void {
-    const productosArray = this.formFamilyCore.get('productos') as FormArray;
-    productosArray.removeAt(index);
+  crearProductoForm(): FormGroup {
+    return this.fb.group({
+      nombreProducto: ['', Validators.required],
+      stock: [0, [Validators.required, Validators.min(0)]],
+      descripcion: [''],
+      fechaIngreso: [null],
+    });
   }
 
-
-  onSubmit() {
-    if(this.formFamilyCore.valid){
-      // this.formFamilyCore.get('idProyecto')?.setValue(Number(this.formFamilyCore.get('idProyecto')?.value));
-      this.formFamilyCore.value.idProyecto = Number(this.formFamilyCore.value.idProyecto);
-      this.formFamilyCore.value.idCategoria = Number(this.formFamilyCore.value.idCategoria);
-
-      this.productosService.post(this.formFamilyCore.value).subscribe({
-        next: response => {
-          alert('Producto creado correctamente');
-          this.router.navigate(['/inventory']);
-        },
-        error: error => {
-          alert('Error al crear el producto');
-        }
-      });
-
-	  }else{
-      // this.formFamilyCore.get('idProyecto')?.setValue(Number(this.formFamilyCore.get('idProyecto')?.value));
-      this.formFamilyCore.value.idProyecto = Number(this.formFamilyCore.value.idProyecto);
-      this.formFamilyCore.value.idCategoria = Number(this.formFamilyCore.value.idCategoria);
-		  this.formFamilyCore.markAllAsTouched();
-      alert('Formulario inválido, revisa los campos');
-	  }
+  addProducto(): void {
+    this.productosArray.push(this.crearProductoForm());
   }
 
-  cancelar() {
+  deleteProducto(index: number): void {
+    this.productosArray.removeAt(index);
+  }
+
+  onSubmit(): void {
+    if (this.formFamilyCore.invalid) {
+      this.formFamilyCore.markAllAsTouched();
+      alert('⚠️ Por favor completa todos los campos requeridos.');
+      return;
+    }
+
+    const formValue = this.formFamilyCore.value;
+    const payload = {
+      idProyecto: Number(formValue.idProyecto),
+      idCategoria: Number(formValue.idCategoria),
+      productos: formValue.productos.map((p: any) => ({
+        nombreProducto: String(p.nombreProducto).trim(),
+        descripcion: String(p.descripcion || '').trim(),
+        stock: Number(p.stock),
+        fechaIngreso: p.fechaIngreso || null,
+      })),
+    };
+
+    this.productosService.post(payload).subscribe({
+      next: () => {
+        alert('✅ Productos creados correctamente.');
+        this.router.navigate(['/inventory']);
+      },
+      error: (err) => {
+        console.error('❌ Error al crear productos:', err);
+        alert('⚠️ Error al crear los productos.');
+      },
+    });
+  }
+
+  cancelar(): void {
     this.router.navigate(['/inventory']);
   }
 }

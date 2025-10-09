@@ -24,6 +24,7 @@ import { CategoriasService } from '../../../../core/services/categorias.service'
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
 import { IProductoFk } from '../../../../core/models/products.model';
+import { PdfGeneratorService } from '../../../../shared/components/pdf/pdf-generator.service';
 
 interface ICategoriaUI extends ICategorias {
   expanded?: boolean;
@@ -53,7 +54,7 @@ interface ICategoriaUI extends ICategorias {
   styleUrl: './project-update.component.scss'
 })
 export class ProjectUpdateComponent implements OnInit {
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog, private pdfService: PdfGeneratorService) {}
 
   @Input() modo: 'crear' | 'editar' = 'crear';
 
@@ -68,6 +69,7 @@ export class ProjectUpdateComponent implements OnInit {
   pageIndex = 0;
   pageSize = 5;
   modoCreacion = false;
+  loadingPdf = false; 
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
@@ -454,6 +456,26 @@ export class ProjectUpdateComponent implements OnInit {
         categoriaActualizada.filtro = filtroActual;
       }
     }, 300);
+  }
+
+  exportarPdf(): void {
+    if (!this.proyectoId) {
+      alert('⚠️ Primero debes guardar el proyecto antes de exportar.');
+      return;
+    }
+
+    this.loadingPdf = true;
+    this.proyectosService.getProyectoDetallado(this.proyectoId!).subscribe({
+      next: ({ respuesta }) => {
+        this.pdfService.generateProjectReport(respuesta);
+        this.loadingPdf = false;
+      },
+      error: (err) => {
+        console.error('Error al generar PDF:', err);
+        this.loadingPdf = false;
+        alert('❌ Error al generar el PDF del proyecto.');
+      }
+    });
   }
 
 }

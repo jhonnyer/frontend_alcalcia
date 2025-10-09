@@ -32,6 +32,18 @@
           <button
             type="button"
             mat-stroked-button
+            color="accent"
+            [disabled]="loadingPdf"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 transform hover:scale-[1.03]"
+            (click)="exportarPdf()"
+          >
+            <mat-icon class="text-blue-600">picture_as_pdf</mat-icon>
+            <span class="font-medium"> {{ loadingPdf ? 'Generando PDF' : 'Exportar PDF' }}</span>
+          </button>
+
+          <button
+            type="button"
+            mat-stroked-button
             color="warn"
             (click)="cancelar()"
             class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-all duration-200 transform hover:scale-[1.03]"

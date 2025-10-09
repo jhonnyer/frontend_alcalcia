@@ -1,10 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { IProyecto, IProyectoAndCategoria, IProyectoAndCategoriaArray, IProyectoCategorias } from '../models/proyecto.model';
+import { IProyecto, IProyectoAndCategoriaArray, IProyectoCategorias } from '../models/proyecto.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import { ResponseStandar, ResponseStandarUnique } from '../models/response.model';
+import { IProyectoDetallado } from '../models/proyecto-detallado.model';
 
 @Injectable({
   providedIn: 'root'
@@ -48,6 +49,13 @@ export class ProyectosService {
 
   delete(idProject: number): Observable<ResponseStandarUnique<IProyectoAndCategoriaArray>> {
     return this.http.delete<ResponseStandarUnique<IProyectoAndCategoriaArray>>(`${this.URL}/proyectos/${idProject}`, { context: checkToken() });
+  }
+
+  getProyectoDetallado(idProyecto: string | number): Observable<ResponseStandarUnique<IProyectoDetallado>> {
+    return this.http.get<ResponseStandarUnique<IProyectoDetallado>>(
+      `${this.URL}/proyectos/${idProyecto}/detallado`,
+      { context: checkToken() }
+    );
   }
 
 }

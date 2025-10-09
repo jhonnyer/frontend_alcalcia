@@ -1,3 +1,23 @@
-:host {
-  display: block;
+th {
+  @apply bg-gray-100 font-semibold text-gray-700 text-xs uppercase;
+}
+
+tbody tr:nth-child(odd) {
+  @apply bg-white;
+}
+
+tbody tr:nth-child(even) {
+  @apply bg-gray-50;
+}
+
+tbody tr:hover {
+  @apply bg-gray-100;
+}
+
+td {
+  @apply text-gray-800;
+}
+
+table {
+  @apply rounded-lg overflow-hidden;
 }

@@ -8,6 +8,8 @@ import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.mod
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { Router } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-inventory-create',
@@ -22,6 +24,8 @@ export class InventoryCreateComponent implements OnInit {
   private proyectosService = inject(ProyectosService);
   private productosService = inject(ProductosService);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
+
 
   proyectos = signal<IProyectoAndCategoriaArray[]>([]);
   categoriasDisponibles = signal<ICategorias[]>([]);
@@ -130,5 +134,24 @@ export class InventoryCreateComponent implements OnInit {
 
   cancelar(): void {
     this.router.navigate(['/inventory']);
+  }
+
+  confirmarGuardar(): void {
+    if (this.formFamilyCore.invalid) {
+      this.formFamilyCore.markAllAsTouched();
+      alert('⚠️ Por favor completa todos los campos requeridos.');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { mensaje: '¿Deseas guardar estos productos en el inventario?' },
+    });
+
+    dialogRef.afterClosed().subscribe((confirmado) => {
+      if (confirmado) {
+        this.onSubmit();
+      }
+    });
   }
 }

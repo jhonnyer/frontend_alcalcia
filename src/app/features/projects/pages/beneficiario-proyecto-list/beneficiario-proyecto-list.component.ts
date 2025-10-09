@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
+import { Component, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
@@ -8,14 +8,19 @@ import { Column, ColumnFiltersState, FlexRenderDirective, PaginationState, Row, 
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './beneficiario-proyecto-columns-definitions';
 import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProyecto.model';
-import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
-
+import { MatIconModule } from '@angular/material/icon';
 
 
 @Component({
   selector: 'app-beneficiario-proyecto-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective],
+  imports: [
+    CommonModule, 
+    CdkTableModule, 
+    FlexRenderDirective, 
+    TableFilterComponent, 
+    MatIconModule
+  ],
   templateUrl: './beneficiario-proyecto-list.component.html',
   styleUrl: './beneficiario-proyecto-list.component.scss'
 })

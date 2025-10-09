@@ -66,7 +66,18 @@
     <!-- 🔹 Botones finales -->
     <div class="flex justify-end gap-4 mt-6">
       <button type="button" class="btn-action-gray" (click)="cancelar()">Cancelar</button>
-      <button type="submit" class="btn-action-blue">Guardar</button>
+      <button
+        type="button"
+        (click)="confirmarGuardar()"
+        [disabled]="formFamilyCore.invalid"
+        [ngClass]="{
+          'bg-blue-600 hover:bg-blue-700 text-white': !formFamilyCore.invalid,
+          'bg-gray-300 text-gray-500 cursor-not-allowed': formFamilyCore.invalid
+        }"
+        class="px-4 py-2 text-sm rounded-md transition-all duration-200"
+      >
+        Guardar
+      </button>
     </div>
   </form>
 </div>

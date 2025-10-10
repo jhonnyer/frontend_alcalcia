@@ -523,9 +523,25 @@ export class NucleoUpdateComponent implements OnInit {
                 this.actualizarTabla();
                 this.snackBar.open('✅ Beneficiario creado con éxito', 'Cerrar', { duration: 3000 });
               },
-              error: () => {
-                this.snackBar.open('❌ Error al crear beneficiario', 'Cerrar', {
-                  duration: 3000,
+              error: (err) => {
+                let mensajeError = '❌ Error desconocido al crear beneficiario';
+
+                // Si el backend envía el error dentro de err.error.mensaje (caso ApiResponse)
+                if (err?.error?.mensaje) {
+                  mensajeError = `❌ ${err.error.mensaje}`;
+                }
+                // Si el backend devuelve solo un string (caso excepción simple)
+                else if (typeof err?.error === 'string') {
+                  mensajeError = `❌ ${err.error}`;
+                }
+                // Si es una excepción genérica de Angular HTTP
+                else if (err?.message) {
+                  mensajeError = `❌ ${err.message}`;
+                }
+
+                this.snackBar.open(mensajeError, 'Cerrar', {
+                  duration: 4000,
+                  panelClass: ['snackbar-error']
                 });
               }
             });

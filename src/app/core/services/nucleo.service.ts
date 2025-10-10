@@ -5,6 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PaginatedResponse } from '../models/pagination.model';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
+import { NucleoDetallado } from '../models/nucleo-detallado.model';
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +42,10 @@ export class NucleoService {
 
   deleteById(id: string) {
     return this.http.delete(`${this.URL}/nucleosFamiliares/${id}`, { context: checkToken() });
+  }
+
+  obtenerDetalleNucleo(idNucleo: number): Observable<{ respuesta: NucleoDetallado }> {
+    return this.http.get<{ respuesta: NucleoDetallado }>(`${this.URL}/nucleosFamiliares/${idNucleo}/detallado`);
   }
 
   private formatDate(dateString: string): string {

@@ -48,7 +48,11 @@
                 @if(cell.column.id === 'acciones'){
                   <div class="flex gap-2">
                     <!-- Botón editar -->
-                    <button type="button" (click)="update(row)" class="text-green-600 hover:text-green-800">
+                    <button type="button" (click)="verDetalle(row)" class="text-blue-600 hover:text-blue-800" title="Ver detalle del núcleo">
+                      <mat-icon>visibility</mat-icon>
+                    </button>
+                    <!-- Botón editar -->
+                    <button type="button" (click)="update(row)" class="text-green-600 hover:text-green-800" title="Editar núcleo">
                       <mat-icon>edit</mat-icon>
                     </button>
                     <!-- Botón eliminar -->

@@ -202,4 +202,9 @@ export class NucleosComponent implements OnInit{
   update(item: Row<INucleoUpdate>){
     this.router.navigate(["nucleo/update/", item.original.idNucleo]);
   }
+
+  verDetalle(item: Row<INucleoUpdate>) {
+    this.router.navigate(["nucleo/detalle/", item.original.idNucleo]);
+  }
+
 }

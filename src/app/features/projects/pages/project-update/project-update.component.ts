@@ -24,7 +24,7 @@ import { CategoriasService } from '../../../../core/services/categorias.service'
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
 import { IProductoFk } from '../../../../core/models/products.model';
-import { PdfGeneratorService } from '../../../../shared/components/pdf/pdf-generator.service';
+import { PdfGeneradorProyectoService } from '../../../../shared/components/pdf/pdf-proyectos.service';
 
 interface ICategoriaUI extends ICategorias {
   expanded?: boolean;
@@ -54,7 +54,7 @@ interface ICategoriaUI extends ICategorias {
   styleUrl: './project-update.component.scss'
 })
 export class ProjectUpdateComponent implements OnInit {
-  constructor(private dialog: MatDialog, private pdfService: PdfGeneratorService) {}
+  constructor(private dialog: MatDialog, private pdfService: PdfGeneradorProyectoService) {}
 
   @Input() modo: 'crear' | 'editar' = 'crear';
 

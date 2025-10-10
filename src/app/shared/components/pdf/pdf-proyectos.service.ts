@@ -6,7 +6,7 @@ import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 (pdfMake as any).vfs = (pdfFonts as any).vfs;
 
 @Injectable({ providedIn: 'root' })
-export class PdfGeneratorService {
+export class PdfGeneradorProyectoService {
 
   // Diccionario (enum) de estados de acta
   private readonly estadoActaLabels: Record<string, string> = {

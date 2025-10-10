@@ -41,7 +41,9 @@
               "pdfmake/build/vfs_fonts",
               "html2canvas",
               "rgbcolor",
-              "raf"
+              "raf",
+              "canvg",
+              "core-js"
             ]
           },
           "configurations": {

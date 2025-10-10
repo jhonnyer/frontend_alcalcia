@@ -38,7 +38,10 @@
             "scripts": [],
             "allowedCommonJsDependencies": [
               "pdfmake/build/pdfmake",
-              "pdfmake/build/vfs_fonts"
+              "pdfmake/build/vfs_fonts",
+              "html2canvas",
+              "rgbcolor",
+              "raf"
             ]
           },
           "configurations": {

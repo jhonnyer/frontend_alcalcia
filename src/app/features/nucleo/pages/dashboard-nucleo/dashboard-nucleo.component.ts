@@ -5,13 +5,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables, ChartConfiguration, ChartType } from 'chart.js';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { NucleoDetallado } from '../../../../core/models/nucleo-detallado.model';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -34,6 +34,7 @@ export class DashboardComponent implements OnInit {
   private nucleoService = inject(NucleoService);
   private router = inject(Router);
   nucleo?: NucleoDetallado; 
+  isLoadingPDF = false;
 
   @ViewChild('chartActas', { static: false }) chartActas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('chartBenef', { static: false }) chartBenef!: ElementRef<HTMLCanvasElement>;
@@ -240,47 +241,70 @@ export class DashboardComponent implements OnInit {
     return b;
   }
 
-  async exportarPDF() {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-
-    // 1️⃣ Capturamos solo la cabecera y los KPIs
-    const headerElement = document.querySelector('.kpi-container') as HTMLElement; // Ajusta el selector a tu bloque de KPIs
-    const chartsContainer = document.querySelector('.charts-container') as HTMLElement;
-
-    if (!headerElement || !chartsContainer) return;
-
-    // Esperar a que todo se renderice (etiquetas, animaciones)
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    // Capturar el header + KPIs con html2canvas
-    const headerCanvas = await html2canvas(headerElement, { scale: 2, useCORS: true });
-    const headerImg = headerCanvas.toDataURL('image/png');
-    const headerHeight = (headerCanvas.height * 180) / headerCanvas.width;
-
-    // 2️⃣ Capturamos los dos gráficos directamente desde sus canvas
-    const chart1 = this.chartActas.nativeElement;
-    const chart2 = this.chartBenef.nativeElement;
-    const img1 = chart1.toDataURL('image/png');
-    const img2 = chart2.toDataURL('image/png');
-
-    // 3️⃣ Agregamos al PDF
-    pdf.setFontSize(16);
-    pdf.text('Núcleo Familiar', 10, 10);
-
-    // KPIs
-    pdf.addImage(headerImg, 'PNG', 10, 15, 190, headerHeight);
-
-    // Gráfico 1
-    pdf.addImage(img1, 'PNG', 10, headerHeight + 25, 90, 90);
-    // Gráfico 2
-    pdf.addImage(img2, 'PNG', 110, headerHeight + 25, 90, 90);
-
-    // 4️⃣ Guardar
-    pdf.save(`dashboard-${new Date().toISOString().split('T')[0]}.pdf`);
-    }
-
   volver(): void {
     this.router.navigate(["nucleo"]);
+  }
+
+  async exportarPDF() {
+    const dashboard = document.querySelector('.dashboard-container') as HTMLElement;
+    if (!dashboard) return;
+
+    this.isLoadingPDF = true;
+
+    // ✅ Guardar estilos originales para restaurar luego
+    const originalMaxHeight = dashboard.style.maxHeight;
+    const originalOverflow = dashboard.style.overflowY;
+
+    try {
+      // 🔓 Quitar límites para capturar todo
+      dashboard.style.maxHeight = 'none';
+      dashboard.style.overflowY = 'visible';
+      dashboard.classList.add('export-pdf');
+
+      await new Promise(r => setTimeout(r, 200)); // esperar a que se re-renderice
+
+      // 📸 Capturar todo el contenido visible
+      const canvas = await html2canvas(dashboard, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        scrollY: -window.scrollY,
+        windowWidth: dashboard.scrollWidth,
+        windowHeight: dashboard.scrollHeight
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = 210;
+      const pageHeight = 297;
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // 📁 Nombre del archivo con nombre del núcleo
+      const nombreNucleo = this.nucleo?.nombreNucleo?.trim().replace(/\s+/g, '_') || 'SinNombre';
+      pdf.save(`nucleoFamiliar-${nombreNucleo}.pdf`);
+    } catch (error) {
+      console.error('Error al exportar PDF:', error);
+    } finally {
+      // 🔙 Restaurar estilos originales
+      dashboard.style.maxHeight = originalMaxHeight;
+      dashboard.style.overflowY = originalOverflow;
+      dashboard.classList.remove('export-pdf');
+      this.isLoadingPDF = false;
+    }
   }
 
 }

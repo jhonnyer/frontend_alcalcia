@@ -1,4 +1,13 @@
-<div #dashboardContainer class="p-6 bg-gray-50 min-h-screen overflow-y-auto h-[calc(100vh-64px)]">
+<!-- === OVERLAY DE CARGA (fuera del dashboard) === -->
+<div *ngIf="isLoadingPDF" class="pdf-loader">
+  <div class="pdf-loader-content">
+    <mat-progress-spinner mode="indeterminate" color="primary"></mat-progress-spinner>
+    <p>Generando PDF...</p>
+  </div>
+</div>
+
+<div #dashboardContainer 
+     class="dashboard-container bg-gray-50 py-6 scrollbar-custom overflow-y-auto max-h-[80vh] rounded-lg border border-gray-200 shadow-sm p-6">
 
   <!-- === ENCABEZADO === -->
   <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
@@ -8,7 +17,7 @@
       <span class="text-blue-700">{{ nucleo?.nombreNucleo || 'Sin nombre' }}</span>
     </h1>
 
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3" *ngIf="!isLoadingPDF">
       <button mat-stroked-button color="primary" (click)="exportarPDF()" class="flex items-center gap-2">
         <mat-icon>picture_as_pdf</mat-icon>
         Exportar PDF
@@ -56,26 +65,47 @@
     </mat-card>
 
     <mat-card class="p-4 text-center shadow-sm border border-gray-200">
-      <div class="text-sm text-gray-500">Núcleos familiares</div>
-      <div class="text-3xl font-bold text-purple-700">{{ totalNucleos }}</div>
-    </mat-card>
-
-    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
-      <div class="text-sm text-gray-500">Actas entregadas</div>
+      <div class="text-sm text-gray-500">Actas generadas</div>
       <div class="text-3xl font-bold text-orange-600">{{ actasEntregadas }}</div>
     </mat-card>
   </div>
 
   <!-- === BLOQUE DE GRÁFICAS === -->
   <div class="charts-container grid grid-cols-1 md:grid-cols-2 gap-6">
-    <mat-card class="p-4">
+
+    <!-- === Gráfica de Actas === -->
+    <mat-card class="p-4 flex flex-col justify-center items-center text-center">
       <h3 class="text-lg font-semibold mb-3 text-gray-700">Actas por estado</h3>
-      <canvas #chartActas baseChart [type]="chartActasType" [data]="chartActasData" [options]="chartActasOptions"></canvas>
+
+      <!-- Si hay actas -->
+      <ng-container *ngIf="actasEntregadas && actasEntregadas > 0; else noActas">
+        <canvas #chartActas baseChart 
+                [type]="chartActasType" 
+                [data]="chartActasData" 
+                [options]="chartActasOptions">
+        </canvas>
+      </ng-container>
+
+      <!-- Si no hay actas -->
+      <ng-template #noActas>
+        <div class="flex flex-col items-center justify-center py-8 px-4 text-gray-500">
+          <mat-icon color="warn" class="!text-5xl mb-2">inventory_2</mat-icon>
+          <p class="text-lg font-semibold text-gray-700">Sin actas entregadas</p>
+          <p class="text-sm text-gray-500">Este núcleo familiar aún no tiene actas con productos asignados.</p>
+        </div>
+      </ng-template>
     </mat-card>
 
+    <!-- === Gráfica de Beneficiarios === -->
     <mat-card class="p-4">
       <h3 class="text-lg font-semibold mb-3 text-gray-700">Beneficiarios por rango de edad</h3>
-      <canvas #chartBenef baseChart [type]="chartBenefType" [data]="chartBenefData" [options]="chartBenefOptions"></canvas>
+      <canvas #chartBenef baseChart 
+              [type]="chartBenefType" 
+              [data]="chartBenefData" 
+              [options]="chartBenefOptions">
+      </canvas>
     </mat-card>
+
   </div>
+
 </div>

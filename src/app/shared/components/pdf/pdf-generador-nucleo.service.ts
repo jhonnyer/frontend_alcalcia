@@ -185,6 +185,28 @@ export class PdfGeneradorNucleoService {
                 }
               ]
             : [{ text: 'Sin productos registrados.', italics: true }]),
+            // ==============================
+            // Observaciones
+            // ==============================
+            {
+              margin: [0, 6, 0, 0],
+              stack: [
+                {
+                  text: 'Observaciones:',
+                  bold: true,
+                  color: '#374151', // gris oscuro elegante
+                  margin: [0, 4, 0, 2],
+                },
+                {
+                  text: acta.observaciones && acta.observaciones.trim() !== ''
+                    ? acta.observaciones
+                    : '— Sin observaciones —',
+                  italics: true,
+                  color: '#4b5563', // gris medio
+                  margin: [0, 0, 0, 8],
+                }
+              ]
+            },
           { text: '\n' }
         ]
       };

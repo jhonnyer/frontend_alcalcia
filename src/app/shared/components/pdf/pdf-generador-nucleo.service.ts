@@ -26,6 +26,8 @@ export class PdfGeneradorNucleoService {
         this.generateProyectosTable(detalle.beneficiariosProyecto || []),
         { text: '\n🧾 Actas Asociadas', style: 'subheader' },
         ...this.generateActasTables(detalle.actas || []),
+        { text: '\n🏛️ Información Institucional', style: 'subheader' },
+        this.generateParametrosTable(detalle.parametros),
       ],
       styles: {
         header: { fontSize: 18, bold: true, alignment: 'center', color: '#2C3E50' },
@@ -187,5 +189,56 @@ export class PdfGeneradorNucleoService {
         ]
       };
     });
+  }
+
+  // =====================================
+  // SECCIÓN: Parámetros institucionales
+  // =====================================
+  private generateParametrosTable(parametros: any) {
+    if (!parametros) {
+      return { text: 'Sin información institucional.', italics: true };
+    }
+
+    return {
+      table: {
+        widths: ['35%', '65%'],
+        body: [
+          [
+            { text: 'Nombre de la Alcaldía:', style: 'tableHeader' },
+            parametros.nombreAlcaldia || '—'
+          ],
+          [
+            { text: 'Nombre del Alcalde:', style: 'tableHeader' },
+            parametros.nombreAlcalde || '—'
+          ],
+          [
+            { text: 'Nombre de la Secretaría:', style: 'tableHeader' },
+            parametros.nombreSecretaria || '—'
+          ],
+          [
+            { text: 'Correo institucional:', style: 'tableHeader' },
+            parametros.correoAlcaldia || '—'
+          ],
+          [
+            { text: 'Dirección de la Alcaldía:', style: 'tableHeader' },
+            parametros.direccionAlcaldia || '—'
+          ],
+          [
+            { text: 'Teléfono de contacto:', style: 'tableHeader' },
+            parametros.contactoAlcaldia || '—'
+          ],
+          [
+            { text: 'Código Postal:', style: 'tableHeader' },
+            parametros.codigoPostal || '—'
+          ]
+        ],
+      },
+      layout: {
+        fillColor: (rowIndex: number) => (rowIndex % 2 === 0 ? '#F9F9F9' : null),
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0,
+        hLineColor: () => '#E0E0E0',
+      },
+    };
   }
 }

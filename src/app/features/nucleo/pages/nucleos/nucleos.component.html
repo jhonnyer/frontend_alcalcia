@@ -47,7 +47,10 @@
               <td class="px-3 py-2">
                 @if(cell.column.id === 'acciones'){
                   <div class="flex gap-2">
-                    <!-- Botón editar -->
+                    <button type="button" (click)="verDashboard(row)" class="text-blue-600 hover:text-blue-800" title="Ver detalle del núcleo">
+                      <mat-icon>bar_chart</mat-icon>
+                    </button>
+                    <!-- Botón detalles -->
                     <button type="button" (click)="verDetalle(row)" class="text-blue-600 hover:text-blue-800" title="Ver detalle del núcleo">
                       <mat-icon>visibility</mat-icon>
                     </button>

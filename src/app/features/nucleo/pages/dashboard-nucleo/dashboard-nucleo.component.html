@@ -1,0 +1,81 @@
+<div #dashboardContainer class="p-6 bg-gray-50 min-h-screen overflow-y-auto h-[calc(100vh-64px)]">
+
+  <!-- === ENCABEZADO === -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+    <h1 class="text-2xl font-bold text-gray-700 flex items-center gap-2">
+      <mat-icon color="primary">leaderboard</mat-icon>
+      Núcleo familiar:
+      <span class="text-blue-700">{{ nucleo?.nombreNucleo || 'Sin nombre' }}</span>
+    </h1>
+
+    <div class="flex items-center gap-3">
+      <button mat-stroked-button color="primary" (click)="exportarPDF()" class="flex items-center gap-2">
+        <mat-icon>picture_as_pdf</mat-icon>
+        Exportar PDF
+      </button>
+
+      <button mat-mini-fab color="accent" (click)="volver()" aria-label="Volver" title="Volver">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- === INFORMACIÓN GENERAL DEL NÚCLEO === -->
+  <div *ngIf="nucleo" class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-gray-700">
+    <mat-card class="p-4 border border-gray-200 shadow-sm">
+      <div class="text-sm text-gray-500">Zona</div>
+      <div class="font-semibold">{{ nucleo.nombreZona || '—' }}</div>
+    </mat-card>
+
+    <mat-card class="p-4 border border-gray-200 shadow-sm">
+      <div class="text-sm text-gray-500">Barrio</div>
+      <div class="font-semibold">{{ nucleo.nombreBarrio || '—' }}</div>
+    </mat-card>
+
+    <mat-card class="p-4 border border-gray-200 shadow-sm">
+      <div class="text-sm text-gray-500">Dirección</div>
+      <div class="font-semibold">{{ nucleo.direccion || '—' }}</div>
+    </mat-card>
+
+    <mat-card class="p-4 border border-gray-200 shadow-sm">
+      <div class="text-sm text-gray-500">Integrantes</div>
+      <div class="font-semibold">{{ nucleo.numeroIntegrantes }}</div>
+    </mat-card>
+  </div>
+
+  <!-- === BLOQUE DE KPIs === -->
+  <div class="kpi-container grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
+      <div class="text-sm text-gray-500">Proyectos activos</div>
+      <div class="text-3xl font-bold text-blue-700">{{ proyectosActivos }}</div>
+    </mat-card>
+
+    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
+      <div class="text-sm text-gray-500">Beneficiarios</div>
+      <div class="text-3xl font-bold text-emerald-700">{{ totalBeneficiarios }}</div>
+    </mat-card>
+
+    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
+      <div class="text-sm text-gray-500">Núcleos familiares</div>
+      <div class="text-3xl font-bold text-purple-700">{{ totalNucleos }}</div>
+    </mat-card>
+
+    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
+      <div class="text-sm text-gray-500">Actas entregadas</div>
+      <div class="text-3xl font-bold text-orange-600">{{ actasEntregadas }}</div>
+    </mat-card>
+  </div>
+
+  <!-- === BLOQUE DE GRÁFICAS === -->
+  <div class="charts-container grid grid-cols-1 md:grid-cols-2 gap-6">
+    <mat-card class="p-4">
+      <h3 class="text-lg font-semibold mb-3 text-gray-700">Actas por estado</h3>
+      <canvas #chartActas baseChart [type]="chartActasType" [data]="chartActasData" [options]="chartActasOptions"></canvas>
+    </mat-card>
+
+    <mat-card class="p-4">
+      <h3 class="text-lg font-semibold mb-3 text-gray-700">Beneficiarios por rango de edad</h3>
+      <canvas #chartBenef baseChart [type]="chartBenefType" [data]="chartBenefData" [options]="chartBenefOptions"></canvas>
+    </mat-card>
+  </div>
+</div>

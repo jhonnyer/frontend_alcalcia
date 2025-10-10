@@ -207,4 +207,11 @@ export class NucleosComponent implements OnInit{
     this.router.navigate(["nucleo/detalle/", item.original.idNucleo]);
   }
 
+  verDashboard(item: Row<INucleoUpdate>) {
+    this.router.navigate(
+      ["nucleo/dashboard", item.original.idNucleo],
+      { queryParams: { nombre: item.original } }
+    );
+  }
+
 }

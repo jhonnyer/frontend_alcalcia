@@ -188,17 +188,15 @@ export class PdfGeneradorProyectoService {
       sections.push({
         table: {
           headerRows: 1,
-          widths: ['25%', '30%', '25%', '10%', '10%'],
+          widths: ['25%', '40%', '20%', '15%'],
           body: [
             [
-              { text: 'Categoría', style: 'tableHeader' },
               { text: 'Producto', style: 'tableHeader' },
               { text: 'Descripción', style: 'tableHeader' },
               { text: 'Stock', style: 'tableHeader' },
               { text: 'Fecha Ingreso', style: 'tableHeader' },
             ],
             ...cat.productos.map((p: any) => [
-              cat.nombre,
               p.nombreProducto,
               p.descripcion || '—',
               p.stock,

@@ -312,13 +312,19 @@ export class ProjectUpdateComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((nuevaCategoria) => {
       if (nuevaCategoria) {
-        // ✅ Añadir la categoría recién creada al proyecto actual
-        this.categorias.update(prev => [
-          ...prev,
-          { ...nuevaCategoria, expanded: false, currentPage: 0, pageSize: 3, filtro: '' }
-        ]);
+        // Añadir la categoría recién creada al proyecto actual
+        const categoriaConCamposUI: ICategoriaUI = {
+          ...nuevaCategoria,
+          productos: [],
+          expanded: false,
+          currentPage: 0,
+          pageSize: 3,
+          filtro: ''
+        };
+        
+        this.categorias.update(prev => [...prev, categoriaConCamposUI]);
 
-        // ✅ Actualizar el formControl 'categorias' (ids)
+        // Actualizar el formControl 'categorias' (ids)
         const actual = this.formFamilyCore.get('categorias')?.value || [];
         this.formFamilyCore.get('categorias')?.setValue([
           ...actual,

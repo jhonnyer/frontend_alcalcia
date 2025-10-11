@@ -17,30 +17,89 @@ export class PdfGeneradorNucleoService {
   generateNucleoReport(detalle: any) {
     const docDefinition: any = {
       content: [
-        { text: '🏠 REPORTE DETALLADO DEL NÚCLEO FAMILIAR', style: 'header' },
+        { text: 'REPORTE DETALLADO DEL NÚCLEO FAMILIAR', style: 'header' },
         { text: '\n' },
         this.generateNucleoInfoTable(detalle),
-        { text: '\n 👨 Beneficiarios del Núcleo', style: 'subheader' },
+        { text: '\n Beneficiarios del Núcleo', style: 'subheader' },
         this.generateBeneficiariosTable(detalle.beneficiariosNucleo || []),
-        { text: '\n🎯 Beneficiarios con Proyectos', style: 'subheader' },
+        { text: '\n Beneficiarios con Proyectos', style: 'subheader' },
         this.generateProyectosTable(detalle.beneficiariosProyecto || []),
-        { text: '\n🧾 Actas Asociadas', style: 'subheader' },
+        { text: '\n Actas Asociadas', style: 'subheader' },
         ...this.generateActasTables(detalle.actas || []),
-        { text: '\n🏛️ Información Institucional', style: 'subheader' },
+        { text: '\n Información Institucional', style: 'subheader' },
         this.generateParametrosTable(detalle.parametros),
       ],
+
+      // ==============================
+      // 🎨 ESTILOS PDFMAKE
+      // ==============================
       styles: {
-        header: { fontSize: 18, bold: true, alignment: 'center', color: '#2C3E50' },
-        subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5], color: '#1E88E5' },
-        tableHeader: { bold: true, fillColor: '#E0E0E0' },
+        // Encabezados principales
+        header: {
+          fontSize: 18,
+          bold: true,
+          alignment: 'center',
+          color: '#2C3E50',
+          margin: [0, 0, 0, 10],
+        },
+        subheader: {
+          fontSize: 14,
+          bold: true,
+          margin: [0, 10, 0, 5],
+          color: '#1E88E5',
+          alignment: 'center',
+        },
+        subheadertitulo: {
+          fontSize: 13,
+          bold: true,
+          color: '#0B3D91', 
+          margin: [0, 8, 0, 4],
+          decoration: 'underline',
+          decorationColor: '#0B3D91',
+        },
+        // Encabezados de tabla
+        tableHeader: {
+          bold: true,
+          fontSize: 10,
+          fillColor: '#f3f4f6',
+          color: '#111827'
+        },
+
+        // Encabezado de secciones (Productos, Observaciones, etc.)
+        sectionHeader: {
+          bold: true,
+          fontSize: 11,
+          color: '#0f172a',
+          fillColor: '#e0f2fe',
+          margin: [0, 4, 0, 2],
+        },
+
+        // Encabezados grises alternos
+        tableHeaderGray: {
+          fillColor: '#f3f4f6',
+          color: '#374151',
+          bold: true,
+          fontSize: 10,
+        },
+
+        // Encabezados azules claros
+        tableHeaderBlue: {
+          fillColor: '#e0f2fe',
+          color: '#0c4a6e',
+          bold: true,
+          fontSize: 10,
+        },
       },
+
+      // Estilo por defecto para todo el texto
       defaultStyle: {
         fontSize: 10,
         alignment: 'left',
       },
+
+      // Márgenes de página
       pageMargins: [40, 60, 40, 40],
     };
-
     pdfMake.createPdf(docDefinition).open();
   }
 
@@ -132,86 +191,148 @@ export class PdfGeneradorNucleoService {
   }
 
   // ==============================
-  // Actas asociadas
+  // Actas asociadas (versión con marcos y presentación mejorada)
   // ==============================
   private generateActasTables(actas: any[]) {
     if (!actas.length) {
       return [{ text: 'No hay actas asociadas.', italics: true }];
     }
 
-    return actas.map(acta => {
+    return actas.map((acta) => {
       const estadoLegible = this.estadoActaLabels[acta.estado] || acta.estado;
 
+      const beneficiario = acta.beneficiario
+        ? `${acta.beneficiario.primerNombre ?? ''} ${acta.beneficiario.segundoNombre ?? ''} ${acta.beneficiario.primerApellido ?? ''} ${acta.beneficiario.segundoApellido ?? ''}`.trim()
+        : '—';
+      const documento = acta.beneficiario?.numeroDocumento ?? '—';
+      const responsable = `${acta.responsable?.primerNombre ?? ''} ${acta.responsable?.segundoNombre ?? ''} ${acta.responsable?.primerApellido ?? ''} ${acta.responsable?.segundoApellido ?? ''}`.trim();
+      const proyecto = acta.proyecto?.nombre ?? '—';
+
       return {
+        margin: [0, 6, 0, 10],
         stack: [
-          { text: `📄 Acta #${acta.idActa} (${estadoLegible})`, style: 'subheader' },
+          // =========================================
+          // Encabezado del acta
+          // =========================================
+          {
+            text: ` ACTA #${acta.idActa} (${estadoLegible})`,
+            style: 'subheadertitulo',
+            alignment: 'left',
+            margin: [0, 0, 0, 6],
+          },
+
+          // =========================================
+          // Información general del acta
+          // =========================================
           {
             table: {
               widths: ['25%', '25%', '25%', '25%'],
               body: [
-                ['Fecha Creación', 'Fecha Entrega', 'Responsable', 'Tipo Solicitud'],
+                [
+                  { text: 'Fecha Creación', style: 'tableHeader' },
+                  { text: 'Fecha Entrega', style: 'tableHeader' },
+                  { text: 'Tipo Solicitud', style: 'tableHeader' },
+                  { text: 'Proyecto', style: 'tableHeader' },
+                ],
                 [
                   acta.fechaCreacion || '—',
                   acta.fechaEntrega || '—',
-                  `${acta.responsable?.primerNombre ?? ''} ${acta.responsable?.primerApellido ?? ''}`,
                   acta.tipoSolicitud || '—',
-                ]
-              ]
+                  proyecto,
+                ],
+                [
+                  { text: 'Responsable', style: 'tableHeader' },
+                  { text: responsable, colSpan: 3, alignment: 'left' },
+                  {},
+                  {},
+                ],
+                [
+                  { text: 'Beneficiario', style: 'tableHeader' },
+                  { text: beneficiario, colSpan: 2 },
+                  {},
+                  { text: `Documento: ${documento}` },
+                ],
+              ],
             },
-            layout: 'noBorders'
+            layout: 'lightHorizontalLines',
           },
+
+          // =========================================
+          // Bloque de productos
+          // =========================================
           ...(acta.detallesActaProductos?.length
             ? [
                 {
-                  table: {
-                    headerRows: 1,
-                    widths: ['40%', '40%', '20%'],
-                    body: [
-                      [
-                        { text: 'Producto', style: 'tableHeader' },
-                        { text: 'Descripción', style: 'tableHeader' },
-                        { text: 'Cantidad', style: 'tableHeader' },
-                      ],
-                      ...acta.detallesActaProductos.flatMap((d: any) =>
-                        d.productos.map((p: any) => [
-                          p.nombreProducto,
-                          p.descripcion || '—',
-                          p.cantidad,
-                        ])
-                      )
-                    ]
-                  },
-                  layout: 'lightHorizontalLines'
-                }
-              ]
-            : [{ text: 'Sin productos registrados.', italics: true }]),
-            // ==============================
-            // Observaciones
-            // ==============================
-            {
-              margin: [0, 6, 0, 0],
-              stack: [
-                {
-                  text: 'Observaciones:',
-                  bold: true,
-                  color: '#374151', // gris oscuro elegante
-                  margin: [0, 4, 0, 2],
+                  margin: [0, 8, 0, 4],
+                  stack: [
+                    {
+                      text: '📦 Productos Entregados',
+                      style: 'sectionHeader',
+                      margin: [0, 2, 0, 4],
+                    },
+                    {
+                      table: {
+                        headerRows: 1,
+                        widths: ['40%', '40%', '20%'],
+                        body: [
+                          [
+                            { text: 'Producto', style: 'tableHeader' },
+                            { text: 'Descripción', style: 'tableHeader' },
+                            { text: 'Cantidad', style: 'tableHeader' },
+                          ],
+                          ...acta.detallesActaProductos.flatMap((d: any) =>
+                            d.productos.map((p: any) => [
+                              p.nombreProducto,
+                              p.descripcion || '—',
+                              p.cantidad,
+                            ])
+                          ),
+                        ],
+                      },
+                      layout: 'lightHorizontalLines',
+                    },
+                  ],
                 },
+              ]
+            : [
                 {
-                  text: acta.observaciones && acta.observaciones.trim() !== ''
+                  margin: [0, 8, 0, 4],
+                  text: '📦 Sin productos registrados.',
+                  italics: true,
+                  color: '#6b7280',
+                },
+              ]),
+
+          // =========================================
+          // Observaciones
+          // =========================================
+          {
+            margin: [0, 6, 0, 8],
+            stack: [
+              {
+                text: '📝 Observaciones',
+                style: 'sectionHeader',
+                margin: [0, 2, 0, 4],
+              },
+              {
+                text:
+                  acta.observaciones && acta.observaciones.trim() !== ''
                     ? acta.observaciones
                     : '— Sin observaciones —',
-                  italics: true,
-                  color: '#4b5563', // gris medio
-                  margin: [0, 0, 0, 8],
-                }
-              ]
-            },
-          { text: '\n' }
-        ]
+                italics: true,
+                color: '#374151',
+              },
+            ],
+          },
+
+          // Línea divisoria entre actas
+          { text: '', margin: [0, 0, 0, 6] },
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: '#9ca3af' }] },
+        ],
       };
     });
   }
+
 
   // =====================================
   // SECCIÓN: Parámetros institucionales

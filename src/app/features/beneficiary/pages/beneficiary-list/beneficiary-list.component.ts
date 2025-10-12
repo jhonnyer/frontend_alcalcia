@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, Injector, OnInit, signal } from '@angular/core';
+import { Component, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
@@ -27,6 +27,7 @@ import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-
 import { ConfirmDeleteDialogComponent } from '../../../nucleo/components/confirm-delete-dialog/confirm-delete-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { BeneficiaryUpdateComponent } from '../beneficiary-update/beneficiary-update.component';
 
 @Component({
   selector: 'app-beneficiary-list',
@@ -59,6 +60,7 @@ export class BeneficiaryListComponent implements OnInit {
     this.pageTitleService.setCurrentPage('Gestión de Beneficiarios');
     this.getAll();
   }
+  
 
   getAll() {
     this.beneficiaryService.getAll().subscribe({
@@ -135,9 +137,22 @@ export class BeneficiaryListComponent implements OnInit {
     ]);
   }
 
-  update(item: Row<IBeneficiario>) {
-    this.router.navigate(["/beneficary/update/", item.original.idBeneficiario]);
+  update(row: Row<IBeneficiario>) {
+    const beneficiario = row.original;
+    const dialogRef = this.dialog.open(BeneficiaryUpdateComponent, {
+      width: '70%',
+      maxWidth: '90vw',
+      height: '90vh',
+      data: { id: beneficiario.idBeneficiario } // pasae el id al modal
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === 'updated') { // El modal devuelve esta marca
+        this.getAll();            // Refresca la tabla
+      }
+    });
   }
+
 
   delete(row: Row<IBeneficiario>) {
     const beneficiario = row.original;

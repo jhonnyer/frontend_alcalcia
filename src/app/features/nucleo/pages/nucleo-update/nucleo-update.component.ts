@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -515,8 +515,9 @@ export class NucleoUpdateComponent implements OnInit {
           if (confirmado) {
             // llamar servicio
             this.beneficiaryService.post(result).subscribe({
-              next: (nuevoBeneficiario) => {
+              next: (response) => {
                 // Usar el beneficiario que viene del backend
+                const nuevoBeneficiario = response.respuesta || response;
                 this.beneficiariosFormArray.push(this.initFormBeneficiary());
                 const form = this.beneficiariosFormArray.at(this.beneficiariosFormArray.length - 1);
                 form.patchValue(nuevoBeneficiario);
@@ -591,7 +592,8 @@ export class NucleoUpdateComponent implements OnInit {
             }
 
             this.beneficiaryService.update(idBeneficiario, result).subscribe({
-              next: (updated) => {
+              next: (response) => {
+                const updated = response.respuesta || result;
                 originalForm.patchValue(updated);
                 //Actualizar tabla beneficiarios 
                 this.actualizarTabla();

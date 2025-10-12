@@ -10,7 +10,7 @@
   </button>
 </div>
 
-<mat-dialog-content [formGroup]="beneficiarioForm" class="h-[70vh] overflow-y-auto p-2 scrollbar-custom">
+<mat-dialog-content [formGroup]="beneficiarioForm" class="h-[70vh] overflow-y-auto p-2 scrollbar-custom" autocomplete="new-password">
   <div class="flex flex-col gap-3">
 
     <!-- Información personal -->
@@ -22,26 +22,26 @@
         <!-- Nombres -->
         <div>
           <label class="label-base">*Primer nombre</label>
-          <input formControlName="primerNombre" type="text" class="input-base" 
+          <input formControlName="primerNombre" type="text" class="input-base"  autocomplete="new-password"
             (input)="beneficiarioForm.get('primerNombre')?.updateValueAndValidity()"/>
           <p *ngIf="beneficiarioForm.get('primerNombre')?.hasError('required') && beneficiarioForm.get('primerNombre')?.touched"
             class="text-red-500 text-xs">⚠️ El primer nombre es obligatorio</p>
         </div>
         <div>
           <label class="label-base">Segundo nombre</label>
-          <input formControlName="segundoNombre" type="text" class="input-base" />
+          <input formControlName="segundoNombre" type="text" class="input-base" autocomplete="none"/>
         </div>
 
         <!-- Apellidos -->
         <div>
           <label class="label-base">*Primer apellido</label>
-          <input formControlName="primerApellido" type="text" class="input-base" />
+          <input formControlName="primerApellido" type="text" class="input-base" autocomplete="new-password"/>
           <p *ngIf="beneficiarioForm.get('primerApellido')?.hasError('required') && beneficiarioForm.get('primerApellido')?.touched"
             class="text-red-500 text-xs">⚠️ El primer apellido es obligatorio</p>
         </div>
         <div>
           <label class="label-base">Segundo apellido</label>
-          <input formControlName="segundoApellido" type="text" class="input-base" />
+          <input formControlName="segundoApellido" type="text" class="input-base" autocomplete="none" />
         </div>
 
         <!-- Documento -->

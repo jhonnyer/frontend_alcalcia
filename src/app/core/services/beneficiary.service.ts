@@ -4,7 +4,7 @@ import { IBeneficiario, IBeneficiarioUnique } from '../models/beneficiary.models
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
-import { PaginatedResponse } from '../models/pagination.model';
+import { ResponseStandarUnique } from '../models/response.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,14 +14,21 @@ export class BeneficiaryService {
   private http = inject(HttpClient);
 
   getAll(): Observable<IBeneficiario[]> {
-    return this.http.get<IBeneficiario[]>(`${this.URL}/beneficiarios`, { context: checkToken() }).pipe(
-      tap(item => {
-        item.forEach(beneficiario => {
-          beneficiario.fechaNacimiento = this.formatDate(beneficiario.fechaNacimiento);
-        });
-      })
-    );
+    return this.http
+      .get<IBeneficiario[]>(`${this.URL}/beneficiarios`, { context: checkToken() })
+      .pipe(
+        tap(list => {
+          if (Array.isArray(list)) {
+            list.forEach(b => {
+              if (b.fechaNacimiento) {
+                b.fechaNacimiento = this.formatDate(b.fechaNacimiento);
+              }
+            });
+          }
+        })
+      );
   }
+
 
   getById(id: string): Observable<IBeneficiarioUnique>{
     return this.http.get<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${id}`, { context: checkToken() }).pipe(
@@ -52,22 +59,43 @@ export class BeneficiaryService {
     );
   }
 
-  post(beneficiario: Partial<IBeneficiario>): Observable<IBeneficiario>{
-    return this.http.post<IBeneficiario>(`${this.URL}/beneficiarios`, beneficiario, { context: checkToken() }).pipe(
-      tap(item => {
-        item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
-      })
-    );
+  post(beneficiario: Partial<IBeneficiario>): Observable<ResponseStandarUnique<IBeneficiario>> {
+    return this.http
+      .post<ResponseStandarUnique<IBeneficiario>>(
+        `${this.URL}/beneficiarios`,
+        beneficiario,
+        { context: checkToken() }
+      )
+      .pipe(
+        tap(resp => {
+          const item = resp.respuesta;
+          if (item && item.fechaNacimiento) {
+            item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
+          }
+        })
+      );
   }
 
-  update(idBeneficiario: string, beneficiario: Partial<IBeneficiarioUnique>): Observable<IBeneficiarioUnique>{
-
-    return this.http.put<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${idBeneficiario}`, beneficiario, { context: checkToken() }).pipe(
-      tap(item => {
-        item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
-      })
-    );
+  update(
+    idBeneficiario: string,
+    beneficiario: Partial<IBeneficiarioUnique>
+  ): Observable<ResponseStandarUnique<IBeneficiarioUnique>> {
+    return this.http
+      .put<ResponseStandarUnique<IBeneficiarioUnique>>(
+        `${this.URL}/beneficiarios/${idBeneficiario}`,
+        beneficiario,
+        { context: checkToken() }
+      )
+      .pipe(
+        tap(resp => {
+          const item = resp.respuesta;
+          if (item && item.fechaNacimiento) {
+            item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
+          }
+        })
+      );
   }
+  
 
   updateById(idBeneficiario: string, beneficiario: Partial<IBeneficiarioUnique>):Observable<IBeneficiarioUnique> {
     return this.http.put<IBeneficiarioUnique>(`${this.URL}/beneficiarios/${idBeneficiario}`, beneficiario, { context: checkToken() });

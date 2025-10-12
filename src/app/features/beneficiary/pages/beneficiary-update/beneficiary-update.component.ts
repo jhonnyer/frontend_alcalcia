@@ -1,14 +1,15 @@
-import { Component, Input, OnInit, inject, signal } from '@angular/core';
+import { Component, Inject, OnInit, inject } from '@angular/core';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IBeneficiario, IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
+import { IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
 import { MatIconModule } from '@angular/material/icon';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-beneficiary-update',
@@ -18,24 +19,25 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './beneficiary-update.component.html'
 })
 export class BeneficiaryUpdateComponent implements OnInit {
-  private pageTitleService = inject(PageTitleService);
-  private beneficiaryService = inject(BeneficiaryService);
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
-  private route = inject(ActivatedRoute);
-  private dialog = inject(MatDialog);
+  constructor(
+    private dialogRef: MatDialogRef<BeneficiaryUpdateComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { id: string }, // 👈 Recibe el id del modal
+    private dialog: MatDialog,
+    private fb: FormBuilder,
+    private snackBar: MatSnackBar,
+    private pageTitleService: PageTitleService,
+    private beneficiaryService: BeneficiaryService
+  ) {}
 
   public formFamilyCore!: FormGroup;
   private beneficiarioId!: string;
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Actualizar beneficiario');
-
-    // 📌 Tomamos el ID de la ruta
-    this.beneficiarioId = this.route.snapshot.paramMap.get('id')!;
-
+    this.beneficiarioId = this.data.id; // ✅ Usa el id que llega desde el modal
     this.initFormFamilyCore();
     this.getBeneficiarioById();
+
     this.formFamilyCore.valueChanges.subscribe(() => {
       this.formFamilyCore.updateValueAndValidity({ onlySelf: false, emitEvent: false });
     });
@@ -134,12 +136,11 @@ export class BeneficiaryUpdateComponent implements OnInit {
 
   cancelar(){
     this.formFamilyCore.reset(); // Limpia los campos del formulario
-    this.router.navigate(['/beneficary']); // Redirige a otra página
+    this.dialogRef.close()
   }
 
   onSubmit() {
     if (this.formFamilyCore.valid) {
-      // 🔹 Mostrar confirmación antes de guardar
       const confirmRef = this.dialog.open(ConfirmDialogComponent, {
         width: '350px',
         data: { mensaje: '¿Desea guardar los cambios de este beneficiario?' }
@@ -147,19 +148,20 @@ export class BeneficiaryUpdateComponent implements OnInit {
 
       confirmRef.afterClosed().subscribe(confirmado => {
         if (confirmado) {
-          this.beneficiaryService.updateById(this.beneficiarioId, this.formFamilyCore.value).subscribe({
-            next: () => {
-              this.router.navigate(['/beneficary']);
+          this.beneficiaryService.update(this.beneficiarioId, this.formFamilyCore.value).subscribe({
+            next: (response) => {
+              this.snackBar.open(response.mensaje || '✅ Beneficiario actualizado correctamente.', 'Cerrar', { duration: 3000 });
+              this.dialogRef.close('updated'); // 👈 cerrar el modal devolviendo el resultado
             },
             error: () => {
-              alert('❌ Ha ocurrido un error al guardar el beneficiario');
+              this.snackBar.open('❌ Ha ocurrido un error al guardar el beneficiario', 'Cerrar', { duration: 3000 });
             }
           });
         }
       });
     } else {
       this.formFamilyCore.markAllAsTouched();
-      alert('⚠️ Verifica los campos de tu formulario');
+      this.snackBar.open('⚠️ Verifica los campos del formulario', 'Cerrar', { duration: 3000 });
     }
   }
 

@@ -6,7 +6,6 @@ import { inject } from '@angular/core';
 export const authGuard: CanActivateFn = (route, state) => {
   const tokenService = inject(TokenService);
   const router = inject(Router);
-  console.log("GUARD")
 
   // Verificar si el token existe y no está expirado
   const token = tokenService.getToken();

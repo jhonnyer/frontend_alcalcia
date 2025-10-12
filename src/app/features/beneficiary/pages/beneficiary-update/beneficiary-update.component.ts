@@ -153,8 +153,19 @@ export class BeneficiaryUpdateComponent implements OnInit {
               this.snackBar.open(response.mensaje || '✅ Beneficiario actualizado correctamente.', 'Cerrar', { duration: 3000 });
               this.dialogRef.close('updated'); // 👈 cerrar el modal devolviendo el resultado
             },
-            error: () => {
-              this.snackBar.open('❌ Ha ocurrido un error al guardar el beneficiario', 'Cerrar', { duration: 3000 });
+            error: (err) => {
+              let mensajeError = '❌ Ha ocurrido un error al guardar el beneficiario';
+              if (err?.error?.mensaje) {
+                mensajeError = `❌ ${err.error.mensaje}`;
+              } else if (typeof err?.error === 'string') {
+                mensajeError = `❌ ${err.error}`;
+              } else if (err?.message) {
+                mensajeError = `❌ ${err.message}`;
+              }
+              this.snackBar.open(mensajeError, 'Cerrar', {
+                duration: 4000,
+                panelClass: ['snackbar-error']
+              });
             }
           });
         }

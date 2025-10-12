@@ -129,7 +129,6 @@ export class PdfGeneradorNucleoService {
     if (!beneficiarios.length) {
       return { text: 'No hay beneficiarios registrados.', italics: true };
     }
-    console.log(beneficiarios)
     return {
       table: {
         headerRows: 1,

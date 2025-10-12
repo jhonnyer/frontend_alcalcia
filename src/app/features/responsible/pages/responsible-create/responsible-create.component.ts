@@ -47,7 +47,7 @@ export class ResponsibleCreateComponent {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
-      console.log(this.formFamilyCore.value);
+      // console.log(this.formFamilyCore.value);
 	  }else{
 		  this.formFamilyCore.markAllAsTouched();
 	  }

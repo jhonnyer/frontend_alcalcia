@@ -600,8 +600,19 @@ export class NucleoUpdateComponent implements OnInit {
                 this.snackBar.open('✅ Beneficiario actualizado correctamente.', 'Cerrar', { duration: 3000 });
               },
               error: (err) => {
-                console.error('Error al actualizar beneficiario:', err);
-                this.snackBar.open('❌ Error al actualizar beneficiario.', 'Cerrar', { duration: 3000 });
+                let mensajeError = '❌ Ha ocurrido un error al guardar el beneficiario';
+
+                if (err?.error?.mensaje) {
+                  mensajeError = `❌ ${err.error.mensaje}`;
+                } else if (typeof err?.error === 'string') {
+                  mensajeError = `❌ ${err.error}`;
+                } else if (err?.message) {
+                  mensajeError = `❌ ${err.message}`;
+                }
+                this.snackBar.open(mensajeError, 'Cerrar', {
+                  duration: 4000,
+                  panelClass: ['snackbar-error']
+                });
               }
             });
           }

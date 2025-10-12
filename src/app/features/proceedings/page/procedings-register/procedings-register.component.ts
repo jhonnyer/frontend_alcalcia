@@ -346,8 +346,6 @@ export class ProcedingsRegisterComponent implements OnInit{
   }
 
   onSubmit() {
-    console.log("ID Beneficiario: ", this.beneficiario()?.idBeneficiario);
-
     if (this.formActa.invalid) {
       this.formActa.markAllAsTouched();
       this.snackBar.open('⚠️ Formulario no válido. Revisa los campos.', 'Cerrar', { duration: 3000 });

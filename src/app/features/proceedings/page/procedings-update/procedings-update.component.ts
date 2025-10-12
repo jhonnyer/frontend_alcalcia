@@ -554,8 +554,6 @@ export class ProcedingsUpdateComponent implements OnInit {
       eliminados.push({ idProductoFk: productId, eliminado: true });
       this.formActa.patchValue({ paquetes: eliminados });
     }
-
-    console.log('🗑️ Producto eliminado:', productoAEliminar);
   }
 
 

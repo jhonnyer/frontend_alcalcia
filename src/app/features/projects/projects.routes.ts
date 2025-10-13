@@ -4,6 +4,7 @@ import { ProjectUpdateComponent } from "./pages/project-update/project-update.co
 import { AddBeneficiaryProjectComponent } from "./pages/add-beneficiary-project/add-beneficiary-project.component";
 import { BeneficiarioProyectoListComponent } from "./pages/beneficiario-proyecto-list/beneficiario-proyecto-list.component";
 import { BeneficiarioProyectoUpdateComponent } from "./pages/beneficiario-proyecto-update/beneficiario-proyecto-update.component";
+import { ReportDashboardComponent } from "./pages/dashboard-proyectos/report-dashboard.component";
 
 export const PROJECTS_ROUTES: Routes = [
   {
@@ -31,5 +32,6 @@ export const PROJECTS_ROUTES: Routes = [
   {
     path: 'add-beneficiary/update/:id',
     component: BeneficiarioProyectoUpdateComponent
-  }
+  },
+  { path: 'dashboard', component: ReportDashboardComponent },
 ]

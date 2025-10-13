@@ -2,6 +2,15 @@
   <!-- HEADER -->
   <header class="flex justify-between items-center mb-3">
     <h1 class="text-sm font-semibold text-gray-700">📁 Proyectos</h1>
+    <button
+      type="button"
+      (click)="goToDashboard()"
+      class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-md transition"
+      matTooltip="Ver reportes del sistema"
+    >
+      <mat-icon class="text-base">analytics</mat-icon>
+      Ver dashboard
+    </button>
   </header>
 
   <!-- TABLA -->

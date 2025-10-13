@@ -1,0 +1,204 @@
+/* KPIs y chips */
+.kpi { display:flex; align-items:center; gap:.75rem; padding:.75rem; border:1px solid #e5e7eb; border-radius:.5rem; background:white; }
+.kpi .label { font-size:.75rem; color:#6b7280; }
+.kpi .value { font-size:1.25rem; font-weight:600; color:#111827; }
+.chip { display:inline-block; padding:1px 8px; border-radius:9999px; font-size:.7rem; border:1px solid; }
+.chip-a { background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+.chip-i { background:#f3f4f6; color:#374151; border-color:#e5e7eb; }
+
+/* Tabla base */
+.table { width:100%; font-size:.9rem; border-collapse:separate; border-spacing:0; }
+.th { background:#f8fafc; color:#374151; text-transform:uppercase; font-size:.7rem; padding:.5rem .75rem; border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:1; }
+.td { padding:.5rem .75rem; border-bottom:1px solid #eef2f7; vertical-align:top; color:#111827; }
+
+/* Acordeón como cards */
+.proj-accordion { display:grid; gap:12px; }
+.proj-card { border:1px solid #e5e7eb; border-radius:10px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); overflow:hidden; }
+
+::ng-deep .mat-expansion-panel-header { min-height:56px; padding:0 12px; }
+::ng-deep .mat-expansion-panel-body { padding:12px 12px 16px !important; }
+
+.section-title { font-size:.8rem; font-weight:600; color:#4b5563; margin:8px 0; }
+
+/* Chips de productos */
+.chips-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:6px; }
+.btn-more { margin-top:6px; font-size:.75rem; padding:2px 8px; border:1px solid #e5e7eb; border-radius:9999px; background:#f9fafb; color:#374151; }
+
+/* grid de tarjetas de categorías */
+.cats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+/* tarjeta de categoría */
+.cat-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+
+/* encabezado de la tarjeta */
+.cat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.cat-header .left { display: flex; flex-direction: column; gap: 2px; }
+.cat-name { font-weight: 600; color: #111827; }
+.cat-sub  { font-size: .70rem; color: #9ca3af; }
+
+/* badge del total */
+.badge {
+  display: inline-block;
+  font-size: .72rem;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
+/* grid de chips (ya lo tienes, lo dejamos aquí por si quieres ajustar) */
+.chips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px;
+}
+
+/* botón ver más */
+.btn-more {
+  margin-top: 8px;
+  font-size: .75rem;
+  padding: 2px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  background: #f9fafb;
+  color: #374151;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: .85rem;
+  color: #374151;
+  background: #f9fafb;
+}
+
+.pill-meta {
+  font-size: .75rem;
+  color: #6b7280;
+}
+
+.btn-more {
+  font-size: .75rem;
+  padding: 2px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 9999px;
+  background: #f9fafb;
+  color: #374151;
+}
+
+.searchbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #e5e7eb;         /* gray-200 */
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,.02);
+  transition: border-color .15s ease, box-shadow .15s ease;
+
+  &:focus-within {
+    border-color: #6366f1;           /* indigo-500 */
+    box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+  }
+}
+
+.searchbox__icon {
+  color: #6b7280;                     /* gray-500 */
+  font-size: 18px; height: 18px; width: 18px;
+  flex: 0 0 auto;
+}
+
+.searchbox__input {
+  flex: 1 1 auto;
+  border: 0; outline: 0;
+  background: transparent;
+  font-size: 14px; color: #111827;    /* gray-900 */
+  min-width: 0;                       /* evita desbordes en flex */
+}
+.searchbox__input::placeholder { color: #9ca3af; } /* gray-400 */
+
+.searchbox__clear {
+  border: 0; background: transparent;
+  display: grid; place-items: center;
+  cursor: pointer; opacity: .7;
+  padding: 0;
+  transition: opacity .15s ease, transform .1s ease;
+  .mat-icon { font-size: 18px; height: 18px; width: 18px; color: #6b7280; }
+  &:hover { opacity: 1; transform: scale(1.05); }
+  &:focus-visible { outline: 2px solid #6366f1; border-radius: 6px; }
+}
+
+/* --- Search input pro/compact --- */
+:host ::ng-deep .search-field {
+  --search-h: 40px;
+
+  /* quita espacio inferior */
+  .mat-mdc-form-field-subscript-wrapper { display: none; }
+
+  /* alto compacto */
+  .mat-mdc-form-field-infix { padding: 6px 0 !important; min-height: var(--search-h); }
+
+  /* caja base */
+  .mdc-text-field {
+    background: #fff;
+    height: var(--search-h);
+    border-radius: 12px !important;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,.02);
+    transition: box-shadow .15s ease, border-color .15s ease;
+  }
+
+  /* bordes suaves */
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__trailing { border-color: #e5e7eb !important; }
+
+  /* OCULTA notch/gap por completo */
+  .mdc-notched-outline__notch { width: 0 !important; border: none !important; }
+
+  /* foco con ring */
+  .mdc-text-field--focused .mdc-notched-outline__leading,
+  .mdc-text-field--focused .mdc-notched-outline__trailing {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+  }
+
+  /* quita divisor del prefix y ajusta separación */
+  .mat-mdc-form-field-text-prefix {
+    border-right: 0 !important;
+    margin-right: 6px;
+  }
+
+  /* iconos compactos */
+  .mat-mdc-icon-button.mat-mdc-button-base { width: 32px; height: 32px; }
+  .mat-mdc-form-field-icon-prefix .mat-icon,
+  .mat-mdc-form-field-icon-suffix .mat-icon {
+    font-size: 18px; width: 18px; height: 18px; color: #6b7280;
+  }
+
+  /* tipografía del input */
+  .mdc-text-field__input { font-size: 14px; color: #111827; }
+  input::placeholder { color: #9ca3af; }
+}
+

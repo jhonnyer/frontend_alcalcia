@@ -212,8 +212,11 @@ export class ProjectsListComponent {
     });
   }
 
-
   update(item: Row<IProyectoAndCategoriaArray>) {
     this.router.navigate(["projects/update/", item.original.proyecto.idProyecto]);
+  }
+
+  goToDashboard(): void {
+    this.router.navigate(['/projects/dashboard']);
   }
 }

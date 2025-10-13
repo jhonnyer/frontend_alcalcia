@@ -215,7 +215,7 @@ export class ReportDashboardComponent implements OnInit {
       .slice(0, 10);
     this.chartProdData = {
       labels: prods.map(p => p.producto),
-      datasets: [{ label: 'Entregados', data: prods.map(p => p.totalEntregado), backgroundColor: '#3b82f6' }]
+      datasets: [{ label: 'Entregados', data: prods.map(p => p.totalEntregado), backgroundColor: '#e7da8eff' }]
     };
 
     // Distribución por edad (mantener todos los buckets)

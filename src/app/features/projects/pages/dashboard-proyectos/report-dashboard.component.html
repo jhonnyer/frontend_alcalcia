@@ -171,146 +171,141 @@
     </mat-card>
 
     <!-- Proyectos (paneles) -->
-    <mat-card class="p-3 border border-gray-200">
-      <div class="text-sm font-semibold mb-2">📁 Proyectos ({{ proyectosFiltrados().length }})</div>
+    <mat-card class="p-4 border border-gray-200">
+    <div class="text-sm font-semibold mb-3 flex items-center gap-2">
+        <mat-icon>folder_open</mat-icon>
+        Proyectos ({{ proyectosFiltrados().length }})
+    </div>
 
-      <mat-accordion multi class="proj-accordion">
+    <mat-accordion multi class="proj-accordion">
         <div class="proj-card" *ngFor="let p of proyectosFiltrados(); trackBy: trackByProyecto">
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <div class="flex items-center justify-between w-full">
+        <mat-expansion-panel class="proj-panel">
+            <mat-expansion-panel-header class="proj-header">
+            <div class="flex items-center justify-between w-full">
                 <div>
-                  <div class="font-medium">{{ p.nombre }}</div>
-                  <div class="text-xs text-gray-500">{{ p.descripcion || '—' }}</div>
-                  <div class="text-[11px] text-gray-400 mt-1">
+                <div class="font-medium text-[15px] leading-5">{{ p.nombre }}</div>
+                <div class="text-xs text-gray-500 line-clamp-1">{{ p.descripcion || '—' }}</div>
+                <div class="text-[11px] text-gray-400 mt-1">
                     {{ p.fechaInicio || '—' }} → {{ p.fechaFin || '—' }} • {{ p.duracionDias }} días
-                  </div>
+                </div>
                 </div>
                 <span class="chip" [ngClass]="p.estado === 'A' ? 'chip-a' : 'chip-i'">
-                  {{ p.estado === 'A' ? 'Activo' : 'Inactivo' }}
+                {{ p.estado === 'A' ? 'Activo' : 'Inactivo' }}
                 </span>
-              </div>
+            </div>
             </mat-expansion-panel-header>
 
             <!-- Resumen -->
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
-                <div class="kpi">
-                    <mat-icon>category</mat-icon>
-                    <div>
-                    <div class="label">Categorías</div>
-                    <div class="value">{{ p.totalCategorias }}</div> <!-- 👈 -->
-                    </div>
-                </div>
-
-                <div class="kpi">
-                    <mat-icon>inventory</mat-icon>
-                    <div>
-                    <div class="label">Productos</div>
-                    <div class="value">{{ p.totalProductosAsociados }}</div> <!-- 👈 27 -->
-                    </div>
-                </div>
-
-                <div class="kpi">
-                    <mat-icon>checklist_rtl</mat-icon>
-                    <div>
-                    <div class="label">Actas</div>
-                    <div class="value">{{ p.totalActas }}</div>
-                    </div>
-                </div>
-
-                <div class="kpi">
-                    <mat-icon>groups</mat-icon>
-                    <div>
-                    <div class="label">Beneficiarios</div>
-                    <div class="value">{{ p.totalBeneficiarios }}</div>
-                    </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2 mt-1">
+            <div class="kpi kpi-compact">
+                <mat-icon>category</mat-icon>
+                <div>
+                <div class="label">Categorías</div>
+                <div class="value">{{ p.totalCategorias }}</div>
                 </div>
             </div>
 
+            <div class="kpi kpi-compact">
+                <mat-icon>inventory</mat-icon>
+                <div>
+                <div class="label">Productos</div>
+                <div class="value">{{ p.totalProductosAsociados }}</div>
+                </div>
+            </div>
+
+            <div class="kpi kpi-compact">
+                <mat-icon>checklist_rtl</mat-icon>
+                <div>
+                <div class="label">Actas</div>
+                <div class="value">{{ p.totalActas }}</div>
+                </div>
+            </div>
+
+            <div class="kpi kpi-compact">
+                <mat-icon>groups</mat-icon>
+                <div>
+                <div class="label">Beneficiarios</div>
+                <div class="value">{{ p.totalBeneficiarios }}</div>
+                </div>
+            </div>
+            </div>
+
+            <!-- Separador visual -->
+            <div class="section-sep"></div>
+
             <!-- Categorías y productos -->
-            <div class="mb-3">
-                <div class="section-title">Categorías y productos</div>
+            <div class="mb-2">
+            <div class="section-title">Categorías y productos</div>
 
-                <!-- Siempre muestra el contenedor si hay categorías;
-                    si no hay ninguna, muestra el placeholder de abajo -->
-                <ng-container *ngIf="(p.categorias?.length ?? 0) > 0; else noCats">
-                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ng-container *ngIf="(p.categorias?.length ?? 0) > 0; else noCats">
+                <div class="cats-grid">
+                <div class="cat-card"
+                    *ngFor="let c of p.categorias; trackBy: trackByCategoria">
 
-                    <div class="rounded-xl border border-gray-200 bg-white p-3"
-                        *ngFor="let c of p.categorias; trackBy: trackByCategoria">
+                    <div class="cat-header">
+                    <div class="left">
+                        <div class="cat-name">{{ c.nombreCategoria }}</div>
+                        <div class="cat-sub">ID: {{ c.idCategoria }}</div>
+                    </div>
+                    <span class="badge">{{ getTotalProductos(c) }} productos</span>
+                    </div>
 
-                        <div class="flex items-center justify-between mb-2">
-                        <div>
-                            <div class="font-semibold text-gray-800">{{ c.nombreCategoria }}</div>
-                            <div class="text-[11px] text-gray-400">ID: {{ c.idCategoria }}</div>
-                        </div>
-                        <span class="chip chip-i">{{ getTotalProductos(c) }} productos</span>
-                        </div>
-
-                        <!-- Buscador por categoría (solo si hay productos) -->
-                        <ng-container *ngIf="(c.productos?.length ?? 0) > 0">
-                            <mat-form-field
-                                appearance="outline"
-                                class="w-full mb-2 search-field"
-                                floatLabel="auto" 
-                            >
-                                <mat-icon matPrefix>search</mat-icon>
-
-                                <input
-                                matInput
-                                [value]="getCategoryFilter(c.idCategoria)"
-                                (input)="setCategoryFilter(c.idCategoria, $any($event.target).value)"
-                                placeholder="Buscar producto"
-                                autocomplete="off"
-                                />
-
-                                <button
-                                matSuffix
-                                mat-icon-button
+                    <!-- Buscador por categoría (si hay productos) -->
+                    <ng-container *ngIf="(c.productos?.length ?? 0) > 0">
+                    <mat-form-field appearance="outline"
+                                    class="w-full mb-2 search-field"
+                                    floatLabel="auto">
+                        <mat-icon matPrefix>search</mat-icon>
+                        <input matInput
+                            [value]="getCategoryFilter(c.idCategoria)"
+                            (input)="setCategoryFilter(c.idCategoria, $any($event.target).value)"
+                            placeholder="Buscar producto"
+                            autocomplete="off" />
+                        <button matSuffix mat-icon-button
                                 *ngIf="getCategoryFilter(c.idCategoria)"
                                 (click)="setCategoryFilter(c.idCategoria, '')"
-                                aria-label="Limpiar búsqueda"
-                                >
-                                <mat-icon>close</mat-icon>
-                                </button>
-                            </mat-form-field>
-                        </ng-container>
+                                aria-label="Limpiar búsqueda">
+                        <mat-icon>close</mat-icon>
+                        </button>
+                    </mat-form-field>
+                    </ng-container>
 
-                        <!-- Lista de productos o empty-state -->
-                        <div class="space-y-2" *ngIf="(c.productos?.length ?? 0) > 0; else emptyCat">
-                        <div class="pill" *ngFor="let pr of visibleProductos(c)">
-                            <span>{{ pr.nombreProducto }}</span>
-                            <span class="pill-meta" *ngIf="pr.stock != null">Stock: {{ pr.stock }}</span>
-                        </div>
+                    <!-- Lista de productos -->
+                    <div class="space-y-2" *ngIf="(c.productos?.length ?? 0) > 0; else emptyCat">
+                    <div class="pill" *ngFor="let pr of visibleProductos(c)">
+                        <span class="truncate pr-2">{{ pr.nombreProducto }}</span>
+                        <span class="pill-meta" *ngIf="pr.stock != null">Stock: {{ pr.stock }}</span>
+                    </div>
 
-                        <!-- Ver más / Ver menos (si aplica) -->
-                        <button
-                            *ngIf="hiddenCount(c) > 0 || isExpanded(c.idCategoria)"
+                    <button *ngIf="hiddenCount(c) > 0 || isExpanded(c.idCategoria)"
                             class="btn-more"
                             type="button"
                             (click)="toggleCat(c.idCategoria)">
-                            {{ isExpanded(c.idCategoria) ? 'Ver menos' : ('+' + hiddenCount(c) + ' más') }}
-                        </button>
-                        </div>
-
-                        <ng-template #emptyCat>
-                        <div class="text-xs text-gray-500 italic">Sin productos registrados en esta categoría.</div>
-                        </ng-template>
+                        {{ isExpanded(c.idCategoria) ? 'Ver menos' : ('+' + hiddenCount(c) + ' más') }}
+                    </button>
                     </div>
-                    </div>
-                </ng-container>
 
-                <ng-template #noCats>
-                    <div class="text-xs text-gray-500">Sin categorías para este proyecto.</div>
-                </ng-template>
+                    <ng-template #emptyCat>
+                    <div class="text-xs text-gray-500 italic">Sin productos registrados en esta categoría.</div>
+                    </ng-template>
+                </div>
+                </div>
+            </ng-container>
+
+            <ng-template #noCats>
+                <div class="text-xs text-gray-500">Sin categorías para este proyecto.</div>
+            </ng-template>
             </div>
 
+            <!-- Separador visual -->
+            <div class="section-sep"></div>
+
             <!-- Beneficiarios -->
-            <div>
-              <div class="text-xs font-semibold text-gray-600 mb-1">Beneficiarios</div>
-              <table class="table" *ngIf="p.beneficiarios?.length; else noBens">
+            <div class="mb-1">
+            <div class="text-xs font-semibold text-gray-600 mb-1">Beneficiarios</div>
+            <table class="table" *ngIf="p.beneficiarios?.length; else noBens">
                 <thead>
-                  <tr>
+                <tr>
                     <th class="th">Nombre</th>
                     <th class="th">Doc.</th>
                     <th class="th">Sexo</th>
@@ -318,10 +313,10 @@
                     <th class="th">Víctima</th>
                     <th class="th">Discapacidad</th>
                     <th class="th">Núcleo</th>
-                  </tr>
+                </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let b of p.beneficiarios">
+                <tr *ngFor="let b of p.beneficiarios">
                     <td class="td">{{ b.nombreCompleto }}</td>
                     <td class="td">{{ b.tipoDocumento }} {{ b.documento }}</td>
                     <td class="td">{{ b.sexo }}</td>
@@ -329,15 +324,18 @@
                     <td class="td">{{ b.victimaConflicto ? 'Sí' : 'No' }}</td>
                     <td class="td">{{ b.discapacidad ? 'Sí' : 'No' }}</td>
                     <td class="td">{{ b.nombreNucleo || '—' }}</td>
-                  </tr>
+                </tr>
                 </tbody>
-              </table>
-              <ng-template #noBens><div class="text-xs text-gray-500">Sin beneficiarios listados.</div></ng-template>
+            </table>
+            <ng-template #noBens>
+                <div class="text-xs text-gray-500">Sin beneficiarios listados.</div>
+            </ng-template>
             </div>
-          </mat-expansion-panel>
+        </mat-expansion-panel>
         </div>
-      </mat-accordion>
+    </mat-accordion>
     </mat-card>
+
   </ng-container>
 
   <ng-template #loading>

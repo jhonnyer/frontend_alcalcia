@@ -144,9 +144,8 @@ export interface ResumenProyecto {
 
   totalCategorias: number;
   totalProductosAsociados: number;
-  totalActas: number;
   totalBeneficiarios: number;
-
+  totalActas: number;
   categorias: CategoriaResumen[];
   beneficiarios?: BeneficiarioResumen[]; 
 }

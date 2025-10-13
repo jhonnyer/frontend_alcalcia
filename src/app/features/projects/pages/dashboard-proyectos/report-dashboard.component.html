@@ -1,21 +1,34 @@
 <section id="contenedor-reporte" class="h-[calc(100vh-6rem)] overflow-y-auto p-4 bg-gray-50 rounded-xl shadow-sm space-y-4">
-  <!-- Header -->
-  <header class="flex items-center justify-between">
-    <h1 class="text-base font-semibold text-gray-800 flex items-center gap-2">
-      <mat-icon>analytics</mat-icon>
-      Dashboard de Reportes
-    </h1>
+    <!-- Header -->
+    <header class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
 
-    <button
-      class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-md transition"
-      type="button"
-      [disabled]="isLoadingPDF"
-      (click)="exportarPDF()"
-    >
-      <mat-icon>picture_as_pdf</mat-icon>
-      {{ isLoadingPDF ? 'Generando…' : 'Exportar PDF' }}
-    </button>
-  </header>
+            <h1 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+            <mat-icon>analytics</mat-icon>
+            Reportes y Estadísticas
+            </h1>
+        </div>
+
+        <button
+            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-md transition"
+            type="button"
+            [disabled]="isLoadingPDF"
+            (click)="exportarPDF()"
+        >
+            <mat-icon>picture_as_pdf</mat-icon>
+            {{ isLoadingPDF ? 'Generando…' : 'Exportar PDF' }}
+        </button>
+        <button
+            type="button"
+            (click)="cerrar()"
+            class="inline-flex items-center gap-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold px-3 py-2 rounded-md transition"
+            aria-label="Cerrar y volver a Proyectos"
+            >
+            <mat-icon>arrow_back</mat-icon>
+            Volver
+        </button>
+    </header>
+
 
   <ng-container *ngIf="dashboard() as d; else loading">
     <!-- KPIs -->

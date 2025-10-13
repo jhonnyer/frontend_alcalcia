@@ -16,6 +16,8 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { ReportesService } from '../../../../core/services/reportes.service';
 import { DashboardReport, ResumenProyecto } from '../../../../core/models/reporte-global/reportes.model';
+import { Router } from '@angular/router';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -34,6 +36,8 @@ Chart.register(...registerables, ChartDataLabels);
 })
 export class ReportDashboardComponent implements OnInit {
   private reportes = inject(ReportesService);
+  private router = inject(Router);
+  private pageTitleService = inject(PageTitleService);
 
   // Payload cacheado
   dashboard = signal<DashboardReport | null>(null);
@@ -152,6 +156,7 @@ export class ReportDashboardComponent implements OnInit {
     ];
 
     ngOnInit(): void {
+        this.pageTitleService.setCurrentPage('Dashboard Proyectos');
         this.reportes.obtenerDashboard().subscribe(d => {
             this.dashboard.set(d);
             // categorías únicas para filtro
@@ -439,4 +444,7 @@ export class ReportDashboardComponent implements OnInit {
         this.productFiltersByCategory.update(state => ({ ...state, [catId]: t }));
     }
 
+  cerrar() {
+    this.router.navigate(['/projects']);
+  }
 }

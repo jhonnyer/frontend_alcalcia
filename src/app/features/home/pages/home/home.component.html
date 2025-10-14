@@ -32,6 +32,24 @@
     <div routerLink="/inventory" class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-orange-500 px-2">
       Inventario
     </div>
+    <div
+      class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-blue-700 hover:bg-blue-800 transition relative"
+      (click)="descargarReporte()"
+    >
+      <ng-container *ngIf="!isLoadingPDF; else loadingTpl">
+        <mat-icon class="mr-2">picture_as_pdf</mat-icon>
+        Informe General
+      </ng-container>
+
+      <ng-template #loadingTpl>
+        <mat-progress-spinner
+          diameter="28"
+          mode="indeterminate"
+          color="accent"
+          class="absolute"
+        ></mat-progress-spinner>
+      </ng-template>
+    </div>
   </div>
 
   <div class="w-full py-4 border-b-4" *hasRole="['ADMIN', 'RESP']">

@@ -10,11 +10,28 @@ import { NucleoService } from '../../../../core/services/nucleo.service';
 import * as XLSX from 'xlsx';
 
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+import { ReportesService } from '../../../../core/services/reportes.service';
+import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, HasRoleDirective],
+  imports: [
+    RouterLink, 
+    HasRoleDirective,
+    CommonModule,
+    MatMenuModule,
+    MatDividerModule,
+    MatIconModule,
+    MatButtonModule,
+    MatProgressSpinnerModule
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -26,6 +43,12 @@ export class HomeComponent implements OnInit{
   private responsibleService = inject(ResponsibleService);
   private productosService = inject(ProductosService);
   private nucleoService = inject(NucleoService);
+  private reportes = inject(ReportesService);
+  private pdfDashboard = inject(PdfGeneradorDashboardService);
+
+  isLoadingPDF = false;
+  nucleoId = 1;     // ejemplo: luego puedes asignar dinámicamente
+  proyectoId = 1;   // idem
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Home');
@@ -375,4 +398,13 @@ export class HomeComponent implements OnInit{
       }
     });
   }
+
+  descargarReporte() {
+    this.isLoadingPDF = true;
+    this.reportes.obtenerDashboard().subscribe(d => {
+          this.pdfDashboard.generateDashboardReport(d);
+          this.isLoadingPDF = false;
+        });
+  }
+
 }

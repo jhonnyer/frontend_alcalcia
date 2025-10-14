@@ -1,3 +1,4 @@
+import { IParametrosNegocio } from "../proyecto-detallado.model";
 
 /** Utilidades */
 export type ISODate = string; // 'YYYY-MM-DD'
@@ -183,4 +184,5 @@ export interface DashboardReport {
   resumenEstadoProyeto?: ResumenEstadoProyecto; // respeta la key actual del backend (con el typo)
   resumenEstadoProyecto?: ResumenEstadoProyecto; 
   resumenGeneral?: ResumenGeneral;
+  parametros: IParametrosNegocio;
 }

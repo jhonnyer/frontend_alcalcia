@@ -7,3 +7,9 @@ declare module 'pdfmake/build/vfs_fonts' {
   const vfsFonts: any;
   export = vfsFonts;
 }
+
+
+declare module '*.png' {
+  const value: string;
+  export default value;
+}

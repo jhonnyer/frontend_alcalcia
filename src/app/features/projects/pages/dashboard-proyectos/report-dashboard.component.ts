@@ -18,6 +18,7 @@ import { ReportesService } from '../../../../core/services/reportes.service';
 import { DashboardReport, ResumenProyecto } from '../../../../core/models/reporte-global/reportes.model';
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -38,12 +39,12 @@ export class ReportDashboardComponent implements OnInit {
   private reportes = inject(ReportesService);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
+  private pdfService = inject(PdfGeneradorDashboardService);
 
   // Payload cacheado
   dashboard = signal<DashboardReport | null>(null);
   productFiltersByProject = signal<Record<number, string>>({});
   productFiltersByCategory = signal<Record<number, string>>({});
-
 
   // Filtros
   filtroTexto = signal<string>('');
@@ -296,58 +297,14 @@ export class ReportDashboardComponent implements OnInit {
   trackByCategoria = (_: number, c: any) => c?.idCategoria ?? _;
 
   // ========= Exportar PDF =========
-  async exportarPDF(): Promise<void> {
-    const contenedor = document.getElementById('contenedor-reporte');
-    if (!contenedor) return;
-
+  exportarPDF() {
+    const d = this.dashboard();
+    if (!d) return;
     this.isLoadingPDF = true;
-
-    const originalMaxHeight = contenedor.style.maxHeight;
-    const originalOverflow = contenedor.style.overflowY;
-
-    try {
-      // Mostrar todo el contenido para la captura
-      contenedor.style.maxHeight = 'none';
-      contenedor.style.overflowY = 'visible';
-
-      await new Promise(r => setTimeout(r, 150));
-
-      const canvas = await html2canvas(contenedor, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        scrollY: -window.scrollY,
-        windowWidth: contenedor.scrollWidth,
-        windowHeight: contenedor.scrollHeight
-      });
-
-      const img = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageW = 210;
-      const pageH = 297;
-      const imgW = pageW;
-      const imgH = (canvas.height * imgW) / canvas.width;
-
-      let heightLeft = imgH;
-      let position = 0;
-
-      pdf.addImage(img, 'PNG', 0, position, imgW, imgH);
-      heightLeft -= pageH;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgH;
-        pdf.addPage();
-        pdf.addImage(img, 'PNG', 0, position, imgW, imgH);
-        heightLeft -= pageH;
-      }
-
-      pdf.save('Reporte_Proyectos.pdf');
-    } catch (e) {
-      console.error('Error al exportar PDF', e);
-    } finally {
-      contenedor.style.maxHeight = originalMaxHeight;
-      contenedor.style.overflowY = originalOverflow;
+    setTimeout(() => {
+      this.pdfService.generateDashboardReport(d);
       this.isLoadingPDF = false;
-    }
+    }, 200);
   }
 
   // ======= Productos: chips con “ver más” =======

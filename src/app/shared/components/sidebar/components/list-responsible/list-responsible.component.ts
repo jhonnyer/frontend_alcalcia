@@ -1,6 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterOutlet,RouterLink, RouterLinkActive} from '@angular/router';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { RouterLink, RouterLinkActive} from '@angular/router';
 
 @Component({
   selector: 'app-list-responsible',
@@ -14,4 +13,5 @@ import { RouterOutlet,RouterLink, RouterLinkActive} from '@angular/router';
 })
 export class ListResponsibleComponent {
   activeMenu: boolean = false;
+  @Input() collapsed = false;
 }

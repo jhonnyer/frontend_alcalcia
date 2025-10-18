@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { RouterLinkActive } from '@angular/router';
 
@@ -8,4 +8,6 @@ import { RouterLinkActive } from '@angular/router';
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './list-home.component.html'
 })
-export class ListHomeComponent { }
+export class ListHomeComponent { 
+  @Input() collapsed = false;
+}

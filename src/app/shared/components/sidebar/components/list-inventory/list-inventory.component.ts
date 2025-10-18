@@ -1,6 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
 import { RouterLink } from '@angular/router';
 import { RouterLinkActive } from '@angular/router';
 
@@ -13,5 +12,5 @@ import { RouterLinkActive } from '@angular/router';
 })
 export class ListInventoryComponent {
   activeMenu: boolean = false;
-
+  @Input() collapsed = false;
 }

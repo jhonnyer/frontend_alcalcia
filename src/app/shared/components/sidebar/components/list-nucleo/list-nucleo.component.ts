@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { OverlayModule } from '@angular/cdk/overlay';
 
@@ -11,4 +11,5 @@ import { OverlayModule } from '@angular/cdk/overlay';
 })
 export class ListNucleoComponent {
   activeMenu: boolean = false;
+  @Input() collapsed = false;
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ListInventoryComponent } from './components/list-inventory/list-inventory.component';
 import { ListBeneficiaryComponent } from './components/list-beneficiary/list-beneficiary.component';
 import { ListHomeComponent } from './components/list-home/list-home.component';
@@ -10,6 +10,7 @@ import { ListCategoriasComponent } from './components/list-categorias/list-categ
 import { ListProjectsComponent } from "./components/list-projects/list-projects.component";
 
 import { HasRoleDirective } from '../../../core/directives/has-role/has-role-directive.directive';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-sidebar',
@@ -24,11 +25,16 @@ import { HasRoleDirective } from '../../../core/directives/has-role/has-role-dir
     ListResponsibleComponent,
     ListProjectsComponent,
     ListCategoriasComponent,
-    HasRoleDirective
+    HasRoleDirective, 
+    MatIconModule
 ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
-
+  @Input() collapsed = false;
+  isCollapsed = false;
+  toggleSidebar() {
+    this.isCollapsed = !this.isCollapsed;
+  }
 }

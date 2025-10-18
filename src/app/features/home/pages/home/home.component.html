@@ -1,176 +1,281 @@
-<div class="relative overflow-x-auto mt-4 flex flex-col h-[calc(100vh-6rem)] scrollbar-custom px-5">
-  <div class="w-full py-4 border-b-4">
-    <h2 class="text-2xl">Bienvenido </h2>
-    <h1 class="text-xl"> Sistema de control de inventarios </h1>
-    <p>Alcaldía de Almaguer</p>
-  </div>
-  <div class="w-full flex flex-wrap align-center content-start justify-start border-b-4">
-    <div routerLink="/nucleo"  class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-blue-600 px-2">
-      Nucleo familiar
-    </div>
+<section class="relative overflow-x-auto mt-4 flex flex-col h-[calc(100vh-6rem)] scrollbar-custom px-5">
 
-    <div routerLink="/beneficary" class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-red-600 px-2">
-      Beneficiarios
-    </div>
+  <!-- 🔹 Grupo de pestañas -->
+  <mat-tab-group animationDuration="400ms" mat-stretch-tabs>
 
-    <div routerLink="/proceedings" class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-green-600 px-2">
-      Actas
-    </div>
-
-    <div routerLink="/resposibles" class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-slate-500 px-2">
-      Responsables
-    </div>
-
-    <div routerLink="/projects" class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-lime-600 px-2">
-      Proyectos
-    </div>
-
-    <div routerLink="/categorias" class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-purple-600 px-2">
-      Categorias
-    </div>
-
-    <div routerLink="/inventory" class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-orange-500 px-2">
-      Inventario
-    </div>
-    <div
-      class="w-32 text-center m-4 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer bg-blue-700 hover:bg-blue-800 transition relative"
-      (click)="descargarReporte()"
-    >
-      <ng-container *ngIf="!isLoadingPDF; else loadingTpl">
-        <mat-icon class="mr-2">picture_as_pdf</mat-icon>
-        Informe General
-      </ng-container>
-
-      <ng-template #loadingTpl>
-        <mat-progress-spinner
-          diameter="28"
-          mode="indeterminate"
-          color="accent"
-          class="absolute"
-        ></mat-progress-spinner>
+    <!-- 🧭 Pestaña Dashboard -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="mr-2 text-blue-700">dashboard</mat-icon>
+        Dashboard
       </ng-template>
-    </div>
-  </div>
+      <app-dashboard></app-dashboard>
+    </mat-tab>
+    
+    <!-- 🧭 Pestaña Atajos -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="mr-2 text-blue-700">apps</mat-icon>
+        Accesos rápidos
+      </ng-template>
 
-  <div class="w-full py-4 border-b-4" *hasRole="['ADMIN', 'RESP']">
-    <h2 class="text-xl">Generar reportes</h2>
-  </div>
-  <div class="mt-12" *hasRole="['ADMIN', 'RESP']">
-    <div class="mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4">
-      <!-- Reporte general -->
-      <div (click)="downloadGlobalReport()" class="cursor-pointer relative flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 shadow-md">
-        <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-40-82v-78q-33 0-56.5-23.5T360-320v-40L168-552q-3 18-5.5 36t-2.5 36q0 121 79.5 212T440-162Zm276-102q20-22 36-47.5t26.5-53q10.5-27.5 16-56.5t5.5-59q0-98-54.5-179T600-776v16q0 33-23.5 56.5T520-680h-80v80q0 17-11.5 28.5T400-560h-80v80h240q17 0 28.5 11.5T600-440v120h40q26 0 47 15.5t29 40.5Z"/></svg>
-        </div>
-        <div class="p-4 text-right">
-          <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Reporte global</p>
-        </div>
-        <div class="border-t border-blue-gray-50 p-4">
-          <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-            <strong class="text-green-500">Generar</strong>&nbsp;reporte
-          </p>
-        </div>
+      <div class="w-full py-4 border-b-4" *hasRole="['ADMIN', 'RESP']">
+        <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+          <mat-icon class="text-blue-700">domain</mat-icon>
+          Menú de navegación
+        </h2>
       </div>
-      <!-- Reporte productos de un proyecto -->
-      <div (click)="downloadProductProjectReport()" class="cursor-pointer relative flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 shadow-md">
-        <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-40-82v-78q-33 0-56.5-23.5T360-320v-40L168-552q-3 18-5.5 36t-2.5 36q0 121 79.5 212T440-162Zm276-102q20-22 36-47.5t26.5-53q10.5-27.5 16-56.5t5.5-59q0-98-54.5-179T600-776v16q0 33-23.5 56.5T520-680h-80v80q0 17-11.5 28.5T400-560h-80v80h240q17 0 28.5 11.5T600-440v120h40q26 0 47 15.5t29 40.5Z"/></svg>
-        </div>
-        <div class="p-4 text-right">
-          <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Proyectos</p>
-        </div>
-        <div class="border-t border-blue-gray-50 p-4">
-          <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-            <strong class="text-green-500">Generar</strong>&nbsp;reporte
-          </p>
-        </div>
-      </div>
-      <!-- Reporte beneficiarios -->
-      <div (click)="downloadBeneficiarios()" class="cursor-pointer relative flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 shadow-md">
-        <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-pink-600 to-pink-400 text-white shadow-pink-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M40-160v-160q0-34 23.5-57t56.5-23h131q20 0 38 10t29 27q29 39 71.5 61t90.5 22q49 0 91.5-22t70.5-61q13-17 30.5-27t36.5-10h131q34 0 57 23t23 57v160H640v-91q-35 25-75.5 38T480-200q-43 0-84-13.5T320-252v92H40Zm440-160q-38 0-72-17.5T351-386q-17-25-42.5-39.5T253-440q22-37 93-58.5T480-520q63 0 134 21.5t93 58.5q-29 0-55 14.5T609-386q-22 32-56 49t-73 17ZM160-440q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T280-560q0 50-34.5 85T160-440Zm640 0q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T920-560q0 50-34.5 85T800-440ZM480-560q-50 0-85-35t-35-85q0-51 35-85.5t85-34.5q51 0 85.5 34.5T600-680q0 50-34.5 85T480-560Z"/></svg>
-        </div>
-        <div class="p-4 text-right">
-          <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Beneficiarios</p>
-        </div>
-        <div class="border-t border-blue-gray-50 p-4">
-          <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-            <strong class="text-green-500">Generar</strong>&nbsp;reporte
-          </p>
-        </div>
-      </div>
-      <!-- Reporte Categiras -->
-      <div (click)="downloadCategorias()" class="cursor-pointer relative flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 shadow-md">
-        <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-cyan-600 to-cyan-400 text-white shadow-cyan-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="m260-520 220-360 220 360H260ZM700-80q-75 0-127.5-52.5T520-260q0-75 52.5-127.5T700-440q75 0 127.5 52.5T880-260q0 75-52.5 127.5T700-80Zm-580-20v-320h320v320H120Zm580-60q42 0 71-29t29-71q0-42-29-71t-71-29q-42 0-71 29t-29 71q0 42 29 71t71 29Zm-500-20h160v-160H200v160Zm202-420h156l-78-126-78 126Zm78 0ZM360-340Zm340 80Z"/></svg>
-        </div>
-        <div class="p-4 text-right">
-          <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Categorías</p>
-        </div>
-        <div class="border-t border-blue-gray-50 p-4">
-          <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-            <strong class="text-green-500">Generar</strong>&nbsp;reporte
-          </p>
-        </div>
-      </div>
-      <!-- Reporte Responsables -->
-      <div (click)="downloadResponsables()" class="cursor-pointer relative flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 shadow-md">
-        <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-orange-600 to-orange-400 text-white shadow-orange-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M702-480 560-622l57-56 85 85 170-170 56 57-226 226Zm-342 0q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm80-80h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 260Zm0-340Z"/></svg>
-        </div>
-        <div class="p-4 text-right">
-          <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Responsables</p>
-        </div>
-        <div class="border-t border-blue-gray-50 p-4">
-          <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-            <strong class="text-green-500">Generar</strong>&nbsp;reporte
-          </p>
-        </div>
-      </div>
-      <!-- Reporte Nucleos -->
-      <div (click)="downloadNucleos()" class="cursor-pointer relative flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 shadow-md">
-        <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-violet-600 to-violet-400 text-white shadow-violet-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M260-720q-33 0-56.5-23.5T180-800q0-33 23.5-56.5T260-880q33 0 56.5 23.5T340-800q0 33-23.5 56.5T260-720Zm420 200q-25 0-42.5-17.5T620-580q0-25 17.5-42.5T680-640q25 0 42.5 17.5T740-580q0 25-17.5 42.5T680-520ZM180-80v-280h-60v-240q0-33 23.5-56.5T200-680h120q22 0 40 10.5t29 29.5l143 247 41-61q8-12 21.5-19t28.5-7h117q25 0 42.5 17.5T800-420v140h-40v200H600v-284l-31 44h-88L380-496v416H180Z"/></svg>
-        </div>
-        <div class="p-4 text-right">
-          <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Núcleos</p>
-        </div>
-        <div class="border-t border-blue-gray-50 p-4">
-          <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-            <strong class="text-green-500">Generar</strong>&nbsp;reporte
-          </p>
-        </div>
-      </div>
-      <!-- Reporte Actas -->
-      <div (click)="downloadActas()" class="cursor-pointer relative flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 shadow-md">
-        <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-700 to-blue-400 text-white shadow-blue-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M160-120v-80h480v80H160Zm226-194L160-540l84-86 228 226-86 86Zm254-254L414-796l86-84 226 226-86 86Zm184 408L302-682l56-56 522 522-56 56Z"/></svg>
-        </div>
-        <div class="p-4 text-right">
-          <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Actas</p>
-        </div>
-        <div class="border-t border-blue-gray-50 p-4">
-          <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-            <strong class="text-green-500">Generar</strong>&nbsp;reporte
-          </p>
-        </div>
-      </div>
-      <!-- Reporte inventario -->
-      <div (click)="downloadProductos()" class="cursor-pointer relative flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 shadow-md">
-        <div class="bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-green-600 to-green-400 text-white shadow-green-500/40 shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M200-80q-33 0-56.5-23.5T120-160v-451q-18-11-29-28.5T80-680v-120q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v120q0 23-11 40.5T840-611v451q0 33-23.5 56.5T760-80H200Zm0-520v440h560v-440H200Zm-40-80h640v-120H160v120Zm200 280h240v-80H360v80Zm120 20Z"/></svg>
-        </div>
-        <div class="p-4 text-right">
-          <p class="block antialiased font-sans text-sm leading-normal font-normal text-blue-gray-600">Productos</p>
-        </div>
-        <div class="border-t border-blue-gray-50 p-4">
-          <p class="block antialiased font-sans text-base leading-relaxed font-normal text-blue-gray-600">
-            <strong class="text-green-500">Generar</strong>&nbsp;reporte
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
+      <!-- 🔸 Bloques de accesos -->
+      <div class="w-full flex flex-wrap justify-start items-center border-b-4 mt-2">
+        <div routerLink="/nucleo" class="shortcut bg-blue-600 hover:bg-blue-700">Núcleo familiar</div>
+        <div routerLink="/beneficary" class="shortcut bg-red-600 hover:bg-red-700">Beneficiarios</div>
+        <div routerLink="/proceedings" class="shortcut bg-green-600 hover:bg-green-700">Actas</div>
+        <div routerLink="/resposibles" class="shortcut bg-slate-500 hover:bg-slate-600">Responsables</div>
+        <div routerLink="/projects" class="shortcut bg-lime-600 hover:bg-lime-700">Proyectos</div>
+        <div routerLink="/categorias" class="shortcut bg-purple-600 hover:bg-purple-700">Categorías</div>
+        <div routerLink="/inventory" class="shortcut bg-orange-500 hover:bg-orange-600">Inventario</div>
 
+        <!-- 📄 Informe general -->
+        <div
+          class="shortcut bg-blue-700 hover:bg-blue-800 relative"
+          (click)="descargarReporte()"
+        >
+          <ng-container *ngIf="!isLoadingPDF; else loadingTpl">
+            <mat-icon class="mr-2">picture_as_pdf</mat-icon>
+            Informe general
+          </ng-container>
+
+          <ng-template #loadingTpl>
+            <mat-progress-spinner
+              diameter="28"
+              mode="indeterminate"
+              color="accent"
+              class="absolute"
+            ></mat-progress-spinner>
+          </ng-template>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- 📊 Pestaña Reportes -->
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="mr-2 text-blue-700">bar_chart</mat-icon>
+        Reportes
+      </ng-template>
+
+      <!-- 🧱 Bloques de reportes -->
+      <div class="mt-12 mb-12 grid gap-y-10 gap-x-6 md:grid-cols-2 xl:grid-cols-4" *hasRole="['ADMIN', 'RESP']">
+        
+        <!-- 🌐 Reporte Global -->
+        <div
+          (click)="!isLoadingReport.global && downloadGlobalReport()"
+          class="report-card"
+          [class.opacity-60]="isLoadingReport.global"
+        >
+          <div class="report-icon-box bg-gradient-to-tr from-blue-600 to-blue-400 shadow-blue-500/40">
+            <div *ngIf="isLoadingReport.global; else iconGlobal" class="loading-icon">
+              <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+            </div>
+            <ng-template #iconGlobal>
+              <mat-icon class="report-icon">language</mat-icon>
+            </ng-template>
+          </div>
+          <div class="p-4 text-right">
+            <p class="text-sm text-blue-gray-600">
+              @if(isLoadingReport.global){ Generando... }@else{ Reporte global }
+            </p>
+          </div>
+          <div class="border-t border-blue-gray-50 p-4">
+            <p class="text-base text-blue-gray-600">
+              <strong class="text-green-500">Generar</strong>&nbsp;reporte
+            </p>
+          </div>
+        </div>
+
+        <!-- 🧩 Proyectos -->
+        <div
+          (click)="!isLoadingReport.productProject && downloadProductProjectReport()"
+          class="report-card"
+          [class.opacity-60]="isLoadingReport.productProject"
+        >
+          <div class="report-icon-box bg-gradient-to-tr from-sky-600 to-blue-400 shadow-blue-500/40">
+            <div *ngIf="isLoadingReport.productProject; else iconProyectos" class="loading-icon">
+              <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+            </div>
+            <ng-template #iconProyectos>
+              <mat-icon class="report-icon">workspaces</mat-icon>
+            </ng-template>
+          </div>
+          <div class="p-4 text-right">
+            <p class="text-sm text-blue-gray-600">
+              @if(isLoadingReport.productProject){ Generando... }@else{ Proyectos }
+            </p>
+          </div>
+          <div class="border-t border-blue-gray-50 p-4">
+            <p class="text-base text-blue-gray-600">
+              <strong class="text-green-500">Generar</strong>&nbsp;reporte
+            </p>
+          </div>
+        </div>
+
+        <!-- 👥 Beneficiarios -->
+        <div
+          (click)="!isLoadingReport.beneficiarios && downloadBeneficiarios()"
+          class="report-card"
+          [class.opacity-60]="isLoadingReport.beneficiarios"
+        >
+          <div class="report-icon-box bg-gradient-to-tr from-pink-600 to-pink-400 shadow-pink-500/40">
+            <div *ngIf="isLoadingReport.beneficiarios; else iconBenef" class="loading-icon">
+              <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+            </div>
+            <ng-template #iconBenef>
+              <mat-icon class="report-icon">groups</mat-icon>
+            </ng-template>
+          </div>
+          <div class="p-4 text-right">
+            <p class="text-sm text-blue-gray-600">
+              @if(isLoadingReport.beneficiarios){ Generando... }@else{ Beneficiarios }
+            </p>
+          </div>
+          <div class="border-t border-blue-gray-50 p-4">
+            <p class="text-base text-blue-gray-600">
+              <strong class="text-green-500">Generar</strong>&nbsp;reporte
+            </p>
+          </div>
+        </div>
+
+        <!-- 🗂️ Categorías -->
+        <div
+          (click)="!isLoadingReport.categorias && downloadCategorias()"
+          class="report-card"
+          [class.opacity-60]="isLoadingReport.categorias"
+        >
+          <div class="report-icon-box bg-gradient-to-tr from-cyan-600 to-cyan-400 shadow-cyan-500/40">
+            <div *ngIf="isLoadingReport.categorias; else iconCategorias" class="loading-icon">
+              <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+            </div>
+            <ng-template #iconCategorias>
+              <mat-icon class="report-icon">category</mat-icon>
+            </ng-template>
+          </div>
+          <div class="p-4 text-right">
+            <p class="text-sm text-blue-gray-600">
+              @if(isLoadingReport.categorias){ Generando... }@else{ Categorías }
+            </p>
+          </div>
+          <div class="border-t border-blue-gray-50 p-4">
+            <p class="text-base text-blue-gray-600">
+              <strong class="text-green-500">Generar</strong>&nbsp;reporte
+            </p>
+          </div>
+        </div>
+
+        <!-- 🪪 Responsables -->
+        <div
+          (click)="!isLoadingReport.responsables && downloadResponsables()"
+          class="report-card"
+          [class.opacity-60]="isLoadingReport.responsables"
+        >
+          <div class="report-icon-box bg-gradient-to-tr from-orange-600 to-orange-400 shadow-orange-500/40">
+            <div *ngIf="isLoadingReport.responsables; else iconResp" class="loading-icon">
+              <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+            </div>
+            <ng-template #iconResp>
+              <mat-icon class="report-icon">badge</mat-icon>
+            </ng-template>
+          </div>
+          <div class="p-4 text-right">
+            <p class="text-sm text-blue-gray-600">
+              @if(isLoadingReport.responsables){ Generando... }@else{ Responsables }
+            </p>
+          </div>
+          <div class="border-t border-blue-gray-50 p-4">
+            <p class="text-base text-blue-gray-600">
+              <strong class="text-green-500">Generar</strong>&nbsp;reporte
+            </p>
+          </div>
+        </div>
+
+        <!-- 🏘️ Núcleos -->
+        <div
+          (click)="!isLoadingReport.nucleos && downloadNucleos()"
+          class="report-card"
+          [class.opacity-60]="isLoadingReport.nucleos"
+        >
+          <div class="report-icon-box bg-gradient-to-tr from-violet-600 to-violet-400 shadow-violet-500/40">
+            <div *ngIf="isLoadingReport.nucleos; else iconNucleos" class="loading-icon">
+              <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+            </div>
+            <ng-template #iconNucleos>
+              <mat-icon class="report-icon">home_work</mat-icon>
+            </ng-template>
+          </div>
+          <div class="p-4 text-right">
+            <p class="text-sm text-blue-gray-600">
+              @if(isLoadingReport.nucleos){ Generando... }@else{ Núcleos }
+            </p>
+          </div>
+          <div class="border-t border-blue-gray-50 p-4">
+            <p class="text-base text-blue-gray-600">
+              <strong class="text-green-500">Generar</strong>&nbsp;reporte
+            </p>
+          </div>
+        </div>
+
+        <!-- 📄 Actas -->
+        <div
+          (click)="!isLoadingReport.actas && downloadActas()"
+          class="report-card"
+          [class.opacity-60]="isLoadingReport.actas"
+        >
+          <div class="report-icon-box bg-gradient-to-tr from-indigo-600 to-blue-400 shadow-blue-500/40">
+            <div *ngIf="isLoadingReport.actas; else iconActas" class="loading-icon">
+              <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+            </div>
+            <ng-template #iconActas>
+              <mat-icon class="report-icon">description</mat-icon>
+            </ng-template>
+          </div>
+          <div class="p-4 text-right">
+            <p class="text-sm text-blue-gray-600">
+              @if(isLoadingReport.actas){ Generando... }@else{ Actas }
+            </p>
+          </div>
+          <div class="border-t border-blue-gray-50 p-4">
+            <p class="text-base text-blue-gray-600">
+              <strong class="text-green-500">Generar</strong>&nbsp;reporte
+            </p>
+          </div>
+        </div>
+
+        <!-- 📦 Productos -->
+        <div
+          (click)="!isLoadingReport.productos && downloadProductos()"
+          class="report-card"
+          [class.opacity-60]="isLoadingReport.productos"
+        >
+          <div class="report-icon-box bg-gradient-to-tr from-green-600 to-green-400 shadow-green-500/40">
+            <div *ngIf="isLoadingReport.productos; else iconProd" class="loading-icon">
+              <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+            </div>
+            <ng-template #iconProd>
+              <mat-icon class="report-icon">inventory_2</mat-icon>
+            </ng-template>
+          </div>
+          <div class="p-4 text-right">
+            <p class="text-sm text-blue-gray-600">
+              @if(isLoadingReport.productos){ Generando... }@else{ Productos }
+            </p>
+          </div>
+          <div class="border-t border-blue-gray-50 p-4">
+            <p class="text-base text-blue-gray-600">
+              <strong class="text-green-500">Generar</strong>&nbsp;reporte
+            </p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</section>

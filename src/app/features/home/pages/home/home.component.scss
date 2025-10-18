@@ -1,0 +1,37 @@
+.report-card {
+  @apply cursor-pointer relative flex flex-col bg-clip-border rounded-xl bg-white text-gray-700 shadow-md hover:shadow-lg transition;
+}
+
+.report-icon-box {
+  @apply bg-clip-border mx-4 rounded-xl overflow-hidden text-white shadow-lg absolute -mt-4 grid h-16 w-16 place-items-center;
+}
+
+.report-icon {
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.shortcut {
+  @apply w-36 text-center m-3 flex justify-center items-center text-white font-bold shadow-md h-16 rounded-lg cursor-pointer px-2 transition;
+}
+
+.report-card {
+  @apply bg-white rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition cursor-pointer;
+}
+
+.report-icon-box {
+  @apply w-14 h-14 flex items-center justify-center rounded-xl text-white mx-auto -mt-6 shadow-md;
+}
+
+.report-icon {
+  @apply text-white text-3xl;
+}

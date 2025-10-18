@@ -2,17 +2,14 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { SearchService } from '../../../core/services/search.service';
 import { PageTitleService } from '../../../core/services/pageTitle.service';
 import { TokenService } from '../../../core/services/token.service';
-import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import {
-  CdkMenuItemRadio,
-  CdkMenuItemCheckbox,
-  CdkMenuGroup,
   CdkMenu,
   CdkMenuTrigger,
   CdkMenuItem,
   CdkMenuBar,
 } from '@angular/cdk/menu';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-header',
@@ -22,10 +19,7 @@ import {
     CdkMenuItem,
     CdkMenuTrigger,
     CdkMenu,
-    //RouterLink
-    // CdkMenuGroup,
-    // CdkMenuItemCheckbox,
-    // CdkMenuItemRadio,
+    MatIconModule
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
@@ -42,8 +36,16 @@ export class HeaderComponent implements OnInit {
 
   searchTerm = this.searchService.getSearchTerm();
 
+  roleNames: Record<string, string> = {
+    ADMIN: 'Administrador',
+    RESP: 'Responsable',
+    USER: 'Usuario',
+    BENEF: 'Beneficiario'
+  };
+
   ngOnInit(): void {
     this.loginState();
+    this.loadUserRole();
   }
 
   loginState(){
@@ -60,5 +62,10 @@ export class HeaderComponent implements OnInit {
   onSearch(event: Event) {
     const target = event.target as HTMLInputElement;
     this.searchService.updateSearchTerm(target.value);
+  }
+
+  private loadUserRole(): void {
+    const role = this.tokenService.getUserRole(); // ejemplo: "ADMIN" o "RESP"
+    this.userRole.set(role);
   }
 }

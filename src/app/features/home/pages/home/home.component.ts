@@ -18,6 +18,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTabsModule } from '@angular/material/tabs';
+import { DashboardComponent } from '../../../projects/pages/dashboard-general/dashboard.component';
+
+type ReportKeys =
+  | 'global'
+  | 'productProject'
+  | 'beneficiarios'
+  | 'categorias'
+  | 'responsables'
+  | 'nucleos'
+  | 'actas'
+  | 'productos';
 
 @Component({
   selector: 'app-home',
@@ -30,7 +42,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatDividerModule,
     MatIconModule,
     MatButtonModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatTabsModule,
+    DashboardComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
@@ -49,9 +63,20 @@ export class HomeComponent implements OnInit{
   isLoadingPDF = false;
   nucleoId = 1;     // ejemplo: luego puedes asignar dinámicamente
   proyectoId = 1;   // idem
+  // 🔹 Nuevo objeto para controlar el estado de cada botón
+  isLoadingReport: Record<ReportKeys, boolean> = {
+    global: false,
+    productProject: false,
+    beneficiarios: false,
+    categorias: false,
+    responsables: false,
+    nucleos: false,
+    actas: false,
+    productos: false
+  };
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Home');
+    this.pageTitleService.setCurrentPage('SISTEMA INTEGRAL DE PROYECTOS Y DONACIONES MUNICIPALES');
   }
 
   private getFormattedDate(): string {
@@ -60,6 +85,7 @@ export class HomeComponent implements OnInit{
   }
 
   downloadGlobalReport() {
+    this.isLoadingReport.global = true;
     this.actasService.getExcelActas().subscribe({
       next: (blob: Blob) => {
         // Crear URL del blob
@@ -77,8 +103,10 @@ export class HomeComponent implements OnInit{
         // Limpieza
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
+        this.isLoadingReport.global = false;
       },
       error: error => {
+        this.isLoadingReport.global = false;
         console.error('Error al descargar el Excel:', error);
         alert('Error al descargar el archivo Excel');
       }
@@ -86,6 +114,7 @@ export class HomeComponent implements OnInit{
   }
 
   downloadProductProjectReport() {
+    this.isLoadingReport.productProject = true;
     this.actasService.getExcelProductosProyecto().subscribe({
       next: (blob: Blob) => {
         // Crear URL del blob
@@ -103,8 +132,10 @@ export class HomeComponent implements OnInit{
         // Limpieza
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
+        this.isLoadingReport.productProject = false;  
       },
       error: error => {
+        this.isLoadingReport.productProject = false;
         console.error('Error al descargar el Excel:', error);
         alert('Error al descargar el archivo Excel');
       }
@@ -112,6 +143,7 @@ export class HomeComponent implements OnInit{
   }
 
   downloadBeneficiarios() {
+    this.isLoadingReport.beneficiarios = true;
     this.beneficiaryService.getAll().subscribe({
       next: (beneficiarios) => {
         // Preparar los datos para el Excel
@@ -142,8 +174,10 @@ export class HomeComponent implements OnInit{
 
         // Generar el archivo
         XLSX.writeFile(workbook, `Beneficiarios ${this.getFormattedDate()}.xlsx`);
+        this.isLoadingReport.beneficiarios = false;
       },
       error: (error) => {
+        this.isLoadingReport.beneficiarios = false;
         console.error('Error al obtener beneficiarios:', error);
         alert('Error al descargar la información de beneficiarios');
       }
@@ -151,6 +185,7 @@ export class HomeComponent implements OnInit{
   }
 
   downloadCategorias() {
+    this.isLoadingReport.categorias = true;
     this.categoriasService.getAll().subscribe({
       next: (categorias) => {
         // Preparar los datos para el Excel con encabezados en español
@@ -175,8 +210,10 @@ export class HomeComponent implements OnInit{
 
         // Generar el archivo
         XLSX.writeFile(workbook, `Categorias ${this.getFormattedDate()}.xlsx`);
+        this.isLoadingReport.categorias = false;
       },
       error: (error) => {
+        this.isLoadingReport.categorias = false;
         console.error('Error al obtener categorías:', error);
         alert('Error al descargar la información de categorías');
       }
@@ -184,6 +221,7 @@ export class HomeComponent implements OnInit{
   }
 
   downloadActas() {
+    this.isLoadingReport.actas = true;
     this.actasService.getAll().subscribe({
       next: (actas) => {
         // Preparar los datos para el Excel con formato más plano
@@ -250,8 +288,10 @@ export class HomeComponent implements OnInit{
 
         // Generar y descargar el archivo
         XLSX.writeFile(workbook, `Actas ${this.getFormattedDate()}.xlsx`);
+        this.isLoadingReport.actas = false;
       },
       error: (error) => {
+        this.isLoadingReport.actas = false;
         console.error('Error al obtener actas:', error);
         alert('Error al descargar la información de actas');
       }
@@ -259,6 +299,7 @@ export class HomeComponent implements OnInit{
   }
 
   downloadResponsables() {
+    this.isLoadingReport.responsables = true;
     this.responsibleService.getAll().subscribe({
       next: (responsables) => {
         // Preparar los datos para el Excel
@@ -301,8 +342,10 @@ export class HomeComponent implements OnInit{
 
         // Generar el archivo
         XLSX.writeFile(workbook, `Responsables ${this.getFormattedDate()}.xlsx`);
+        this.isLoadingReport.responsables = false;
       },
       error: (error) => {
+        this.isLoadingReport.responsables = false;
         console.error('Error al obtener responsables:', error);
         alert('Error al descargar la información de responsables');
       }
@@ -310,6 +353,7 @@ export class HomeComponent implements OnInit{
   }
 
   downloadProductos() {
+    this.isLoadingReport.productos = true;
     this.productosService.getAll().subscribe({
       next: (productos) => {
         // Preparar los datos para el Excel
@@ -338,8 +382,10 @@ export class HomeComponent implements OnInit{
 
         // Generar el archivo
         XLSX.writeFile(workbook, `Productos ${this.getFormattedDate()}.xlsx`);
+        this.isLoadingReport.productos = false;
       },
       error: (error) => {
+        this.isLoadingReport.productos = false;
         console.error('Error al obtener productos:', error);
         alert('Error al descargar la información de productos');
       }
@@ -347,6 +393,7 @@ export class HomeComponent implements OnInit{
   }
 
   downloadNucleos() {
+    this.isLoadingReport.nucleos = true;
     this.nucleoService.getSimpleAll().subscribe({
       next: (nucleos) => {
         // Preparar los datos
@@ -391,8 +438,10 @@ export class HomeComponent implements OnInit{
 
         // Generar el archivo
         XLSX.writeFile(workbook, `NucleosFamiliares ${this.getFormattedDate()}.xlsx`);
+        this.isLoadingReport.nucleos = false;
       },
       error: (error) => {
+        this.isLoadingReport.nucleos = false;
         console.error('Error al obtener núcleos familiares:', error);
         alert('Error al descargar la información de núcleos familiares');
       }

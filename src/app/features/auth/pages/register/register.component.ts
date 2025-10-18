@@ -21,6 +21,7 @@ export class RegisterComponent {
   private responsibleService = inject(ResponsibleService);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
+  public isLoading = false; 
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Registro de usuario');
@@ -56,14 +57,21 @@ export class RegisterComponent {
 
   onSubmit() {
     if(this.formFamilyCore.valid){
+      this.isLoading = true; 
       delete this.formFamilyCore.value.confirmPassword;
       this.responsibleService.post(this.formFamilyCore.value).subscribe({
         next: response => {
+          this.isLoading = false; 
           alert('Tu perfil se ha creado correctamente, debes contactar un administrador para activar tu cuenta');
           this.router.navigate(['auth']);
+        },
+        error: () => {
+          this.isLoading = false;
+          alert('Error al registrar tu cuenta. Intenta nuevamente o contacta al administrador.');
         }
       })
 	  }else{
+      this.isLoading = false; 
       alert('Verifica los campos del formulario de registro');
 		  this.formFamilyCore.markAllAsTouched();
 	  }

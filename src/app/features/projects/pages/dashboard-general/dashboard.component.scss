@@ -1,0 +1,93 @@
+/* ===== KPIs y chips ===== */
+.kpi { display:flex; align-items:center; gap:.75rem; padding:.75rem; border:1px solid #e5e7eb; border-radius:.5rem; background:#fff; }
+.kpi .label { font-size:.75rem; color:#6b7280; }
+.kpi .value { font-size:1.25rem; font-weight:600; color:#111827; }
+.chip { display:inline-block; padding:1px 8px; border-radius:9999px; font-size:.7rem; border:1px solid; }
+.chip-a { background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+.chip-i { background:#f3f4f6; color:#374151; border-color:#e5e7eb; }
+
+/* ===== Tabla base ===== */
+.table { width:100%; font-size:.9rem; border-collapse:separate; border-spacing:0; }
+.th { background:#f8fafc; color:#374151; text-transform:uppercase; font-size:.7rem; padding:.5rem .75rem; border-bottom:1px solid #e5e7eb; position:sticky; top:0; z-index:1; }
+.td { padding:.5rem .75rem; border-bottom:1px solid #eef2f7; vertical-align:top; color:#111827; }
+
+/* ===== Acordeón como cards ===== */
+.proj-accordion { display:grid; gap:12px; }
+.proj-card { border:1px solid #e5e7eb; border-radius:12px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.04); overflow:hidden; }
+::ng-deep .mat-expansion-panel-header { min-height:56px; padding:0 12px; }
+::ng-deep .mat-expansion-panel-body { padding:12px 12px 16px !important; }
+
+.section-title { font-size:.8rem; font-weight:600; color:#4b5563; margin:8px 0; }
+
+/* ===== Tarjetas de categorías ===== */
+.cats-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+  gap:12px;
+}
+.cat-card { border:1px solid #e5e7eb; border-radius:10px; background:#fff; padding:10px 12px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+.cat-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.cat-header .left { display:flex; flex-direction:column; gap:2px; }
+.cat-name { font-weight:600; color:#111827; }
+.cat-sub { font-size:.70rem; color:#9ca3af; }
+.badge { display:inline-block; font-size:.72rem; padding:2px 8px; border-radius:9999px; background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; }
+
+/* ===== Listado de productos (chips) ===== */
+.pill { display:flex; align-items:center; justify-content:space-between; padding:6px 10px; border:1px solid #e5e7eb; border-radius:8px; font-size:.85rem; color:#374151; background:#f9fafb; }
+.pill-meta { font-size:.75rem; color:#6b7280; }
+
+/* Un solo .btn-more (con el estilo que prefieras) */
+.btn-more {
+  margin-top:8px;
+  font-size:.75rem;
+  padding:2px 10px;
+  border:1px solid #e5e7eb;
+  border-radius:9999px;
+  background:#f9fafb;
+  color:#374151;
+}
+
+/* (Opcional) grid de chips reutilizable */
+.chips-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:6px; }
+
+/* ===== Search input pro/compact para mat-form-field ===== */
+/* Si ya usas este, puedes eliminar .searchbox, .searchbox__* */
+:host ::ng-deep .search-field {
+  --search-h: 40px;
+
+  .mat-mdc-form-field-subscript-wrapper { display:none; } /* quita espacio inferior */
+  .mat-mdc-form-field-infix { padding:6px 0 !important; min-height:var(--search-h); }
+
+  .mdc-text-field {
+    background:#fff;
+    height:var(--search-h);
+    border-radius:12px !important;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,.02);
+    transition: box-shadow .15s ease, border-color .15s ease;
+  }
+
+  /* bordes suaves */
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__trailing { border-color:#e5e7eb !important; }
+
+  /* oculta notch (gap del label) por completo */
+  .mdc-notched-outline__notch { width:0 !important; border:none !important; }
+
+  /* foco */
+  .mdc-text-field--focused .mdc-notched-outline__leading,
+  .mdc-text-field--focused .mdc-notched-outline__trailing {
+    border-color:#6366f1 !important;
+    box-shadow:0 0 0 3px rgba(99,102,241,.12);
+  }
+
+  /* prefix sin divisor */
+  .mat-mdc-form-field-text-prefix { border-right:0 !important; margin-right:6px; }
+
+  /* iconos compactos */
+  .mat-mdc-icon-button.mat-mdc-button-base { width:32px; height:32px; }
+  .mat-mdc-form-field-icon-prefix .mat-icon,
+  .mat-mdc-form-field-icon-suffix .mat-icon { font-size:18px; width:18px; height:18px; color:#6b7280; }
+
+  .mdc-text-field__input { font-size:14px; color:#111827; }
+  input::placeholder { color:#9ca3af; }
+}

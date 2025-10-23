@@ -1,10 +1,15 @@
-<div class="min-h-screen bg-gray-50/50 overflow-hidden">
+<!-- 🌐 Contenedor general -->
+<div class="min-h-screen bg-gray-50/50 flex flex-col xl:flex-row overflow-x-hidden overflow-y-auto scrollbar-custom">
+
+  <!-- 🔹 Sidebar fijo -->
   <app-sidebar></app-sidebar>
 
-  <div class="flex flex-col p-4 xl:ml-80 x-full w-xl-[calc(100vw-18rem)] h-screen h-max-[100vh] overflow-hiden relative">
+  <!-- 🔹 Contenido principal -->
+  <div class="flex flex-col flex-1 xl:ml-80 w-full min-h-screen overflow-y-auto overflow-x-hidden scrollbar-custom">
     <app-header></app-header>
 
-    <div class="h-section overflow-hidden pb-4 border">
+    <!-- 🔹 Sección principal -->
+    <div class="flex-1 px-4 pb-6">
       <router-outlet />
     </div>
   </div>

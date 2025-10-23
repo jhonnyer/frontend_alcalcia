@@ -63,5 +63,49 @@
   -moz-appearance: textfield; /* Firefox */
 }
 
-html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* ===================================================== */
+/* 🚀 Scroll global + corrección Angular Material Layout */
+/* ===================================================== */
+
+/* Scroll vertical siempre disponible */
+html, body {
+  height: auto !important;
+  min-height: 100%;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scroll-behavior: smooth;
+}
+
+/* 🔧 Corrige el mat-drawer-content (contenedor principal del layout) */
+::ng-deep .mat-drawer-content {
+  min-height: 100vh !important;
+  overflow-y: auto !important; /* 👈 habilita scroll vertical aquí */
+  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 🔧 Libera restricciones de los tabs */
+::ng-deep .mat-tab-group,
+::ng-deep .mat-tab-body-wrapper,
+::ng-deep .mat-tab-body,
+::ng-deep .mat-tab-body-content {
+  height: auto !important;
+  overflow: visible !important;
+  display: block !important;
+}
+
+/* ✅ Scrollbars personalizados */
+.scrollbar-custom::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background-color: #bcbcbc;
+  border-radius: 8px;
+}
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background-color: #888;
+}

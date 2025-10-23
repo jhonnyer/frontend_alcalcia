@@ -1,12 +1,47 @@
 <!-- 🌐 Contenedor general -->
-<div class="min-h-screen bg-gray-50/50 flex flex-col xl:flex-row overflow-x-hidden overflow-y-auto scrollbar-custom">
+<div class="min-h-screen bg-gray-50/50 flex overflow-hidden">
 
-  <!-- 🔹 Sidebar fijo -->
-  <app-sidebar></app-sidebar>
+  <!-- 🔹 Sidebar -->
+  <app-sidebar
+    [open]="isSidebarOpen"
+    [collapsed]="isSidebarCollapsed"
+    (closed)="closeSidebar()">
+  </app-sidebar>
+
+  <!-- 🔹 Overlay oscuro (solo móvil) -->
+  <div
+    *ngIf="isSidebarOpen"
+    class="fixed inset-0 bg-black/40 z-[50] xl:hidden transition-opacity duration-200"
+    (click)="closeSidebar()">
+  </div>
 
   <!-- 🔹 Contenido principal -->
   <div class="flex flex-col flex-1 xl:ml-80 w-full min-h-screen overflow-y-auto overflow-x-hidden scrollbar-custom">
-    <app-header></app-header>
+
+    <!-- 🔹 Header con botones -->
+    <div class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
+      <div class="flex items-center gap-2 px-4 py-3">
+
+        <!-- Botón abrir sidebar en móvil -->
+        <button
+          class="xl:hidden p-2 rounded-lg hover:bg-gray-100"
+          (click)="openSidebar()"
+          aria-label="Abrir menú">
+          <mat-icon>menu</mat-icon>
+        </button>
+
+        <!-- Botón colapsar/expandir en desktop -->
+        <button
+          class="hidden xl:inline-flex p-2 rounded-lg hover:bg-gray-100"
+          (click)="toggleCollapse()"
+          aria-label="Colapsar menú">
+          <mat-icon>{{ isSidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+        </button>
+
+        <!-- Título o header existente -->
+        <app-header class="flex-1"></app-header>
+      </div>
+    </div>
 
     <!-- 🔹 Sección principal -->
     <div class="flex-1 px-4 pb-6">

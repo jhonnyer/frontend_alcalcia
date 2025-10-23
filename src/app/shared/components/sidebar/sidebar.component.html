@@ -1,26 +1,39 @@
 <aside
-  class="scrollbar-custom bg-gradient-to-br from-gray-800 to-gray-900 
-         fixed inset-0 z-50 my-4 ml-4 h-[calc(100vh-32px)] w-72 
-         rounded-xl transition-transform duration-300 
-         xl:translate-x-0 overflow-y-auto shadow-lg"
+  class="scrollbar-custom bg-gradient-to-br from-gray-800 to-gray-900
+         fixed z-[60] my-4 ml-4 h-[calc(100vh-32px)]
+         rounded-xl shadow-lg transition-all duration-300 ease-in-out
+         overflow-y-auto select-none"
+  [ngClass]="{
+    'w-72 xl:translate-x-0 left-0 right-auto': !collapsed,
+    'w-20 xl:translate-x-0 left-0 right-auto':  collapsed,
+    '-translate-x-[110%] xl:translate-x-0': !open,
+    'translate-x-0': open
+  }"
 >
   <!-- Header -->
-  <div class="relative border-b border-white/20 flex justify-between items-center px-6 py-4">
-    <h6 class="text-white font-semibold text-sm tracking-wide">
+  <div
+    class="sticky top-0 z-10 border-b border-white/20 
+          flex items-center justify-between 
+          px-4 py-3 bg-gradient-to-br from-gray-800 to-gray-900"
+  >
+    <h6 class="text-white font-semibold text-sm tracking-wide truncate">
       Alcaldía de Almaguer
     </h6>
 
-    <!-- Botón cerrar en móvil -->
+    <!-- Cerrar en móvil -->
     <button
-      class="xl:hidden p-2 text-white hover:bg-white/10 rounded-lg"
+      class="xl:hidden p-2 text-white/90 hover:bg-white/10 rounded-lg"
       type="button"
+      (click)="close()"
+      aria-label="Cerrar menú"
     >
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <!-- Menú lateral -->
-  <div class="m-4 space-y-1">
+
+  <!-- Menú -->
+  <div class="m-3 space-y-1">
     <app-list-home />
     <app-list-projects />
     <app-list-nucleo />

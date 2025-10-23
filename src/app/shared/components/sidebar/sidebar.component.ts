@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ListInventoryComponent } from './components/list-inventory/list-inventory.component';
 import { ListBeneficiaryComponent } from './components/list-beneficiary/list-beneficiary.component';
 import { ListHomeComponent } from './components/list-home/list-home.component';
@@ -6,11 +6,11 @@ import { ListNucleoComponent } from './components/list-nucleo/list-nucleo.compon
 import { ListProceedingsComponent } from './components/list-proceedings/list-proceedings.component';
 import { ListResponsibleComponent } from './components/list-responsible/list-responsible.component';
 import { ListCategoriasComponent } from './components/list-categorias/list-categorias.component';
-// import { ListUsersComponent } from './components/list-users/list-users.component';
 import { ListProjectsComponent } from "./components/list-projects/list-projects.component";
 
 import { HasRoleDirective } from '../../../core/directives/has-role/has-role-directive.directive';
 import { MatIconModule } from '@angular/material/icon';
+import { NgClass, NgIf} from '@angular/common'
 
 @Component({
   selector: 'app-sidebar',
@@ -20,21 +20,29 @@ import { MatIconModule } from '@angular/material/icon';
     ListNucleoComponent,
     ListInventoryComponent,
     ListBeneficiaryComponent,
-    // ListAuthComponent,
     ListProceedingsComponent,
     ListResponsibleComponent,
     ListProjectsComponent,
     ListCategoriasComponent,
     HasRoleDirective, 
-    MatIconModule
+    MatIconModule,
+    NgClass,
+    NgIf
 ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
+  /** Abierto/cerrado en móviles */
+  @Input() open = false;
+  /** Colapsado/expandido en desktop (xl+) */
   @Input() collapsed = false;
-  isCollapsed = false;
-  toggleSidebar() {
-    this.isCollapsed = !this.isCollapsed;
+
+  /** Emite cuando se cierra en móvil (para que el padre actualice el estado) */
+  @Output() closed = new EventEmitter<void>();
+
+  close() {
+    this.open = false;
+    this.closed.emit();
   }
 }

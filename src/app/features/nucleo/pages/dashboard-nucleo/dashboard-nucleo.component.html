@@ -70,9 +70,21 @@
     </mat-card>
   </div>
 
+  <!-- 🔍 Controles de zoom -->
+    <div class="flex justify-end items-center gap-2 mb-3 text-gray-600 select-none">
+        <button mat-icon-button (click)="decreaseZoom()" [disabled]="zoomLevel() <= MIN_ZOOM">
+        <mat-icon>zoom_out</mat-icon>
+        </button>
+        <span class="text-sm w-10 text-center">{{ (zoomLevel() * 100) | number:'1.0-0' }}%</span>
+        <button mat-icon-button (click)="increaseZoom()" [disabled]="zoomLevel() >= MAX_ZOOM">
+        <mat-icon>zoom_in</mat-icon>
+        </button>
+        <button mat-icon-button (click)="resetZoom()" matTooltip="Restablecer">
+        <mat-icon>refresh</mat-icon>
+        </button>
+    </div> 
   <!-- === BLOQUE DE GRÁFICAS === -->
-  <div class="charts-container grid grid-cols-1 md:grid-cols-2 gap-6">
-
+  <div class="charts-container grid grid-cols-1 md:grid-cols-2 gap-6" [style.transform]="'scale(' + zoomLevel() + ')'">
     <!-- === Gráfica de Actas === -->
     <mat-card class="p-4 flex flex-col justify-center items-center text-center">
       <h3 class="text-lg font-semibold mb-3 text-gray-700">Actas por estado</h3>

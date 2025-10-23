@@ -404,4 +404,21 @@ export class ReportDashboardComponent implements OnInit {
   cerrar() {
     this.router.navigate(['/projects']);
   }
+
+  zoomLevel = signal(1); // 1 = 100%
+  readonly MIN_ZOOM = 0.7;
+  readonly MAX_ZOOM = 1.5;
+  readonly STEP_ZOOM = 0.05;
+
+  increaseZoom() {
+    this.zoomLevel.update(z => Math.min(this.MAX_ZOOM, parseFloat((z + this.STEP_ZOOM).toFixed(2))));
+  }
+
+  decreaseZoom() {
+    this.zoomLevel.update(z => Math.max(this.MIN_ZOOM, parseFloat((z - this.STEP_ZOOM).toFixed(2))));
+  }
+
+  resetZoom() {
+    this.zoomLevel.set(1);
+  }
 }

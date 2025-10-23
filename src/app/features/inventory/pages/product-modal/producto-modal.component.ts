@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 import { ProductosService } from '../../../../core/services/productos.service';
-import { IProductoFk } from '../../../../core/models/products.model';   // ajusta rutas
+import { IProductoFk } from '../../../../core/models/products.model';  
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 

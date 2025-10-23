@@ -8,7 +8,9 @@
     <!-- 🔹 Título -->
     <div class="flex items-center min-w-0 flex-1">
       <h6
-        class="font-sans text-base md:text-lg font-semibold tracking-tight leading-relaxed text-gray-800 truncate"
+        class="font-sans text-base md:text-lg font-semibold tracking-tight leading-relaxed text-gray-800 truncate cursor-pointer hover:text-blue-700 transition"
+        (click)="goHome()"
+        title="Ir a la página principal"
       >
         {{ pageTitleService.currentPage() }}
       </h6>

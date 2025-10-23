@@ -68,4 +68,8 @@ export class HeaderComponent implements OnInit {
     const role = this.tokenService.getUserRole(); // ejemplo: "ADMIN" o "RESP"
     this.userRole.set(role);
   }
+
+  goHome(): void {
+    this.route.navigate(['/home']);
+  }
 }

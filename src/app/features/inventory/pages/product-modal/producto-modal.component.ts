@@ -6,12 +6,14 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dial
 import { ProductosService } from '../../../../core/services/productos.service';
 import { IProductoFk } from '../../../../core/models/products.model';   // ajusta rutas
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-producto-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatProgressSpinnerModule],
   templateUrl: './producto-modal.component.html',
+  styleUrl:'./producto-modal.component.scss'
 })
 export class ProductoModalComponent implements OnInit {
   form!: FormGroup;
@@ -22,6 +24,7 @@ export class ProductoModalComponent implements OnInit {
   idProyecto!: number;
   idCategoria!: number;
   producto?: IProductoFk; // cuando editas
+  isLoading = false;
 
   private fb = inject(FormBuilder);
   private productosService = inject(ProductosService);
@@ -86,6 +89,7 @@ export class ProductoModalComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((confirmado) => {
       if (!confirmado) return; // el usuario canceló
+      this.isLoading = true; 
 
       const { nombreProducto, stock, descripcion, fechaIngreso } = this.form.value;
 
@@ -106,10 +110,12 @@ export class ProductoModalComponent implements OnInit {
 
         this.productosService.post(payload).subscribe({
           next: () => {
+            this.isLoading = false;
             alert('✅ Producto creado correctamente.');
             this.dialogRef.close(true);
           },
           error: (err) => {
+            this.isLoading = false;
             console.error('❌ Error al crear producto:', err);
             alert('⚠️ Error al crear el producto.');
           },
@@ -118,6 +124,7 @@ export class ProductoModalComponent implements OnInit {
         // ===== EDITAR =====
         if (!this.producto?.idProductoFk) {
           alert('❌ No se encontró el ID del producto a editar.');
+          this.isLoading = false;
           return;
         }
 
@@ -130,6 +137,7 @@ export class ProductoModalComponent implements OnInit {
 
         this.productosService.updateById(String(this.producto.idProductoFk), updateData).subscribe({
           next: () => {
+            this.isLoading = false;
             const mensaje =
               Number(stock) > 0
                 ? `✅ Se aumentó el stock en ${stock} unidades.`
@@ -139,6 +147,7 @@ export class ProductoModalComponent implements OnInit {
             this.dialogRef.close(true);
           },
           error: (err) => {
+            this.isLoading = false;
             console.error('❌ Error al actualizar producto:', err);
             alert('⚠️ Error al actualizar el producto.');
           },

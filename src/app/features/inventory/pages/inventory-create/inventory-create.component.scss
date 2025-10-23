@@ -1,0 +1,18 @@
+/* Permitir scroll horizontal en móviles y pantallas pequeñas */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Evita que los botones o tablas se salgan del contenedor */
+table {
+  border-spacing: 0;
+}
+
+.btn-action-green {
+  @apply bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-sm font-medium transition;
+}
+
+/* Evita que el botón se corte o se salga */
+.whitespace-nowrap {
+  white-space: nowrap;
+}

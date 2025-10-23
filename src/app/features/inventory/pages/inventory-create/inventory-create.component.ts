@@ -16,6 +16,7 @@ import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accio
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './inventory-create.component.html',
+  styleUrl: './inventory-create.component.scss'
 })
 export class InventoryCreateComponent implements OnInit {
   public formFamilyCore: FormGroup = new FormGroup({});

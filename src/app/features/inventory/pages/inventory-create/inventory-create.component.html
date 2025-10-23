@@ -26,37 +26,39 @@
 
     <!-- 🔹 Tabla de productos -->
     <div formArrayName="productos">
-      <table class="w-full border-collapse border border-gray-300 text-sm rounded-md overflow-hidden">
-        <thead class="bg-gray-100">
-          <tr class="text-gray-700 text-left">
-            <th class="border p-2">Nombre</th>
-            <th class="border p-2 text-center">Stock</th>
-            <th class="border p-2">Descripción</th>
-            <th class="border p-2 text-center">Fecha Ingreso</th>
-            <th class="border p-2 text-center">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let producto of productosArray.controls; index as i" [formGroupName]="i">
-            <td class="border p-2">
-              <input type="text" formControlName="nombreProducto" class="input-base" placeholder="Ej: Jabon">
-            </td>
-            <td class="border p-2 text-center">
-              <input type="number" formControlName="stock" class="w-20 border rounded p-1 text-center" min="0">
-            </td>
-            <td class="border p-2">
-              <input type="text" formControlName="descripcion" class="input-base" placeholder="Descripción...">
-            </td>
-            <td class="border p-2 text-center">
-              <input type="date" formControlName="fechaIngreso" class="border rounded p-1">
-            </td>
-            <td class="border p-2 text-center">
-              <button type="button" class="text-red-600 hover:text-red-800 font-semibold"
-                      (click)="deleteProducto(i)">Eliminar</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="overflow-x-auto w-full">
+        <table class="min-w-[700px] w-full border-collapse border border-gray-300 text-sm rounded-md overflow-hidden">
+          <thead class="bg-gray-100">
+            <tr class="text-gray-700 text-left">
+              <th class="border p-2">Nombre</th>
+              <th class="border p-2 text-center">Stock</th>
+              <th class="border p-2">Descripción</th>
+              <th class="border p-2 text-center">Fecha Ingreso</th>
+              <th class="border p-2 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let producto of productosArray.controls; index as i" [formGroupName]="i">
+              <td class="border p-2">
+                <input type="text" formControlName="nombreProducto" class="input-base" placeholder="Ej: Jabon">
+              </td>
+              <td class="border p-2 text-center">
+                <input type="number" formControlName="stock" class="w-20 border rounded p-1 text-center" min="0">
+              </td>
+              <td class="border p-2">
+                <input type="text" formControlName="descripcion" class="input-base" placeholder="Descripción...">
+              </td>
+              <td class="border p-2 text-center">
+                <input type="date" formControlName="fechaIngreso" class="border rounded p-1">
+              </td>
+              <td class="border p-2 text-center">
+                <button type="button" class="text-red-600 hover:text-red-800 font-semibold"
+                        (click)="deleteProducto(i)">Eliminar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <div class="flex justify-end mt-3">
         <button type="button" class="btn-action-green" (click)="addProducto()">➕ Agregar producto</button>

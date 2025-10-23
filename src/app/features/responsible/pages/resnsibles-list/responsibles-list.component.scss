@@ -7,3 +7,15 @@ tbody tr:nth-child(odd) {
 tbody tr:nth-child(even) {
   @apply bg-gray-50;
 }
+
+@media (max-width: 640px) {
+  button {
+    font-size: 0.85rem !important;
+    padding: 0.5rem 0.8rem !important;
+  }
+
+  h1 {
+    font-size: 1.25rem !important;
+    text-align: center;
+  }
+}

@@ -4,25 +4,36 @@
   <!-- 🔹 Sidebar -->
   <app-sidebar
     [open]="isSidebarOpen"
-    [collapsed]="isSidebarCollapsed"
-    (closed)="closeSidebar()">
+    [collapsed]="false"
+    (closed)="closeSidebar()"
+    class="transition-all duration-300 ease-in-out"
+    [ngClass]="{
+      'fixed xl:static z-[60] xl:z-auto my-4 ml-4 xl:my-0 xl:ml-0': true,
+      'translate-x-0': isSidebarOpen,
+      '-translate-x-full xl:translate-x-0 xl:hidden': !isSidebarOpen
+    }">
   </app-sidebar>
 
   <!-- 🔹 Overlay oscuro (solo móvil) -->
   <div
-    *ngIf="isSidebarOpen"
-    class="fixed inset-0 bg-black/40 z-[50] xl:hidden transition-opacity duration-200"
+    *ngIf="isSidebarOpen && isMobileView"
+    class="fixed inset-0 bg-black/40 z-[50] transition-opacity duration-200"
     (click)="closeSidebar()">
   </div>
 
   <!-- 🔹 Contenido principal -->
-  <div class="flex flex-col flex-1 xl:ml-80 w-full min-h-screen overflow-y-auto overflow-x-hidden scrollbar-custom">
-
-    <!-- 🔹 Header con botones -->
+  <div
+    class="flex flex-col flex-1 w-full min-h-screen overflow-y-auto overflow-x-hidden scrollbar-custom transition-all duration-300 ease-in-out"
+    [ngClass]="{
+      'xl:ml-80': !isSidebarCollapsed, 
+      'xl:ml-0': isSidebarCollapsed
+    }"
+  >
+    <!-- 🔹 Header -->
     <div class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
       <div class="flex items-center gap-2 px-4 py-3">
 
-        <!-- Botón abrir sidebar en móvil -->
+        <!-- Botón abrir sidebar (móvil) -->
         <button
           class="xl:hidden p-2 rounded-lg hover:bg-gray-100"
           (click)="openSidebar()"
@@ -30,15 +41,15 @@
           <mat-icon>menu</mat-icon>
         </button>
 
-        <!-- Botón colapsar/expandir en desktop -->
+        <!-- Botón colapsar/expandir (desktop) -->
         <button
           class="hidden xl:inline-flex p-2 rounded-lg hover:bg-gray-100"
           (click)="toggleCollapse()"
           aria-label="Colapsar menú">
-          <mat-icon>{{ isSidebarCollapsed ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+          <mat-icon>{{ isSidebarCollapsed ? 'menu_open' : 'chevron_left' }}</mat-icon>
         </button>
 
-        <!-- Título o header existente -->
+        <!-- Header -->
         <app-header class="flex-1"></app-header>
       </div>
     </div>

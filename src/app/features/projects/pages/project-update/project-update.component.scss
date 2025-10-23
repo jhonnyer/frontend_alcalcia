@@ -28,3 +28,10 @@
   transform: none !important;
   font-size: 0.85rem !important;
 }
+
+@media (max-width: 640px) {
+  .btn-responsive {
+    font-size: 0.85rem !important;
+    padding: 0.4rem 0.8rem !important;
+  }
+}

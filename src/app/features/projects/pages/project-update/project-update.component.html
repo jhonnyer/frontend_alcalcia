@@ -7,19 +7,23 @@
     <div class="bg-white p-8 rounded-2xl shadow-md border border-gray-200 transition-all hover:shadow-lg">
 
       <!-- 🔹 Encabezado -->
-      <div class="flex justify-between items-center mb-6 border-b pb-4">
-        <div>
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 border-b pb-4 gap-4">
+        <div class="flex-1">
           <h2 class="text-2xl font-bold text-gray-800">
             {{ modo === 'crear' ? 'Registrar Proyecto' : 'Actualizar Proyecto' }}
           </h2>
-           {{ modo === 'crear' ? 'Completa los datos para crear un nuevo proyecto' : 'Actualiza los datos del proyecto seleccionado' }}
+          <p class="text-sm text-gray-600">
+            {{ modo === 'crear' ? 'Completa los datos para crear un nuevo proyecto' : 'Actualiza los datos del proyecto seleccionado' }}
+          </p>
         </div>
-        <div class="flex gap-3">
+
+        <!-- 🔹 Botonera responsive -->
+        <div class="flex flex-wrap justify-start sm:justify-end gap-3 w-full sm:w-auto">
           <button
             type="button"
             mat-flat-button
             color="primary"
-            class="flex items-center gap-2 px-5 py-2.5 rounded-lg shadow-md transition-all duration-200 transform text-white"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg shadow-md transition-all duration-200 transform text-white"
             [ngClass]="formFamilyCore.invalid 
               ? 'bg-blue-400 hover:bg-blue-400 opacity-70 cursor-not-allowed' 
               : '!bg-blue-600 hover:!bg-blue-700 hover:scale-[1.03]'"
@@ -27,19 +31,20 @@
             (click)="confirmarActualizacion()"
           >
             <mat-icon class="text-white text-base">save</mat-icon>
-            <span class="font-medium">Guardar</span>
+            <span class="font-medium text-sm sm:text-base">Guardar</span>
           </button>
+
           <button
             *ngIf="modo === 'editar'"
             type="button"
             mat-stroked-button
             color="accent"
             [disabled]="loadingPdf"
-            class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 transform hover:scale-[1.03]"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 transform hover:scale-[1.03]"
             (click)="exportarPdf()"
           >
             <mat-icon class="text-blue-600">picture_as_pdf</mat-icon>
-            <span class="font-medium"> {{ loadingPdf ? 'Generando PDF' : 'Exportar PDF' }}</span>
+            <span class="font-medium text-sm sm:text-base">{{ loadingPdf ? 'Generando PDF' : 'Exportar PDF' }}</span>
           </button>
 
           <button
@@ -47,10 +52,10 @@
             mat-stroked-button
             color="warn"
             (click)="cancelar()"
-            class="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-all duration-200 transform hover:scale-[1.03]"
+            class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition-all duration-200 transform hover:scale-[1.03]"
           >
             <mat-icon class="text-gray-600">close</mat-icon>
-            <span class="font-medium">Cancelar</span>
+            <span class="font-medium text-sm sm:text-base">Cancelar</span>
           </button>
         </div>
       </div>

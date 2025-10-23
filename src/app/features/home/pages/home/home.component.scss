@@ -131,13 +131,16 @@ section {
   @apply relative w-full pb-4;
   overflow-x: auto; /* scroll horizontal si se necesita */
   overflow-y: auto; /* scroll vertical si se necesita */
+  overflow-x: auto; /* ✅ solo scroll horizontal */
+  overflow-y: visible; /* ❌ evita scroll vertical interno */
   scroll-behavior: smooth;
   min-height: 100px;
   min-width: 100%;
-  max-height: calc(100vh - 10rem); /* evita que se salga del viewport */
+  max-height: calc(100vh - 10rem);
   display: flex;
   justify-content: center;
 }
+
 
 /* 🔧 Scrollbar personalizado */
 .accesos-wrapper::-webkit-scrollbar {

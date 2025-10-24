@@ -35,7 +35,7 @@
                       class="flex gap-1 items-center bg-transparent text-left hover:text-blue-700 transition"
                       type="button"
                     >
-                      <div [innerHTML]="header"></div>
+                      <div [innerHTML]="sanitizeHtml(header)"></div>
                       @if (headerItem.column.id !== 'acciones') {
                         <mat-icon class="text-[16px]">unfold_more</mat-icon>
                       }
@@ -78,7 +78,7 @@
                       let cell
                     "
                   >
-                    <div [innerHTML]="cell"></div>
+                    <div [innerHTML]="sanitizeHtml(cell)"></div>
                   </ng-container>
                 }
               </td>

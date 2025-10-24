@@ -28,6 +28,7 @@ import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accio
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AlertService } from '../../../../core/services/alert.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-projects-list',
@@ -45,7 +46,10 @@ import { AlertService } from '../../../../core/services/alert.service';
   styles: ``
 })
 export class ProjectsListComponent {
-  constructor(private dialog: MatDialog) {}
+  constructor(
+    private dialog: MatDialog,
+    private sanitizer: DomSanitizer
+  ) {}
   private proyectosService = inject(ProyectosService);
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
@@ -220,5 +224,9 @@ export class ProjectsListComponent {
 
   goToDashboard(): void {
     this.router.navigate(['/projects/dashboard']);
+  }
+
+  sanitizeHtml(content: string): SafeHtml {
+   return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 }

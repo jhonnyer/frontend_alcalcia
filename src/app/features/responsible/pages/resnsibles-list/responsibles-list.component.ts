@@ -22,6 +22,7 @@ import { defaultColumns } from './responsibles-columns-definitions';
 import { IResponsable } from '../../../../core/models/responsable.model';
 import { MatIconModule } from '@angular/material/icon';
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-responsibles-list',
@@ -37,6 +38,9 @@ import { TableFilterComponent } from '../../../../shared/components/table-filter
   styleUrl: './responsibles-list.component.scss'
 })
 export class ResponsiblesListComponent {
+  constructor(
+    private sanitizer: DomSanitizer
+  ) {}
   private responsibleService = inject(ResponsibleService);
   injector = inject(Injector);
   private router = inject(Router);
@@ -146,6 +150,10 @@ export class ResponsiblesListComponent {
 
   nuevoResponsable(): void {
     this.router.navigate(['resposibles/update/nuevo']);
+  }
+
+  sanitizeHtml(content: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 
 }

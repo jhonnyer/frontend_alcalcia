@@ -31,7 +31,7 @@
                       class="flex items-center gap-1 font-semibold text-gray-700 hover:text-blue-600 transition-colors"
                       type="button"
                     >
-                      <span [innerHTML]="header"></span>
+                      <span [innerHTML]="sanitizeHtml(header)"></span>
                       @if(headerItem.column.id !== 'acciones'){
                         <mat-icon class="text-gray-400 text-base">unfold_more</mat-icon>
                       }
@@ -83,7 +83,7 @@
                   <ng-container
                     *flexRender="cell.column.columnDef.cell; props: cell.getContext(); let cell"
                   >
-                    <span class="text-gray-800" [innerHTML]="cell"></span>
+                    <span class="text-gray-800" [innerHTML]="sanitizeHtml(cell)"></span>
                   </ng-container>
                 }
               </td>

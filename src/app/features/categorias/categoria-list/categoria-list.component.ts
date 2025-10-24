@@ -26,6 +26,7 @@ import { ConfirmDialogComponent } from '../../nucleo/components/confirm-accion-d
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { AlertService } from '../../../core/services/alert.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-categoria-list',
@@ -42,7 +43,10 @@ import { AlertService } from '../../../core/services/alert.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoriaListComponent implements OnInit {
-  constructor(private dialog: MatDialog) {}
+  constructor(
+    private dialog: MatDialog,
+    private sanitizer: DomSanitizer
+  ) {}
   private categoriasService = inject(CategoriasService);
   private pageTitleService = inject(PageTitleService);
   private alert = inject(AlertService);
@@ -203,6 +207,10 @@ export class CategoriaListComponent implements OnInit {
         setTimeout(() => this.getAll(), 200); // Recarga con un leve retraso visual
       }
     });
+  }
+
+  sanitizeHtml(content: string): SafeHtml {
+      return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 
 }

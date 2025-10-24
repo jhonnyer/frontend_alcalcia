@@ -28,6 +28,7 @@ import { ConfirmDeleteDialogComponent } from '../../../nucleo/components/confirm
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { BeneficiaryUpdateComponent } from '../beneficiary-update/beneficiary-update.component';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-beneficiary-list',
@@ -37,10 +38,12 @@ import { BeneficiaryUpdateComponent } from '../beneficiary-update/beneficiary-up
   styles: ``,
 })
 export class BeneficiaryListComponent implements OnInit {
-  constructor(private dialog: MatDialog, private snackBar: MatSnackBar ) {}
+  constructor(
+    private dialog: MatDialog, 
+    private snackBar: MatSnackBar, 
+    private sanitizer: DomSanitizer ) {}
   private beneficiaryService = inject(BeneficiaryService);
   injector = inject(Injector);
-  private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
   data = signal<IBeneficiario[]>([]);
 
@@ -176,6 +179,10 @@ export class BeneficiaryListComponent implements OnInit {
         }
       });
     });
+  }
+
+  sanitizeHtml(content: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 
 }

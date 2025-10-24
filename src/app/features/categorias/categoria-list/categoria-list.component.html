@@ -29,7 +29,7 @@
                         class="flex gap-1 items-center justify-between bg-transparent py-1 pr-2 text-left w-full"
                         type="button"
                       >
-                        <div [innerHTML]="header"></div>
+                        <div [innerHTML]="sanitizeHtml(header)"></div>
                         @if(headerItem.column.id !== 'acciones') {
                           <span class="material-icons text-gray-500 text-sm">
                             unfold_less
@@ -96,7 +96,7 @@
                         let cell
                       "
                     >
-                      <div [innerHTML]="cell"></div>
+                      <div [innerHTML]="sanitizeHtml(cell)"></div>
                     </ng-container>
                   }
                 </td>

@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
-import { Column, ColumnFiltersState, FlexRenderDirective, PaginationState, Row, RowSelectionState, SortingState, VisibilityState, createAngularTable, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel } from '@tanstack/angular-table';
+import { Column, ColumnFiltersState, FlexRenderDirective, PaginationState, Row, RowSelectionState, SortingState, createAngularTable, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel } from '@tanstack/angular-table';
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './nucleo-columns-definitions';
 import { INucleoUpdate } from '../../../../core/models/nucleo.model';
@@ -17,6 +17,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActasService } from '../../../../core/services/actas.service';
 import { firstValueFrom } from 'rxjs';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-nucleos',
@@ -27,7 +28,11 @@ import { BeneficiaryService } from '../../../../core/services/beneficiary.servic
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NucleosComponent implements OnInit{
-  constructor(private dialog: MatDialog, private snackBar: MatSnackBar ) {}
+  constructor(
+    private dialog: MatDialog, 
+    private snackBar: MatSnackBar ,
+    private sanitizer: DomSanitizer
+  ) {}
   Math = Math;
   private nucleoService = inject(NucleoService);
   injector = inject(Injector);
@@ -214,4 +219,7 @@ export class NucleosComponent implements OnInit{
     );
   }
 
+  sanitizeHtml(content: string): SafeHtml {
+   return this.sanitizer.bypassSecurityTrustHtml(content);
+  }
 }

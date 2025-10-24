@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { NgClass, NgFor } from '@angular/common';
 import { RouterLink, RouterLinkActive} from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-list-proceedings',
@@ -14,6 +15,9 @@ import { RouterLink, RouterLinkActive} from '@angular/router';
   templateUrl: './list-proceedings.component.html',
 })
 export class ListProceedingsComponent {
+  constructor(
+    private sanitizer: DomSanitizer
+  ) {}
   activeMenu: boolean = false;
   @Input() collapsed = false;
   menuItems = [
@@ -23,5 +27,8 @@ export class ListProceedingsComponent {
 
   toggleMenu() {
     if (!this.collapsed) this.activeMenu = !this.activeMenu;
+  }
+  sanitizeHtml(content: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 }

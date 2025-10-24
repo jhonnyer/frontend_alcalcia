@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { RouterLinkActive } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-list-inventory',
@@ -11,6 +12,10 @@ import { RouterLinkActive } from '@angular/router';
   styleUrl: './list-inventory.component.scss'
 })
 export class ListInventoryComponent {
+  constructor(
+    private sanitizer: DomSanitizer
+  ) {}
+
   activeMenu: boolean = false;
   @Input() collapsed = false;
   menuItems = [
@@ -20,5 +25,8 @@ export class ListInventoryComponent {
 
   toggleMenu() {
     if (!this.collapsed) this.activeMenu = !this.activeMenu;
+  }
+  sanitizeHtml(content: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 }

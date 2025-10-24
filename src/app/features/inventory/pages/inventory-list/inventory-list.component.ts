@@ -23,6 +23,7 @@ import { defaultColumns } from './inventory-columns-definitions';
 import { IProducto } from '../../../../core/models/products.model';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { MatIconModule } from '@angular/material/icon';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-inventory-list',
@@ -38,6 +39,10 @@ import { MatIconModule } from '@angular/material/icon';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InventoryListComponent implements OnInit {
+  constructor(
+    private sanitizer: DomSanitizer
+  ) {}
+
   private productosService = inject(ProductosService);
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
@@ -144,6 +149,10 @@ export class InventoryListComponent implements OnInit {
 
   update(item: Row<IProducto>) {
     this.router.navigate(["inventory/update/", item.original.idProducto]);
+  }
+
+  sanitizeHtml(content: string): SafeHtml {
+   return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 
 }

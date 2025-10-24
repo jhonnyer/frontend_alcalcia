@@ -22,6 +22,7 @@ import { TableFilterComponent } from '../../../../shared/components/table-filter
 import { defaultColumns } from './procedings-columns-definitions';
 import { IActa } from '../../../../core/models/acta.model';
 import { MatIconModule } from '@angular/material/icon';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-procedings-list',
@@ -37,6 +38,10 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './procedings-list.component.html'
 })
 export class ProcedingsListComponent implements OnInit {
+  constructor(
+    private sanitizer: DomSanitizer
+  ) {}
+
   private actasService = inject(ActasService);
   injector = inject(Injector);
   private router = inject(Router);
@@ -142,5 +147,9 @@ export class ProcedingsListComponent implements OnInit {
 
   update(item: Row<IActa>) {
     this.router.navigate(["proceedings/update/", item.original.idActa]);
+  }
+
+  sanitizeHtml(content: string): SafeHtml {
+   return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 }

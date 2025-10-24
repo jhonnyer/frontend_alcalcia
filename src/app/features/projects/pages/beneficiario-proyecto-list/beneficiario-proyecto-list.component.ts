@@ -9,6 +9,7 @@ import { TableFilterComponent } from '../../../../shared/components/table-filter
 import { defaultColumns } from './beneficiario-proyecto-columns-definitions';
 import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProyecto.model';
 import { MatIconModule } from '@angular/material/icon';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 
 @Component({
@@ -25,6 +26,10 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './beneficiario-proyecto-list.component.scss'
 })
 export class BeneficiarioProyectoListComponent implements OnInit {
+  constructor(
+    private sanitizer: DomSanitizer
+  ) {}
+
   private beneficiarioProyectoService = inject(BeneficiarioProyectoService);
   injector = inject(Injector);
   private router = inject(Router);
@@ -119,5 +124,9 @@ export class BeneficiarioProyectoListComponent implements OnInit {
 
   update(item: Row<IBeneficiarioProyecto>) {
     this.router.navigate(["/projects/add-beneficiary/update/", item.original.idBeneficiarioProyecto]);
+  }
+ 
+  sanitizeHtml(content: string): SafeHtml {
+   return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 }

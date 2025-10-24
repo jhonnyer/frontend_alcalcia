@@ -7,6 +7,7 @@ import { ProductosService } from '../../../../core/services/productos.service';
 import { IProductoFk } from '../../../../core/models/products.model';  
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-producto-modal',
@@ -30,7 +31,7 @@ export class ProductoModalComponent implements OnInit {
   private productosService = inject(ProductosService);
   private dialogRef = inject(MatDialogRef<ProductoModalComponent>);
   private dialog = inject(MatDialog);
-
+  private alert = inject(AlertService);
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: any) {}
 
@@ -73,7 +74,7 @@ export class ProductoModalComponent implements OnInit {
   guardar(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      alert('⚠️ Por favor, completa los campos obligatorios antes de continuar.');
+      this.alert.warning('Formulario Inválido','⚠️ Por favor, completa los campos obligatorios antes de continuar.');
       return;
     }
 
@@ -111,19 +112,19 @@ export class ProductoModalComponent implements OnInit {
         this.productosService.post(payload).subscribe({
           next: () => {
             this.isLoading = false;
-            alert('✅ Producto creado correctamente.');
+            this.alert.success('Operación exitosa','✅ Producto creado correctamente.');
             this.dialogRef.close(true);
           },
           error: (err) => {
             this.isLoading = false;
             console.error('❌ Error al crear producto:', err);
-            alert('⚠️ Error al crear el producto.');
+            this.alert.error('Error servicio','⚠️ Error al crear el producto.');
           },
         });
       } else {
         // ===== EDITAR =====
         if (!this.producto?.idProductoFk) {
-          alert('❌ No se encontró el ID del producto a editar.');
+          this.alert.error('No Found','❌ No se encontró el ID del producto a editar.');
           this.isLoading = false;
           return;
         }
@@ -143,13 +144,13 @@ export class ProductoModalComponent implements OnInit {
                 ? `✅ Se aumentó el stock en ${stock} unidades.`
                 : `✅ Producto actualizado sin cambios en stock.`;
 
-            alert(mensaje);
+            this.alert.success('Operación exitosa',mensaje);
             this.dialogRef.close(true);
           },
           error: (err) => {
             this.isLoading = false;
             console.error('❌ Error al actualizar producto:', err);
-            alert('⚠️ Error al actualizar el producto.');
+            this.alert.error('Error servicio','⚠️ Error al actualizar el producto.');
           },
         });
       }

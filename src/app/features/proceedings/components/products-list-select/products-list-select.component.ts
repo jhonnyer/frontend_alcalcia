@@ -1,16 +1,17 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { DialogRef, DIALOG_DATA } from '@angular/cdk/dialog';
-import { IProducto, IProductoFk, ISelectedProduct, ProductsDialogResult } from '../../../../core/models/products.model';
+import { IProductoFk, ISelectedProduct, ProductsDialogResult } from '../../../../core/models/products.model';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { CategoriasService } from '../../../../core/services/categorias.service';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { CommonModule } from '@angular/common';
-import { IProyecto, IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
+import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { ICategorias } from '../../../../core/models/categorias.model';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { AlertService } from '../../../../core/services/alert.service';
 
 interface DialogData {
   idProyecto: number | null;
@@ -41,9 +42,9 @@ export class ProductsListSelectComponent implements OnInit{
   // data = inject(DIALOG_DATA);
   data = inject<DialogData>(DIALOG_DATA);
   dialogRef = inject<DialogRef<ProductsDialogResult>>(DialogRef<ProductsDialogResult>);
-  private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private proyectosService = inject(ProyectosService);
+  private alert = inject(AlertService);
   Math= Math;
 
   proyecto = signal<IProyectoAndCategoriaArray | null>(null);
@@ -68,7 +69,7 @@ export class ProductsListSelectComponent implements OnInit{
         this.selectedProducts = [...this.data.productosSeleccionados];
       }
     } else {
-      alert("No se ha seleccionado un proyecto");
+      this.alert.warning('Alerta',"No se ha seleccionado un proyecto");
       this.close();
     }
   }
@@ -77,7 +78,7 @@ export class ProductsListSelectComponent implements OnInit{
     if (this.data.idProyecto) {
       this.getProjectById();
     } else {
-      alert("No se ha seleccionado un proyecto");
+      this.alert.warning('Alerta',"No se ha seleccionado un proyecto");
       this.close();
     }
   }
@@ -112,7 +113,7 @@ export class ProductsListSelectComponent implements OnInit{
       },
       error: error => {
         console.error("Error al cargar proyecto:", error);
-        alert("Error al cargar información del proyecto");
+        this.alert.error("Error Servicio","Error al cargar información del proyecto");
       }
     });
   }
@@ -148,7 +149,7 @@ export class ProductsListSelectComponent implements OnInit{
         this.products = response.productos || [];
       },
       error: error => {
-        alert("Error al cargar productos");
+        this.alert.error("Error Servicio","Error al cargar productos");
       }
     });
   }

@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { IProducto } from '../../../../core/models/products.model';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-inventory-update',
@@ -22,6 +23,7 @@ export class InventoryUpdateComponent {
   private pageTitleService = inject(PageTitleService);
   private productosService = inject(ProductosService);
   private router = inject(Router);
+  private alert = inject(AlertService);
   producto: IProducto | null = null;
 
   ngOnInit(): void {
@@ -54,7 +56,7 @@ export class InventoryUpdateComponent {
       },
       error: (error) => {
         console.error('Error al cargar el producto:', error);
-        alert('Error al cargar los datos del producto');
+        this.alert.error('Error servicio','Error al cargar los datos del producto');
       }
     });
   }
@@ -70,16 +72,16 @@ export class InventoryUpdateComponent {
 
       this.productosService.updateById(this.productoId, dataToSend).subscribe({
         next: (response) => {
-          alert('Producto actualizado correctamente');
+          this.alert.success('Operación exitosa','Producto actualizado correctamente');
           this.router.navigate(['/inventory']);
         },
         error: (error) => {
           console.error('Error:', error);
-          alert('Error al actualizar el producto');
+          this.alert.error('Operación fallida','Error al actualizar el producto');
         }
       });
     } else {
-      alert('Por favor, revisa los campos del formulario');
+      this.alert.warning('Formulario Inválido','Por favor, revisa los campos del formulario');
       this.formFamilyCore.markAllAsTouched();
     }
   }

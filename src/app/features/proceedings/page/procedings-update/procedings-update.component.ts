@@ -14,6 +14,7 @@ import { IResponsable } from '../../../../core/models/responsable.model';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { ProductsListSelectComponent } from '../../components/products-list-select/products-list-select.component';
 import { MatIconModule } from '@angular/material/icon';
+import { AlertService } from '../../../../core/services/alert.service';
 
 interface DialogData {
   idProyecto: number | null;
@@ -51,6 +52,7 @@ export class ProcedingsUpdateComponent implements OnInit {
   private proyectosService = inject(ProyectosService);
   private responsibleService = inject(ResponsibleService);
   private productosService = inject(ProductosService);
+  private alert = inject(AlertService);
 
   public formActa: FormGroup = new FormGroup({});
 
@@ -216,14 +218,14 @@ export class ProcedingsUpdateComponent implements OnInit {
     const transicionValida = transicionesPermitidas.some(t => t.value === nuevoEstado);
 
     if (!transicionValida) {
-      alert('Transición de estado no permitida');
+      this.alert.warning('Alerta','Transición de estado no permitida');
       return false;
     }
 
     // Verificar requisitos adicionales
     const transicion = transicionesPermitidas.find(t => t.value === nuevoEstado);
     if (transicion?.requiereProductos && this.selectedProductsInfo().length === 0) {
-      alert('Se requieren productos para cambiar a este estado');
+      this.alert.warning('Alerta','Se requieren productos para cambiar a este estado');
       return false;
     }
 
@@ -416,7 +418,7 @@ export class ProcedingsUpdateComponent implements OnInit {
 
     // Validar que la cantidad sea válida
     if (isNaN(newQuantity) || newQuantity < 1) {
-      alert('La cantidad debe ser mayor a 0');
+      this.alert.warning('Alerta','La cantidad debe ser mayor a 0');
       return;
     }
 
@@ -425,7 +427,7 @@ export class ProcedingsUpdateComponent implements OnInit {
       if (product.idProducto === productId) {
         // Validar contra el stock
         if (newQuantity > product.stock) {
-          alert(`No hay suficiente stock. Stock disponible: ${product.stock}`);
+          this.alert.warning('Alerta',`No hay suficiente stock. Stock disponible: ${product.stock}`);
           input.value = product.cantidad.toString();
           return product;
         }
@@ -452,12 +454,12 @@ export class ProcedingsUpdateComponent implements OnInit {
 
     // Permitir solo en estados Recibido (R) y Procesado (P)
     if (!(estadoActual === 'R' || estadoActual === 'P')) {
-      alert('Solo puede modificar productos en estados Recibido o Procesado');
+      this.alert.warning('Alerta','Solo puede modificar productos en estados Recibido o Procesado');
       return;
     }
 
     if (!this.proyectoSelect()) {
-      alert('Por favor seleccione un proyecto primero');
+      this.alert.warning('Alerta','Por favor seleccione un proyecto primero');
       return;
     }
 
@@ -521,7 +523,7 @@ export class ProcedingsUpdateComponent implements OnInit {
 
     // Solo permitir eliminar productos si el acta está en R o P
     if (!(estadoActual === 'R' || estadoActual === 'P')) {
-      alert('No se pueden eliminar productos en el estado actual del acta');
+      this.alert.warning('Alerta','No se pueden eliminar productos en el estado actual del acta');
       return;
     }
 
@@ -581,7 +583,7 @@ export class ProcedingsUpdateComponent implements OnInit {
       },
       error: error => {
         console.error('Error al descargar el PDF:', error);
-        alert('Error al descargar el PDF del acta');
+        this.alert.error('Error servicio','Error al descargar el PDF del acta');
       }
     });
   }
@@ -596,12 +598,12 @@ export class ProcedingsUpdateComponent implements OnInit {
       const productos = this.selectedProductsInfo();
 
       if (nuevoEstado === 'A' && (!productos || productos.length === 0)) {
-        alert('Debe seleccionar al menos un producto cuando el estado es Autorizado');
+        this.alert.warning('Alerta','Debe seleccionar al menos un producto cuando el estado es Autorizado');
         return;
       }
 
       if (nuevoEstado === this.estadoInicialActa()) {
-        alert('Debe cambiar el estado del acta para actualizarla');
+        this.alert.warning('Alerta','Debe cambiar el estado del acta para actualizarla');
         return;
       }
 
@@ -633,14 +635,14 @@ export class ProcedingsUpdateComponent implements OnInit {
 
       this.actasService.update(dataToUpdate).subscribe({
         next: () => {
-          alert("✅ Acta actualizada con éxito");
+          this.alert.success('Operación exitosa',"✅ Acta actualizada con éxito");
           this.router.navigate([`proceedings/update/${this.idActa}`]).then(() => {
             window.location.reload();
           });
         },
         error: error => {
           console.error("❌ Error al actualizar:", error);
-          alert("Error al actualizar el acta: " + error.mensaje);
+          this.alert.error('Error servicio',"Error al actualizar el acta: " + error.mensaje);
         }
       });
     } else {

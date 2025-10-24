@@ -10,6 +10,7 @@ import { IProyecto } from '../../../../core/models/proyecto.model';
 
 import { debounceTime } from 'rxjs';
 import { timer } from 'rxjs';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-add-beneficiary-project',
@@ -24,6 +25,7 @@ export class AddBeneficiaryProjectComponent implements OnInit {
   private router = inject(Router);
   private beneficiarioService = inject(BeneficiaryService);
   private proyectosService = inject(ProyectosService);
+  private alert = inject(AlertService);
 
   beneficiarios: IBeneficiario[] = [];
   proyectos: IProyecto[] = [];
@@ -104,7 +106,7 @@ export class AddBeneficiaryProjectComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar proyectos:', error);
-        alert('Error al cargar la lista de proyectos');
+        this.alert.error('Error servicio','Error al cargar la lista de proyectos');
       }
     });
   }
@@ -120,12 +122,12 @@ export class AddBeneficiaryProjectComponent implements OnInit {
 
       this.beneficiarioProyectoService.post(formData).subscribe({
         next: (response) => {
-          alert('Beneficiario asignado correctamente');
+          this.alert.success('Operación exitosa','Beneficiario asignado correctamente');
           this.router.navigate(['/projects/add-beneficiary/list']);
         },
         error: (error) => {
           console.error('Error en la asignación:', error);
-          alert('Error al asignar beneficiario al proyecto. Es posible que un miembro del núcleo familiar ya esta asignado a un proyecto.');
+          this.alert.error('Operación fallida','Error al asignar beneficiario al proyecto. Es posible que un miembro del núcleo familiar ya esta asignado a un proyecto.');
         }
       });
     } else {

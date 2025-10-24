@@ -8,6 +8,7 @@ import { BeneficiaryService } from '../../../../core/services/beneficiary.servic
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
 import { IProyecto } from '../../../../core/models/proyecto.model';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-beneficiario-proyecto-update',
@@ -25,6 +26,7 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
   private proyectosService = inject(ProyectosService);
   private beneficiarioService = inject(BeneficiaryService);
   private pageTitleService = inject(PageTitleService);
+  private alert = inject(AlertService);
 
   beneficiarioInfo: IBeneficiarioUnique | null = null;
     proyectos: IProyecto[] = [];
@@ -61,7 +63,7 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error:', error);
-        alert('Error al cargar los datos');
+        this.alert.error('Error servicio','Error al cargar los datos');
       }
     });
   }
@@ -99,15 +101,15 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
       this.beneficiarioProyectoService.updateById(this.beneficiarioProyectoId, formData).subscribe({
         next: (response) => {
           if(response.idProyecto===0){
-            alert(response.observaciones);
+            this.alert.info('Informativo',response.observaciones);
           }else{
-            alert('Actualización exitosa');
+            this.alert.success('Operación exitosa','Actualización exitosa');
           }
           this.router.navigate(['/projects/add-beneficiary/list']);
         },
         error: (error) => {
           console.error('Error:', error);
-          alert('Error al actualizar');
+          this.alert.error('Error del servicio','Error al actualizar');
         }
       });
     } else {

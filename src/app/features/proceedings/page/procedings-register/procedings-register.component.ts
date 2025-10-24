@@ -25,6 +25,7 @@ import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accio
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { AlertService } from '../../../../core/services/alert.service';
 
 interface DialogData {
   idProyecto: number | null;
@@ -52,10 +53,10 @@ export class ProcedingsRegisterComponent implements OnInit{
   private fb = inject(FormBuilder);
   private dialog = inject(Dialog);
   private router = inject(Router);
-
   private pageTitleService = inject(PageTitleService);
-
   private beneficiaryService = inject(BeneficiaryService);
+  private alert = inject(AlertService);
+
   beneficiario = signal<IBeneficiarioUnique | null>(null);
   beneficiarioNoEncontrado: boolean = false;
   proyectoSelect = signal<number | null>(null);
@@ -276,7 +277,7 @@ export class ProcedingsRegisterComponent implements OnInit{
 
   openDialog() {
     if (!this.proyectoSelect()) {
-      alert('Por favor seleccione un proyecto primero');
+      this.alert.warning('Alerta','Por favor seleccione un proyecto primero');
       return;
     }
 
@@ -403,7 +404,7 @@ export class ProcedingsRegisterComponent implements OnInit{
 
     // Validar que la cantidad sea válida
     if (isNaN(newQuantity) || newQuantity < 1) {
-      alert('La cantidad debe ser mayor a 0');
+      this.alert.warning('Alerta','La cantidad debe ser mayor a 0');
       return;
     }
 
@@ -412,7 +413,7 @@ export class ProcedingsRegisterComponent implements OnInit{
       if (product.idProducto === productId) {
         // Validar contra el stock
         if (newQuantity > product.stock) {
-          alert(`No hay suficiente stock. Stock disponible: ${product.stock}`);
+          this.alert.warning('Alerta',`No hay suficiente stock. Stock disponible: ${product.stock}`);
           input.value = product.cantidad.toString();
           return product;
         }

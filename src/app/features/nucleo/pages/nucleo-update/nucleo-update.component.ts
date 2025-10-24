@@ -30,6 +30,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { AlertService } from '../../../../core/services/alert.service';
 
 
 @Component({
@@ -76,6 +77,7 @@ export class NucleoUpdateComponent implements OnInit {
   private readonly pageTitleService = inject(PageTitleService);
   private readonly beneficiaryService = inject(BeneficiaryService);
   private readonly actasService = inject(ActasService);
+  private alert = inject(AlertService);
 
   nucleo = signal<INucleoUpdate | null>(null);
   zonas = signal<IZona[]>([]);
@@ -319,10 +321,10 @@ export class NucleoUpdateComponent implements OnInit {
                       beneficiariosArray.removeAt(index);
                       //Actualizar tabla beneficiarios 
                       this.actualizarTabla();
-                      alert('Beneficiario eliminado exitosamente');
+                      this.alert.confirm('Operación','Beneficiario eliminado exitosamente');
                     },
                     error: () => {
-                      alert(
+                      this.alert.error('Error servicio',
                         'Ha ocurrido un error al intentar eliminar el beneficiario'
                       );
                     },
@@ -333,15 +335,15 @@ export class NucleoUpdateComponent implements OnInit {
             beneficiariosArray.removeAt(index);
           }
         } else {
-          alert(
-            'El beneficiario con id ' +
-              idBeneficiario +
-              ' no puede eliminarse porque tiene actas asociadas'
+          this.alert.warning('Alerta',
+            'El beneficiario "' +
+              beneficiarioEliminar.primerNombre +
+              '", no puede eliminarse porque tiene actas asociadas'
           );
         }
       },
       error: (error) => {
-        alert('Error al eliminar el beneficiario: ' + error);
+        this.alert.error('Error servicio','Error al eliminar el beneficiario: ' + error);
       },
     });
   }

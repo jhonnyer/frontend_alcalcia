@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -29,7 +30,7 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
   private alert = inject(AlertService);
 
   beneficiarioInfo: IBeneficiarioUnique | null = null;
-    proyectos: IProyecto[] = [];
+  proyectos: IProyecto[] = [];
 
   form: FormGroup = this.fb.group({
     idBeneficiario: ['', [Validators.required]],
@@ -37,7 +38,7 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
     observaciones: [''],
     esBeneficiarioActivo: [true],
     fechaInicio: [''],
-    fechaFin: [null]
+    fechaFin: [{ value: null, disabled: true }] // 👈 deshabilitado por defecto
   });
 
   ngOnInit(): void {
@@ -58,58 +59,54 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
           fechaInicio: response.fechaInicio,
           fechaFin: response.fechaFin
         });
+
+        // Deshabilitar campos controlados por backend
         this.form.get('fechaInicio')?.disable();
         this.form.get('idBeneficiario')?.disable();
+        this.form.get('idProyecto')?.disable();
+        this.form.get('fechaFin')?.disable();
       },
       error: (error) => {
         console.error('Error:', error);
-        this.alert.error('Error servicio','Error al cargar los datos');
+        this.alert.error('Error servicio', 'Error al cargar los datos');
       }
     });
   }
 
   private loadBeneficiarioInfo(beneficiarioId: string): void {
     this.beneficiarioService.getById(beneficiarioId).subscribe({
-      next: (response) => {
-        this.beneficiarioInfo = response;
-      },
-      error: (error) => {
-        console.error('Error:', error);
-      }
+      next: (response) => (this.beneficiarioInfo = response),
+      error: (error) => console.error('Error:', error)
     });
   }
 
   private loadProyectos(): void {
     this.proyectosService.getAll().subscribe({
       next: (response) => {
-        this.proyectos = response.respuesta.map(item => item.proyecto);
+        this.proyectos = response.respuesta.map((item) => item.proyecto);
       },
-      error: (error) => {
-        console.error('Error:', error);
-      }
+      error: (error) => console.error('Error:', error)
     });
   }
 
   onSubmit(): void {
     if (this.form.valid) {
       const formData = {
-        ...this.form.value,
-        idBeneficiario: this.form.get('idBeneficiario')?.getRawValue(),
-        fechaInicio: this.form.get('fechaInicio')?.getRawValue()
+        ...this.form.getRawValue() // ✅ obtiene los valores incluso de campos deshabilitados
       };
 
       this.beneficiarioProyectoService.updateById(this.beneficiarioProyectoId, formData).subscribe({
         next: (response) => {
-          if(response.idProyecto===0){
-            this.alert.info('Informativo',response.observaciones);
-          }else{
-            this.alert.success('Operación exitosa','Actualización exitosa');
+          if (response.idProyecto === 0) {
+            this.alert.info('Informativo', response.observaciones);
+          } else {
+            this.alert.success('Operación exitosa', 'Actualización exitosa');
           }
           this.router.navigate(['/projects/add-beneficiary/list']);
         },
         error: (error) => {
           console.error('Error:', error);
-          this.alert.error('Error del servicio','Error al actualizar');
+          this.alert.error('Error del servicio', 'Error al actualizar');
         }
       });
     } else {
@@ -119,5 +116,11 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/projects/add-beneficiary/list']);
+  }
+
+  get nombreProyectoActual(): string {
+    const idProyecto = this.form.get('idProyecto')?.value;
+    const proyecto = this.proyectos.find((p) => p.idProyecto === idProyecto);
+    return proyecto ? proyecto.nombre : 'Proyecto asignado';
   }
 }

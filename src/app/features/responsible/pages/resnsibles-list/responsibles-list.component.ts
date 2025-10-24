@@ -57,7 +57,7 @@ export class ResponsiblesListComponent {
   public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Lista de responsables');
+    this.pageTitleService.setCurrentPage('Usuarios del sistema');
     this.getAll();
   }
 

@@ -13,4 +13,12 @@ import { RouterLinkActive } from '@angular/router';
 export class ListInventoryComponent {
   activeMenu: boolean = false;
   @Input() collapsed = false;
+  menuItems = [
+    { label: 'a. Ingresar Productos', link: 'inventory/create', icon: `<svg xmlns='http://www.w3.org/2000/svg' fill='currentColor' viewBox='0 0 24 24'><path d='M12 4v16m8-8H4'/></svg>` },
+    { label: 'b. Lista de Productos', link: 'inventory', icon: `<svg xmlns='http://www.w3.org/2000/svg' fill='currentColor' viewBox='0 0 24 24'><path d='M12 4v16m8-8H4'/></svg>` },
+  ];
+
+  toggleMenu() {
+    if (!this.collapsed) this.activeMenu = !this.activeMenu;
+  }
 }

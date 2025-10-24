@@ -4,11 +4,19 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import { MatIcon } from '@angular/material/icon';
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule ],
+  imports: [
+    RouterLink,
+    ReactiveFormsModule,
+    MatIcon,
+    MatProgressSpinner
+],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
@@ -18,8 +26,11 @@ export class LoginComponent {
 
   public formFamilyCore: FormGroup = new FormGroup({});
   private fb = inject(FormBuilder);
+  private alert = inject(AlertService);
 
   public isLoading = false; 
+
+  showPassword = false;
 
   ngOnInit(): void {
     this.initFormFamilyCore();
@@ -39,11 +50,11 @@ export class LoginComponent {
       this.authService.login(this.formFamilyCore.value).subscribe({
         next: response => {
           this.isLoading = false; // 🔹 Desactiva el loading
-          alert('Inicio de sesión exitoso');
+          this.alert.success('Inicio de sesión exitoso', 'Sesión iniciada exitosamente');      
         },
         error: error=> {
           this.isLoading = false; // 🔹 Desactiva el loading incluso si falla
-          alert('Verifica tus credenciales con un administrador');
+          this.alert.error('Error inicio de sesión','Verifica tus credenciales con un administrador')
         }
       })
 	  }else{
@@ -51,5 +62,8 @@ export class LoginComponent {
 	  }
   }
 
+togglePasswordVisibility(): void {
+  this.showPassword = !this.showPassword;
+}
 
 }

@@ -7,11 +7,13 @@ import { MyValidators } from '../../../../core/utils/validators';
 import { Router } from '@angular/router';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [RouterLink, CommonModule, ReactiveFormsModule],
+  imports: [RouterLink, CommonModule, ReactiveFormsModule, MatProgressSpinner],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })
@@ -22,6 +24,7 @@ export class RegisterComponent {
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
   public isLoading = false; 
+  private alert = inject(AlertService);
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Registro de usuario');
@@ -62,17 +65,17 @@ export class RegisterComponent {
       this.responsibleService.post(this.formFamilyCore.value).subscribe({
         next: response => {
           this.isLoading = false; 
-          alert('Tu perfil se ha creado correctamente, debes contactar un administrador para activar tu cuenta');
+          this.alert.success('Registro exitoso', 'Contacta al administrador para activar tu cuenta.');      
           this.router.navigate(['auth']);
         },
         error: () => {
           this.isLoading = false;
-          alert('Error al registrar tu cuenta. Intenta nuevamente o contacta al administrador.');
+          this.alert.error('Error al registrar', 'Intenta nuevamente o contacta al administrador.');
         }
       })
 	  }else{
       this.isLoading = false; 
-      alert('Verifica los campos del formulario de registro');
+      this.alert.warning('Formulario incompleto', 'Verifica los campos requeridos antes de continuar.');
 		  this.formFamilyCore.markAllAsTouched();
 	  }
   }

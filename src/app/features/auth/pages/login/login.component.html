@@ -1,56 +1,52 @@
-<section class="bg-gray-50 h-[calc(100vh-6rem)]">
-  <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-[calc(100vh-6rem)] lg:py-0">
-      <a href="#" class="flex items-center mb-6 text-2xl font-semibold text-gray-900">
-        Sistema Integral de Proyectos y donaciones
-      </a>
-      <div class="w-full bg-white rounded-lg shadow md:mt-0 sm:max-w-md xl:p-0">
-          <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
-              <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl">
-                Inicia sesión en tu cuenta
-              </h1>
-              <form class="space-y-4 md:space-y-6" [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()">
+<section class="relative flex items-center justify-center min-h-[calc(100vh-6rem)] bg-gradient-to-br from-blue-50 via-white to-blue-100">
+  <div class="absolute inset-0 bg-[url('/assets/img/bg-login.jpg')] bg-cover bg-center opacity-10"></div>
 
-                <div class="w-full">
-                  <label for="usuario" class="label-base">Nombre de usuario</label>
-                  <input formControlName="usuario" type="usuario" id="usuario" class="input-base" placeholder="nombre de usuario">
-                  @if(formFamilyCore.get('usuario')?.hasError('required') && formFamilyCore.get('usuario')?.touched) {
-                    <p class="text-red-500">
-                      * Este campo es requerido
-                    </p>
-                  }
-                </div>
+  <div class="z-10 w-full max-w-md p-8 bg-white/80 backdrop-blur-lg shadow-xl rounded-2xl border border-gray-200">
+    <div class="text-center mb-6">
+      <h3 class="text-2xl font-bold text-gray-800 mb-1">
+        GESTION DE PROYECTOS E INVENTARIO
+      </h3>
+      <span class="text-gray-500 text-sm">Bienvenido(a) al sistema</span>
+    </div>
 
-                <div class="w-full">
-                  <label for="password" class="block mb-2 text-sm font-medium text-gray-900 ">Contraseña</label>
-                  <input type="password" formControlName="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5" ng-reflect-required="" ng-reflect-name="password" required="" autocomplete="new-password">
-                  @if(formFamilyCore.get('password')?.hasError('required')  && formFamilyCore.get('password')?.touched) {
-                    <p class="text-red-500">
-                      * Este campo es requerido
-                    </p>
-                  }
-                </div>
-
-                <button
-                  type="submit"
-                  [disabled]="isLoading"
-                  class="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-
-                  @if(isLoading) {
-                    <svg aria-hidden="true" class="w-5 h-5 text-white animate-spin fill-blue-300" viewBox="0 0 100 101" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 ..."></path>
-                    </svg>
-                    Cargando...
-                  } @else {
-                    Inicio de sesión
-                  }
-                </button>
-
-                <p class="text-sm font-light text-gray-500">
-                  ¿Aún no tienes una cuenta?
-                  <a routerLink="/auth/register" class="font-medium text-blue-600 hover:underline">Regístrate</a>
-                </p>
-              </form>
-          </div>
+    <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" class="space-y-5">
+      <div>
+        <label class="label-base">Usuario</label>
+        <input formControlName="usuario" type="text" class="input-base" placeholder="nombre de usuario" />
       </div>
+
+      <div class="relative">
+        <input
+          [type]="showPassword ? 'text' : 'password'"
+          formControlName="password"
+          placeholder="••••••••"
+          class="input-base pr-10"
+        />
+        <mat-icon
+          class="absolute right-3 top-2 text-gray-500 cursor-pointer"
+          (click)="togglePasswordVisibility()"
+        >
+          {{ showPassword ? 'visibility_off' : 'visibility' }}
+        </mat-icon>
+      </div>
+
+
+      <button
+        type="submit"
+        [disabled]="isLoading"
+        class="w-full flex justify-center items-center gap-2 py-2.5 text-white font-semibold bg-blue-600 hover:bg-blue-700 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+        @if(isLoading) {
+          <mat-spinner diameter="20"></mat-spinner>
+          Iniciando sesión...
+        } @else {
+          Iniciar sesión
+        }
+      </button>
+    </form>
+
+    <p class="mt-4 text-center text-sm text-gray-500">
+      ¿No tienes cuenta?
+      <a routerLink="/auth/register" class="text-blue-600 hover:underline">Regístrate</a>
+    </p>
   </div>
 </section>

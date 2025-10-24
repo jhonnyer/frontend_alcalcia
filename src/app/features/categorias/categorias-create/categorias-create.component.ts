@@ -8,6 +8,7 @@ import { PageTitleService } from '../../../core/services/pageTitle.service';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ICategorias } from '../../../core/models/categorias.model';
 import { ConfirmDialogComponent } from '../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+import { AlertService } from '../../../core/services/alert.service';
 
 @Component({
   selector: 'app-categorias-create',
@@ -28,6 +29,7 @@ export class CategoriasCreateComponent {
   public idProyecto?: number;
   public modo: 'crear' | 'editar' = 'crear';
   public categoriaId?: number;
+  private alert = inject(AlertService);
   
 
   ngOnInit(): void {
@@ -82,7 +84,7 @@ export class CategoriasCreateComponent {
     if (this.modo === 'editar' && this.categoriaId) {
       this.categoriasService.updateById(String(this.categoriaId), payload).subscribe({
         next: (response) => {
-          alert('✅ Categoría actualizada correctamente');
+          this.alert.success('Operación exitosa','✅ Categoría actualizada correctamente');
           if (this.dialogRef) {
             this.dialogRef.close(response);
           } else {
@@ -91,7 +93,7 @@ export class CategoriasCreateComponent {
         },
         error: (error) => {
           console.error('❌ Error al actualizar la categoría:', error);
-          alert('⚠️ No se pudo actualizar la categoría. Intenta nuevamente.');
+          this.alert.error('Operación fallida','⚠️ No se pudo actualizar la categoría. Intenta nuevamente.');
         }
       });
 
@@ -99,7 +101,7 @@ export class CategoriasCreateComponent {
     } else {
       this.categoriasService.post(payload).subscribe({
         next: (response) => {
-          alert('✅ Categoría creada correctamente');
+          this.alert.success('Operación exitosa','✅ Categoría creada correctamente');
           if (this.dialogRef) {
             this.dialogRef.close(response);
           } else {
@@ -108,7 +110,7 @@ export class CategoriasCreateComponent {
         },
         error: (error) => {
           console.error('❌ Error al crear la categoría:', error);
-          alert('⚠️ No se pudo crear la categoría. Verifica los datos e intenta nuevamente.');
+          this.alert.error('Operación fallida','⚠️ No se pudo crear la categoría. Verifica los datos e intenta nuevamente.');
         }
       });
     }
@@ -116,7 +118,7 @@ export class CategoriasCreateComponent {
 
   confirmarGuardarCategoria(): void {
     if (this.formFamilyCore.invalid) {
-      alert('⚠️ Verifica los campos del formulario');
+      this.alert.warning('Formulario Inválido','⚠️ Verifica los campos del formulario');
       this.formFamilyCore.markAllAsTouched();
       return;
     }

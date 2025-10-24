@@ -20,6 +20,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DashboardComponent } from '../../../projects/pages/dashboard-general/dashboard.component';
+import { AlertService } from '../../../../core/services/alert.service';
 
 type ReportKeys =
   | 'global'
@@ -59,6 +60,7 @@ export class HomeComponent implements OnInit{
   private nucleoService = inject(NucleoService);
   private reportes = inject(ReportesService);
   private pdfDashboard = inject(PdfGeneradorDashboardService);
+  private alert = inject(AlertService);
 
   isLoadingPDF = false;
   nucleoId = 1;     // ejemplo: luego puedes asignar dinámicamente
@@ -108,7 +110,7 @@ export class HomeComponent implements OnInit{
       error: error => {
         this.isLoadingReport.global = false;
         console.error('Error al descargar el Excel:', error);
-        alert('Error al descargar el archivo Excel');
+        this.alert.error('Operacion fallida','Error al descargar el archivo Excel');
       }
     });
   }
@@ -137,7 +139,7 @@ export class HomeComponent implements OnInit{
       error: error => {
         this.isLoadingReport.productProject = false;
         console.error('Error al descargar el Excel:', error);
-        alert('Error al descargar el archivo Excel');
+        this.alert.error('Operación fallida','Error al descargar el archivo Excel');
       }
     });
   }
@@ -179,7 +181,7 @@ export class HomeComponent implements OnInit{
       error: (error) => {
         this.isLoadingReport.beneficiarios = false;
         console.error('Error al obtener beneficiarios:', error);
-        alert('Error al descargar la información de beneficiarios');
+        this.alert.error('Operación fallida','Error al descargar la información de beneficiarios');
       }
     });
   }
@@ -215,7 +217,7 @@ export class HomeComponent implements OnInit{
       error: (error) => {
         this.isLoadingReport.categorias = false;
         console.error('Error al obtener categorías:', error);
-        alert('Error al descargar la información de categorías');
+        this.alert.error('Operación fallida','Error al descargar la información de categorías');
       }
     });
   }
@@ -293,7 +295,7 @@ export class HomeComponent implements OnInit{
       error: (error) => {
         this.isLoadingReport.actas = false;
         console.error('Error al obtener actas:', error);
-        alert('Error al descargar la información de actas');
+        this.alert.error('Operación fallida','Error al descargar la información de actas');
       }
     });
   }
@@ -347,7 +349,7 @@ export class HomeComponent implements OnInit{
       error: (error) => {
         this.isLoadingReport.responsables = false;
         console.error('Error al obtener responsables:', error);
-        alert('Error al descargar la información de responsables');
+        this.alert.error('Operación fallida','Error al descargar la información de responsables');
       }
     });
   }
@@ -387,7 +389,7 @@ export class HomeComponent implements OnInit{
       error: (error) => {
         this.isLoadingReport.productos = false;
         console.error('Error al obtener productos:', error);
-        alert('Error al descargar la información de productos');
+        this.alert.error('Operación fallida','Error al descargar la información de productos');
       }
     });
   }
@@ -443,7 +445,7 @@ export class HomeComponent implements OnInit{
       error: (error) => {
         this.isLoadingReport.nucleos = false;
         console.error('Error al obtener núcleos familiares:', error);
-        alert('Error al descargar la información de núcleos familiares');
+        this.alert.error('Operación fallida','Error al descargar la información de núcleos familiares');
       }
     });
   }

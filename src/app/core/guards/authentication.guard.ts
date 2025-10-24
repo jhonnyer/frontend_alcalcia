@@ -1,10 +1,12 @@
-import { CanActivateFn, CanMatchFn, Router } from '@angular/router';
+import { CanMatchFn, Router } from '@angular/router';
 import { TokenService } from '../services/token.service';
 import { inject } from '@angular/core';
+import { AlertService } from '../services/alert.service';
 
 export const authenticationGuard: CanMatchFn = (route, segments) => {
   const tokenService = inject(TokenService);
   const router = inject(Router);
+  const alert = inject(AlertService);
 
   // Verificar si el token existe y no está expirado
   const token = tokenService.getToken();
@@ -20,7 +22,7 @@ export const authenticationGuard: CanMatchFn = (route, segments) => {
   if (userState !== 'A') {
     // Redirigir a página de cuenta no autorizada
     tokenService.clearToken();
-    alert('Usuario inactivo');
+    alert.warning('Usuario inactivo')
     router.navigate(['/auth']);
     return false;
   }

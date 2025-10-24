@@ -25,6 +25,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { AlertService } from '../../../core/services/alert.service';
 
 @Component({
   selector: 'app-categoria-list',
@@ -44,6 +45,7 @@ export class CategoriaListComponent implements OnInit {
   constructor(private dialog: MatDialog) {}
   private categoriasService = inject(CategoriasService);
   private pageTitleService = inject(PageTitleService);
+  private alert = inject(AlertService);
 
   data = signal<ICategorias[]>([]);
 
@@ -151,7 +153,7 @@ export class CategoriaListComponent implements OnInit {
           categoriaCompleta.productos.length > 0;
 
         if (tieneProductos) {
-          alert(`⚠️ No se puede eliminar la categoría "${categoriaCompleta.nombre}" porque tiene productos asociados.`);
+          this.alert.warning('Alerta',`⚠️ No se puede eliminar la categoría "${categoriaCompleta.nombre}" porque tiene productos asociados.`);
           return;
         }
 
@@ -166,12 +168,12 @@ export class CategoriaListComponent implements OnInit {
           if (confirmado) {
             this.categoriasService.delete(categoriaCompleta.idCategoria.toString()).subscribe({
               next: () => {
-                alert('✅ Categoría eliminada correctamente');
+                this.alert.success('Operación Exitosa','✅ Categoría eliminada correctamente');
                 this.getAll(); // Recarga la lista
               },
               error: (error) => {
                 console.error('❌ Error al eliminar categoría:', error);
-                alert('⚠️ No se pudo eliminar la categoría. Intenta nuevamente.');
+                this.alert.error('Operación Fallida','⚠️ No se pudo eliminar la categoría. Intenta nuevamente.');
               },
             });
           }
@@ -179,7 +181,7 @@ export class CategoriaListComponent implements OnInit {
       },
       error: (error) => {
         console.error('❌ Error al obtener la categoría:', error);
-        alert('⚠️ No se pudo obtener la información de la categoría.');
+        this.alert.error('Sin Datos ','⚠️ No se pudo obtener la información de la categoría.');
       },
     });
   }

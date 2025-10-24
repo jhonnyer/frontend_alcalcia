@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-inventory-create',
@@ -26,6 +27,7 @@ export class InventoryCreateComponent implements OnInit {
   private productosService = inject(ProductosService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private alert = inject(AlertService);
 
 
   proyectos = signal<IProyectoAndCategoriaArray[]>([]);
@@ -46,7 +48,7 @@ export class InventoryCreateComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar proyectos:', error);
-        alert('Error al cargar los proyectos');
+        this.alert.error('Operación fallida','Error al cargar los proyectos');
       },
     });
   }
@@ -105,7 +107,7 @@ export class InventoryCreateComponent implements OnInit {
   onSubmit(): void {
     if (this.formFamilyCore.invalid) {
       this.formFamilyCore.markAllAsTouched();
-      alert('⚠️ Por favor completa todos los campos requeridos.');
+      this.alert.warning('Formulario inválido','⚠️ Por favor completa todos los campos requeridos.');
       return;
     }
 
@@ -123,12 +125,12 @@ export class InventoryCreateComponent implements OnInit {
 
     this.productosService.post(payload).subscribe({
       next: () => {
-        alert('✅ Productos creados correctamente.');
+        this.alert.success('Operación exitosa','✅ Productos creados correctamente.');
         this.router.navigate(['/inventory']);
       },
       error: (err) => {
         console.error('❌ Error al crear productos:', err);
-        alert('⚠️ Error al crear los productos.');
+        this.alert.error('Operación fallida','⚠️ Error al crear los productos.');
       },
     });
   }
@@ -140,7 +142,7 @@ export class InventoryCreateComponent implements OnInit {
   confirmarGuardar(): void {
     if (this.formFamilyCore.invalid) {
       this.formFamilyCore.markAllAsTouched();
-      alert('⚠️ Por favor completa todos los campos requeridos.');
+      this.alert.success('Formulario inválido','⚠️ Por favor completa todos los campos requeridos.');
       return;
     }
 

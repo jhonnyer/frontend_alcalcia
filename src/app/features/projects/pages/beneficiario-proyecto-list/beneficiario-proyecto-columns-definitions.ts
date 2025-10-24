@@ -35,6 +35,15 @@ export const defaultColumns: ColumnDef<IBeneficiarioProyecto>[] = [
     meta: { filterVariant: 'text' },
   },
 
+  {
+    id: 'nombreNucleo',
+    accessorFn: (row) => row.nombreNucleo,
+    cell: (info) => info.getValue() || '—',
+    header: 'Núcleo',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' },
+  },
+
   // 🔸 Estado del Proyecto (A/I/P)
   {
     id: 'estadoProyecto',

@@ -12,5 +12,7 @@ export interface IBeneficiarioProyecto     {
   nombreProyecto: string;
   numDocumentoBeneficiario: string;
   estadoProyecto: EstadoProyecto;
+  nombreNucleo?: string;
+  nombreBarrio?: string;
 }
 

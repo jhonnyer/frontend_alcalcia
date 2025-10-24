@@ -25,6 +25,7 @@ import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-
 import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
 import { IProductoFk } from '../../../../core/models/products.model';
 import { PdfGeneradorProyectoService } from '../../../../shared/components/pdf/pdf-proyectos.service';
+import { AlertService } from '../../../../core/services/alert.service';
 
 interface ICategoriaUI extends ICategorias {
   expanded?: boolean;
@@ -78,6 +79,7 @@ export class ProjectUpdateComponent implements OnInit {
   private categoriasService = inject(CategoriasService);
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
+  private alert = inject(AlertService);
 
   proyectoId?: string;
 
@@ -236,7 +238,7 @@ export class ProjectUpdateComponent implements OnInit {
   // 🔹 Guardar cambios
   onSubmit(): void {
     if (this.formFamilyCore.invalid) {
-      alert('⚠️ Por favor completa los campos requeridos antes de continuar.');
+      this.alert.warning('Formulario Inválido','⚠️ Por favor completa los campos requeridos antes de continuar.');
       this.formFamilyCore.markAllAsTouched();
       return;
     }
@@ -246,7 +248,7 @@ export class ProjectUpdateComponent implements OnInit {
     if (this.modo === 'editar' && this.proyectoId) {
       this.proyectosService.updateById(this.proyectoId, dataToSend).subscribe({
         next: () => {
-          alert('✅ Proyecto actualizado correctamente');
+          this.alert.success('Operación exitosa','✅ Proyecto actualizado correctamente');
           this.router.navigate(['projects']);
         },
         error: (error) => console.error('Error al actualizar:', error)
@@ -256,7 +258,7 @@ export class ProjectUpdateComponent implements OnInit {
         next: (response) => {
           const nuevoId = response?.respuesta?.proyecto?.idProyecto;
           if (nuevoId) {
-            alert('✅ Proyecto creado correctamente');
+            this.alert.success('Operación exitosa','✅ Proyecto creado correctamente');
             // 🟢 Redirigimos al modo edición del nuevo proyecto
             this.router.navigate(['projects/update', nuevoId]);
           } else {
@@ -286,7 +288,7 @@ export class ProjectUpdateComponent implements OnInit {
 
   confirmarActualizacion(): void {
     if (this.formFamilyCore.invalid) {
-      alert('⚠️ Verifica los campos del formulario');
+      this.alert.warning('Formulario Inválido','⚠️ Verifica los campos del formulario');
       this.formFamilyCore.markAllAsTouched();
       return;
     }
@@ -382,7 +384,7 @@ export class ProjectUpdateComponent implements OnInit {
 
   confirmarEliminacion(categoria: ICategorias): void {
     if (categoria.productos && categoria.productos.length > 0) {
-      alert('⚠️ No se puede eliminar la categoría porque tiene productos asociados.');
+      this.alert.warning('Alerta','⚠️ No se puede eliminar la categoría porque tiene productos asociados.');
       return;
     }
 
@@ -395,12 +397,12 @@ export class ProjectUpdateComponent implements OnInit {
       if (confirmado) {
         this.categoriasService.delete(String(categoria.idCategoria)).subscribe({
           next: () => {
-            alert('✅ Categoría eliminada correctamente.');
+            this.alert.success('Operación exitosa','✅ Categoría eliminada correctamente.');
             this.getProyectoById(); // refresca lista
           },
           error: (error) => {
             console.error('❌ Error al eliminar categoría:', error);
-            alert('⚠️ No se pudo eliminar la categoría. Intenta nuevamente.');
+            this.alert.error('Error del servicio','⚠️ No se pudo eliminar la categoría. Intenta nuevamente.');
           }
         });
       }
@@ -466,7 +468,7 @@ export class ProjectUpdateComponent implements OnInit {
 
   exportarPdf(): void {
     if (!this.proyectoId) {
-      alert('⚠️ Primero debes guardar el proyecto antes de exportar.');
+      this.alert.warning('Alerta','⚠️ Primero debes guardar el proyecto antes de exportar.');
       return;
     }
 
@@ -479,7 +481,7 @@ export class ProjectUpdateComponent implements OnInit {
       error: (err) => {
         console.error('Error al generar PDF:', err);
         this.loadingPdf = false;
-        alert('❌ Error al generar el PDF del proyecto.');
+        this.alert.error('Error del servicio','❌ Error al generar el PDF del proyecto.');
       }
     });
   }

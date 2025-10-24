@@ -27,6 +27,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../../../core/services/auth.service';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-projects-list',
@@ -49,6 +50,7 @@ export class ProjectsListComponent {
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
   private authService = inject(AuthService);
+  private alert = inject(AlertService);
   Math = Math;
 
   // Cambiamos el tipo del signal para manejar el objeto completo
@@ -166,7 +168,7 @@ export class ProjectsListComponent {
         const data = response.respuesta;
 
         if (!data) {
-          alert("⚠️ No se encontró el proyecto seleccionado.");
+          this.alert.warning('Alerta',"⚠️ No se encontró el proyecto seleccionado.");
           return;
         }
 
@@ -174,12 +176,12 @@ export class ProjectsListComponent {
         const tieneProductos = categorias.some(cat => cat.productos && cat.productos.length > 0);
 
         if (tieneProductos) {
-          alert(`⚠️ No se puede inactivar el proyecto "${proyecto.nombre}" porque tiene productos asociados.`);
+          this.alert.warning('Alerta',`⚠️ No se puede inactivar el proyecto "${proyecto.nombre}" porque tiene productos asociados.`);
           return;
         }
 
         if (categorias.length > 0 && !tieneProductos) {
-          alert(`⚠️ No se puede inactivar el proyecto "${proyecto.nombre}" porque tiene categorías registradas.`);
+          this.alert.warning('Alerta',`⚠️ No se puede inactivar el proyecto "${proyecto.nombre}" porque tiene categorías registradas.`);
           return;
         }
 
@@ -194,12 +196,12 @@ export class ProjectsListComponent {
           if (confirmado) {
             this.proyectosService.delete(proyecto.idProyecto).subscribe({
               next: () => {
-                alert("✅ Proyecto inactivado correctamente.");
+                this.alert.success("Operación exitosa","✅ Proyecto inactivado correctamente.");
                 this.getAll(); 
               },
               error: (error) => {
                 console.error('❌ Error al eliminar proyecto:', error);
-                alert("⚠️ No se pudo inactivar el proyecto. Intenta nuevamente.");
+                this.alert.error("Error del servicio","⚠️ No se pudo inactivar el proyecto. Intenta nuevamente.");
               }
             });
           }
@@ -207,7 +209,7 @@ export class ProjectsListComponent {
       },
       error: (error) => {
         console.error("❌ Error al obtener detalles del proyecto:", error);
-        alert("⚠️ No se pudo verificar el estado del proyecto antes de eliminarlo.");
+        this.alert.error('Error del servicio',"⚠️ No se pudo verificar el estado del proyecto antes de eliminarlo.");
       }
     });
   }

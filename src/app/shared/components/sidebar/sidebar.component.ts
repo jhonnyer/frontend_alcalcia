@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { ListInventoryComponent } from './components/list-inventory/list-inventory.component';
 import { ListBeneficiaryComponent } from './components/list-beneficiary/list-beneficiary.component';
 import { ListHomeComponent } from './components/list-home/list-home.component';
@@ -33,6 +33,7 @@ import { NgClass, NgIf} from '@angular/common'
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
+  isAnimating = false;
   /** Abierto/cerrado en móviles */
   @Input() open = false;
   /** Colapsado/expandido en desktop (xl+) */
@@ -41,8 +42,15 @@ export class SidebarComponent {
   /** Emite cuando se cierra en móvil (para que el padre actualice el estado) */
   @Output() closed = new EventEmitter<void>();
 
+  ngOnChanges(changes: SimpleChanges) {
+    if ('open' in changes || 'collapsed' in changes) {
+      this.isAnimating = true;              // activa bloqueo de clicks
+      // fallback por si el navegador no dispara transitionend (poco probable):
+      setTimeout(() => (this.isAnimating = false), 400);
+    }
+  }
+
   close() {
-    this.open = false;
     this.closed.emit();
   }
 }

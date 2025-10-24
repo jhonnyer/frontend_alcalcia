@@ -1,14 +1,11 @@
-
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
-import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
-import { IProyecto } from '../../../../core/models/proyecto.model';
 import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
@@ -24,13 +21,12 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
   private fb = inject(FormBuilder);
   private beneficiarioProyectoService = inject(BeneficiarioProyectoService);
   private router = inject(Router);
-  private proyectosService = inject(ProyectosService);
   private beneficiarioService = inject(BeneficiaryService);
   private pageTitleService = inject(PageTitleService);
   private alert = inject(AlertService);
 
   beneficiarioInfo: IBeneficiarioUnique | null = null;
-  proyectos: IProyecto[] = [];
+  proyectoNombre = '';
 
   form: FormGroup = this.fb.group({
     idBeneficiario: ['', [Validators.required]],
@@ -38,12 +34,11 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
     observaciones: [''],
     esBeneficiarioActivo: [true],
     fechaInicio: [''],
-    fechaFin: [{ value: null, disabled: true }] // 👈 deshabilitado por defecto
+    fechaFin: [{ value: null, disabled: true }]
   });
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Actualizar Beneficiario en Proyecto');
-    this.loadProyectos();
     this.loadBeneficiarioProyecto();
   }
 
@@ -51,6 +46,8 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
     this.beneficiarioProyectoService.getAllById(this.beneficiarioProyectoId).subscribe({
       next: (response) => {
         this.loadBeneficiarioInfo(response.idBeneficiario.toString());
+        this.proyectoNombre = response.nombreProyecto; // 👈 directo del backend
+
         this.form.patchValue({
           idBeneficiario: response.idBeneficiario,
           idProyecto: response.idProyecto,
@@ -60,7 +57,6 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
           fechaFin: response.fechaFin
         });
 
-        // Deshabilitar campos controlados por backend
         this.form.get('fechaInicio')?.disable();
         this.form.get('idBeneficiario')?.disable();
         this.form.get('idProyecto')?.disable();
@@ -80,20 +76,9 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
     });
   }
 
-  private loadProyectos(): void {
-    this.proyectosService.getAll().subscribe({
-      next: (response) => {
-        this.proyectos = response.respuesta.map((item) => item.proyecto);
-      },
-      error: (error) => console.error('Error:', error)
-    });
-  }
-
   onSubmit(): void {
     if (this.form.valid) {
-      const formData = {
-        ...this.form.getRawValue() // ✅ obtiene los valores incluso de campos deshabilitados
-      };
+      const formData = { ...this.form.getRawValue() };
 
       this.beneficiarioProyectoService.updateById(this.beneficiarioProyectoId, formData).subscribe({
         next: (response) => {
@@ -116,11 +101,5 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/projects/add-beneficiary/list']);
-  }
-
-  get nombreProyectoActual(): string {
-    const idProyecto = this.form.get('idProyecto')?.value;
-    const proyecto = this.proyectos.find((p) => p.idProyecto === idProyecto);
-    return proyecto ? proyecto.nombre : 'Proyecto asignado';
   }
 }

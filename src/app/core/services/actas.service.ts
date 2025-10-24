@@ -69,7 +69,7 @@ export class ActasService {
    * @returns Object actas
    */
   getByParamsResponsable(params:string): Observable<ResponseStandar<IActaById>> {
-    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas//responsable/${params}`, { context: checkToken() }).pipe(
+    return this.http.get<ResponseStandar<IActaById>>(`${this.URL}/actas/responsable/${params}`, { context: checkToken() }).pipe(
       tap(acta => {
         acta.respuesta[0].beneficiario.fechaNacimiento = this.formatDate(acta.respuesta[0].beneficiario.fechaNacimiento);
       })

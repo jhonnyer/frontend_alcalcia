@@ -32,8 +32,12 @@ export class NucleoService {
     );
   }
 
-  post(data: INucleoUpdate):Observable<INucleoUpdate>{
-    return this.http.post<INucleoUpdate>(`${this.URL}/nucleosFamiliares`, data, { context: checkToken() });
+  post(data: INucleoUpdate): Observable<{ estado: string; mensaje: string; respuesta: INucleoUpdate }> {
+    return this.http.post<{ estado: string; mensaje: string; respuesta: INucleoUpdate }>(
+      `${this.URL}/nucleosFamiliares`,
+      data,
+      { context: checkToken() }
+    );
   }
 
   updateById(nucleoID: string, itemNucleo: INucleoUpdate):Observable<INucleoUpdate> {

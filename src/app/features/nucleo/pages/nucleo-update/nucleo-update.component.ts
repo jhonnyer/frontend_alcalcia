@@ -455,20 +455,25 @@ export class NucleoUpdateComponent implements OnInit {
       if (!this.nucleoID) {
         this.nucleoService.post(payload).subscribe({
           next: (nuevoNucleo) => {
-            this.snackBar.open('✅ Núcleo creado con éxito', 'Cerrar', { duration: 3000 });
+            const id = nuevoNucleo?.respuesta?.idNucleo;
+            const mensaje = nuevoNucleo?.mensaje || '✅ Núcleo creado con éxito';
 
-            // guardar el id para futuros beneficiarios
-            this.nucleoID = nuevoNucleo.idNucleo.toString();
-            this.isNucleoCreado = true; 
-  
-            // me quedo en la misma vista, no hago navigate
-            this.formFamilyCore.patchValue({ idNucleo: this.nucleoID });
+            if (id) {
+              this.snackBar.open(mensaje, 'Cerrar', { duration: 2500 });
+              // 🟢 Redirigir directamente a la vista de actualización
+              this.router.navigate(['/nucleo/update', id]);
+            } else {
+              this.snackBar.open('⚠️ Núcleo creado, pero no se recibió el ID del backend', 'Cerrar', { duration: 4000 });
+              console.warn('Respuesta backend sin ID:', nuevoNucleo);
+            }
           },
-          error: () => {
+          error: (err) => {
+            console.error('Error al crear núcleo:', err);
             this.snackBar.open('❌ Error al crear núcleo', 'Cerrar', { duration: 3000 });
           }
         });
-      } else {
+      }
+      else {
         // Actualizar
         this.nucleoService.updateById(this.nucleoID, payload).subscribe({
           next: () => {
@@ -507,6 +512,10 @@ export class NucleoUpdateComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+
+        if (this.nucleoID) {
+          result.idNucleoFk = parseInt(this.nucleoID);
+        }
         // abrir confirmación
         const confirmRef = this.dialog.open(ConfirmDialogComponent, {
           width: '350px',

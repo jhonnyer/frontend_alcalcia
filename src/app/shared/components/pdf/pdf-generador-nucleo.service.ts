@@ -384,10 +384,10 @@ export class PdfGeneradorNucleoService {
                             { text: 'Cantidad', style: 'tableHeader' },
                           ],
                           ...acta.detallesActaProductos.flatMap((d: any) =>
-                            d.productos.map((p: any) => [
-                              p.nombreProducto,
+                            (d.productos ?? []).map((p: any) => [
+                              p.nombreProducto || '—',
                               p.descripcion || '—',
-                              p.cantidad,
+                              p.cantidad ?? '—',
                             ])
                           ),
                         ],

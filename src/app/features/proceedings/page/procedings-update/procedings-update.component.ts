@@ -15,6 +15,8 @@ import { ProductosService } from '../../../../core/services/productos.service';
 import { ProductsListSelectComponent } from '../../components/products-list-select/products-list-select.component';
 import { MatIconModule } from '@angular/material/icon';
 import { AlertService } from '../../../../core/services/alert.service';
+import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 interface DialogData {
   idProyecto: number | null;
@@ -34,6 +36,7 @@ interface ProductoWithCantidadUpdate extends ProductoWithCantidad {
   templateUrl: './procedings-update.component.html'
 })
 export class ProcedingsUpdateComponent implements OnInit {
+  constructor(private dialogModal: MatDialog) {}
   @Input('id') idActa!: string;
   private actasService = inject(ActasService);
 
@@ -254,6 +257,7 @@ export class ProcedingsUpdateComponent implements OnInit {
           }
           else {
             this.formActa.get('observaciones')?.enable();
+            this.selectProyecto.disable();
           }
 
 
@@ -387,11 +391,22 @@ export class ProcedingsUpdateComponent implements OnInit {
 
   getResponsables() {
     this.responsibleService.getAll().subscribe({
-      next: response => {
-        this.responsables.set(response);
+      next: (response: IResponsable[]) => {
+        // 1️⃣ Filtrar solo los activos
+        const activos = response.filter(r => r.estado?.trim().toUpperCase() === 'A');
+
+        // 2️⃣ Incluir al responsable actual si está inactivo (para mantener coherencia del acta)
+        const responsableActual = this.actaData()?.responsable;
+        if (responsableActual && !activos.some(r => r.idResponsable === responsableActual.idResponsable)) {
+          // marcarlo visualmente
+          const inactivo = { ...responsableActual, estado: 'I' as const };
+          activos.push(inactivo);
+        }
+
+        this.responsables.set(activos);
       },
-      error: error => {
-        console.error("Error al cargar responsables:", error);
+      error: (error) => {
+        console.error('Error al cargar responsables:', error);
       }
     });
   }
@@ -589,8 +604,18 @@ export class ProcedingsUpdateComponent implements OnInit {
   }
 
   cancelar() {
-    this.router.navigate(['proceedings']);
-  }
+      const confirmRef = this.dialogModal.open(ConfirmDialogComponent, {
+        width: '350px',
+        data: { mensaje: '¿Deseas cancelar el registro? Los datos ingresados se perderán.' }
+      });
+  
+      confirmRef.afterClosed().subscribe(confirmado => {
+        if (confirmado) {
+          this.formActa.reset();
+          this.router.navigate(['proceedings']);
+        }
+      });
+    }
 
   onSubmit() {
     if (this.formActa.valid) {

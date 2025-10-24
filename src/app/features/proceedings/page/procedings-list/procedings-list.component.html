@@ -10,129 +10,150 @@
 
   <!-- 📊 TABLA -->
   <div class="overflow-x-auto bg-white rounded-xl shadow border border-gray-200">
-    <table class="w-full text-sm border-collapse">
-      <thead>
-        <tr class="bg-gray-100 text-gray-700">
-          @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
-            @for(headerItem of headerGroup.headers; track headerItem.id) {
-              <th
-                scope="col"
-                class="text-left py-3 px-3 font-medium border-b border-gray-300 select-none"
-              >
-                <ng-container
-                  *flexRender="
-                    headerItem.column.columnDef.header;
-                    props: headerItem.getContext();
-                    let header
-                  "
+
+    @if (loading()) {
+      <!-- Loader elegante mientras se cargan las actas -->
+      <div class="flex flex-col items-center justify-center h-56 gap-4 bg-gradient-to-b from-white to-gray-50">
+        <div class="relative">
+          <div class="w-12 h-12 border-4 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <mat-icon class="text-blue-600 text-[22px] animate-pulse">description</mat-icon>
+          </div>
+        </div>
+        <p class="text-gray-600 text-sm font-medium animate-pulse">
+          Cargando actas...
+        </p>
+      </div>
+    }
+    @else if (dataTable) {
+      <table class="w-full text-sm border-collapse">
+        <thead>
+          <tr class="bg-gray-100 text-gray-700">
+            @for (headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
+              @for (headerItem of headerGroup.headers; track headerItem.id) {
+                <th
+                  scope="col"
+                  class="text-left py-3 px-3 font-medium border-b border-gray-300 select-none"
                 >
-                  <button
-                    (click)="onSortingColumn(headerItem.column)"
-                    class="flex items-center justify-between w-full bg-transparent text-left text-gray-700 hover:text-blue-700 transition"
-                    type="button"
-                  >
-                    <span [innerHTML]="sanitizeHtml(header)"></span>
-                    @if (headerItem.column.id !== 'acciones') {
-                      <mat-icon class="text-gray-400 text-base">unfold_more</mat-icon>
-                    }
-                  </button>
-                </ng-container>
-
-                @if (headerItem.column.columnDef.meta?.filterVariant === 'text') {
-                  <app-table-filter [column]="headerItem.column" />
-                }
-              </th>
-            }
-          }
-        </tr>
-      </thead>
-
-      <tbody>
-        @for(row of dataTable.getRowModel().rows; track row.id) {
-          <tr class="hover:bg-blue-50 transition-colors duration-150 border-b border-gray-200">
-            @for(cell of row.getVisibleCells(); track cell.id) {
-              <td class="px-3 py-2 align-middle">
-                @if (cell.column.id === 'acciones') {
-                  <div class="flex justify-center gap-2">
-                    <!-- ✏️ Editar -->
-                    <button
-                      type="button"
-                      (click)="update(row)"
-                      matTooltip="Editar acta"
-                      class="text-green-600 hover:text-green-800 transition"
-                    >
-                      <mat-icon>edit</mat-icon>
-                    </button>
-                  </div>
-                } @else {
                   <ng-container
-                    *flexRender="
-                      cell.column.columnDef.cell;
-                      props: cell.getContext();
-                      let cell
-                    "
+                    *flexRender="headerItem.column.columnDef.header; props: headerItem.getContext(); let header"
                   >
-                    <div [innerHTML]="sanitizeHtml(cell)"></div>
+                    <button
+                      (click)="onSortingColumn(headerItem.column)"
+                      class="flex items-center justify-between w-full bg-transparent text-left text-gray-700 hover:text-blue-700 transition"
+                      type="button"
+                    >
+                      <span [innerHTML]="sanitizeHtml(header)"></span>
+                      @if (headerItem.column.id !== 'acciones') {
+                        <mat-icon class="text-gray-400 text-base">unfold_more</mat-icon>
+                      }
+                    </button>
                   </ng-container>
-                }
-              </td>
+
+                  @if (headerItem.column.columnDef.meta?.filterVariant === 'text') {
+                    <app-table-filter [column]="headerItem.column" />
+                  }
+                </th>
+              }
             }
           </tr>
-        }
+        </thead>
 
-        @if (dataTable.getRowModel().rows.length === 0) {
-          <tr>
-            <td colspan="100%" class="text-center py-8 text-gray-500 italic">
-              ⚠️ No hay actas registradas.
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+        <tbody>
+          @for (row of dataTable.getRowModel().rows; track row.id) {
+            <tr class="hover:bg-blue-50 transition-colors duration-150 border-b border-gray-200">
+              @for (cell of row.getVisibleCells(); track cell.id) {
+                <td class="px-3 py-2 align-middle">
+                  @if (cell.column.id === 'acciones') {
+                    <div class="flex justify-center gap-2">
+                      <button
+                        type="button"
+                        (click)="update(row)"
+                        matTooltip="Editar acta"
+                        class="text-green-600 hover:text-green-800 transition"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    </div>
+                  } @else {
+                    <ng-container
+                      *flexRender="cell.column.columnDef.cell; props: cell.getContext(); let cell"
+                    >
+                      <div [innerHTML]="sanitizeHtml(cell)"></div>
+                    </ng-container>
+                  }
+                </td>
+              }
+            </tr>
+          }
+
+          @if (dataTable.getRowModel().rows.length === 0) {
+            <tr>
+              <td colspan="100%" class="text-center py-8 text-gray-500 italic">
+                ⚠️ No hay actas registradas.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+    @else {
+      <div class="flex items-center justify-center h-40 text-gray-500 italic">
+        No se pudo inicializar la tabla.
+      </div>
+    }
+
   </div>
 
   <!-- 📑 PAGINACIÓN -->
-  <footer class="flex flex-col sm:flex-row justify-between items-center mt-5 text-sm text-gray-700">
-    <div class="flex items-center mb-2 sm:mb-0">
-      Mostrando <b class="mx-1">{{ dataTable.getRowModel().rows.length }}</b> de
-      <b class="mx-1">{{ dataTable.getRowCount() }}</b> registros
-    </div>
-
-    <div class="flex flex-wrap items-center gap-3">
-      <span>Página {{ dataTable.getState().pagination.pageIndex + 1 }} de {{ dataTable.getPageCount() }}</span>
-
-      <select
-        (change)="onChangeValueSizePageSelect($event)"
-        class="border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-blue-400"
-      >
-        @for(size of sizePage(); track size) {
-          <option [value]="size" [selected]="size === dataTable.getState().pagination.pageSize">
-            {{ size }} / pág.
-          </option>
-        }
-      </select>
-
-      <div class="flex items-center gap-2">
-        <button
-          [disabled]="!dataTable.getCanPreviousPage()"
-          (click)="dataTable.previousPage()"
-          class="px-4 py-1.5 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 disabled:bg-gray-300 flex items-center gap-1 transition"
-          type="button"
-        >
-          <mat-icon class="text-sm">arrow_back</mat-icon>
-          Anterior
-        </button>
-
-        <button
-          [disabled]="!dataTable.getCanNextPage()"
-          (click)="dataTable.nextPage()"
-          class="px-4 py-1.5 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 disabled:bg-gray-300 flex items-center gap-1 transition"
-          type="button"
-        >
-          Siguiente
-          <mat-icon class="text-sm">arrow_forward</mat-icon>
-        </button>
+  @if (dataTable) {
+    <footer class="flex flex-col sm:flex-row justify-between items-center mt-5 text-sm text-gray-700">
+      <div class="flex items-center mb-2 sm:mb-0">
+        Mostrando
+        <b class="mx-1">{{ dataTable.getRowModel().rows.length }}</b> de
+        <b class="mx-1">{{ dataTable.getRowCount() }}</b> registros
       </div>
-    </div>
-  </footer>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <span>
+          Página {{ dataTable.getState().pagination.pageIndex + 1 }}
+          de {{ dataTable.getPageCount() }}
+        </span>
+
+        <select
+          (change)="onChangeValueSizePageSelect($event)"
+          class="border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-blue-400"
+        >
+          @for (size of sizePage(); track size) {
+            <option [value]="size" [selected]="size === dataTable.getState().pagination.pageSize">
+              {{ size }} / pág.
+            </option>
+          }
+        </select>
+
+        <div class="flex items-center gap-2">
+          <button
+            [disabled]="!dataTable.getCanPreviousPage()"
+            (click)="dataTable.previousPage()"
+            class="px-4 py-1.5 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 disabled:bg-gray-300 flex items-center gap-1 transition"
+            type="button"
+          >
+            <mat-icon class="text-sm">arrow_back</mat-icon>
+            Anterior
+          </button>
+
+          <button
+            [disabled]="!dataTable.getCanNextPage()"
+            (click)="dataTable.nextPage()"
+            class="px-4 py-1.5 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 disabled:bg-gray-300 flex items-center gap-1 transition"
+            type="button"
+          >
+            Siguiente
+            <mat-icon class="text-sm">arrow_forward</mat-icon>
+          </button>
+        </div>
+      </div>
+    </footer>
+  }
+
 </section>

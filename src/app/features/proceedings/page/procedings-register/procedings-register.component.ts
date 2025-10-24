@@ -237,14 +237,17 @@ export class ProcedingsRegisterComponent implements OnInit{
 
   getResponsables() {
     this.responsibleService.getAll().subscribe({
-      next: response => {
-        this.responsables.set(response);
+      next: (response: IResponsable[]) => {
+        // 🔹 Solo responsables activos
+        const activos = response.filter(r => r.estado?.trim().toUpperCase() === 'A');
+        this.responsables.set(activos);
       },
-      error: error => {
-        console.log("Error al traer responsables")
+      error: (error) => {
+        console.error('Error al traer responsables:', error);
       }
     });
   }
+
 
   initFormActa(): void {
     this.formActa = this.fb.group({
@@ -341,9 +344,18 @@ export class ProcedingsRegisterComponent implements OnInit{
     });
   }
 
-  cancelar(){
-    this.formActa.reset();
-    this.router.navigate(['proceedings']);
+  cancelar() {
+    const confirmRef = this.dialogModal.open(ConfirmDialogComponent, {
+      width: '350px',
+      data: { mensaje: '¿Deseas cancelar el registro? Los datos ingresados se perderán.' }
+    });
+
+    confirmRef.afterClosed().subscribe(confirmado => {
+      if (confirmado) {
+        this.formActa.reset();
+        this.router.navigate(['proceedings']);
+      }
+    });
   }
 
   onSubmit() {

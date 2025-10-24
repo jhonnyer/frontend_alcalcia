@@ -80,6 +80,12 @@ export const defaultColumns: ColumnDef<IActa>[] = [
     meta: { filterVariant: 'text' }
   },
   {
+    id: 'numeroDocumento',
+    accessorFn: (row) => row.beneficiario.numeroDocumento,
+    header: 'Documento',
+    meta: { filterVariant: 'text' }
+  },
+  {
     id: 'proyecto',
     accessorFn: (row) => row.proyecto.nombre,
     header: 'Proyecto',

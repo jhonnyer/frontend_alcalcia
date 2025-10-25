@@ -1,5 +1,4 @@
-import { IBeneficiario } from "./beneficiary.models"
-import { IProyecto, EstadoProyecto} from "./proyecto.model"
+import { EstadoProyecto} from "./proyecto.model"
 
 export interface IBeneficiarioProyecto     {
   idBeneficiarioProyecto: number;
@@ -11,6 +10,7 @@ export interface IBeneficiarioProyecto     {
   observaciones: string;
   nombreProyecto: string;
   numDocumentoBeneficiario: string;
+  nombreCompleto: string;
   estadoProyecto: EstadoProyecto;
   nombreNucleo?: string;
   nombreBarrio?: string;

@@ -3,7 +3,6 @@ import { IBeneficiarioProyecto } from '../models/beneficiarioProyecto.model';
 import { environment } from '../../../environments/environment';
 import { Observable, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { PaginatedResponse } from '../models/pagination.model';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
 
 @Injectable({

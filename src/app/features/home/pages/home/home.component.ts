@@ -21,6 +21,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DashboardComponent } from '../../../projects/pages/dashboard-general/dashboard.component';
 import { AlertService } from '../../../../core/services/alert.service';
+import { ProyectosService } from '../../../../core/services/proyectos.service';
+import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
+import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
 
 type ReportKeys =
   | 'global'
@@ -30,7 +33,10 @@ type ReportKeys =
   | 'responsables'
   | 'nucleos'
   | 'actas'
-  | 'productos';
+  | 'productos'
+  | 'proyectos'
+  | 'beneficiariosProyecto';
+  
 
 @Component({
   selector: 'app-home',
@@ -61,6 +67,8 @@ export class HomeComponent implements OnInit{
   private reportes = inject(ReportesService);
   private pdfDashboard = inject(PdfGeneradorDashboardService);
   private alert = inject(AlertService);
+  private proyectosService= inject(ProyectosService);
+  private beneficiarioProyectoService= inject(BeneficiarioProyectoService);
 
   isLoadingPDF = false;
   nucleoId = 1;     // ejemplo: luego puedes asignar dinámicamente
@@ -74,7 +82,9 @@ export class HomeComponent implements OnInit{
     responsables: false,
     nucleos: false,
     actas: false,
-    productos: false
+    productos: false,
+    proyectos: false,
+    beneficiariosProyecto: false
   };
 
   ngOnInit(): void {
@@ -96,7 +106,7 @@ export class HomeComponent implements OnInit{
         // Crear elemento a temporal
         const link = document.createElement('a');
         link.href = url;
-        link.download = `Informe global ${this.getFormattedDate()}.xlsx`;
+        link.download = `Actas por proyecto ${this.getFormattedDate()}.xlsx`;
 
         // Simular click para descargar
         document.body.appendChild(link);
@@ -125,7 +135,7 @@ export class HomeComponent implements OnInit{
         // Crear elemento a temporal
         const link = document.createElement('a');
         link.href = url;
-        link.download = `Informe productos por proyecto ${this.getFormattedDate()}.xlsx`;
+        link.download = `Productos por proyecto ${this.getFormattedDate()}.xlsx`;
 
         // Simular click para descargar
         document.body.appendChild(link);
@@ -323,7 +333,7 @@ export class HomeComponent implements OnInit{
         // Crear el libro de Excel
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Responsables');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Usuarios');
 
         // Ajustar el ancho de las columnas
         const wscols = [
@@ -343,13 +353,13 @@ export class HomeComponent implements OnInit{
         worksheet['!cols'] = wscols;
 
         // Generar el archivo
-        XLSX.writeFile(workbook, `Responsables ${this.getFormattedDate()}.xlsx`);
+        XLSX.writeFile(workbook, `Usuarios del sistema ${this.getFormattedDate()}.xlsx`);
         this.isLoadingReport.responsables = false;
       },
       error: (error) => {
         this.isLoadingReport.responsables = false;
-        console.error('Error al obtener responsables:', error);
-        this.alert.error('Operación fallida','Error al descargar la información de responsables');
+        console.error('Error al obtener usuarios:', error);
+        this.alert.error('Operación fallida','Error al descargar la información de los usuarios');
       }
     });
   }
@@ -397,58 +407,87 @@ export class HomeComponent implements OnInit{
   downloadNucleos() {
     this.isLoadingReport.nucleos = true;
     this.nucleoService.getSimpleAll().subscribe({
-      next: (nucleos) => {
-        // Preparar los datos
-        const data = nucleos.map(nucleo => {
-          const beneficiariosInfo = nucleo.beneficiarios && nucleo.beneficiarios.length > 0
-            ? nucleo.beneficiarios.map(b =>
-                `${b.primerNombre} ${b.segundoNombre || ''} ${b.primerApellido} ${b.segundoApellido || ''} (${b.tipoDocumento}: ${b.numeroDocumento})`
-              ).join('\n')
-            : 'Sin beneficiarios registrados';
+      next: (nucleos: INucleoUpdate[]) => {
+        const data: any[] = [];
 
-          return {
-            'ID Núcleo': nucleo.idNucleo,
-            'Nombre Núcleo': nucleo.nombreNucleo,
-            'Dirección': nucleo.direccion,
-            'Número de Integrantes': nucleo.numeroIntegrantes,
-            'ID Zona': nucleo.idZonaFk,
-            'ID Barrio': nucleo.idBarrioFk,
-            'Beneficiarios': beneficiariosInfo
-          };
+        nucleos.forEach((nucleo) => {
+          if (nucleo.beneficiarios && nucleo.beneficiarios.length > 0) {
+            // 🔹 Una fila por beneficiario
+            nucleo.beneficiarios.forEach((b) => {
+              data.push({
+                'ID Núcleo': nucleo.idNucleo,
+                'Nombre Núcleo': nucleo.nombreNucleo,
+                'Dirección': nucleo.direccion,
+                'Número de Integrantes': nucleo.numeroIntegrantes,
+                'Zona': nucleo.nombreZona || '—',
+                'Barrio': nucleo.nombreBarrio || '—',
+                'Beneficiario': `${b.primerNombre ?? ''} ${b.segundoNombre ?? ''} ${b.primerApellido ?? ''} ${b.segundoApellido ?? ''}`.trim(),
+                'Tipo Documento': b.tipoDocumento || '—',
+                'Número Documento': b.numeroDocumento || '—',
+                'Edad': b.edad ?? '—',
+                'Sexo': b.sexo || '—',
+                'Teléfono': b.telefono || '—',
+                'Email': b.email || '—'
+              });
+            });
+          } else {
+            // 🔹 Núcleo sin beneficiarios
+            data.push({
+              'ID Núcleo': nucleo.idNucleo,
+              'Nombre Núcleo': nucleo.nombreNucleo,
+              'Dirección': nucleo.direccion,
+              'Número de Integrantes': nucleo.numeroIntegrantes,
+              'Zona': nucleo.nombreZona || '—',
+              'Barrio': nucleo.nombreBarrio || '—',
+              'Beneficiario': 'Sin beneficiarios registrados',
+              'Tipo Documento': '—',
+              'Número Documento': '—',
+              'Edad': '—',
+              'Sexo': '—',
+              'Teléfono': '—',
+              'Email': '—'
+            });
+          }
         });
 
-        // Crear la hoja
+        // 📘 Crear hoja Excel
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Núcleos Familiares');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Núcleos y Beneficiarios');
 
-        // Ajustar el ancho de las columnas
-        const wscols = [
+        // 📏 Ajustar columnas
+        worksheet['!cols'] = [
           { wch: 10 },  // ID Núcleo
-          { wch: 20 },  // Nombre Núcleo
+          { wch: 25 },  // Nombre Núcleo
           { wch: 35 },  // Dirección
-          { wch: 15 },  // Número de Integrantes
-          { wch: 10 },  // ID Zona
-          { wch: 10 },  // ID Barrio
-          { wch: 60 }   // Beneficiarios
+          { wch: 20 },  // Nº Integrantes
+          { wch: 25 },  // Zona
+          { wch: 25 },  // Barrio
+          { wch: 35 },  // Beneficiario
+          { wch: 18 },  // Tipo Documento
+          { wch: 20 },  // Número Documento
+          { wch: 8 },   // Edad
+          { wch: 10 },  // Sexo
+          { wch: 15 },  // Teléfono
+          { wch: 25 }   // Email
         ];
-        worksheet['!cols'] = wscols;
 
-        // Ajustar altura de filas
-        const wsrows = data.map(() => ({ hpt: 40 })); // altura en puntos
-        worksheet['!rows'] = wsrows;
-
-        // Generar el archivo
-        XLSX.writeFile(workbook, `NucleosFamiliares ${this.getFormattedDate()}.xlsx`);
+        // 📅 Generar archivo
+        const fecha = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(workbook, `Reporte_Nucleos_y_Beneficiarios_${fecha}.xlsx`);
         this.isLoadingReport.nucleos = false;
       },
       error: (error) => {
         this.isLoadingReport.nucleos = false;
         console.error('Error al obtener núcleos familiares:', error);
-        this.alert.error('Operación fallida','Error al descargar la información de núcleos familiares');
+        this.alert.error(
+          'Operación fallida',
+          'Error al descargar la información de núcleos familiares.'
+        );
       }
     });
   }
+
 
   descargarReporte() {
     this.isLoadingPDF = true;
@@ -456,6 +495,104 @@ export class HomeComponent implements OnInit{
           this.pdfDashboard.generateDashboardReport(d);
           this.isLoadingPDF = false;
         });
+  }
+
+  downloadProyectos() {
+    this.isLoadingReport.proyectos = true;
+    this.proyectosService.getAll().subscribe({
+      next: (response) => {
+        const proyectos = response.respuesta.map(p => p.proyecto);
+
+        const data = proyectos.map(p => ({
+          'ID Proyecto': p.idProyecto,
+          'Nombre': p.nombre,
+          'Descripción': p.descripcion || '—',
+          'Estado': p.estado === 'A' ? 'Activo' : 'Inactivo',
+          'Tipo Proyecto': p.tipoProyecto || '—',
+          'Fecha Inicio': p.fechaInicio,
+          'Fecha Fin': p.fechaFin || '—'
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Proyectos');
+
+        worksheet['!cols'] = [
+          { wch: 10 },
+          { wch: 25 },
+          { wch: 40 },
+          { wch: 15 },
+          { wch: 25 },
+          { wch: 15 },
+          { wch: 15 }
+        ];
+
+        XLSX.writeFile(workbook, `Proyectos_${this.getFormattedDate()}.xlsx`);
+        this.isLoadingReport.proyectos = false;
+      },
+      error: (error) => {
+        this.isLoadingReport.proyectos = false;
+        console.error('Error al obtener proyectos:', error);
+        this.alert.error('Operación fallida','Error al descargar el reporte de proyectos');
+      }
+    });
+  }
+
+  downloadBeneficiariosPorProyecto() {
+    this.isLoadingReport.beneficiariosProyecto = true;
+
+    this.beneficiarioProyectoService.getAll().subscribe({
+      next: (response) => {
+        const beneficiariosProyecto = response; // ya viene como lista del DTO
+
+        if (!beneficiariosProyecto || beneficiariosProyecto.length === 0) {
+          this.alert.info('Sin datos', 'No se encontraron beneficiarios asignados a proyectos.');
+          this.isLoadingReport.beneficiariosProyecto = false;
+          return;
+        }
+
+        const data = beneficiariosProyecto.map(bp => ({
+          'ID Relación': bp.idBeneficiarioProyecto,
+          'Proyecto': bp.nombreProyecto,
+          'Estado Proyecto': bp.estadoProyecto === 'A' ? 'Activo' : 'Inactivo',
+          'Beneficiario': bp.nombreCompleto,
+          'Documento': bp.numDocumentoBeneficiario,
+          'Núcleo Familiar': bp.nombreNucleo || '—',
+          'Barrio': bp.nombreBarrio || '—',
+          'Beneficiario Activo': bp.esBeneficiarioActivo ? 'Sí' : 'No',
+          'Fecha Inicio': bp.fechaInicio || '—',
+          'Fecha Fin': bp.fechaFin || '—',
+          'Observaciones': bp.observaciones || '—'
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Beneficiarios_Proyecto');
+
+        worksheet['!cols'] = [
+          { wch: 12 }, // ID
+          { wch: 25 }, // Proyecto
+          { wch: 15 }, // Estado Proyecto
+          { wch: 30 }, // Beneficiario
+          { wch: 20 }, // Documento
+          { wch: 20 }, // Núcleo Familiar
+          { wch: 20 }, // Barrio
+          { wch: 8 },  // Activo
+          { wch: 15 }, // Fecha Inicio
+          { wch: 15 }, // Fecha Fin
+          { wch: 40 }  // Observaciones
+        ];
+
+        // generar archivo
+        XLSX.writeFile(workbook, `Beneficiarios_por_Proyecto_${this.getFormattedDate()}.xlsx`);
+        this.isLoadingReport.beneficiariosProyecto = false;
+      },
+      error: (error) => {
+        this.isLoadingReport.beneficiariosProyecto = false;
+        console.error('Error al obtener beneficiarios por proyecto:', error);
+        this.alert.error('Operación fallida','Error al descargar el reporte de beneficiarios por proyecto');
+      }
+    });
   }
 
 }

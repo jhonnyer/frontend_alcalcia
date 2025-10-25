@@ -82,6 +82,83 @@
                 px-3 sm:px-5"
           *hasRole="['ADMIN', 'RESP']"
         >
+          <!-- Proyectos -->
+          <div (click)="!isLoadingReport.proyectos && downloadProyectos()"
+              class="report-card"
+              [class.opacity-60]="isLoadingReport.proyectos">
+            <div class="report-icon-box bg-gradient-to-tr from-blue-600 to-blue-400 shadow-blue-500/40">
+              <div *ngIf="isLoadingReport.proyectos; else iconProyectos" class="loading-icon">
+                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+              </div>
+              <ng-template #iconProyectos><mat-icon class="report-icon">work_outline</mat-icon></ng-template>
+            </div>
+            <div class="p-4 text-right">
+              <p class="text-sm text-blue-gray-600">
+                @if(isLoadingReport.proyectos){ Generando... }@else{ 1. Proyectos }
+              </p>
+            </div>
+          </div>
+
+          <!-- Productos Proyectos -->
+          <div (click)="!isLoadingReport.productProject && downloadProductProjectReport()"
+              class="report-card"
+              [class.opacity-60]="isLoadingReport.productProject">
+            <div class="report-icon-box bg-gradient-to-tr from-sky-600 to-blue-400 shadow-blue-500/40">
+              <div *ngIf="isLoadingReport.productProject; else iconProyectos" class="loading-icon">
+                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+              </div>
+              <ng-template #iconProyectos><mat-icon class="report-icon">workspaces</mat-icon></ng-template>
+            </div>
+            <div class="p-4 text-right">
+              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.productProject){ Generando... }@else{ 2. Productos por Proyecto }</p>
+            </div>
+          </div>
+
+          <!-- Núcleos -->
+          <div (click)="!isLoadingReport.nucleos && downloadNucleos()"
+              class="report-card"
+              [class.opacity-60]="isLoadingReport.nucleos">
+            <div class="report-icon-box bg-gradient-to-tr from-violet-600 to-violet-400 shadow-violet-500/40">
+              <div *ngIf="isLoadingReport.nucleos; else iconNucleos" class="loading-icon">
+                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+              </div>
+              <ng-template #iconNucleos><mat-icon class="report-icon">home_work</mat-icon></ng-template>
+            </div>
+            <div class="p-4 text-right">
+              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.nucleos){ Generando... }@else{ 3. Núcleos Familiares}</p>
+            </div>
+          </div>
+
+          <!-- Productos -->
+          <div (click)="!isLoadingReport.productos && downloadProductos()"
+              class="report-card"
+              [class.opacity-60]="isLoadingReport.productos">
+            <div class="report-icon-box bg-gradient-to-tr from-green-600 to-green-400 shadow-green-500/40">
+              <div *ngIf="isLoadingReport.productos; else iconProd" class="loading-icon">
+                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+              </div>
+              <ng-template #iconProd><mat-icon class="report-icon">inventory_2</mat-icon></ng-template>
+            </div>
+            <div class="p-4 text-right">
+              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.productos){ Generando... }@else{ 4. Productos }</p>
+            </div>
+          </div>
+
+          <!-- Actas -->
+          <div (click)="!isLoadingReport.actas && downloadActas()"
+              class="report-card"
+              [class.opacity-60]="isLoadingReport.actas">
+            <div class="report-icon-box bg-gradient-to-tr from-indigo-600 to-blue-400 shadow-blue-500/40">
+              <div *ngIf="isLoadingReport.actas; else iconActas" class="loading-icon">
+                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+              </div>
+              <ng-template #iconActas><mat-icon class="report-icon">description</mat-icon></ng-template>
+            </div>
+            <div class="p-4 text-right">
+              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.actas){ Generando... }@else{ 5. Actas }</p>
+            </div>
+          </div>
+
           <!-- 🌐 Reporte Global -->
           <div (click)="!isLoadingReport.global && downloadGlobalReport()"
               class="report-card"
@@ -93,26 +170,28 @@
               <ng-template #iconGlobal><mat-icon class="report-icon">language</mat-icon></ng-template>
             </div>
             <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.global){ Generando... }@else{ Reporte global }</p>
+              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.global){ Generando... }@else{ 6. Actas por Proyecto }</p>
             </div>
           </div>
 
-          <!-- 🧩 Proyectos -->
-          <div (click)="!isLoadingReport.productProject && downloadProductProjectReport()"
+                    <!-- Beneficiarios por Proyecto -->
+          <div (click)="!isLoadingReport.beneficiariosProyecto && downloadBeneficiariosPorProyecto()"
               class="report-card"
-              [class.opacity-60]="isLoadingReport.productProject">
-            <div class="report-icon-box bg-gradient-to-tr from-sky-600 to-blue-400 shadow-blue-500/40">
-              <div *ngIf="isLoadingReport.productProject; else iconProyectos" class="loading-icon">
+              [class.opacity-60]="isLoadingReport.beneficiariosProyecto">
+            <div class="report-icon-box bg-gradient-to-tr from-orange-600 to-orange-400 shadow-orange-500/40">
+              <div *ngIf="isLoadingReport.beneficiariosProyecto; else iconBP" class="loading-icon">
                 <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
               </div>
-              <ng-template #iconProyectos><mat-icon class="report-icon">workspaces</mat-icon></ng-template>
+              <ng-template #iconBP><mat-icon class="report-icon">assignment_ind</mat-icon></ng-template>
             </div>
             <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.productProject){ Generando... }@else{ Proyectos }</p>
+              <p class="text-sm text-blue-gray-600">
+                @if(isLoadingReport.beneficiariosProyecto){ Generando... }@else{ 7. Beneficiarios por Proyecto }
+              </p>
             </div>
           </div>
-
-          <!-- 👥 Beneficiarios -->
+          
+          <!-- Beneficiarios -->
           <div (click)="!isLoadingReport.beneficiarios && downloadBeneficiarios()"
               class="report-card"
               [class.opacity-60]="isLoadingReport.beneficiarios">
@@ -123,11 +202,11 @@
               <ng-template #iconBenef><mat-icon class="report-icon">groups</mat-icon></ng-template>
             </div>
             <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.beneficiarios){ Generando... }@else{ Beneficiarios }</p>
+              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.beneficiarios){ Generando... }@else{8. Beneficiarios }</p>
             </div>
           </div>
 
-          <!-- 🗂️ Categorías -->
+          <!-- Categorías -->
           <div (click)="!isLoadingReport.categorias && downloadCategorias()"
               class="report-card"
               [class.opacity-60]="isLoadingReport.categorias">
@@ -138,11 +217,11 @@
               <ng-template #iconCategorias><mat-icon class="report-icon">category</mat-icon></ng-template>
             </div>
             <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.categorias){ Generando... }@else{ Categorías }</p>
+              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.categorias){ Generando... }@else{ 9. Categorías }</p>
             </div>
           </div>
 
-          <!-- 🪪 Responsables -->
+          <!-- Usuarios -->
           <div (click)="!isLoadingReport.responsables && downloadResponsables()"
               class="report-card"
               [class.opacity-60]="isLoadingReport.responsables">
@@ -153,54 +232,10 @@
               <ng-template #iconResp><mat-icon class="report-icon">badge</mat-icon></ng-template>
             </div>
             <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.responsables){ Generando... }@else{ Responsables }</p>
+              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.responsables){ Generando... }@else{ 10. Usuarios del sistema }</p>
             </div>
           </div>
 
-          <!-- 🏘️ Núcleos -->
-          <div (click)="!isLoadingReport.nucleos && downloadNucleos()"
-              class="report-card"
-              [class.opacity-60]="isLoadingReport.nucleos">
-            <div class="report-icon-box bg-gradient-to-tr from-violet-600 to-violet-400 shadow-violet-500/40">
-              <div *ngIf="isLoadingReport.nucleos; else iconNucleos" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
-              </div>
-              <ng-template #iconNucleos><mat-icon class="report-icon">home_work</mat-icon></ng-template>
-            </div>
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.nucleos){ Generando... }@else{ Núcleos }</p>
-            </div>
-          </div>
-
-          <!-- 📄 Actas -->
-          <div (click)="!isLoadingReport.actas && downloadActas()"
-              class="report-card"
-              [class.opacity-60]="isLoadingReport.actas">
-            <div class="report-icon-box bg-gradient-to-tr from-indigo-600 to-blue-400 shadow-blue-500/40">
-              <div *ngIf="isLoadingReport.actas; else iconActas" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
-              </div>
-              <ng-template #iconActas><mat-icon class="report-icon">description</mat-icon></ng-template>
-            </div>
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.actas){ Generando... }@else{ Actas }</p>
-            </div>
-          </div>
-
-          <!-- 📦 Productos -->
-          <div (click)="!isLoadingReport.productos && downloadProductos()"
-              class="report-card"
-              [class.opacity-60]="isLoadingReport.productos">
-            <div class="report-icon-box bg-gradient-to-tr from-green-600 to-green-400 shadow-green-500/40">
-              <div *ngIf="isLoadingReport.productos; else iconProd" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
-              </div>
-              <ng-template #iconProd><mat-icon class="report-icon">inventory_2</mat-icon></ng-template>
-            </div>
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.productos){ Generando... }@else{ Productos }</p>
-            </div>
-          </div>
         </div> 
       </div>
     </mat-tab>

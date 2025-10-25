@@ -10,6 +10,7 @@ import { defaultColumns } from './beneficiario-proyecto-columns-definitions';
 import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProyecto.model';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { PdfBeneficiariosProyectoService } from '../../../../shared/components/pdf/pdf-beneficiarios-proyecto.service';
 
 
 @Component({
@@ -34,6 +35,7 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   injector = inject(Injector);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
+  private pdfService = inject(PdfBeneficiariosProyectoService);
   data = signal<IBeneficiarioProyecto[]>([]);
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -128,5 +130,13 @@ export class BeneficiarioProyectoListComponent implements OnInit {
  
   sanitizeHtml(content: string): SafeHtml {
    return this.sanitizer.bypassSecurityTrustHtml(content);
+  }
+
+  exportarBeneficiariosPorProyecto() {
+    if (!this.data() || this.data().length === 0) {
+      console.warn('No hay datos para exportar');
+      return;
+    }
+    this.pdfService.generarReporte(this.data());
   }
 }

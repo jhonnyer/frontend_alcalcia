@@ -127,7 +127,16 @@ export class AddBeneficiaryProjectComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error en la asignación:', error);
-          this.alert.error('Operación fallida','Error al asignar beneficiario al proyecto. Es posible que un miembro del núcleo familiar ya esta asignado a un proyecto.');
+
+          let mensajeBackend = 'Error al asignar beneficiario al proyecto.';
+
+          if (error.error?.mensaje) {
+            mensajeBackend = error.error.mensaje;
+          } else if (typeof error.error === 'string') {
+            mensajeBackend = error.error;
+          }
+
+          this.alert.error('Operación fallida', mensajeBackend);
         }
       });
     } else {

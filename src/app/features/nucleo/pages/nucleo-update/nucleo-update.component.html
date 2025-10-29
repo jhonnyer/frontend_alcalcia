@@ -5,7 +5,7 @@
     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
       <!-- 🔹 Header con título y botones en línea -->
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 class="text-base font-semibold text-gray-700">Información del núcleo</h2>
+        <h2 class="text-base font-semibold text-gray-700">Información del Actor social</h2>
         <div class="flex gap-2">
           <button mat-flat-button color="primary" type="submit" class="px-3 py-1.5 text-sm">
             Guardar
@@ -59,8 +59,8 @@
 
         <!-- Nombre núcleo -->
         <div class="w-full md:w-[49%]">
-          <label for="nombreNucleo" class="label-base">* Nombre núcleo</label>
-          <input formControlName="nombreNucleo" type="text" id="nombreNucleo" class="input-base" placeholder="Nombre núcleo" />
+          <label for="nombreNucleo" class="label-base">* Nombre Actor Social</label>
+          <input formControlName="nombreNucleo" type="text" id="nombreNucleo" class="input-base" placeholder="Nombre actor social" />
           @if(formFamilyCore.get('nombreNucleo')?.invalid && formFamilyCore.get('nombreNucleo')?.touched) {
             <p class="text-red-500 text-sm">* Este campo es requerido</p>
           }
@@ -136,7 +136,7 @@
       <!-- Si no hay beneficiarios → mostramos aviso -->
       <ng-template #noBeneficiarios>
         <p class="text-gray-500 text-sm italic text-center py-6">
-          ⚠️ No hay beneficiarios activos para este núcleo.
+          ⚠️ No hay beneficiarios activos para este actor social.
         </p>
       </ng-template>
 

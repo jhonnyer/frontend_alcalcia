@@ -167,7 +167,7 @@ export class DashboardComponent implements OnInit {
             actas: []
           };
         },
-        error: (err) => console.error('Error cargando núcleo', err)
+        error: (err) => console.error('Error cargando actor social', err)
       });
     }
 
@@ -295,7 +295,7 @@ export class DashboardComponent implements OnInit {
 
       // 📁 Nombre del archivo con nombre del núcleo
       const nombreNucleo = this.nucleo?.nombreNucleo?.trim().replace(/\s+/g, '_') || 'SinNombre';
-      pdf.save(`nucleoFamiliar-${nombreNucleo}.pdf`);
+      pdf.save(`actorSocial-${nombreNucleo}.pdf`);
     } catch (error) {
       console.error('Error al exportar PDF:', error);
     } finally {

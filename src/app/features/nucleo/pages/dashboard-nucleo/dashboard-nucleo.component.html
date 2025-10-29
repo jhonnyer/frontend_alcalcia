@@ -13,7 +13,7 @@
   <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
     <h1 class="text-2xl font-bold text-gray-700 flex items-center gap-2">
       <mat-icon color="primary">leaderboard</mat-icon>
-      Núcleo familiar:
+      Actor Social:
       <span class="text-blue-700">{{ nucleo?.nombreNucleo || 'Sin nombre' }}</span>
     </h1>
 
@@ -29,7 +29,7 @@
     </div>
   </div>
 
-  <!-- === INFORMACIÓN GENERAL DEL NÚCLEO === -->
+  <!-- === INFORMACIÓN GENERAL DEL ACTOR SOCIAL === -->
   <div *ngIf="nucleo" class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-gray-700">
     <mat-card class="p-4 border border-gray-200 shadow-sm">
       <div class="text-sm text-gray-500">Zona</div>
@@ -103,7 +103,7 @@
         <div class="flex flex-col items-center justify-center py-8 px-4 text-gray-500">
           <mat-icon color="warn" class="!text-5xl mb-2">inventory_2</mat-icon>
           <p class="text-lg font-semibold text-gray-700">Sin actas entregadas</p>
-          <p class="text-sm text-gray-500">Este núcleo familiar aún no tiene actas con productos asignados.</p>
+          <p class="text-sm text-gray-500">Este actor social no tiene actas con productos asignados.</p>
         </div>
       </ng-template>
     </mat-card>

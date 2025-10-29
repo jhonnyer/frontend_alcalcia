@@ -20,7 +20,7 @@ export const defaultColumns: ColumnDef<INucleoUpdate>[] = [
     id: 'nombreZona',
     accessorFn: (row) => row.nombreZona,
     cell: info => info.getValue(),
-    header: 'Nombre zona',
+    header: 'Zona',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },
@@ -28,7 +28,7 @@ export const defaultColumns: ColumnDef<INucleoUpdate>[] = [
     id: 'nombreBarrio',
     accessorFn: (row) => row.nombreBarrio,
     cell: info => info.getValue(),
-    header: 'Nombre barrio',
+    header: 'Barrio',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },
@@ -36,7 +36,7 @@ export const defaultColumns: ColumnDef<INucleoUpdate>[] = [
     id: 'numeroIntegrantes',
     accessorFn: (row) => row.numeroIntegrantes,
     cell: info => info.getValue(),
-    header: 'Número de integrantes',
+    header: 'Número integrantes',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },
@@ -52,7 +52,7 @@ export const defaultColumns: ColumnDef<INucleoUpdate>[] = [
     id: 'nombreNucleo',
     accessorFn: (row) => row.nombreNucleo,
     cell: info => info.getValue(),
-    header: 'Nombre núcleo',
+    header: 'Actor social',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },

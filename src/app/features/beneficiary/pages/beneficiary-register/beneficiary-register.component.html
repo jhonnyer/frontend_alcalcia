@@ -47,13 +47,13 @@
       </div>
 
       <div class="w-full md:w-[49%]">
-        <label for="nombreNucleo" class="label-base">*Nombre núcleo familiar</label>
+        <label for="nombreNucleo" class="label-base">*Nombre Actor Social</label>
         <input
           formControlName="nombreNucleo"
           type="text"
           id="nombreNucleo"
           class="input-base"
-          placeholder="nombreNucleo"
+          placeholder="Actor social"
         >
         @if(formFamilyCore.get('nombreNucleo')?.hasError('required') && formFamilyCore.get('nombreNucleo')?.touched) {
           <p class="text-red-500">

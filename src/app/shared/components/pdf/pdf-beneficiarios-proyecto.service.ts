@@ -68,7 +68,7 @@ export class PdfBeneficiariosProyectoService {
                 { text: 'Nombre Completo', style: 'tableHeader' },
                 { text: 'Documento', style: 'tableHeader' },
                 { text: 'Estado', style: 'tableHeader' },
-                { text: 'Núcleo Familiar', style: 'tableHeader' },
+                { text: 'Actor Social', style: 'tableHeader' },
                 { text: 'Barrio', style: 'tableHeader' },
                 { text: 'Observaciones', style: 'tableHeader' },
                 ],

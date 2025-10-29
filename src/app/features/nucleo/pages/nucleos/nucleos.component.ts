@@ -55,7 +55,7 @@ export class NucleosComponent implements OnInit{
   public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Gestión de núcleos familiares');
+    this.pageTitleService.setCurrentPage('Gestión de actores sociales');
     this.getAll();
   }
 
@@ -155,7 +155,7 @@ export class NucleosComponent implements OnInit{
     // 1️⃣ Confirmación
     const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
       width: '350px',
-      data: { mensaje: `¿Estás seguro de eliminar el núcleo "${row.original.nombreNucleo}" y todos sus beneficiarios?` }
+      data: { mensaje: `¿Estás seguro de eliminar el actor "${row.original.nombreNucleo}" y todos sus beneficiarios?` }
     });
 
     const confirmado = await firstValueFrom(dialogRef.afterClosed());
@@ -172,7 +172,7 @@ export class NucleosComponent implements OnInit{
     for (let i = 0; i < results.length; i++) {
       if (results[i] > 0) {
         this.snackBar.open(
-          `❌ El núcleo no puede eliminarse porque el beneficiario "${beneficiarios[i].primerNombre} ${beneficiarios[i].primerApellido}" tiene actas asociadas.`,
+          `❌ El actor no puede eliminarse porque el beneficiario "${beneficiarios[i].primerNombre} ${beneficiarios[i].primerApellido}" tiene actas asociadas.`,
           'Cerrar',
           { duration: 5000 }
         );
@@ -191,15 +191,15 @@ export class NucleosComponent implements OnInit{
       }
     }
 
-    // 4️⃣ Ahora sí eliminamos el núcleo
+    // eliminamos el núcleo
     this.nucleoService.deleteById(idNucleo.toString()).subscribe({
       next: () => {
-        this.snackBar.open('✅ Núcleo y beneficiarios eliminados correctamente.', 'Cerrar', { duration: 3000 });
+        this.snackBar.open('✅ Actor social y beneficiarios eliminados correctamente.', 'Cerrar', { duration: 3000 });
         this.getAll(); // 🔄 refrescar tabla
       },
       error: (err) => {
         console.error('Error eliminando núcleo:', err);
-        this.snackBar.open('❌ Error al eliminar núcleo.', 'Cerrar', { duration: 3000 });
+        this.snackBar.open('❌ Error al eliminar el actor.', 'Cerrar', { duration: 3000 });
       }
     });
   }

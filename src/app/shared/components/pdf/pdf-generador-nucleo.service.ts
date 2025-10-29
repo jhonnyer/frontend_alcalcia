@@ -22,12 +22,12 @@ export class PdfGeneradorNucleoService {
         this.encabezado(logo),
 
         { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-        { text: '\nREPORTE DETALLADO DEL NÚCLEO FAMILIAR', style: 'header' },
+        { text: '\nREPORTE DETALLADO DEL ACTOR SOCIAL', style: 'header' },
         { text: '\n' },
         this.generateNucleoInfoTable(detalle),
         { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
 
-        { text: '\n Beneficiarios del Núcleo', style: 'subheader' },
+        { text: '\n Beneficiarios', style: 'subheader' },
         this.generateBeneficiariosTable(detalle.beneficiariosNucleo || []),
         { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
 
@@ -215,7 +215,7 @@ export class PdfGeneradorNucleoService {
       table: {
         widths: ['30%', '70%'],
         body: [
-          ['Nombre del Núcleo:', detalle.nombreNucleo || '—'],
+          ['Nombre del Actor Social:', detalle.nombreNucleo || '—'],
           ['Dirección:', detalle.direccion || '—'],
           ['Zona:', detalle.nombreZona || '—'],
           ['Barrio:', detalle.nombreBarrio || '—'],
@@ -278,8 +278,8 @@ export class PdfGeneradorNucleoService {
           [
             { text: 'Beneficiario', style: 'tableHeader' },
             { text: 'Proyecto', style: 'tableHeader' },
-            { text: 'Estado', style: 'tableHeader' },
-            { text: 'Activo', style: 'tableHeader' },
+            { text: 'Estado Proyecto', style: 'tableHeader' },
+            { text: 'Asignación Proyecto', style: 'tableHeader' },
           ],
           ...beneficiariosProyecto.map(bp => [
             bp.nombreCompleto,

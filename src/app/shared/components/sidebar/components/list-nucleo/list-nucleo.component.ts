@@ -19,8 +19,8 @@ export class ListNucleoComponent {
   activeMenu: boolean = false;
   @Input() collapsed = false;
   menuItems = [
-    { label: 'a. Registrar Núcleo Familiar', link: 'nucleo/register'},
-    { label: 'b. Núcleos Familiares', link: '/nucleo'},
+    { label: 'a. Registrar Actor Social', link: 'nucleo/register'},
+    { label: 'b. Actores Sociales', link: '/nucleo'},
   ];
 
   toggleMenu() {

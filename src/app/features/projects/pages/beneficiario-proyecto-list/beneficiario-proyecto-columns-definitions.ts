@@ -39,7 +39,7 @@ export const defaultColumns: ColumnDef<IBeneficiarioProyecto>[] = [
     id: 'nombreNucleo',
     accessorFn: (row) => row.nombreNucleo,
     cell: (info) => info.getValue() || '—',
-    header: 'Núcleo',
+    header: 'Actor Social',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' },
   },

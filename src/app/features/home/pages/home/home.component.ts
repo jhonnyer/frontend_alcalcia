@@ -176,7 +176,7 @@ export class HomeComponent implements OnInit{
           'Teléfono': b.telefono,
           'Email': b.email,
           'Estado': b.esVivo ? 'Vivo' : 'Fallecido',
-          'ID Núcleo': b.nombreNucleo
+          'Actor Social': b.nombreNucleo
         }));
 
         // Crear el libro de Excel
@@ -415,8 +415,8 @@ export class HomeComponent implements OnInit{
             // 🔹 Una fila por beneficiario
             nucleo.beneficiarios.forEach((b) => {
               data.push({
-                'ID Núcleo': nucleo.idNucleo,
-                'Nombre Núcleo': nucleo.nombreNucleo,
+                'ID Actor': nucleo.idNucleo,
+                'Actor Social': nucleo.nombreNucleo,
                 'Dirección': nucleo.direccion,
                 'Número de Integrantes': nucleo.numeroIntegrantes,
                 'Zona': nucleo.nombreZona || '—',
@@ -431,10 +431,10 @@ export class HomeComponent implements OnInit{
               });
             });
           } else {
-            // 🔹 Núcleo sin beneficiarios
+            // 🔹 Actores sin beneficiarios
             data.push({
-              'ID Núcleo': nucleo.idNucleo,
-              'Nombre Núcleo': nucleo.nombreNucleo,
+              'ID Actor Social': nucleo.idNucleo,
+              'Nombre Actor Social': nucleo.nombreNucleo,
               'Dirección': nucleo.direccion,
               'Número de Integrantes': nucleo.numeroIntegrantes,
               'Zona': nucleo.nombreZona || '—',
@@ -453,12 +453,12 @@ export class HomeComponent implements OnInit{
         // 📘 Crear hoja Excel
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Núcleos y Beneficiarios');
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Actores y Beneficiarios');
 
         // 📏 Ajustar columnas
         worksheet['!cols'] = [
-          { wch: 10 },  // ID Núcleo
-          { wch: 25 },  // Nombre Núcleo
+          { wch: 10 },  // ID Actor Social
+          { wch: 25 },  // Nombre Actor Social
           { wch: 35 },  // Dirección
           { wch: 20 },  // Nº Integrantes
           { wch: 25 },  // Zona
@@ -474,15 +474,15 @@ export class HomeComponent implements OnInit{
 
         // 📅 Generar archivo
         const fecha = new Date().toISOString().split('T')[0];
-        XLSX.writeFile(workbook, `Reporte_Nucleos_y_Beneficiarios_${fecha}.xlsx`);
+        XLSX.writeFile(workbook, `Reporte_Actores_Sociales_${fecha}.xlsx`);
         this.isLoadingReport.nucleos = false;
       },
       error: (error) => {
         this.isLoadingReport.nucleos = false;
-        console.error('Error al obtener núcleos familiares:', error);
+        console.error('Error al obtener actores sociales:', error);
         this.alert.error(
           'Operación fallida',
-          'Error al descargar la información de núcleos familiares.'
+          'Error al descargar la información de los actores sociales.'
         );
       }
     });
@@ -557,7 +557,7 @@ export class HomeComponent implements OnInit{
           'Estado Proyecto': bp.estadoProyecto === 'A' ? 'Activo' : 'Inactivo',
           'Beneficiario': bp.nombreCompleto,
           'Documento': bp.numDocumentoBeneficiario,
-          'Núcleo Familiar': bp.nombreNucleo || '—',
+          'Actor Social': bp.nombreNucleo || '—',
           'Barrio': bp.nombreBarrio || '—',
           'Beneficiario Activo': bp.esBeneficiarioActivo ? 'Sí' : 'No',
           'Fecha Inicio': bp.fechaInicio || '—',
@@ -575,7 +575,7 @@ export class HomeComponent implements OnInit{
           { wch: 15 }, // Estado Proyecto
           { wch: 30 }, // Beneficiario
           { wch: 20 }, // Documento
-          { wch: 20 }, // Núcleo Familiar
+          { wch: 20 }, // Actor Social
           { wch: 20 }, // Barrio
           { wch: 8 },  // Activo
           { wch: 15 }, // Fecha Inicio

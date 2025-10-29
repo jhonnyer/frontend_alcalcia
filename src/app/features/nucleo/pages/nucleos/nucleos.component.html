@@ -1,7 +1,7 @@
 <section class="h-[calc(100vh-6rem)] overflow-y-auto p-4 bg-gray-50 rounded-xl shadow-sm">
   <!-- HEADER -->
   <header class="flex justify-between items-center mb-3">
-    <h1 class="text-sm font-semibold text-gray-700">📂 Núcleos familiares</h1>
+    <h1 class="text-sm font-semibold text-gray-700">📂 Actores Sociales</h1>
   </header>
 
   <!-- TABLA -->
@@ -47,15 +47,15 @@
               <td class="px-3 py-2">
                 @if(cell.column.id === 'acciones'){
                   <div class="flex gap-2">
-                    <button type="button" (click)="verDashboard(row)" class="text-blue-600 hover:text-blue-800" title="Ver detalle del núcleo">
+                    <button type="button" (click)="verDashboard(row)" class="text-blue-600 hover:text-blue-800" title="Ver detalle del actor social">
                       <mat-icon>bar_chart</mat-icon>
                     </button>
                     <!-- Botón detalles -->
-                    <button type="button" (click)="verDetalle(row)" class="text-blue-600 hover:text-blue-800" title="Ver detalle del núcleo">
+                    <button type="button" (click)="verDetalle(row)" class="text-blue-600 hover:text-blue-800" title="Ver detalle del actor social">
                       <mat-icon>visibility</mat-icon>
                     </button>
                     <!-- Botón editar -->
-                    <button type="button" (click)="update(row)" class="text-green-600 hover:text-green-800" title="Editar núcleo">
+                    <button type="button" (click)="update(row)" class="text-green-600 hover:text-green-800" title="Editar actor social">
                       <mat-icon>edit</mat-icon>
                     </button>
                     <!-- Botón eliminar -->

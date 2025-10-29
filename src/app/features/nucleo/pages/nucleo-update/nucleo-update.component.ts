@@ -57,7 +57,7 @@ import { AlertService } from '../../../../core/services/alert.service';
 })
 export class NucleoUpdateComponent implements OnInit {
   // 👉 dinámico
-  public tituloPagina = 'Registrar núcleo';  
+  public tituloPagina = 'Registrar Actor Social';  
   displayedColumns: string[] = ['nombreCompleto','documento','edad', 'acciones'];
   isNucleoCreado = false;
 
@@ -92,12 +92,12 @@ export class NucleoUpdateComponent implements OnInit {
     this.nucleoID = this.route.snapshot.paramMap.get('id');
 
     if (this.nucleoID) {
-      this.tituloPagina = 'Actualizar núcleo';
+      this.tituloPagina = 'Actualizar actor social';
       this.isNucleoCreado = true;
       this.pageTitleService.setCurrentPage(this.tituloPagina);
       this.getNucleoById(); // carga datos
     } else {
-      this.tituloPagina = 'Registrar núcleo';
+      this.tituloPagina = 'Registrar actor social';
       this.pageTitleService.setCurrentPage(this.tituloPagina);
     }
 
@@ -397,14 +397,14 @@ export class NucleoUpdateComponent implements OnInit {
       });
 
       this.formFamilyCore.markAllAsTouched();
-      this.snackBar.open('⚠️ Verifica los campos del formulario (núcleo o beneficiarios)', 'Cerrar', { duration: 3000 });
+      this.snackBar.open('⚠️ Verifica los campos del formulario (actor social o beneficiarios)', 'Cerrar', { duration: 3000 });
       return;
     }
 
     // 🟢 Si es válido, pedimos confirmación
     const confirmRef = this.dialog.open(ConfirmDialogComponent, {
       width: '350px',
-      data: { mensaje: this.nucleoID ? '¿Desea actualizar este núcleo?' : '¿Desea crear este núcleo?' }
+      data: { mensaje: this.nucleoID ? '¿Desea actualizar este actor social?' : '¿Desea crear este actor?' }
     });
 
     confirmRef.afterClosed().subscribe(confirmado => {
@@ -456,20 +456,20 @@ export class NucleoUpdateComponent implements OnInit {
         this.nucleoService.post(payload).subscribe({
           next: (nuevoNucleo) => {
             const id = nuevoNucleo?.respuesta?.idNucleo;
-            const mensaje = nuevoNucleo?.mensaje || '✅ Núcleo creado con éxito';
+            const mensaje = nuevoNucleo?.mensaje || '✅ Actor social creado con éxito';
 
             if (id) {
               this.snackBar.open(mensaje, 'Cerrar', { duration: 2500 });
               // 🟢 Redirigir directamente a la vista de actualización
               this.router.navigate(['/nucleo/update', id]);
             } else {
-              this.snackBar.open('⚠️ Núcleo creado, pero no se recibió el ID del backend', 'Cerrar', { duration: 4000 });
+              this.snackBar.open('⚠️ Actor social creado, pero no se recibió el ID del backend', 'Cerrar', { duration: 4000 });
               console.warn('Respuesta backend sin ID:', nuevoNucleo);
             }
           },
           error: (err) => {
             console.error('Error al crear núcleo:', err);
-            this.snackBar.open('❌ Error al crear núcleo', 'Cerrar', { duration: 3000 });
+            this.snackBar.open('❌ Error al crear actor social', 'Cerrar', { duration: 3000 });
           }
         });
       }
@@ -477,11 +477,11 @@ export class NucleoUpdateComponent implements OnInit {
         // Actualizar
         this.nucleoService.updateById(this.nucleoID, payload).subscribe({
           next: () => {
-            this.snackBar.open('✅ Núcleo actualizado con éxito', 'Cerrar', { duration: 3000 });
+            this.snackBar.open('✅ Actor social actualizado con éxito', 'Cerrar', { duration: 3000 });
             this.router.navigate(['nucleo']);
           },
           error: () => {
-            this.snackBar.open('❌ Error al actualizar núcleo', 'Cerrar', { duration: 3000 });
+            this.snackBar.open('❌ Error al actualizar el actor social', 'Cerrar', { duration: 3000 });
           }
         });
       }

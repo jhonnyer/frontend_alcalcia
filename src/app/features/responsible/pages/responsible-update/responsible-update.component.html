@@ -137,6 +137,7 @@
             <option value="TI">Tarjeta de identidad</option>
             <option value="PA">Pasaporte</option>
             <option value="CE">Cédula de extranjería</option>
+            <option value="NIT">NIT</option>
           </select>
           @if(formFamilyCore.get('tipoIdentificacion')?.hasError('required') && formFamilyCore.get('tipoIdentificacion')?.touched) {
             <p class="text-red-500 text-sm mt-1">Seleccione un tipo de documento.</p>

@@ -50,8 +50,9 @@
           <select formControlName="tipoDocumento" class="input-base">
             <option value="CC">Cédula de Ciudadanía</option>
             <option value="TI">Tarjeta de Identidad</option>
-            <option value="Pasaporte">Pasaporte</option>
+            <option value="PA">Pasaporte</option>
             <option value="CE">Cédula Extranjera</option>
+            <option value="NIT">NIT</option>
           </select>
           <p *ngIf="beneficiarioForm.get('tipoDocumento')?.hasError('required') && beneficiarioForm.get('tipoDocumento')?.touched"
           class="text-red-500 text-xs">⚠️ El tipo de documento es obligatorio</p>

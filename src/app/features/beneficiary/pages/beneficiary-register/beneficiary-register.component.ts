@@ -51,7 +51,7 @@ export class BeneficiaryRegisterComponent {
       fechaNacimiento: ['', [Validators.required]],
       edad: ['', [Validators.required]],
       etnia: ['', [Validators.required]],
-      email: [''],
+      email: ['', [Validators.pattern(/^[\w._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
       telefono: ['', [Validators.required]],
     });
   }

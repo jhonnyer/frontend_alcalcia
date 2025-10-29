@@ -1,9 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { IBeneficiarioProyecto } from '../models/beneficiarioProyecto.model';
 import { environment } from '../../../environments/environment';
-import { Observable, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
+import { ResponseStandarUnique } from '../models/response.model';
 
 @Injectable({
   providedIn: 'root'
@@ -53,15 +54,21 @@ export class BeneficiarioProyectoService {
   }
 
   post(beneficiarioProyecto: Partial<IBeneficiarioProyecto>): Observable<IBeneficiarioProyecto> {
-    return this.http.post<IBeneficiarioProyecto>(`${this.URL}/beneficiarios-proyectos`, beneficiarioProyecto ,{ context: checkToken() }).pipe(
+    return this.http.post<ResponseStandarUnique<IBeneficiarioProyecto>>(
+      `${this.URL}/beneficiarios-proyectos`,
+      beneficiarioProyecto,
+      { context: checkToken() }
+    ).pipe(
+      map(resp => resp.respuesta), 
       tap(beneficiario => {
-        if(beneficiario.fechaFin){
+        if (beneficiario.fechaFin) {
           beneficiario.fechaFin = this.formatDate(beneficiario.fechaFin);
         }
         beneficiario.fechaInicio = this.formatDate(beneficiario.fechaInicio);
       })
     );
   }
+
 
   updateById(proyectoId: string, beneficiarioProyecto: Partial<IBeneficiarioProyecto>): Observable<IBeneficiarioProyecto> {
     return this.http.put<IBeneficiarioProyecto>(`${this.URL}/beneficiarios-proyectos/${proyectoId}`, beneficiarioProyecto, { context: checkToken() }).pipe(

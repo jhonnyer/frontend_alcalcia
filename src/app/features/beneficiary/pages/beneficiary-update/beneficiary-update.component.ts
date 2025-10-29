@@ -1,10 +1,9 @@
-import { Component, Inject, OnInit, inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
 import { MatIconModule } from '@angular/material/icon';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
@@ -91,7 +90,7 @@ export class BeneficiaryUpdateComponent implements OnInit {
       discapacidad: ['', Validators.required],
       certificadoDiscapacidad: [{ value: '', disabled: true }, Validators.required],
       etnia: ['', Validators.required],
-      email: ['', [Validators.required, Validators.pattern(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)]],
+      email: ['', [Validators.pattern(/^[\w._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
       telefono: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       idNucleoFk: ['']
     });

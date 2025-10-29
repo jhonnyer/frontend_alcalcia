@@ -225,9 +225,9 @@
             <div class="w-full md:w-[49%]">
               <label for="email" class="label-base">Email</label>
               <input formControlName="email" type="email" id="email" class="input-base" placeholder="beneficiario@correo.com">
-              @if(beneficiario.get('email')?.hasError('required') && beneficiario.get('email')?.touched) {
+              @if(beneficiario.get('email')?.hasError('pattern') && beneficiario.get('email')?.touched) {
                 <p class="text-red-500">
-                  * Este campo es requerido
+                  * ⚠️ El formato del correo debe ser válido - ej: correo&#64;gmail.com
                 </p>
               }
             </div>

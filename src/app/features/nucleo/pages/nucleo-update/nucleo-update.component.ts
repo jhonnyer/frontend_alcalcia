@@ -260,7 +260,7 @@ export class NucleoUpdateComponent implements OnInit {
       fechaNacimiento: ['', [Validators.required]],
       edad: ['', [Validators.required]],
       etnia: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.pattern(/^[\w._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
+      email: ['', [Validators.pattern(/^[\w._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
       telefono: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       esVivo: [true, [Validators.required]],
       discapacidad: [false, [Validators.required]],

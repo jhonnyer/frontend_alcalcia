@@ -35,9 +35,9 @@ export class AddBeneficiaryProjectComponent implements OnInit {
 
   searchBeneficiario = new FormControl('', [
     Validators.required,
-    Validators.minLength(6),
-    Validators.maxLength(14),
-    Validators.pattern('^[0-9]*$')
+    Validators.minLength(3),
+    Validators.maxLength(40),
+    Validators.pattern('^[a-zA-Z0-9-\\s]*$') 
   ]);
 
   form: FormGroup = this.fb.group({
@@ -101,8 +101,10 @@ export class AddBeneficiaryProjectComponent implements OnInit {
   private loadProyectos(): void {
     this.proyectosService.getAll().subscribe({
       next: (response) => {
-        // Extraemos los proyectos de la respuesta
-        this.proyectos = response.respuesta.map(item => item.proyecto);
+        // Filtramos solo los proyectos activos
+        this.proyectos = response.respuesta
+          .map(item => item.proyecto)
+          .filter(p => p.estado === 'A');
       },
       error: (error) => {
         console.error('Error al cargar proyectos:', error);

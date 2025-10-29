@@ -9,10 +9,9 @@
         type="text"
         id="buscarBeneficiario"
         class="input-base"
-        placeholder="Ingresa la cedula"
+        placeholder="Ingrese el número de cedula"
         [formControl]="searchBeneficiario"
         min="0"
-        oninput="this.value = Math.abs(this.value)"
       >
       @if(searchBeneficiario.errors && searchBeneficiario.touched){
         @if(searchBeneficiario.hasError('minlength')){
@@ -61,7 +60,7 @@
         <option value="">Seleccione un proyecto</option>
         @for (proyecto of proyectos; track proyecto.idProyecto) {
           <option [value]="proyecto.idProyecto">
-            {{proyecto.nombre}} - {{proyecto.estado === 'A' ? 'Activo' : proyecto.estado === 'I' ? 'Inactivo' : 'Pendiente'}}
+            {{proyecto.nombre}} 
           </option>
         }
       </select>

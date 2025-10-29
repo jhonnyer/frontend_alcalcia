@@ -556,6 +556,7 @@ export class HomeComponent implements OnInit{
           'Proyecto': bp.nombreProyecto,
           'Estado Proyecto': bp.estadoProyecto === 'A' ? 'Activo' : 'Inactivo',
           'Beneficiario': bp.nombreCompleto,
+          'Edad': bp.edadBeneficiario,
           'Documento': bp.numDocumentoBeneficiario,
           'Actor Social': bp.nombreNucleo || '—',
           'Barrio': bp.nombreBarrio || '—',

@@ -11,6 +11,7 @@ export interface IBeneficiarioProyecto     {
   nombreProyecto: string;
   numDocumentoBeneficiario: string;
   nombreCompleto: string;
+  edadBeneficiario: number;
   estadoProyecto: EstadoProyecto;
   nombreNucleo?: string;
   nombreBarrio?: string;

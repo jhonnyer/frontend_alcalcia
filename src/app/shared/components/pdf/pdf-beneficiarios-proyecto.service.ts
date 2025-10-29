@@ -61,11 +61,12 @@ export class PdfBeneficiariosProyectoService {
         },
         {
             table: {
-            widths: ['5%', '25%', '15%', '10%', '15%', '15%', '15%'],
+            widths: ['5%', '26%', '7%','12%', '10%', '12%', '13%', '15%'],
             body: [
                 [
                 { text: '#', style: 'tableHeader' },
                 { text: 'Nombre Completo', style: 'tableHeader' },
+                { text: 'Edad', style: 'tableHeader' },
                 { text: 'Documento', style: 'tableHeader' },
                 { text: 'Estado', style: 'tableHeader' },
                 { text: 'Actor Social', style: 'tableHeader' },
@@ -75,6 +76,7 @@ export class PdfBeneficiariosProyectoService {
                 ...beneficiarios.map((b, i) => [
                 i + 1,
                 b.nombreCompleto || '—',
+                b.edadBeneficiario || '—',
                 b.numDocumentoBeneficiario || '—',
                 b.esBeneficiarioActivo ? 'Activo' : 'Inactivo',
                 b.nombreNucleo || '—',

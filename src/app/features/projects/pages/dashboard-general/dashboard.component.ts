@@ -234,43 +234,39 @@ export class DashboardComponent implements OnInit {
     }
     
 
-  private buildCharts(d: DashboardReport) {
-    const selectedMonth = this.filtroMes();
-    // Pie Población vulnerable
+private buildChartPoblacionVulnerable(d: DashboardReport) {
     const pv = d.poblacionVulnerable;
-    if (pv) {
-      const labels = ['Discapacidad','Víctimas','Menores','Mujeres','LGBTI'];
-      const data = [
-        pv.discapacidad ?? 0,
-        pv.victimas ?? 0,
-        // el backend envía "menoresEdad"
-        (pv as any).menoresEdad ?? 0,
-        pv.mujeres ?? 0,
-        pv.lgbti ?? 0
-      ];
-      this.chartPVData = { labels, datasets: [{ data, backgroundColor: ['#10b981','#f59e0b','#3b82f6','#8b5cf6','#ef4444'] }] };
-    }
+    if (!pv) return;
+    const labels = ['Discapacidad','Víctimas','Menores','Mujeres','LGBTI'];
+    const data = [
+      pv.discapacidad ?? 0,
+      pv.victimas ?? 0,
+      (pv as any).menoresEdad ?? 0,
+      pv.mujeres ?? 0,
+      pv.lgbti ?? 0
+    ];
+    this.chartPVData = {
+      labels,
+      datasets: [{ data, backgroundColor: ['#10b981','#f59e0b','#3b82f6','#8b5cf6','#ef4444'] }]
+    };
+  }
 
-    // Barras Actas por mes (agrupadas por estado)
+  private buildChartActasPorMes(d: DashboardReport) {
     const porMes = d.actasPorMes ?? [];
-
-    // 🟦 Filtrar por año si aplica
     const selectedYear = this.filtroAnio();
+    const selectedMonth = this.filtroMes();
+
     const filteredPorMes = porMes.filter(x =>
       (selectedYear === 'ALL' || x.anio === selectedYear) &&
       (selectedMonth === 'ALL' || x.mes === selectedMonth)
     );
 
-
-    // 🟩 Extraer labels (YYYY-MM)
     const labelsMes = Array.from(
       new Set(filteredPorMes.map(x => `${x.anio}-${String(x.mes).padStart(2, '0')}`))
     ).sort();
 
-    // 🟨 Si hay demasiados meses, mostrar los últimos 12
     const visibleLabels = labelsMes.length > 5 ? labelsMes.slice(-5) : labelsMes;
 
-    // 🟧 Etiquetas legibles para el eje X (abreviadas)
     const etiquetasLegibles = visibleLabels.map(l => {
       const [anio, mes] = l.split('-');
       const date = new Date(Number(anio), Number(mes) - 1);
@@ -278,10 +274,7 @@ export class DashboardComponent implements OnInit {
       return `${shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1)}-${anio.slice(-2)}`;
     });
 
-    // 🟦 Estados únicos
     const estados = Array.from(new Set(filteredPorMes.map(x => x.estado))).sort();
-
-    // 🟥 Construir datasets agrupados por estado (usando las claves originales)
     const datasets = estados.map(est => {
       const datos = visibleLabels.map(l => {
         const it = filteredPorMes.find(x =>
@@ -292,33 +285,39 @@ export class DashboardComponent implements OnInit {
       return { label: est, data: datos };
     });
 
-    // 🔹 Usamos etiquetas legibles pero mantenemos correspondencia
     this.chartActasData = { labels: etiquetasLegibles, datasets };
+  }
 
-    this.chartActasData = { labels: visibleLabels, datasets };
-
-
-    // Top productos entregados (top 10)
-    const prods = (d.productosEntregados ?? []).slice()
+  private buildChartProductos(d: DashboardReport) {
+    const prods = (d.productosEntregados ?? [])
+      .slice()
       .sort((a,b)=> b.totalEntregado - a.totalEntregado)
       .slice(0, 10);
     this.chartProdData = {
       labels: prods.map(p => p.producto),
       datasets: [{ label: 'Entregados', data: prods.map(p => p.totalEntregado), backgroundColor: '#e7da8eff' }]
     };
+  }
 
-    // Distribución por edad (mantener todos los buckets)
+  private buildChartEdad(d: DashboardReport) {
     const de = d.distribucionEdad ?? [];
     const mapEdad = new Map<string, number>();
     for (const it of de) mapEdad.set(it.rangoEdad, Number(it.total) || 0);
 
     const edadLabels = this.EDAD_BUCKETS.map(b => `${b} (${this.EDAD_RANGOS[b]})`);
-    const edadData   = this.EDAD_BUCKETS.map(b => mapEdad.get(b) ?? 0);
+    const edadData = this.EDAD_BUCKETS.map(b => mapEdad.get(b) ?? 0);
 
     this.chartEdadData = {
-        labels: edadLabels,
-        datasets: [{ data: edadData, backgroundColor: this.EDAD_COLORS }]
+      labels: edadLabels,
+      datasets: [{ data: edadData, backgroundColor: this.EDAD_COLORS }]
     };
+  }
+
+  private buildCharts(d: DashboardReport) {
+    this.buildChartPoblacionVulnerable(d);
+    this.buildChartActasPorMes(d);
+    this.buildChartProductos(d);
+    this.buildChartEdad(d);
   }
 
   // ========= Proyectos filtrados =========
@@ -379,17 +378,13 @@ export class DashboardComponent implements OnInit {
   onChangeAnio(anio: 'ALL' | number) {
     this.filtroAnio.set(anio); // actualiza el signal
     const d = this.dashboard();
-    if (d) {
-      this.buildCharts(d); // vuelve a construir la gráfica filtrando por año
-    }
+    if (d) this.buildChartActasPorMes(d);
   }
 
   onChangeMes(mes: 'ALL' | number) {
     this.filtroMes.set(mes);
     const d = this.dashboard();
-     if (d) {
-      this.buildCharts(d); // vuelve a construir la gráfica filtrando por mes
-    }
+    if (d) this.buildChartActasPorMes(d);
   }
   
   trackByProyecto = (_: number, p: ResumenProyecto) => p.idProyecto;

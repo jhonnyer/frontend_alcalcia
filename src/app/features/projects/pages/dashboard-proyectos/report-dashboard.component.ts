@@ -12,8 +12,6 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables, ChartConfiguration, ChartType, ChartData, ChartOptions } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import { ReportesService } from '../../../../core/services/reportes.service';
 import { DashboardReport, ResumenProyecto } from '../../../../core/models/reporte-global/reportes.model';
 import { Router } from '@angular/router';
@@ -54,6 +52,22 @@ export class ReportDashboardComponent implements OnInit {
   filtroFechaFin = signal<string | null>(null);    // YYYY-MM-DD
   aniosDisponibles: number[] = [];
   filtroAnio = signal<'ALL' | number>('ALL');
+  filtroMes = signal<'ALL' | number>('ALL');
+
+  mesesDisponibles = [
+    { nombre: 'Enero', numero: 1 },
+    { nombre: 'Febrero', numero: 2 },
+    { nombre: 'Marzo', numero: 3 },
+    { nombre: 'Abril', numero: 4 },
+    { nombre: 'Mayo', numero: 5 },
+    { nombre: 'Junio', numero: 6 },
+    { nombre: 'Julio', numero: 7 },
+    { nombre: 'Agosto', numero: 8 },
+    { nombre: 'Septiembre', numero: 9 },
+    { nombre: 'Octubre', numero: 10 },
+    { nombre: 'Noviembre', numero: 11 },
+    { nombre: 'Diciembre', numero: 12 }
+  ];
 
   // Nuevo doughnut para edades
   chartEdadType: 'doughnut' = 'doughnut'; 
@@ -114,9 +128,49 @@ export class ReportDashboardComponent implements OnInit {
   chartActasData: ChartConfiguration['data'] = { labels: [], datasets: [] };
   chartActasOptions: ChartConfiguration['options'] = {
     responsive: true,
-    plugins: { legend: { position: 'bottom' } },
-    scales: { y: { beginAtZero: true } }
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'circle',
+          font: { size: 10 }
+        }
+      },
+      tooltip: { enabled: true }
+    },
+    scales: {
+      x: {
+        ticks: {
+          autoSkip: false,
+          maxRotation: 60,
+          minRotation: 45,
+          font: { size: 10 }
+        },
+        grid: {
+          display: false
+        }
+      },
+      y: {
+        beginAtZero: true,
+        min: 0,
+        max: 12,              // Límite superior del eje Y
+        ticks: {
+          stepSize: 2,        // Intervalo de 2 en 2
+          font: { size: 10 },
+          color: '#666'
+        },
+        grid: {
+          color: '#e5e7eb'    // Gris suave de fondo
+        }
+      }
+    },
+    layout: {
+      padding: { top: 5, right: 10, bottom: 5, left: 0 }
+    }
   };
+
 
   // Barras horizontales: Top productos
   chartProdType: ChartType = 'bar';
@@ -187,6 +241,7 @@ export class ReportDashboardComponent implements OnInit {
     
 
   private buildCharts(d: DashboardReport) {
+    const selectedMonth = this.filtroMes();
     // Pie Población vulnerable
     const pv = d.poblacionVulnerable;
     if (pv) {
@@ -204,16 +259,50 @@ export class ReportDashboardComponent implements OnInit {
 
     // Barras Actas por mes (agrupadas por estado)
     const porMes = d.actasPorMes ?? [];
-    const labelsMes = Array.from(new Set(porMes.map(x => `${x.anio}-${String(x.mes).padStart(2,'0')}`))).sort();
-    const estados = Array.from(new Set(porMes.map(x => x.estado))).sort();
+
+    // 🟦 Filtrar por año si aplica
+    const selectedYear = this.filtroAnio();
+    const filteredPorMes = porMes.filter(x =>
+      (selectedYear === 'ALL' || x.anio === selectedYear) &&
+      (selectedMonth === 'ALL' || x.mes === selectedMonth)
+    );
+
+
+    // 🟩 Extraer labels (YYYY-MM)
+    const labelsMes = Array.from(
+      new Set(filteredPorMes.map(x => `${x.anio}-${String(x.mes).padStart(2, '0')}`))
+    ).sort();
+
+    // 🟨 Si hay demasiados meses, mostrar los últimos 12
+    const visibleLabels = labelsMes.length > 5 ? labelsMes.slice(-5) : labelsMes;
+
+    // 🟧 Etiquetas legibles para el eje X (abreviadas)
+    const etiquetasLegibles = visibleLabels.map(l => {
+      const [anio, mes] = l.split('-');
+      const date = new Date(Number(anio), Number(mes) - 1);
+      const shortMonth = date.toLocaleString('es-ES', { month: 'short' });
+      return `${shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1)}-${anio.slice(-2)}`;
+    });
+
+    // 🟦 Estados únicos
+    const estados = Array.from(new Set(filteredPorMes.map(x => x.estado))).sort();
+
+    // 🟥 Construir datasets agrupados por estado (usando las claves originales)
     const datasets = estados.map(est => {
-      const datos = labelsMes.map(l => {
-        const it = porMes.find(x => `${x.anio}-${String(x.mes).padStart(2,'0')}` === l && x.estado === est);
+      const datos = visibleLabels.map(l => {
+        const it = filteredPorMes.find(x =>
+          `${x.anio}-${String(x.mes).padStart(2, '0')}` === l && x.estado === est
+        );
         return it?.total ?? 0;
       });
-      return { label: est, data: datos } as any;
+      return { label: est, data: datos };
     });
-    this.chartActasData = { labels: labelsMes, datasets };
+
+    // 🔹 Usamos etiquetas legibles pero mantenemos correspondencia
+    this.chartActasData = { labels: etiquetasLegibles, datasets };
+
+    this.chartActasData = { labels: visibleLabels, datasets };
+
 
     // Top productos entregados (top 10)
     const prods = (d.productosEntregados ?? []).slice()
@@ -236,6 +325,22 @@ export class ReportDashboardComponent implements OnInit {
         labels: edadLabels,
         datasets: [{ data: edadData, backgroundColor: this.EDAD_COLORS }]
     };
+  }
+
+  onChangeAnio(anio: 'ALL' | number) {
+    this.filtroAnio.set(anio); // actualiza el signal
+    const d = this.dashboard();
+    if (d) {
+      this.buildCharts(d); // vuelve a construir la gráfica filtrando por año
+    }
+  }
+
+  onChangeMes(mes: 'ALL' | number) {
+    this.filtroMes.set(mes);
+    const d = this.dashboard();
+     if (d) {
+      this.buildCharts(d); // vuelve a construir la gráfica filtrando por mes
+    }
   }
 
   // ========= Proyectos filtrados =========

@@ -62,6 +62,13 @@ export class AddBeneficiaryProjectComponent implements OnInit {
     )
     .subscribe({
       next: (value: string | null) => {
+        // 🔹 Si el input está vacío, limpiamos el beneficiario y salimos
+        if (!value || value.trim() === '') {
+          this.beneficiario.set(null);
+          this.form.patchValue({ idBeneficiario: '' });
+          this.beneficiarioNoEncontrado = false;
+          return;
+        }
         if (value && value.length >= 6) {
           this.beneficiarioService.getByCedula(value).subscribe({
             next: resp => {

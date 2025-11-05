@@ -57,6 +57,7 @@ export interface ReporteProyecto {
 
 export interface ReporteProducto {
   producto: string;
+  descripcion?: string;
   totalEntregado: number;
 }
 
@@ -110,6 +111,7 @@ export interface ReporteActasPorProyecto {
 export interface ProductoResumen {
   idProducto: number;
   nombreProducto: string;
+  descripcion?:string;
   stock: number;
   fechaIngreso?: ISODate; 
 }

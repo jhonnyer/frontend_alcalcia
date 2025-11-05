@@ -49,8 +49,8 @@ export class BeneficiarioProyectoService {
     );
   }
 
-  getBeneficiarioProyectoByCedula(cc: string): Observable<IBeneficiarioProyecto> {
-    return this.http.get<IBeneficiarioProyecto>(`${this.URL}/beneficiarios-proyectos/buscar-por-cedula/${cc}`, { context: checkToken() });
+  getBeneficiarioProyectoByCedula(cc: string): Observable<IBeneficiarioProyecto[]> {
+    return this.http.get<IBeneficiarioProyecto[]>(`${this.URL}/beneficiarios-proyectos/buscar-por-cedula/${cc}`, { context: checkToken() });
   }
 
   post(beneficiarioProyecto: Partial<IBeneficiarioProyecto>): Observable<IBeneficiarioProyecto> {

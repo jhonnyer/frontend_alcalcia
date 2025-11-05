@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormControl, Validators, FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { ProductsListSelectComponent } from '../../components/products-list-select/products-list-select.component';
@@ -41,6 +41,7 @@ interface DialogData {
     ReactiveFormsModule, 
     DialogModule,
     MatIconModule,
+    FormsModule
   ],
   styles: ``,
   templateUrl: './procedings-register.component.html'
@@ -75,16 +76,20 @@ export class ProcedingsRegisterComponent implements OnInit{
 
   selectedProductsInfo = signal<ProductoWithCantidad[]>([]);
 
-  beneficiarioProyecto = signal<IBeneficiarioProyecto | null>(null);
+  // Lista completa de proyectos asociados al beneficiario
+  beneficiariosProyecto = signal<IBeneficiarioProyecto[]>([]);
 
+  // Proyecto seleccionado (uno solo)
+  beneficiarioProyecto = signal<IBeneficiarioProyecto | null>(null);
+  proyectoSeleccionadoId: number | null = null;
 
   searchBeneficiario = new FormControl('', {
     nonNullable: true,
     validators: [
       Validators.required, // Campo obligatorio
-      Validators.minLength(6), // Mínimo 6 caracteres
-      Validators.maxLength(14), // Mínimo 14 caracteres
-      Validators.pattern(/^\d+$/) // Solo números
+      Validators.minLength(4), // Mínimo 4 caracteres
+      Validators.maxLength(20), // Mínimo 20 caracteres
+      Validators.pattern(/^[A-Za-z0-9-]+$/)  // ← acepta letras, números y guiones
     ],
   });
 
@@ -119,21 +124,61 @@ export class ProcedingsRegisterComponent implements OnInit{
       .subscribe({
         next: (value: string) => {
           if (value.length >= 6) {
-            // Buscar beneficiario
-            this.beneficiarioNoEncontrado = false; 
+            this.beneficiarioNoEncontrado = false;
+
             this.beneficiarioProyectoService.getBeneficiarioProyectoByCedula(value).subscribe({
               next: resp => {
-                if (resp) {
-                  this.beneficiarioProyecto.set(resp);
+                if (resp && resp.length > 0) {
+                  // 🔹 Guarda SIEMPRE la lista completa (activos e inactivos)
+                  this.beneficiariosProyecto.set(resp);
 
-                  // Asigna IDs
+                  // 🔹 Filtra los proyectos realmente activos (proyecto y beneficiario)
+                  const activos = resp.filter(p => p.estadoProyecto === 'A' && p.esBeneficiarioActivo === true);
+
+                  // 🟡 Si no hay proyectos activos → dejar visible el beneficiario y mostrar mensaje HTML
+                  if (activos.length === 0) {
+                    this.beneficiarioProyecto.set(resp[0]); // muestra el primero (aunque esté inactivo)
+                    this.proyectoSelect.set(null);
+                    this.proyectoSeleccionadoId = null;
+
+                    this.formActa.patchValue({
+                      idBeneficiario: null,
+                      idProyecto: null
+                    });
+
+                    // 🔹 Cargar info del beneficiario
+                    this.beneficiaryService.getByCedula(value).subscribe({
+                      next: beneficiarioInfo => {
+                        this.beneficiario.set(beneficiarioInfo);
+                        this.beneficiarioNoEncontrado = false;
+                      },
+                      error: error => console.error('Error al obtener información del beneficiario:', error)
+                    });
+
+                    // ✅ el mensaje “No hay proyectos activos...” se mostrará desde el HTML
+                    return;
+                  }
+
+                  // 🔹 Si hay proyectos activos → usa solo los activos
+                  this.beneficiariosProyecto.set(activos);
+
+                  // 🔹 Selecciona el más reciente
+                  const seleccionado = activos.sort(
+                    (a, b) => new Date(b.fechaInicio).getTime() - new Date(a.fechaInicio).getTime()
+                  )[0];
+
+                  // 🔹 Asigna valores al estado
+                  this.beneficiarioProyecto.set(seleccionado);
+                  this.proyectoSelect.set(seleccionado.idProyecto);
+                  this.proyectoSeleccionadoId = seleccionado.idProyecto;
+
+                  // 🔹 Parchea el formulario base
                   this.formActa.patchValue({
-                    idBeneficiario: resp.idBeneficiario,
-                    idProyecto: resp.idProyecto
+                    idBeneficiario: seleccionado.idBeneficiario,
+                    idProyecto: seleccionado.idProyecto
                   });
-                  this.proyectoSelect.set(+resp.idProyecto);
 
-                  // Carga la info del beneficiario
+                  // 🔹 Carga información del beneficiario
                   this.beneficiaryService.getByCedula(value).subscribe({
                     next: beneficiarioInfo => {
                       this.beneficiario.set(beneficiarioInfo);
@@ -142,7 +187,8 @@ export class ProcedingsRegisterComponent implements OnInit{
                     error: error => console.error('Error al obtener información del beneficiario:', error)
                   });
                 } else {
-                  this.resetFormularioCompleto(); 
+                  // ⚠️ No hay proyectos asociados
+                  this.resetFormularioCompleto();
                   this.handleBeneficiarioNoEncontrado();
                 }
               },
@@ -153,9 +199,10 @@ export class ProcedingsRegisterComponent implements OnInit{
               }
             });
           } else {
-            // Si el usuario borra el campo o escribe menos de 6 caracteres
-            this.beneficiarioNoEncontrado = false; // ✅ Quita el mensaje amarillo
+            // 🧹 Si el usuario borra el campo o escribe menos de 6 caracteres
+            this.beneficiarioNoEncontrado = false;
             this.beneficiario.set(null);
+            this.beneficiariosProyecto.set([]);
             this.beneficiarioProyecto.set(null);
             this.proyectoSelect.set(null);
             this.selectedProductsInfo.set([]);
@@ -168,9 +215,11 @@ export class ProcedingsRegisterComponent implements OnInit{
       });
   }
 
+
   resetFormularioCompleto() {
     // Limpia signals y variables
     this.beneficiario.set(null);
+    this.beneficiariosProyecto.set([]);
     this.beneficiarioProyecto.set(null);
     this.proyectoSelect.set(null);
     this.responsableActa.set(null);
@@ -200,6 +249,7 @@ export class ProcedingsRegisterComponent implements OnInit{
 
   private handleBeneficiarioNoEncontrado() {
     this.beneficiarioNoEncontrado = true;
+    this.beneficiariosProyecto.set([]);
     this.beneficiarioProyecto.set(null);
     this.beneficiario.set(null);
     this.formActa.patchValue({
@@ -445,6 +495,82 @@ export class ProcedingsRegisterComponent implements OnInit{
     this.formActa.patchValue({
       productos: formProducts
     });
+  }
+
+  onProyectoSeleccionado(eventOrId: Event | number) {
+    let idProyecto: number;
+
+    // Si viene del select, es string o number
+    if (typeof eventOrId === 'string' || typeof eventOrId === 'number') {
+      idProyecto = Number(eventOrId);
+    } else {
+      // Si viene de un click de tabla (Event)
+      idProyecto = Number((eventOrId.target as HTMLSelectElement).value);
+    }
+
+    const proyectoSeleccionado = this.beneficiariosProyecto().find(p => p.idProyecto === idProyecto);
+    if (!proyectoSeleccionado) return;
+
+    // 🔄 sincroniza todo
+    this.proyectoSeleccionadoId = idProyecto;              // select
+    this.proyectoSelect.set(idProyecto);                    // signal para form
+    this.beneficiarioProyecto.set(proyectoSeleccionado);    // detalle visible
+
+    this.formActa.patchValue({
+      idProyecto: proyectoSeleccionado.idProyecto,
+      idBeneficiario: proyectoSeleccionado.idBeneficiario
+    });
+  }
+
+  getProyectosActivos(): IBeneficiarioProyecto[] {
+    // 1️⃣ Filtra solo los proyectos activos y con beneficiario activo
+    const activos = this.beneficiariosProyecto().filter(p =>
+      p.estadoProyecto?.trim().toUpperCase() === 'A' && p.esBeneficiarioActivo === true
+    );
+
+    // 2️⃣ Agrupa por idProyecto y deja el más reciente (fechaInicio más reciente)
+    const unicos = new Map<number, IBeneficiarioProyecto>();
+
+    for (const p of activos) {
+      const existente = unicos.get(p.idProyecto);
+      if (!existente) {
+        unicos.set(p.idProyecto, p);
+      } else {
+        // si hay más de uno, conserva el de inicio más reciente
+        const fechaExistente = new Date(existente.fechaInicio);
+        const fechaActual = new Date(p.fechaInicio);
+        if (fechaActual > fechaExistente) {
+          unicos.set(p.idProyecto, p);
+        }
+      }
+    }
+    // 3️⃣ Devuelve el arreglo limpio
+    return Array.from(unicos.values());
+  }
+
+  tieneProyectosActivos(): boolean {
+    return this.getProyectosActivos().length > 0;
+  }
+
+  // Detecta si un proyecto está "activo" sin importar cómo venga el estado
+  esProyectoActivo(p: IBeneficiarioProyecto): boolean {
+    const v: any = p.estadoProyecto;
+
+    if (typeof v === 'string') {
+      const s = v.trim().toUpperCase();
+      // Ajusta según tus estados reales si hace falta
+      return s === 'A' || s === 'ACTIVO' || s === 'EN_CURSO';
+    }
+
+    if (typeof v === 'number') {
+      // Si usas enum numérico, compara contra el valor del enum si lo tienes importado
+      // return v === EstadoProyecto.ACTIVO;
+      // Fallback seguro (si tu enum marca activo como truthy distinto de 0)
+      return v !== 0;
+    }
+
+    // Fallback si llegara boolean
+    return !!v;
   }
 
 }

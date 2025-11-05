@@ -402,14 +402,16 @@ export class PdfGeneradorDashboardService {
     return {
         margin: [0, 5, 0, 10],
         table: {
-        widths: ['70%', '30%'],
+        widths: ['35%', '45%','20%'],
         body: [
             [
             { text: 'Producto', style: 'tableHeader', alignment: 'left' },
+            { text: 'Descripcion', style: 'tableHeader', alignment: 'left' },
             { text: 'Total Entregado', style: 'tableHeader', alignment: 'right' }
             ],
             ...productosOrdenados.map(p => [
             { text: p.producto || '—', alignment: 'left' },
+            { text: p.descripcion || '—', alignment: 'left' },
             { text: (p.totalEntregado ?? 0).toLocaleString('es-CO'), alignment: 'right' }
             ])
         ]
@@ -633,20 +635,22 @@ export class PdfGeneradorDashboardService {
                 { text: `• ${c.nombreCategoria}`, bold: true, color: '#1E3A8A', margin: [0, 2, 0, 2] },
                 {
                   table: {
-                    widths: ['50%', '25%', '25%'],
+                    widths: ['35%', '35%', '15%', '15%'],
                     body: [
                       [
                         { text: 'Producto', style: 'tableHeader' },
+                        { text: 'Descripcion', style: 'tableHeader' },
                         { text: 'Stock', style: 'tableHeader' },
                         { text: 'Fecha Ingreso', style: 'tableHeader' },
                       ],
                       ...(c.productos?.length
                         ? c.productos.map((p2: any) => [
                             p2.nombreProducto,
+                            p2.descripcion,
                             p2.stock,
                             p2.fechaIngreso,
                           ])
-                        : [['— Sin productos registrados —', '', '']])
+                        : [['— Sin productos registrados —', '', '','']])
                     ]
                   },
                   layout: {

@@ -33,7 +33,7 @@
 
         <!-- Barrio -->
         <div class="w-full md:w-[49%]">
-          <label for="idBarrioFk" class="label-base">* Seleccionar barrio</label>
+          <label for="idBarrioFk" class="label-base">* Seleccionar Barrio/Vereda</label>
           <select formControlName="idBarrioFk" id="idBarrioFk" class="input-base">
             @for(item of barrios(); track item.idBarrio){
               <option [value]="item.idBarrio" class="capitalize">

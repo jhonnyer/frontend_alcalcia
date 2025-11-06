@@ -38,7 +38,7 @@ export class PdfGeneradorDashboardService {
         this.tablaZonas(data.porZona),
         { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
 
-        { text: '\nDistribución por Barrio', style: 'subheader' },
+        { text: '\nDistribución por Barrios / Veredas', style: 'subheader' },
         this.tablaBarrios(data.porBarrio),
         { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
 
@@ -314,12 +314,12 @@ export class PdfGeneradorDashboardService {
   }
 
   private tablaBarrios(list: any[]) {
-    if (!list?.length) return { text: 'No hay datos de barrios.', italics: true };
+    if (!list?.length) return { text: 'No hay datos de barrios o veredas', italics: true };
     return {
       table: {
         widths: ['*', 'auto'],
         body: [
-          [{ text: 'Barrio', style: 'tableHeader' }, { text: 'Total', style: 'tableHeader' }],
+          [{ text: 'Barrio / Vereda', style: 'tableHeader' }, { text: 'Total', style: 'tableHeader' }],
           ...list.map(b => [b.barrio, b.total])
         ]
       },
@@ -361,7 +361,7 @@ export class PdfGeneradorDashboardService {
               { text: 'Nombre', style: 'tableHeader' },
               { text: 'Documento', style: 'tableHeader' },
               { text: 'Sexo', style: 'tableHeader' },
-              { text: 'Barrio', style: 'tableHeader' },
+              { text: 'Barrio / Vereda', style: 'tableHeader' },
               { text: 'Actor Social', style: 'tableHeader' },
               { text: 'Discapacidad', style: 'tableHeader' },
               { text: 'Víctima', style: 'tableHeader' },
@@ -694,7 +694,7 @@ export class PdfGeneradorDashboardService {
             { text: 'Nombre', style: 'tableHeader' },
             { text: 'Documento', style: 'tableHeader' },
             { text: 'Sexo', style: 'tableHeader' },
-            { text: 'Barrio', style: 'tableHeader' },
+            { text: 'Barrio / Vereda', style: 'tableHeader' },
             { text: 'Actor Social', style: 'tableHeader' },
             { text: 'Discapacidad', style: 'tableHeader' },
             { text: 'Víctima', style: 'tableHeader' },

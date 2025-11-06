@@ -218,7 +218,7 @@ export class PdfGeneradorNucleoService {
           ['Nombre del Actor Social:', detalle.nombreNucleo || '—'],
           ['Dirección:', detalle.direccion || '—'],
           ['Zona:', detalle.nombreZona || '—'],
-          ['Barrio:', detalle.nombreBarrio || '—'],
+          ['Barrio / Vereda:', detalle.nombreBarrio || '—'],
           ['Número de Integrantes:', detalle.numeroIntegrantes ?? '—'],
         ]
       },

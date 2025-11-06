@@ -70,7 +70,7 @@ export class PdfBeneficiariosProyectoService {
                 { text: 'Documento', style: 'tableHeader' },
                 { text: 'Estado', style: 'tableHeader' },
                 { text: 'Actor Social', style: 'tableHeader' },
-                { text: 'Barrio', style: 'tableHeader' },
+                { text: 'Barrio / Vereda', style: 'tableHeader' },
                 { text: 'Observaciones', style: 'tableHeader' },
                 ],
                 ...beneficiarios.map((b, i) => [

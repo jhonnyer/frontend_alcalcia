@@ -317,10 +317,14 @@ export class PdfGeneradorDashboardService {
     if (!list?.length) return { text: 'No hay datos de barrios o veredas', italics: true };
     return {
       table: {
-        widths: ['*', 'auto'],
+        widths: ['auto','*', 'auto'],
         body: [
-          [{ text: 'Barrio / Vereda', style: 'tableHeader' }, { text: 'Total', style: 'tableHeader' }],
-          ...list.map(b => [b.barrio, b.total])
+          [
+            { text: 'Zona', style: 'tableHeader' },
+            { text: 'Barrio / Vereda', style: 'tableHeader' },
+            { text: 'Total', style: 'tableHeader' }
+          ],
+          ...list.map(b => [b.zona, b.barrio, b.total])
         ]
       },
       layout: {

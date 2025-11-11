@@ -43,6 +43,7 @@ export interface ReporteZona {
 }
 
 export interface ReporteBarrios {
+  zona:string;
   barrio: string;
   total: number;
 }

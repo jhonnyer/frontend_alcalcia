@@ -131,6 +131,7 @@ export interface BeneficiarioResumen {
   documento: string;
   sexo: string;
   barrio?: string | null;
+  zona?: string | null;    
   victimaConflicto: boolean;
   discapacidad: boolean;
   nombreNucleo?: string | null;

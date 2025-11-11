@@ -66,6 +66,10 @@ export class PdfGeneradorDashboardService {
         this.tablaEntregasPorProyecto(data.entregasPorProyecto),
         { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
 
+        { text: '\nDetalle de Entregas por Proyecto', style: 'subheader' },
+        this.tablaEntregasDetallePorProyecto(data),
+        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+
         { text: '\nActas por Estado y Proyecto', style: 'subheader' },
         this.tablaActasPorEstadoProyecto(data.actasPorEstadoProyecto),
         { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
@@ -345,7 +349,6 @@ export class PdfGeneradorDashboardService {
       return { text: 'No hay proyectos disponibles.', italics: true };
     }
 
-    // Filtrar proyectos con beneficiarios reales
     const proyectosConBeneficiarios = proyectos.filter(
       (p: any) => p.beneficiarios && p.beneficiarios.length > 0
     );
@@ -354,46 +357,64 @@ export class PdfGeneradorDashboardService {
       return { text: 'No hay proyectos con beneficiarios registrados.', italics: true };
     }
 
-    // Generar bloques por proyecto
-    const cuerpo = proyectosConBeneficiarios.map((p: any) => [
-      { text: `\n📁 ${p.nombre}`, bold: true, margin: [0, 6, 0, 4], color: '#1E3A8A' },
-      {
-        table: {
-          widths: ['25%', '15%', '10%', '15%', '15%', '10%', '10%'],
-          body: [
-            [
-              { text: 'Nombre', style: 'tableHeader' },
-              { text: 'Documento', style: 'tableHeader' },
-              { text: 'Sexo', style: 'tableHeader' },
-              { text: 'Barrio / Vereda', style: 'tableHeader' },
-              { text: 'Actor Social', style: 'tableHeader' },
-              { text: 'Discapacidad', style: 'tableHeader' },
-              { text: 'Víctima', style: 'tableHeader' },
-            ],
-            ...p.beneficiarios.map((b: any) => [
-              b.nombreCompleto,
-              `${b.tipoDocumento ?? ''} ${b.documento ?? ''}`,
-              b.sexo ?? '—',
-              b.barrio ?? '—',
-              b.nombreNucleo ?? '—',
-              b.discapacidad ? 'Sí' : 'No',
-              b.victimaConflicto ? 'Sí' : 'No',
-            ]),
-          ],
-        },
-        layout: {
-        fillColor: (rowIndex: number) => (rowIndex % 2 === 0 ? '#F9FAFB' : null)
+    const cuerpo = proyectosConBeneficiarios.map((p: any) => {
+      // 🔹 Usamos el valor real del backend
+      const totalBeneficiarios = p.totalBeneficiarios ?? p.beneficiarios.length ?? 0;
+
+      return [
+        // 🔹 Encabezado del proyecto
+        { text: `\n📁 ${p.nombre}`, bold: true, margin: [0, 6, 0, 4], color: '#1E3A8A' },
+
+        // 🔹 Tabla de beneficiarios
+        {
+          table: {
+            widths: ['19%', '15%', '7%', '15%','13%', '11%', '11%', '9%'],
+            body: [
+              [
+                { text: 'Nombre', style: 'tableHeader' },
+                { text: 'Documento', style: 'tableHeader' },
+                { text: 'Sexo', style: 'tableHeader' },
+                { text: 'Zona', style: 'tableHeader' },
+                { text: 'Barrio / Vereda', style: 'tableHeader' },
+                { text: 'Actor Social', style: 'tableHeader' },
+                { text: 'Discapacidad', style: 'tableHeader' },
+                { text: 'Víctima', style: 'tableHeader' },
+              ],
+              ...p.beneficiarios.map((b: any) => [
+                b.nombreCompleto,
+                `${b.tipoDocumento ?? ''} ${b.documento ?? ''}`,
+                b.sexo ?? '—',
+                b.zona ?? '—',
+                b.barrio ?? '—',
+                b.nombreNucleo ?? '—',
+                b.discapacidad ? 'Sí' : 'No',
+                b.victimaConflicto ? 'Sí' : 'No',
+              ]),
+
+              // 🔹 Fila resumen total beneficiarios (del backend)
+              [
+                { 
+                  text: `TOTAL BENEFICIARIOS EN ESTE PROYECTO: ${totalBeneficiarios}`, 
+                  colSpan: 8, 
+                  bold: true, 
+                  alignment: 'right', 
+                  fillColor: '#E5E7EB' 
+                },
+                {}, {}, {}, {}, {}, {}, {}
+              ]
+            ]
+          },
+          layout: {
+            fillColor: (rowIndex: number) => (rowIndex % 2 === 0 ? '#F9FAFB' : null),
+            hLineColor: () => '#E5E7EB',
+            vLineColor: () => '#E5E7EB'
+          }
         }
-      },
-    ]);
+      ];
+    });
 
-    return {
-      stack: [
-        ...cuerpo.flat(),
-      ],
-    };
+    return { stack: cuerpo.flat() };
   }
-
 
   private tablaProductosEntregados(list: any[]) {
     if (!list?.length) {
@@ -508,15 +529,17 @@ export class PdfGeneradorDashboardService {
         // 🔹 Tabla de productos entregados
         {
             table: {
-            widths: ['60%', '40%'],
+            widths: ['30%', '50%', '20%'],
             body: [
                 [
                 { text: 'Producto', style: 'tableHeader' },
+                { text: 'Descripción', style: 'tableHeader' },
                 { text: 'Cantidad Total', style: 'tableHeader' }
                 ],
                 ...(productos.length
                 ? productos.map((prod: any) => [
                     prod.producto || prod.nombre || '—',
+                    prod.producto || prod.descripcion || '—',
                     (prod.cantidadTotal ?? 0).toLocaleString('es-CO')
                     ])
                 : [['— Sin productos registrados —', '']])
@@ -784,5 +807,70 @@ export class PdfGeneradorDashboardService {
       },
     };
   }
+
+  private tablaEntregasDetallePorProyecto(data: any) {
+    const proyectos = data.entregasPorProyecto || [];
+    const proyectosResumen = data.proyectosResumen || [];
+
+    const filas: any[] = [];
+
+    proyectosResumen.forEach((p: any) => {
+      const entregas = proyectos.find((e: any) => e.proyecto === p.nombre);
+      const productos = entregas?.productos || [];
+
+      p.beneficiarios?.forEach((b: any) => {
+        productos.forEach((prod: any) => {
+          filas.push({
+            proyecto: p.nombre,
+            beneficiario: b.nombreCompleto,
+            producto: prod.nombre || prod.producto || prod.nombreProducto || '—',
+            descripcion: prod.descripcion || '—',
+            cantidad: prod.cantidadTotal || prod.stock || 0,
+            zona: b.zona || '—',
+            barrio: b.barrio || '—'
+          });
+        });
+      });
+    });
+
+    // 🔹 Ordenar alfabéticamente
+    filas.sort((a, b) => {
+      const p = a.proyecto.localeCompare(b.proyecto);
+      return p !== 0 ? p : a.beneficiario.localeCompare(b.beneficiario);
+    });
+
+    if (!filas.length)
+      return { text: 'No hay datos de entregas detalladas por proyecto.', italics: true };
+
+    return {
+      table: {
+        widths: ['*', '*', '*', '*', 'auto', '*', '*'],
+        body: [
+          [
+            { text: 'Proyecto', style: 'tableHeader' },
+            { text: 'Beneficiario', style: 'tableHeader' },
+            { text: 'Producto', style: 'tableHeader' },
+            { text: 'Descripción', style: 'tableHeader' },
+            { text: 'Cantidad', style: 'tableHeader' },
+            { text: 'Zona', style: 'tableHeader' },
+            { text: 'Barrio / Vereda', style: 'tableHeader' }
+          ],
+          ...filas.map(f => [
+            f.proyecto,
+            f.beneficiario,
+            f.producto,
+            f.descripcion,
+            f.cantidad,
+            f.zona,
+            f.barrio
+          ])
+        ]
+      },
+      layout: {
+        fillColor: (rowIndex: number) => (rowIndex % 2 === 0 ? '#F9FAFB' : null)
+      }
+    };
+  }
+
 
 }

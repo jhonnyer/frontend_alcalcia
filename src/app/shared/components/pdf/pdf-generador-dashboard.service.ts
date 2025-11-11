@@ -42,7 +42,7 @@ export class PdfGeneradorDashboardService {
         this.tablaBarrios(data.porBarrio),
         { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
 
-        { text: '\nBeneficiarios por Proyecto', style: 'subheader' },
+        { text: '\nBeneficiarios Activos por Proyecto', style: 'subheader' },
         this.tablaBeneficiariosProyecto(data),
         { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
 

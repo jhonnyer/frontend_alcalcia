@@ -221,6 +221,28 @@
             </div>
           </div>
 
+          <!-- Reporte global -->
+          <div 
+            (click)="!isLoadingReport.reportGeneral && downloadReporteExcelCompleto()"
+            class="report-card"
+            [class.opacity-60]="isLoadingReport.reportGeneral">
+
+            <div class="report-icon-box bg-gradient-to-tr from-cyan-600 to-cyan-400 shadow-cyan-500/40">
+              <div *ngIf="isLoadingReport.reportGeneral; else iconReportGlobal" class="loading-icon">
+                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+              </div>
+              <ng-template #iconReportGlobal>
+                <mat-icon class="report-icon">insert_chart_outlined</mat-icon>
+              </ng-template>
+            </div>
+
+            <div class="p-4 text-right">
+              <p class="text-sm text-blue-gray-600">
+                @if(isLoadingReport.global){ Generando... }@else{ 10. Reporte Global }
+              </p>
+            </div>
+          </div>
+
           <!-- Usuarios -->
           <div (click)="!isLoadingReport.responsables && downloadResponsables()"
               class="report-card"
@@ -233,7 +255,7 @@
               <ng-template #iconResp><mat-icon class="report-icon">badge</mat-icon></ng-template>
             </div>
             <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.responsables){ Generando... }@else{ 10. Usuarios del sistema }</p>
+              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.responsables){ Generando... }@else{ 11. Usuarios del sistema }</p>
             </div>
           </div>
 

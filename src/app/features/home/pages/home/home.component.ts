@@ -24,6 +24,8 @@ import { AlertService } from '../../../../core/services/alert.service';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
 import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
+import { ExcelGeneradorReportesService } from '../../../../shared/components/excel/excel-generador-reportes.service';
+import { firstValueFrom, forkJoin } from 'rxjs';
 
 type ReportKeys =
   | 'global'
@@ -35,7 +37,8 @@ type ReportKeys =
   | 'actas'
   | 'productos'
   | 'proyectos'
-  | 'beneficiariosProyecto';
+  | 'beneficiariosProyecto'
+  | 'reportGeneral';
   
 
 @Component({
@@ -69,6 +72,7 @@ export class HomeComponent implements OnInit{
   private alert = inject(AlertService);
   private proyectosService= inject(ProyectosService);
   private beneficiarioProyectoService= inject(BeneficiarioProyectoService);
+  private excelReportes = inject(ExcelGeneradorReportesService);
 
   isLoadingPDF = false;
   nucleoId = 1;     // ejemplo: luego puedes asignar dinámicamente
@@ -84,7 +88,8 @@ export class HomeComponent implements OnInit{
     actas: false,
     productos: false,
     proyectos: false,
-    beneficiariosProyecto: false
+    beneficiariosProyecto: false,
+    reportGeneral: false
   };
 
   ngOnInit(): void {
@@ -592,6 +597,43 @@ export class HomeComponent implements OnInit{
         this.isLoadingReport.beneficiariosProyecto = false;
         console.error('Error al obtener beneficiarios por proyecto:', error);
         this.alert.error('Operación fallida','Error al descargar el reporte de beneficiarios por proyecto');
+      }
+    });
+  }
+
+  downloadReporteExcelCompleto() {
+    this.isLoadingReport.reportGeneral = true;
+
+    forkJoin({
+      proyectosResp: this.proyectosService.getAll(),
+      dashboard: this.beneficiarioProyectoService.getAll(),
+      actas: this.actasService.getAll(),
+      nucleos: this.nucleoService.getSimpleAll(),
+      productos: this.productosService.getAll()
+    }).subscribe({
+      next: ({ proyectosResp, dashboard, actas, nucleos, productos }) => {
+        // Adaptación de estructuras
+        const proyectosData = proyectosResp?.respuesta ?? [];
+        const beneficiariosProyecto = dashboard ?? [];
+        const actasData = actas ?? [];
+        const nucleosData = nucleos ?? [];
+        const productosData = productos ?? [];
+
+        // Generar Excel integral
+        this.excelReportes.generarExcelIntegral(
+          beneficiariosProyecto,
+          actasData,
+          nucleosData,
+          productosData, 
+          proyectosData 
+        );
+
+        this.isLoadingReport.reportGeneral = false;
+      },
+      error: (error) => {
+        console.error('Error al generar reporte global:', error);
+        this.alert.error('Operación fallida', 'Error al descargar el reporte integral.');
+        this.isLoadingReport.reportGeneral = false;
       }
     });
   }

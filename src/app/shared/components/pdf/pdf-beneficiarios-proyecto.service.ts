@@ -9,7 +9,7 @@ pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
 export class PdfBeneficiariosProyectoService {
 
   async generarReporte(data: IBeneficiarioProyecto[]) {
-    const logoUrl = '/img/alcaldiaAlmaguer.png'; // ruta al logo en assets
+    const logoUrl = '/img/alcaldiaAlmaguer.png';
     const logo = await this.getBase64ImageFromAssets(logoUrl);
 
     const fecha = new Date().toLocaleDateString('es-CO', {
@@ -18,105 +18,166 @@ export class PdfBeneficiariosProyectoService {
       year: 'numeric',
     });
 
-    // 🔹 Agrupar beneficiarios por proyecto
-    const proyectosMap = new Map<string, IBeneficiarioProyecto[]>();
+    if (!data?.length) {
+      pdfMake.createPdf({
+        content: [{ text: 'No hay beneficiarios registrados.', italics: true }],
+      }).open();
+      return;
+    }
+
+    // 🔹 Agrupar beneficiarios por proyecto y estado del proyecto
+    const proyectosMap = new Map<string, { estado: string, beneficiarios: IBeneficiarioProyecto[] }>();
     data.forEach(b => {
       const nombreProyecto = b.nombreProyecto || 'Proyecto sin nombre';
-      if (!proyectosMap.has(nombreProyecto)) proyectosMap.set(nombreProyecto, []);
-      proyectosMap.get(nombreProyecto)!.push(b);
+      const estadoProyecto = b.estadoProyecto || 'A'; // A = activo, I = inactivo
+      if (!proyectosMap.has(nombreProyecto)) {
+        proyectosMap.set(nombreProyecto, { estado: estadoProyecto, beneficiarios: [] });
+      }
+      proyectosMap.get(nombreProyecto)!.beneficiarios.push(b);
     });
 
-    // 🔹 Construir secciones de tabla para cada proyecto
-    const secciones = Array.from(proyectosMap.entries()).map(([proyecto, beneficiarios]) => {
-    const activos = beneficiarios.filter(b => b.esBeneficiarioActivo).length;
-    const inactivos = beneficiarios.length - activos;
+    // 🔹 Crear secciones por proyecto
+    const secciones = Array.from(proyectosMap.entries()).map(([proyecto, { estado, beneficiarios }]) => {
+      const activos = beneficiarios
+        .filter(b => b.esBeneficiarioActivo)
+        .sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto, 'es'));
+      const inactivos = beneficiarios
+        .filter(b => !b.esBeneficiarioActivo)
+        .sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto, 'es'));
 
-    return {
-        stack: [
-        { text: `\n📁 ${proyecto}`, style: 'subheader', margin: [0, 10, 0, 4] },
-        {
-        text: 'Resumen de Beneficiarios',
-        style: 'resumenTitulo',
-        margin: [0, 4, 0, 4],
-        },
+      const totalActivos = activos.length;
+      const totalInactivos = inactivos.length;
+      const totalGeneral = beneficiarios.length;
 
-        {
-        columns: [
-            {
-            width: 'auto',
-            text: `* Activos: ${activos}`,
-            color: '#065f46',
-            bold: true,
-            margin: [0, 0, 20, 0],
-            },
-            {
-            width: 'auto',
-            text: `* Inactivos: ${inactivos}`,
-            color: '#4b5563',
-            bold: true,
-            },
-        ],
-        columnGap: 15,
-        margin: [0, 2, 0, 10],
-        },
-        {
-            table: {
-            widths: ['5%', '26%', '7%','12%', '10%', '12%', '13%', '15%'],
-            body: [
-                [
-                { text: '#', style: 'tableHeader' },
-                { text: 'Nombre Completo', style: 'tableHeader' },
-                { text: 'Edad', style: 'tableHeader' },
-                { text: 'Documento', style: 'tableHeader' },
-                { text: 'Estado', style: 'tableHeader' },
-                { text: 'Actor Social', style: 'tableHeader' },
-                { text: 'Barrio / Vereda', style: 'tableHeader' },
-                { text: 'Observaciones', style: 'tableHeader' },
-                ],
-                ...beneficiarios.map((b, i) => [
-                i + 1,
-                b.nombreCompleto || '—',
-                b.edadBeneficiario || '—',
-                b.numDocumentoBeneficiario || '—',
-                b.esBeneficiarioActivo ? 'Activo' : 'Inactivo',
-                b.nombreNucleo || '—',
-                b.nombreBarrio || '—',
-                b.observaciones || '—'
-                ])
-            ]
-            },
-            layout: {
-            fillColor: (rowIndex: number) => (rowIndex === 0 ? '#E5E7EB' : rowIndex % 2 === 0 ? '#F9FAFB' : null),
-            hLineColor: () => '#E5E7EB',
-            vLineColor: () => '#E5E7EB',
-            },
-            fontSize: 9,
+      // 🔹 Helper para crear tabla
+      const buildTable = (lista: IBeneficiarioProyecto[], titulo: string, color: string) => {
+        if (!lista.length) {
+          return {
+            text: `No hay beneficiarios ${titulo.toLowerCase()}.`,
+            italics: true,
+            color: '#6b7280',
+            margin: [0, 4, 0, 10],
+          };
         }
+        return {
+          stack: [
+            { text: titulo, bold: true, color, margin: [0, 8, 0, 4] },
+            {
+              table: {
+                widths: ['5%', '26%', '7%', '12%', '10%', '12%', '13%', '15%'],
+                body: [
+                  [
+                    { text: '#', style: 'tableHeader' },
+                    { text: 'Nombre Completo', style: 'tableHeader' },
+                    { text: 'Edad', style: 'tableHeader' },
+                    { text: 'Documento', style: 'tableHeader' },
+                    { text: 'Estado', style: 'tableHeader' },
+                    { text: 'Actor Social', style: 'tableHeader' },
+                    { text: 'Barrio / Vereda', style: 'tableHeader' },
+                    { text: 'Observaciones', style: 'tableHeader' },
+                  ],
+                  ...lista.map((b, i) => [
+                    i + 1,
+                    b.nombreCompleto || '—',
+                    b.edadBeneficiario || '—',
+                    b.numDocumentoBeneficiario || '—',
+                    b.esBeneficiarioActivo ? 'Activo' : 'Inactivo',
+                    b.nombreNucleo || '—',
+                    b.nombreBarrio || '—',
+                    b.observaciones || '—'
+                  ])
+                ]
+              },
+              layout: {
+                fillColor: (rowIndex: number) =>
+                  rowIndex === 0 ? '#E5E7EB' : rowIndex % 2 === 0 ? '#F9FAFB' : null,
+                hLineColor: () => '#E5E7EB',
+                vLineColor: () => '#E5E7EB',
+              },
+              fontSize: 9,
+            },
+            {
+              text: `Total de beneficiarios ${titulo.toLowerCase()}: ${lista.length}`,
+              alignment: 'right',
+              bold: true,
+              color,
+              margin: [0, 4, 0, 10],
+            }
+          ]
+        };
+      };
+
+      // 🔹 Retornar bloque del proyecto
+      return {
+        estado,
+        stack: [
+          { text: `\n📁 ${proyecto}`, style: 'subheader', color: '#1E3A8A', margin: [0, 10, 0, 6] },
+          {
+            text: `Resumen general: ${totalActivos} activos, ${totalInactivos} inactivos (total ${totalGeneral})`,
+            style: 'resumenProyecto',
+            margin: [0, 2, 0, 8],
+          },
+          buildTable(activos, 'Beneficiarios Activos', '#065f46'),
+          buildTable(inactivos, 'Beneficiarios Inactivos', '#7c2d12'),
+          {
+            text:
+              'Observación: El listado refleja los beneficiarios asociados al proyecto. Los beneficiarios inactivos corresponden a personas dadas de baja o no activas actualmente en el proyecto.',
+            italics: true,
+            fontSize: 9,
+            color: '#374151',
+            margin: [0, 2, 0, 10],
+          },
         ]
-    };
+      };
     });
 
+    // 🔹 Separar proyectos activos / inactivos
+    const proyectosActivos = secciones.filter(s => s.estado === 'A');
+    const proyectosInactivos = secciones.filter(s => s.estado === 'I');
 
-    // 🔹 Documento principal
+    // 🔹 Armar contenido final
+    const content = [
+      this.encabezado(logo),
+      { text: 'REPORTE DE BENEFICIARIOS POR PROYECTO', style: 'header', margin: [0, 0, 0, 10] },
+      { text: `Generado el ${fecha}`, style: 'fecha', margin: [0, 0, 0, 20] },
+      ...(proyectosActivos.length
+        ? [
+            { text: '🟢 PROYECTOS ACTIVOS', style: 'header', color: '#065f46', margin: [0, 10, 0, 10] },
+            ...proyectosActivos
+          ]
+        : []),
+      ...(proyectosInactivos.length
+        ? [
+            { text: '🔴 PROYECTOS INACTIVOS', style: 'header', color: '#7c2d12', margin: [0, 20, 0, 10] },
+            ...proyectosInactivos
+          ]
+        : [])
+    ];
+
     const docDefinition: any = {
       pageSize: 'A4',
       pageMargins: [40, 110, 40, 60],
-      content: [
-        this.encabezado(logo),
-        { text: 'REPORTE DE BENEFICIARIOS POR PROYECTO', style: 'header', margin: [0, 0, 0, 10] },
-        { text: `Generado el ${fecha}`, style: 'fecha', margin: [0, 0, 0, 20] },
-        ...secciones,
-      ],
+      content,
       footer: (currentPage: number, pageCount: number) => ({
         margin: [40, 10, 40, 0],
         columns: [
-          { text: '© Alcaldía Municipal de Almaguer - Departamento del Cauca', alignment: 'left', fontSize: 8, color: '#6b7280' },
-          { text: `Página ${currentPage} de ${pageCount}`, alignment: 'right', fontSize: 8, color: '#6b7280' }
+          {
+            text: '© Alcaldía Municipal de Almaguer - Departamento del Cauca',
+            alignment: 'left',
+            fontSize: 8,
+            color: '#6b7280'
+          },
+          {
+            text: `Página ${currentPage} de ${pageCount}`,
+            alignment: 'right',
+            fontSize: 8,
+            color: '#6b7280'
+          }
         ]
       }),
       styles: {
         header: {
-          fontSize: 16,
+          fontSize: 15,
           bold: true,
           color: '#1E3A8A',
           alignment: 'center',
@@ -141,18 +202,12 @@ export class PdfBeneficiariosProyectoService {
           fontSize: 9,
           alignment: 'center'
         },
-        resumenTitulo: {
-            fontSize: 11,
-            bold: true,
-            color: '#1E3A8A',
-            alignment: 'left',
-        },
         resumenProyecto: {
-            fontSize: 10,
-            italics: true,
-            color: '#374151',
-            alignment: 'left',
-        },
+          fontSize: 10,
+          italics: true,
+          color: '#374151',
+          alignment: 'left',
+        }
       },
       defaultStyle: {
         fontSize: 9,

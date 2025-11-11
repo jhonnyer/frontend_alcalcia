@@ -316,35 +316,85 @@ export class PdfGeneradorProyectoService {
   }
 
   // =====================================
-  // 🔹 SECCIÓN: Beneficiarios
+  // SECCIÓN: Beneficiarios
   // =====================================
   private generateBeneficiariosTable(beneficiarios: any[]) {
     if (!beneficiarios.length) {
       return { text: 'No hay beneficiarios asociados.', italics: true };
     }
 
-    return {
-      table: {
-        headerRows: 1,
-        widths: ['30%', '20%', '25%', '25%'],
-        body: [
-          [
-            { text: 'Nombre', style: 'tableHeader' },
-            { text: 'Documento', style: 'tableHeader' },
-            { text: 'Estado Beneficiario', style: 'tableHeader' },
-            { text: 'Fecha Inicio', style: 'tableHeader' },
-          ],
-          ...beneficiarios.map((b: any) => [
-            b.nombreCompleto,
-            b.numDocumentoBeneficiario,
-            b.esBeneficiarioActivo ? 'Activo' : 'Inactivo',
-            b.fechaInicio || '-',
-          ]),
+    // 🔹 Separar activos e inactivos
+    const activos = beneficiarios
+      .filter((b) => b.esBeneficiarioActivo)
+      .sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto, 'es'));
+
+    const inactivos = beneficiarios
+      .filter((b) => !b.esBeneficiarioActivo)
+      .sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto, 'es'));
+
+    const buildTable = (lista: any[], titulo: string, color: string) => {
+      if (!lista.length) {
+        return {
+          text: `No hay beneficiarios ${titulo.toLowerCase()}.`,
+          italics: true,
+          color: '#6b7280',
+          margin: [0, 4, 0, 8],
+        };
+      }
+      return {
+        stack: [
+          { text: titulo, bold: true, color, margin: [0, 6, 0, 3] },
+          {
+            table: {
+              headerRows: 1,
+              widths: ['30%', '20%', '25%', '25%'],
+              body: [
+                [
+                  { text: 'Nombre', style: 'tableHeader' },
+                  { text: 'Documento', style: 'tableHeader' },
+                  { text: 'Estado Beneficiario', style: 'tableHeader' },
+                  { text: 'Fecha Inicio', style: 'tableHeader' },
+                ],
+                ...lista.map((b: any) => [
+                  b.nombreCompleto,
+                  b.numDocumentoBeneficiario,
+                  b.esBeneficiarioActivo ? 'Activo' : 'Inactivo',
+                  b.fechaInicio || '-',
+                ]),
+              ],
+            },
+            layout: 'lightHorizontalLines',
+          },
+          {
+            text: `Total de beneficiarios ${titulo.toLowerCase()}: ${lista.length}`,
+            alignment: 'right',
+            bold: true,
+            color,
+            margin: [0, 3, 0, 10],
+          },
         ],
-      },
-      layout: 'lightHorizontalLines',
+      };
+    };
+
+     const observacion = {
+      margin: [0, 4, 0, 0],
+      text:
+        'Nota: El listado anterior refleja los beneficiarios activos e inactivos asociados al proyecto según la información vigente en el sistema de gestión de inventarios. Los beneficiarios inactivos corresponden a personas dadas de baja o que ya no hacen parte del programa.',
+      italics: true,
+      fontSize: 9,
+      color: '#374151',
+    };
+
+    // 🔹 Retorna ambas tablas (activos e inactivos)
+    return {
+      stack: [
+        buildTable(activos, 'Beneficiarios Activos', '#065f46'),
+        buildTable(inactivos, 'Beneficiarios Inactivos', '#7c2d12'),
+        observacion
+      ],
     };
   }
+
 
   private generateActasTables(actas: any[]) {
     if (!actas.length) {

@@ -647,10 +647,19 @@ export class PdfGeneradorDashboardService {
           }
         },
 
-        // Beneficiarios
-        { text: '\nBeneficiarios', bold: true, margin: [0, 6, 0, 3] },
+        // Beneficiarios activos
+        { text: '\nBeneficiarios activos en el proyecto', bold: true, margin: [0, 6, 0, 3] },
         ...(p.beneficiarios?.length
-          ? [this.tablaBeneficiariosProyectoDetalle(p.beneficiarios)]
+          ? [
+              this.tablaBeneficiariosProyectoDetalle(p.beneficiarios),
+              {
+                text: `\nTotal de beneficiarios activos: ${p.totalBeneficiarios ?? p.beneficiarios.length}`,
+                alignment: 'right',
+                bold: true,
+                margin: [0, 4, 0, 6],
+                color: '#1E3A8A'
+              }
+            ]
           : [{ text: 'No hay beneficiarios registrados.', italics: true, color: '#6b7280' }]),
 
         // Categorías y productos

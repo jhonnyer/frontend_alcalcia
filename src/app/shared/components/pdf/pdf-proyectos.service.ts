@@ -25,71 +25,100 @@ export class PdfGeneradorProyectoService {
     const parametros = data.parametros || {};
     const logoUrl = '/img/alcaldiaAlmaguer.png';
     const logo = await this.getBase64ImageFromAssets(logoUrl);
+
+    // === IDs para navegación TOC ===
+    const idProyecto = (proyecto?.nombre || 'Proyecto')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/[^\w_-]/g, '');
+
     const docDefinition: any = {
-      
+      pageSize: 'A4',
+      pageMargins: [40, 100, 40, 60],
+      header: this.encabezado(logo, true),
+      footer: (currentPage: number, pageCount: number) => ({
+        margin: [40, 10, 40, 0],
+        columns: [
+          {
+            text: '© Alcaldía Municipal de Almaguer - Departamento del Cauca',
+            alignment: 'left',
+            fontSize: 8,
+            color: '#6b7280'
+          },
+          {
+            text: `Página ${currentPage} de ${pageCount}`,
+            alignment: 'right',
+            fontSize: 8,
+            color: '#6b7280'
+          }
+        ]
+      }),
+
       content: [
-        this.encabezado(logo),
+        { text: 'REPORTE DETALLADO DEL PROYECTO', style: 'header', margin: [0, 0, 0, 10] },
 
-        { text: '\nREPORTE DETALLADO DEL PROYECTO', style: 'header' },
-        { text: '\n' },
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+        // === Tabla de contenido ===
+        {
+          toc: {
+            title: { text: 'TABLA DE CONTENIDO', style: 'tocTitle' },
+            numberStyle: { bold: true, color: '#2563EB' },
+            textStyle: { color: '#1E3A8A' },
+            linkToDestination: true,
+          },
+          margin: [0, 10, 0, 20]
+        },
+        { text: '', pageBreak: 'after' },
+
+        // === Secciones navegables ===
+        { text: '📘 Información del Proyecto', style: 'subheader', tocItem: true, id: `${idProyecto}_info` },
         this.generateProjectInfoTable(proyecto),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+        { text: '', margin: [0, 5, 0, 5] },
 
-
-        { text: '\n Categorías y Productos', style: 'subheader' },
+        { text: '📦 Categorías y Productos', style: 'subheader', tocItem: true, id: `${idProyecto}_categorias` },
         ...this.generateCategoryTables(categorias),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+        { text: '', margin: [0, 5, 0, 5] },
 
-        { text: '\n Beneficiarios del Proyecto', style: 'subheader' },
+        { text: '👥 Beneficiarios del Proyecto', style: 'subheader', tocItem: true, id: `${idProyecto}_beneficiarios` },
         this.generateBeneficiariosTable(beneficiarios),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+        { text: '', margin: [0, 5, 0, 5] },
 
-        { text: '\n Actas Asociadas', style: 'subheader' },
+        { text: '🧾 Actas Asociadas', style: 'subheader', tocItem: true, id: `${idProyecto}_actas` },
         ...this.generateActasTables(actas),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+        { text: '', margin: [0, 5, 0, 5] },
 
-        { text: '\n Información Institucional', style: 'subheader' },
+        { text: '🏛️ Información Institucional', style: 'subheader', tocItem: true, id: `${idProyecto}_institucional` },
         this.generateParametrosTable(parametros),
       ],
+
       styles: {
-        // Encabezado principal
         header: {
-          fontSize: 18,
+          fontSize: 15,
           bold: true,
+          color: '#1E3A8A',
           alignment: 'center',
-          color: '#2C3E50',
-          margin: [0, 0, 0, 10],
+          margin: [0, 5, 0, 5]
         },
-
-        // Subtítulos de secciones generales
         subheader: {
-          fontSize: 14,
-          bold: true,
-          margin: [0, 10, 0, 5],
-          color: '#1E88E5',
-          alignment: 'center'
-        },
-
-        // Nuevo: título principal de cada acta
-        subheadertitulo: {
           fontSize: 13,
           bold: true,
-          color: '#0B3D91', // azul institucional
-          margin: [0, 8, 0, 4],
-          decoration: 'underline',
-          decorationColor: '#0B3D91',
+          color: '#2563EB',
+          margin: [0, 8, 0, 4]
         },
-
-        // Encabezado general de tablas
+        tocTitle: {
+          fontSize: 16,
+          bold: true,
+          alignment: 'center',
+          color: '#1E3A8A',
+          margin: [0, 10, 0, 10],
+        },
         tableHeader: {
           bold: true,
-          fontSize: 10,
-          fillColor: '#f3f4f6',
-          color: '#111827'
+          fillColor: '#E5E7EB',
+          color: '#111827',
+          fontSize: 9,
+          alignment: 'center'
         },
-
-        // Encabezado de bloque (Productos, Observaciones, etc.)
         sectionHeader: {
           bold: true,
           fontSize: 11,
@@ -97,124 +126,61 @@ export class PdfGeneradorProyectoService {
           fillColor: '#e0f2fe',
           margin: [0, 4, 0, 2],
         },
-
-        // Variantes para encabezados
-        tableHeaderGray: {
-          fillColor: '#f3f4f6',
-          color: '#374151',
-          bold: true,
-          fontSize: 10,
-        },
-        tableHeaderBlue: {
-          fillColor: '#e0f2fe',
-          color: '#0c4a6e',
-          bold: true,
-          fontSize: 10,
-        },
-        tableCell: {
-          fontSize: 9,
-        },
       },
       defaultStyle: {
-        fontSize: 10,
-        alignment: 'left',
-      },
-      pageMargins: [40, 60, 40, 40],
+        fontSize: 9,
+        color: '#111827'
+      }
     };
 
     pdfMake.createPdf(docDefinition).open();
   }
 
-  // ======= ENCABEZADO CENTRADO INSTITUCIONAL =======
-  private encabezado(logo: string) {
+  // === Encabezado institucional transversal ===
+  private encabezado(logo: string, esHeader: boolean = false) {
     const fecha = new Date();
     const fechaCompleta = fecha.toLocaleDateString('es-CO', {
-        day: '2-digit', month: 'long', year: 'numeric'
+      day: '2-digit', month: 'long', year: 'numeric'
     });
     const hora = fecha.toLocaleTimeString('es-CO', {
-        hour: '2-digit', minute: '2-digit'
+      hour: '2-digit', minute: '2-digit'
     });
 
-    return {
-        margin: [20, 10, 20, 5],
+    if (esHeader) {
+      return () => ({
+        margin: [40, 15, 40, 0],
         stack: [
-        // 🔹 Línea azul superior
-        {
+          {
             canvas: [
-            {
-                type: 'line',
-                x1: -40,  // se sale del margen izquierdo
-                y1: 0,
-                x2: 525, // se extiende hasta antes del margen derecho
-                y2: 0,
-                lineWidth: 3,
-                lineColor: '#1E3A8A'
-            }
+              { type: 'line', x1: -40, y1: 0, x2: 555, y2: 0, lineWidth: 3, lineColor: '#1E3A8A' }
             ],
             margin: [0, 0, 0, 8]
-        },
-        // 🔹 Cabecera institucional (texto + logo)
-        {
+          },
+          {
             columns: [
-            {
-                width: '70%', // ← proporción izquierda
+              {
+                width: '70%',
                 stack: [
-                { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
-                { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
-                { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
+                  { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
+                  { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
+                  { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
                 ],
                 alignment: 'left'
-            },
-            {
-                width: '30%', // ← proporción derecha
+              },
+              {
+                width: '30%',
                 stack: [
-                {
-                    image: logo,
-                    fit: [70, 70], // 👈 evita usar dos veces width
-                    alignment: 'right',
-                    margin: [0, -5, 0, 0]
-                }
+                  { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
                 ]
-            }
+              }
             ],
             columnGap: 10
-        },
-
-        // 🔹 Tabla de fecha
-        {
-            margin: [0, 10, 0, 0],
-            table: {
-            widths: ['*', '*', '*'],
-            body: [
-                [
-                { text: 'AÑO', style: 'tableHeader', alignment: 'center' },
-                { text: 'MES', style: 'tableHeader', alignment: 'center' },
-                { text: 'DÍA', style: 'tableHeader', alignment: 'center' }
-                ],
-                [
-                { text: fecha.getFullYear().toString(), alignment: 'center' },
-                { text: (fecha.getMonth() + 1).toString().padStart(2, '0'), alignment: 'center' },
-                { text: fecha.getDate().toString().padStart(2, '0'), alignment: 'center' }
-                ]
-            ]
-            },
-            layout: {
-            fillColor: (rowIndex: number) => (rowIndex === 0 ? '#E5E7EB' : null),
-            hLineColor: () => '#D1D5DB',
-            vLineColor: () => '#D1D5DB'
-            }
-        },
-
-        // 🔹 Línea inferior gris
-        {
-            canvas: [
-            { type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1, lineColor: '#D1D5DB' }
-            ],
-            margin: [0, 8, 0, 0]
-        }
+          }
         ]
-    };
- }
+      });
+    }
+    return {};
+  }
 
   // =====================================
   // 🔹 SECCIÓN: Información del proyecto (mejorada)

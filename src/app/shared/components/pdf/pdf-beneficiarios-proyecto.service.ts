@@ -100,7 +100,6 @@ export class PdfBeneficiariosProyectoService {
 
       return {
         estado,
-        tocItem: true, // 👈 aparecerá en la tabla de contenido
         id: proyecto,
         stack: [
           { text: proyecto, style: 'subheader', color: '#1E3A8A', tocItem: true, id: proyecto },
@@ -152,10 +151,10 @@ export class PdfBeneficiariosProyectoService {
         { text: 'REPORTE DE BENEFICIARIOS POR PROYECTO', style: 'header', margin: [0, 0, 0, 10]},
         {
           toc: {
-            title: { text: 'Contenido', style: 'subheader' },
-            numberStyle: { bold: true },
-            linkToDestination: true,
-            textStyle: { color: '#1E3A8A' } // azul institucional sin subrayado
+            title: { text: 'TABLA DE CONTENIDO', style: 'tocTitle' },
+            numberStyle: { bold: true, color: '#2563EB' },
+            textStyle: { color: '#1E3A8A' },
+            linkToDestination: true
           },
           margin: [0, 10, 0, 20]
         },
@@ -163,14 +162,14 @@ export class PdfBeneficiariosProyectoService {
 
         ...(proyectosActivos.length
           ? [
-              { text: '🟢 Proyectos Activos', style: 'header', color: '#065f46', tocItem: true },
+              { text: '🟢 Proyectos Activos', style: 'header', color: '#065f46', tocItem: true, id: 'proyectosActivos' },
               ...proyectosActivos
             ]
           : []),
 
         ...(proyectosInactivos.length
           ? [
-              { text: '🔴 Proyectos Inactivos', style: 'header', color: '#7c2d12', tocItem: true },
+              { text: '🔴 Proyectos Inactivos', style: 'header', color: '#7c2d12', tocItem: true, id: 'proyectosInactivos'},
               ...proyectosInactivos
             ]
           : [])
@@ -208,7 +207,19 @@ export class PdfBeneficiariosProyectoService {
           italics: true,
           color: '#374151',
           alignment: 'left',
-        }
+        },
+        tocTitle: {
+          fontSize: 16,
+          bold: true,
+          alignment: 'center',
+          color: '#1E3A8A',
+          margin: [0, 10, 0, 10],
+        },
+        tocEntry: {
+          fontSize: 11,
+          color: '#111827',
+          margin: [0, 2, 0, 2],
+        },
       },
       defaultStyle: {
         fontSize: 9,

@@ -12,12 +12,6 @@ export class PdfBeneficiariosProyectoService {
     const logoUrl = '/img/alcaldiaAlmaguer.png';
     const logo = await this.getBase64ImageFromAssets(logoUrl);
 
-    const fecha = new Date().toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
-
     if (!data?.length) {
       pdfMake.createPdf({
         content: [{ text: 'No hay beneficiarios registrados.', italics: true }],
@@ -25,11 +19,11 @@ export class PdfBeneficiariosProyectoService {
       return;
     }
 
-    // 🔹 Agrupar beneficiarios por proyecto y estado del proyecto
+    // 🔹 Agrupar beneficiarios por proyecto y estado
     const proyectosMap = new Map<string, { estado: string, beneficiarios: IBeneficiarioProyecto[] }>();
     data.forEach(b => {
       const nombreProyecto = b.nombreProyecto || 'Proyecto sin nombre';
-      const estadoProyecto = b.estadoProyecto || 'A'; // A = activo, I = inactivo
+      const estadoProyecto = b.estadoProyecto || 'A';
       if (!proyectosMap.has(nombreProyecto)) {
         proyectosMap.set(nombreProyecto, { estado: estadoProyecto, beneficiarios: [] });
       }
@@ -38,18 +32,15 @@ export class PdfBeneficiariosProyectoService {
 
     // 🔹 Crear secciones por proyecto
     const secciones = Array.from(proyectosMap.entries()).map(([proyecto, { estado, beneficiarios }]) => {
-      const activos = beneficiarios
-        .filter(b => b.esBeneficiarioActivo)
+      const activos = beneficiarios.filter(b => b.esBeneficiarioActivo)
         .sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto, 'es'));
-      const inactivos = beneficiarios
-        .filter(b => !b.esBeneficiarioActivo)
+      const inactivos = beneficiarios.filter(b => !b.esBeneficiarioActivo)
         .sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto, 'es'));
 
       const totalActivos = activos.length;
       const totalInactivos = inactivos.length;
       const totalGeneral = beneficiarios.length;
 
-      // 🔹 Helper para crear tabla
       const buildTable = (lista: IBeneficiarioProyecto[], titulo: string, color: string) => {
         if (!lista.length) {
           return {
@@ -107,11 +98,12 @@ export class PdfBeneficiariosProyectoService {
         };
       };
 
-      // 🔹 Retornar bloque del proyecto
       return {
         estado,
+        tocItem: true, // 👈 aparecerá en la tabla de contenido
+        id: proyecto,
         stack: [
-          { text: `\n📁 ${proyecto}`, style: 'subheader', color: '#1E3A8A', margin: [0, 10, 0, 6] },
+          { text: proyecto, style: 'subheader', color: '#1E3A8A', tocItem: true, id: proyecto },
           {
             text: `Resumen general: ${totalActivos} activos, ${totalInactivos} inactivos (total ${totalGeneral})`,
             style: 'resumenProyecto',
@@ -131,33 +123,13 @@ export class PdfBeneficiariosProyectoService {
       };
     });
 
-    // 🔹 Separar proyectos activos / inactivos
     const proyectosActivos = secciones.filter(s => s.estado === 'A');
     const proyectosInactivos = secciones.filter(s => s.estado === 'I');
 
-    // 🔹 Armar contenido final
-    const content = [
-      this.encabezado(logo),
-      { text: 'REPORTE DE BENEFICIARIOS POR PROYECTO', style: 'header', margin: [0, 0, 0, 10] },
-      { text: `Generado el ${fecha}`, style: 'fecha', margin: [0, 0, 0, 20] },
-      ...(proyectosActivos.length
-        ? [
-            { text: '🟢 PROYECTOS ACTIVOS', style: 'header', color: '#065f46', margin: [0, 10, 0, 10] },
-            ...proyectosActivos
-          ]
-        : []),
-      ...(proyectosInactivos.length
-        ? [
-            { text: '🔴 PROYECTOS INACTIVOS', style: 'header', color: '#7c2d12', margin: [0, 20, 0, 10] },
-            ...proyectosInactivos
-          ]
-        : [])
-    ];
-
     const docDefinition: any = {
       pageSize: 'A4',
-      pageMargins: [40, 110, 40, 60],
-      content,
+      pageMargins: [40, 100, 40, 60],
+      header: this.encabezado(logo, true), // 👈 encabezado transversal
       footer: (currentPage: number, pageCount: number) => ({
         margin: [40, 10, 40, 0],
         columns: [
@@ -175,6 +147,35 @@ export class PdfBeneficiariosProyectoService {
           }
         ]
       }),
+
+      content: [
+        { text: 'REPORTE DE BENEFICIARIOS POR PROYECTO', style: 'header', margin: [0, 0, 0, 10], tocItem: true },
+        {
+          toc: {
+            title: { text: 'Contenido', style: 'subheader' },
+            numberStyle: { bold: true },
+            linkToDestination: true,
+            textStyle: { color: '#1E3A8A' } // azul institucional sin subrayado
+          },
+          margin: [0, 10, 0, 20]
+        },
+        { text: '', pageBreak: 'after' },
+
+        ...(proyectosActivos.length
+          ? [
+              { text: '🟢 Proyectos Activos', style: 'header', color: '#065f46', tocItem: true },
+              ...proyectosActivos
+            ]
+          : []),
+
+        ...(proyectosInactivos.length
+          ? [
+              { text: '🔴 Proyectos Inactivos', style: 'header', color: '#7c2d12', tocItem: true },
+              ...proyectosInactivos
+            ]
+          : [])
+      ],
+
       styles: {
         header: {
           fontSize: 15,
@@ -218,31 +219,56 @@ export class PdfBeneficiariosProyectoService {
     pdfMake.createPdf(docDefinition).open();
   }
 
-  // 🔹 Encabezado institucional
-  private encabezado(logo: string) {
-    return {
-      margin: [0, 0, 0, 20],
-      columns: [
-        {
-          width: '70%',
-          stack: [
-            { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
-            { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
-            { text: 'Reporte Institucional de Proyectos y Beneficiarios', fontSize: 10, color: '#2563EB', margin: [0, 4, 0, 0] }
-          ],
-          alignment: 'left'
-        },
-        {
-          width: '30%',
-          image: logo,
-          fit: [70, 70],
-          alignment: 'right'
-        }
-      ]
-    };
+  // ======= ENCABEZADO INSTITUCIONAL TRANSVERSAL =======
+  private encabezado(logo: string, esHeader: boolean = false) {
+    const fecha = new Date();
+    const fechaCompleta = fecha.toLocaleDateString('es-CO', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    });
+    const hora = fecha.toLocaleTimeString('es-CO', {
+      hour: '2-digit', minute: '2-digit'
+    });
+
+    if (esHeader) {
+      return (currentPage: number, pageCount: number) => ({
+        margin: [40, 15, 40, 0],
+        stack: [
+          {
+            canvas: [
+              { type: 'line', x1: -40, y1: 0, x2: 555, y2: 0, lineWidth: 3, lineColor: '#1E3A8A' }
+            ],
+            margin: [0, 0, 0, 8]
+          },
+          {
+            columns: [
+              {
+                width: '70%',
+                stack: [
+                  { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
+                  { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
+                  { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
+                ],
+                alignment: 'left'
+              },
+              {
+                width: '30%',
+                stack: [
+                  { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
+                ]
+              }
+            ],
+            columnGap: 10
+          }
+        ]
+      });
+    }
+
+    // 🔹 Si no es header global, devolvemos un bloque vacío (para evitar error TS7030)
+    return {};
   }
 
-  // 🔹 Convertir logo a Base64
+
+  // ======= Convertir logo a Base64 =======
   private async getBase64ImageFromAssets(imagePath: string): Promise<string> {
     const response = await fetch(imagePath);
     const blob = await response.blob();

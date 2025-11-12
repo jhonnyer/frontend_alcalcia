@@ -18,78 +18,114 @@ export class PdfGeneradorDashboardService {
   async generateDashboardReport(data: any) {
     const logoUrl = '/img/alcaldiaAlmaguer.png';
     const logo = await this.getBase64ImageFromAssets(logoUrl);
+
     const docDefinition: any = {
-      content: [
-        this.encabezado(logo),
+      // 🟦 Encabezado institucional transversal
+      header: this.encabezado(logo, true),
 
-        { text: '\nResumen General', style: 'subheader' },
-        this.tablaResumenGeneral(data.resumenGeneral),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nPoblación Vulnerable', style: 'subheader' },
-        this.tablaPoblacionVulnerable(data.poblacionVulnerable),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nDistribución por Edad', style: 'subheader' },
-        this.tablaDistribucionEdad(data.distribucionEdad),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nDistribución por Zona', style: 'subheader' },
-        this.tablaZonas(data.porZona),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nDistribución por Barrios / Veredas', style: 'subheader' },
-        this.tablaBarrios(data.porBarrio),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nBeneficiarios Activos por Proyecto', style: 'subheader' },
-        this.tablaBeneficiariosProyecto(data),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nProductos Entregados Globalmente', style: 'subheader' },
-        this.tablaProductosEntregados(data.productosEntregados),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nActas por Mes y Estado', style: 'subheader' },
-        this.tablaActasPorMes(data.actasPorMes),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nActas por Responsable', style: 'subheader' },
-        this.tablaActasPorResponsable(data.actasPorResponsable),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nSolicitudes por Tipo', style: 'subheader' },
-        this.tablaSolicitudesPorTipo(data.solicitudesPorTipo),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nEntregas por Proyecto', style: 'subheader' },
-        this.tablaEntregasPorProyecto(data.entregasPorProyecto),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nDetalle de Entregas por Proyecto', style: 'subheader' },
-        this.tablaEntregasDetallePorProyecto(data),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nActas por Estado y Proyecto', style: 'subheader' },
-        this.tablaActasPorEstadoProyecto(data.actasPorEstadoProyecto),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nResumen por Estado de Proyecto', style: 'subheader' },
-        this.tablaResumenEstadoProyecto(data.resumenEstadoProyeto),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-
-        { text: '\nDetalle de Proyectos', style: 'subheader' },
-        ...this.detalleProyectos(data.proyectosResumen),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-        { text: '\n Información Institucional', style: 'subheader' },
-        this.generateParametrosTable(data.parametros),
-      ],
       footer: (currentPage: number, pageCount: number) => ({
         columns: [
-            { text: `Página ${currentPage} de ${pageCount}`, alignment: 'right', fontSize: 8, margin: [0, 0, 40, 0], color: '#6b7280' },
-            { text: '© Alcaldía de Almaguer', alignment: 'left', fontSize: 8, margin: [40, 0, 0, 0], color: '#6b7280' },
+          {
+            text: '© Alcaldía de Almaguer',
+            alignment: 'left',
+            fontSize: 8,
+            margin: [40, 0, 0, 0],
+            color: '#6b7280',
+          },
+          {
+            text: `Página ${currentPage} de ${pageCount}`,
+            alignment: 'right',
+            fontSize: 8,
+            margin: [0, 0, 40, 0],
+            color: '#6b7280',
+          },
         ],
       }),
+
+      content: [
+        // ============================
+        // 🧭 TABLA DE CONTENIDO
+        // ============================
+        { text: 'TABLA DE CONTENIDO', style: 'tocTitle', tocItem: true },
+        {
+          toc: {
+            title: { text: 'Contenido', style: 'subheader' },
+            numberStyle: { bold: true },
+            textMargin: [0, 2, 0, 2],
+            linkToDestination: true,
+            textStyle: { color: '#1E3A8A' },
+          },
+          margin: [0, 10, 0, 20],
+        },
+        { text: '', pageBreak: 'after' },
+
+        // ============================
+        // 🔹 SECCIONES DEL REPORTE
+        // ============================
+        { text: 'Resumen General', style: 'subheader', tocItem: true, id: 'Resumen General' },
+        this.tablaResumenGeneral(data.resumenGeneral),
+        this.linea(),
+
+        { text: 'Población Vulnerable', style: 'subheader', tocItem: true, id: 'Población Vulnerable' },
+        this.tablaPoblacionVulnerable(data.poblacionVulnerable),
+        this.linea(),
+
+        { text: 'Distribución por Edad', style: 'subheader', tocItem: true, id: 'Distribución por Edad' },
+        this.tablaDistribucionEdad(data.distribucionEdad),
+        this.linea(),
+
+        { text: 'Distribución por Zona', style: 'subheader', tocItem: true, id: 'Distribución por Zona' },
+        this.tablaZonas(data.porZona),
+        this.linea(),
+
+        { text: 'Distribución por Barrios / Veredas', style: 'subheader', tocItem: true, id: 'Distribución por Barrios / Veredas' },
+        this.tablaBarrios(data.porBarrio),
+        this.linea(),
+
+        { text: 'Beneficiarios Activos por Proyecto', style: 'subheader', tocItem: true, id: 'Beneficiarios Activos por Proyecto' },
+        this.tablaBeneficiariosProyecto(data),
+        this.linea(),
+
+        { text: 'Productos Entregados Globalmente', style: 'subheader', tocItem: true, id: 'Productos Entregados Globalmente' },
+        this.tablaProductosEntregados(data.productosEntregados),
+        this.linea(),
+
+        { text: 'Actas por Mes y Estado', style: 'subheader', tocItem: true, id: 'Actas por Mes y Estado' },
+        this.tablaActasPorMes(data.actasPorMes),
+        this.linea(),
+
+        { text: 'Actas por Responsable', style: 'subheader', tocItem: true, id: 'Actas por Responsable' },
+        this.tablaActasPorResponsable(data.actasPorResponsable),
+        this.linea(),
+
+        { text: 'Solicitudes por Tipo', style: 'subheader', tocItem: true, id: 'Solicitudes por Tipo' },
+        this.tablaSolicitudesPorTipo(data.solicitudesPorTipo),
+        this.linea(),
+
+        { text: 'Entregas por Proyecto', style: 'subheader', tocItem: true, id: 'Entregas por Proyecto' },
+        this.tablaEntregasPorProyecto(data.entregasPorProyecto),
+        this.linea(),
+
+        { text: 'Detalle de Entregas por Proyecto', style: 'subheader', tocItem: true, id: 'Detalle de Entregas por Proyecto' },
+        this.tablaEntregasDetallePorProyecto(data),
+        this.linea(),
+
+        { text: 'Actas por Estado y Proyecto', style: 'subheader', tocItem: true, id: 'Actas por Estado y Proyecto' },
+        this.tablaActasPorEstadoProyecto(data.actasPorEstadoProyecto),
+        this.linea(),
+
+        { text: 'Resumen por Estado de Proyecto', style: 'subheader', tocItem: true, id: 'Resumen por Estado de Proyecto' },
+        this.tablaResumenEstadoProyecto(data.resumenEstadoProyeto),
+        this.linea(),
+
+        { text: 'Detalle de Proyectos', style: 'subheader', tocItem: true, id: 'Detalle de Proyectos' },
+        ...this.detalleProyectos(data.proyectosResumen),
+        this.linea(),
+
+        { text: 'Información Institucional', style: 'subheader', tocItem: true, id: 'Información Institucional' },
+        this.generateParametrosTable(data.parametros),
+      ],
+
       styles: {
         header: {
           fontSize: 18,
@@ -117,6 +153,23 @@ export class PdfGeneradorDashboardService {
           fillColor: '#e0f2fe',
           margin: [0, 4, 0, 2],
         },
+        tocTitle: {
+          fontSize: 18,
+          bold: true,
+          alignment: 'center',
+          color: '#1E3A8A',
+          margin: [0, 10, 0, 10]
+        },
+        tocEntry: {
+          fontSize: 12,
+          color: '#111827',
+          margin: [0, 3, 0, 3],
+        },
+        tocEntryLevel2: {
+          fontSize: 11,
+          color: '#374151',
+          margin: [10, 2, 0, 2],
+        },
       },
       defaultStyle: { fontSize: 10 },
       pageMargins: [40, 100, 40, 60],
@@ -125,96 +178,96 @@ export class PdfGeneradorDashboardService {
     pdfMake.createPdf(docDefinition).open();
   }
 
-  // ======= ENCABEZADO CENTRADO INSTITUCIONAL =======
-  private encabezado(logo: string) {
+  private linea() {
+    return {
+      canvas: [
+        { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' },
+      ],
+      margin: [0, 10, 0, 10],
+    };
+  }
+
+  // ======= ENCABEZADO CENTRADO INSTITUCIONAL (repetible) =======
+  private encabezado(logo: string, esHeader: boolean = false) {
     const fecha = new Date();
     const fechaCompleta = fecha.toLocaleDateString('es-CO', {
-        day: '2-digit', month: 'long', year: 'numeric'
+      day: '2-digit', month: 'long', year: 'numeric'
     });
     const hora = fecha.toLocaleTimeString('es-CO', {
-        hour: '2-digit', minute: '2-digit'
+      hour: '2-digit', minute: '2-digit'
     });
 
-    return {
-        margin: [20, 10, 20, 5],
+    // Si es un header global, devolvemos una función (pdfmake lo requiere)
+    if (esHeader) {
+      return (currentPage: number, pageCount: number) => ({
+        margin: [40, 15, 40, 0],
         stack: [
-        // 🔹 Línea azul superior
-        {
+          // 🔹 Línea azul superior
+          {
             canvas: [
-            {
-                type: 'line',
-                x1: -40,  // se sale del margen izquierdo
-                y1: 0,
-                x2: 525, // se extiende hasta antes del margen derecho
-                y2: 0,
-                lineWidth: 3,
-                lineColor: '#1E3A8A'
-            }
+              { type: 'line', x1: -40, y1: 0, x2: 555, y2: 0, lineWidth: 3, lineColor: '#1E3A8A' }
             ],
             margin: [0, 0, 0, 8]
-        },
-        // 🔹 Cabecera institucional (texto + logo)
-        {
+          },
+
+          // 🔹 Cabecera institucional (texto + logo)
+          {
             columns: [
-            {
-                width: '70%', // ← proporción izquierda
+              {
+                width: '70%',
                 stack: [
+                  { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
+                  { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
+                  { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
+                ],
+                alignment: 'left'
+              },
+              {
+                width: '30%',
+                stack: [
+                  { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
+                ]
+              }
+            ],
+            columnGap: 10
+          }
+        ]
+      });
+    }
+
+    //Si se llama manualmente dentro del contenido (caso antiguo)
+    return {
+      margin: [20, 10, 20, 5],
+      stack: [
+        {
+          canvas: [
+            { type: 'line', x1: -40, y1: 0, x2: 525, y2: 0, lineWidth: 3, lineColor: '#1E3A8A' }
+          ],
+          margin: [0, 0, 0, 8]
+        },
+        {
+          columns: [
+            {
+              width: '70%',
+              stack: [
                 { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
                 { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
                 { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
-                ],
-                alignment: 'left'
+              ],
+              alignment: 'left'
             },
             {
-                width: '30%', // ← proporción derecha
-                stack: [
-                {
-                    image: logo,
-                    fit: [70, 70], // 👈 evita usar dos veces width
-                    alignment: 'right',
-                    margin: [0, -5, 0, 0]
-                }
-                ]
+              width: '30%',
+              stack: [
+                { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
+              ]
             }
-            ],
-            columnGap: 10
-        },
-
-        // 🔹 Tabla de fecha
-        {
-            margin: [0, 10, 0, 0],
-            table: {
-            widths: ['*', '*', '*'],
-            body: [
-                [
-                { text: 'AÑO', style: 'tableHeader', alignment: 'center' },
-                { text: 'MES', style: 'tableHeader', alignment: 'center' },
-                { text: 'DÍA', style: 'tableHeader', alignment: 'center' }
-                ],
-                [
-                { text: fecha.getFullYear().toString(), alignment: 'center' },
-                { text: (fecha.getMonth() + 1).toString().padStart(2, '0'), alignment: 'center' },
-                { text: fecha.getDate().toString().padStart(2, '0'), alignment: 'center' }
-                ]
-            ]
-            },
-            layout: {
-            fillColor: (rowIndex: number) => (rowIndex === 0 ? '#E5E7EB' : null),
-            hLineColor: () => '#D1D5DB',
-            vLineColor: () => '#D1D5DB'
-            }
-        },
-
-        // 🔹 Línea inferior gris
-        {
-            canvas: [
-            { type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1, lineColor: '#D1D5DB' }
-            ],
-            margin: [0, 8, 0, 0]
+          ],
+          columnGap: 10
         }
-        ]
+      ]
     };
- }
+  }
 
 
   // ======= SECCIONES GENERALES =======
@@ -853,7 +906,7 @@ export class PdfGeneradorDashboardService {
 
     return {
       table: {
-        widths: ['*', '*', '*', '*', 'auto', '*', '*'],
+        widths: ['15%', '18%', '14%', '14%', '10%', '15%', '14%'],
         body: [
           [
             { text: 'Proyecto', style: 'tableHeader' },

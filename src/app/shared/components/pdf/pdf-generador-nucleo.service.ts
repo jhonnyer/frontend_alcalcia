@@ -17,195 +17,213 @@ export class PdfGeneradorNucleoService {
   async generateNucleoReport(detalle: any) {
     const logoUrl = '/img/alcaldiaAlmaguer.png';
     const logo = await this.getBase64ImageFromAssets(logoUrl);
+
+    const fecha = new Date().toLocaleDateString('es-CO', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    });
+
     const docDefinition: any = {
+      pageSize: 'A4',
+      pageMargins: [40, 100, 40, 60], // 🔹 margen superior mayor para el header institucional
+      header: this.encabezado(logo, true),
+      footer: (currentPage: number, pageCount: number) => ({
+        margin: [40, 10, 40, 0],
+        columns: [
+          {
+            text: '© Alcaldía Municipal de Almaguer - Departamento del Cauca',
+            alignment: 'left',
+            fontSize: 8,
+            color: '#6b7280'
+          },
+          {
+            text: `Página ${currentPage} de ${pageCount}`,
+            alignment: 'right',
+            fontSize: 8,
+            color: '#6b7280'
+          }
+        ]
+      }),
+
       content: [
-        this.encabezado(logo),
+        {
+          text: 'REPORTE DETALLADO DEL ACTOR SOCIAL',
+          style: 'header',
+          margin: [0, 20, 0, 10],
+          id: 'reporteActor'
+        },
 
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
-        { text: '\nREPORTE DETALLADO DEL ACTOR SOCIAL', style: 'header' },
-        { text: '\n' },
-        this.generateNucleoInfoTable(detalle),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+        // ============================
+        // TABLA DE CONTENIDO
+        // ============================
+        { text: 'TABLA DE CONTENIDO', style: 'tocTitle' },
+        {
+          toc: {
+            title: { text: 'Contenido', style: 'tocSubTitle' },
+            numberStyle: { bold: true, color: '#2563EB' },
+            textStyle: { color: '#1E3A8A' },
+            linkToDestination: true
+          },
+          margin: [0, 10, 0, 20]
+        },
+        { text: '', pageBreak: 'after' },
 
-        { text: '\n Beneficiarios', style: 'subheader' },
-        this.generateBeneficiariosTable(detalle.beneficiariosNucleo || []),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+        // ===== Sección 1 =====
+        this.section('infoActor', 'Información del Actor Social', this.generateNucleoInfoTable(detalle)),
 
-        { text: '\n Beneficiarios con Proyectos', style: 'subheader' },
-        this.generateProyectosTable(detalle.beneficiariosProyecto || []),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+        // ===== Sección 2 =====
+        this.section('beneficiarios', 'Beneficiarios', this.generateBeneficiariosTable(detalle.beneficiariosNucleo || [])),
 
-        { text: '\n Actas Asociadas', style: 'subheader' },
-        ...this.generateActasTables(detalle.actas || []),
-        { canvas: [ { type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: '#E5E7EB' } ], margin: [0, 10, 0, 10] },
+        // ===== Sección 3 =====
+        this.section('beneficiariosProyectos', 'Beneficiarios con Proyectos', this.generateProyectosTable(detalle.beneficiariosProyecto || [])),
 
-        { text: '\n Información Institucional', style: 'subheader' },
-        this.generateParametrosTable(detalle.parametros),
+        // ===== Sección 4 =====
+        this.section('actasAsociadas', 'Actas Asociadas', this.generateActasTables(detalle.actas || [])),
+
+        // ===== Sección 5 =====
+        this.section('infoInstitucional', 'Información Institucional', this.generateParametrosTable(detalle.parametros)),
       ],
 
-      // ==============================
-      // 🎨 ESTILOS PDFMAKE
-      // ==============================
       styles: {
-        // Encabezados principales
         header: {
-          fontSize: 18,
+          fontSize: 16,
           bold: true,
+          color: '#1E3A8A',
           alignment: 'center',
-          color: '#2C3E50',
-          margin: [0, 0, 0, 10],
+          margin: [0, 5, 0, 5]
         },
         subheader: {
-          fontSize: 14,
+          fontSize: 13,
           bold: true,
-          margin: [0, 10, 0, 5],
-          color: '#1E88E5',
-          alignment: 'center',
+          color: '#2563EB',
+          margin: [0, 8, 0, 4],
+          alignment: 'center'
+        },
+        tableHeader: {
+          bold: true,
+          fillColor: '#E5E7EB',
+          color: '#111827',
+          fontSize: 9,
+          alignment: 'center'
         },
         subheadertitulo: {
           fontSize: 13,
           bold: true,
-          color: '#0B3D91', 
-          margin: [0, 8, 0, 4],
-          decoration: 'underline',
-          decorationColor: '#0B3D91',
+          color: '#1E3A8A',
+          margin: [0, 8, 0, 4]
         },
-        // Encabezados de tabla
-        tableHeader: {
-          bold: true,
-          fontSize: 10,
-          fillColor: '#f3f4f6',
-          color: '#111827'
-        },
-
-        // Encabezado de secciones (Productos, Observaciones, etc.)
         sectionHeader: {
           bold: true,
           fontSize: 11,
           color: '#0f172a',
           fillColor: '#e0f2fe',
-          margin: [0, 4, 0, 2],
+          margin: [0, 4, 0, 2]
         },
-
-        // Encabezados grises alternos
-        tableHeaderGray: {
-          fillColor: '#f3f4f6',
+        tocTitle: {
+          fontSize: 18,
+          bold: true,
+          alignment: 'center',
+          color: '#1E3A8A',
+          margin: [0, 10, 0, 10]
+        },
+        tocSubTitle: {
+          fontSize: 13,
+          bold: true,
+          color: '#2563EB',
+          margin: [0, 0, 0, 10],
+          alignment: 'left'
+        },
+        sectionTitle: {
+          fontSize: 13,
+          bold: true,
+          color: '#2563EB',
+          margin: [0, 10, 0, 6],
+          alignment: 'left'
+        },
+        tocEntry: {
+          fontSize: 11,
+          color: '#111827',
+          margin: [0, 2, 0, 2],
+          alignment: 'left'
+        },
+        tocEntryLevel2: {
+          fontSize: 10,
           color: '#374151',
-          bold: true,
-          fontSize: 10,
-        },
-
-        // Encabezados azules claros
-        tableHeaderBlue: {
-          fillColor: '#e0f2fe',
-          color: '#0c4a6e',
-          bold: true,
-          fontSize: 10,
+          margin: [15, 1, 0, 1],
+          alignment: 'left'
         },
       },
-
-      // Estilo por defecto para todo el texto
       defaultStyle: {
         fontSize: 10,
-        alignment: 'left',
-      },
-
-      // Márgenes de página
-      pageMargins: [40, 60, 40, 40],
+        color: '#111827'
+      }
     };
+
     pdfMake.createPdf(docDefinition).open();
   }
 
-   // ======= ENCABEZADO CENTRADO INSTITUCIONAL =======
-  private encabezado(logo: string) {
+  // =====================================
+  // Método auxiliar para secciones TOC seguras
+  // =====================================
+  private section(id: string, title: string, content: any) {
+    return {
+      stack: [
+        { text: title, style: 'sectionTitle', id, tocItem: true, margin: [0, 10, 0, 6] },
+        Array.isArray(content) ? { stack: content } : content
+      ],
+      margin: [0, 5, 0, 5]
+    };
+  }
+
+
+  // ======= ENCABEZADO TRANSVERSAL =======
+  private encabezado(logo: string, esHeader: boolean = false) {
     const fecha = new Date();
     const fechaCompleta = fecha.toLocaleDateString('es-CO', {
-        day: '2-digit', month: 'long', year: 'numeric'
+      day: '2-digit', month: 'long', year: 'numeric'
     });
     const hora = fecha.toLocaleTimeString('es-CO', {
-        hour: '2-digit', minute: '2-digit'
+      hour: '2-digit', minute: '2-digit'
     });
 
-    return {
-        margin: [20, 10, 20, 5],
+    if (esHeader) {
+      return (currentPage: number, pageCount: number) => ({
+        margin: [40, 15, 40, 0],
         stack: [
-        // 🔹 Línea azul superior
-        {
+          // 🔹 Línea azul superior
+          {
             canvas: [
-            {
-                type: 'line',
-                x1: -40,  // se sale del margen izquierdo
-                y1: 0,
-                x2: 525, // se extiende hasta antes del margen derecho
-                y2: 0,
-                lineWidth: 3,
-                lineColor: '#1E3A8A'
-            }
+              { type: 'line', x1: -40, y1: 0, x2: 555, y2: 0, lineWidth: 3, lineColor: '#1E3A8A' }
             ],
             margin: [0, 0, 0, 8]
-        },
-        // 🔹 Cabecera institucional (texto + logo)
-        {
+          },
+          // 🔹 Encabezado institucional
+          {
             columns: [
-            {
-                width: '70%', // ← proporción izquierda
+              {
+                width: '70%',
                 stack: [
-                { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
-                { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
-                { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
+                  { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
+                  { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
+                  { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
                 ],
                 alignment: 'left'
-            },
-            {
-                width: '30%', // ← proporción derecha
+              },
+              {
+                width: '30%',
                 stack: [
-                {
-                    image: logo,
-                    fit: [70, 70], // 👈 evita usar dos veces width
-                    alignment: 'right',
-                    margin: [0, -5, 0, 0]
-                }
+                  { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
                 ]
-            }
+              }
             ],
             columnGap: 10
-        },
-
-        // 🔹 Tabla de fecha
-        {
-            margin: [0, 10, 0, 0],
-            table: {
-            widths: ['*', '*', '*'],
-            body: [
-                [
-                { text: 'AÑO', style: 'tableHeader', alignment: 'center' },
-                { text: 'MES', style: 'tableHeader', alignment: 'center' },
-                { text: 'DÍA', style: 'tableHeader', alignment: 'center' }
-                ],
-                [
-                { text: fecha.getFullYear().toString(), alignment: 'center' },
-                { text: (fecha.getMonth() + 1).toString().padStart(2, '0'), alignment: 'center' },
-                { text: fecha.getDate().toString().padStart(2, '0'), alignment: 'center' }
-                ]
-            ]
-            },
-            layout: {
-            fillColor: (rowIndex: number) => (rowIndex === 0 ? '#E5E7EB' : null),
-            hLineColor: () => '#D1D5DB',
-            vLineColor: () => '#D1D5DB'
-            }
-        },
-
-        // 🔹 Línea inferior gris
-        {
-            canvas: [
-            { type: 'line', x1: 0, y1: 0, x2: 555, y2: 0, lineWidth: 1, lineColor: '#D1D5DB' }
-            ],
-            margin: [0, 8, 0, 0]
-        }
+          }
         ]
-    };
- }
+      });
+    }
+
+    // Evita error TS7030
+    return {};
+  }
 
   // ==============================
   // Información general del núcleo

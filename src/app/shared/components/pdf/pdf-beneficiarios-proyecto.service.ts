@@ -149,7 +149,7 @@ export class PdfBeneficiariosProyectoService {
       }),
 
       content: [
-        { text: 'REPORTE DE BENEFICIARIOS POR PROYECTO', style: 'header', margin: [0, 0, 0, 10], tocItem: true },
+        { text: 'REPORTE DE BENEFICIARIOS POR PROYECTO', style: 'header', margin: [0, 0, 0, 10]},
         {
           toc: {
             title: { text: 'Contenido', style: 'subheader' },

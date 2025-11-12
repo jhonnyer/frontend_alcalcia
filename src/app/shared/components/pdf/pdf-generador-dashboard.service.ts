@@ -44,9 +44,9 @@ export class PdfGeneradorDashboardService {
 
       content: [
         // ============================
-        // 🧭 TABLA DE CONTENIDO
+        // TABLA DE CONTENIDO
         // ============================
-        { text: 'TABLA DE CONTENIDO', style: 'tocTitle', tocItem: true },
+        { text: 'TABLA DE CONTENIDO', style: 'tocTitle'},
         {
           toc: {
             title: { text: 'Contenido', style: 'subheader' },

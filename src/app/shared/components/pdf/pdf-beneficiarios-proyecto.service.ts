@@ -98,9 +98,15 @@ export class PdfBeneficiariosProyectoService {
         };
       };
 
-      return {
+      const idProyecto = proyecto
+        .normalize("NFD") // elimina tildes
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "_") // reemplaza espacios
+        .replace(/[^\w_-]/g, "");
+     
+        return {
         estado,
-        id: proyecto,
+        id: idProyecto,
         stack: [
           { text: proyecto, style: 'subheader', color: '#1E3A8A', tocItem: true, id: proyecto },
           {
@@ -162,14 +168,14 @@ export class PdfBeneficiariosProyectoService {
 
         ...(proyectosActivos.length
           ? [
-              { text: '🟢 Proyectos Activos', style: 'header', color: '#065f46', tocItem: true, id: 'proyectosActivos' },
+              { text: '🟢 Proyectos Activos', style: 'header', color: '#065f46', tocItem: true, id: 'Proyectos_Activos' },
               ...proyectosActivos
             ]
           : []),
 
         ...(proyectosInactivos.length
           ? [
-              { text: '🔴 Proyectos Inactivos', style: 'header', color: '#7c2d12', tocItem: true, id: 'proyectosInactivos'},
+              { text: '🔴 Proyectos Inactivos', style: 'header', color: '#7c2d12', tocItem: true, id: 'Proyectos_Inactivos'},
               ...proyectosInactivos
             ]
           : [])

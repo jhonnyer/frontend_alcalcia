@@ -533,7 +533,7 @@ export class ProcedingsUpdateComponent implements OnInit {
   }
 
   // Agregar método para remover solo productos nuevos
-  removeSelectedProduct(productId: number) {
+  async removeSelectedProduct(productId: number): Promise<void> {
     const estadoActual = this.formActa.get('estado')?.value as EstadoActa;
 
     // Solo permitir eliminar productos si el acta está en R o P
@@ -547,8 +547,12 @@ export class ProcedingsUpdateComponent implements OnInit {
     // Si no se encuentra, salir
     if (!productoAEliminar) return;
 
-    // Confirmar eliminación
-    const confirmar = confirm(`¿Desea eliminar el producto "${productoAEliminar.nombre}" del acta?`);
+    const confirmar = await this.alert.confirm(
+      'Eliminar producto',
+      `¿Desea eliminar el producto "${productoAEliminar.nombre}" del acta?`,
+      'Eliminar',
+      'Cancelar'
+    );
     if (!confirmar) return;
 
     // Eliminar del signal

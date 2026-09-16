@@ -12,6 +12,21 @@
 
 <div class="overflow-y-auto font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
 
+  <div class="grid grid-cols-3 gap-2 border-b border-slate-200 bg-white px-4 py-3 text-center text-xs sm:text-sm">
+    <div [ngClass]="beneficiario() ? 'text-emerald-700' : 'text-slate-400'">
+      <mat-icon class="align-middle text-base">{{ beneficiario() ? 'check_circle' : 'person_search' }}</mat-icon>
+      <span class="ml-1">Beneficiario</span>
+    </div>
+    <div [ngClass]="beneficiarioProyecto() ? 'text-emerald-700' : 'text-slate-400'">
+      <mat-icon class="align-middle text-base">{{ beneficiarioProyecto() ? 'check_circle' : 'folder_open' }}</mat-icon>
+      <span class="ml-1">Proyecto</span>
+    </div>
+    <div [ngClass]="selectedProductsInfo().length ? 'text-emerald-700' : 'text-slate-400'">
+      <mat-icon class="align-middle text-base">{{ selectedProductsInfo().length ? 'check_circle' : 'inventory_2' }}</mat-icon>
+      <span class="ml-1">Productos</span>
+    </div>
+  </div>
+
   <!-- 🔹 Buscador de beneficiario -->
   <div class="flex flex-col p-5 border-b bg-gray-50">
     <div class="flex justify-between items-center mb-3">
@@ -137,16 +152,29 @@
           </p>
         </div>
 
-        <!-- 🔹 Tabla de proyectos activos -->
-        <div
-          *ngIf="tieneProyectosActivos()"
-          class="mt-3 overflow-x-auto rounded-lg border border-gray-200 shadow-sm"
-        >
-          <h4 class="text-sm font-semibold text-gray-700 px-3 pt-3">
-            Proyectos activos del beneficiario
-          </h4>
+        <!-- 🔹 Tabla de proyectos activos, colapsable para reducir ruido visual -->
+        <div *ngIf="tieneProyectosActivos()" class="mt-3">
+          <button
+            type="button"
+            class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            (click)="toggleProyectosActivos()"
+            [attr.aria-expanded]="proyectosActivosVisible()"
+          >
+            <span class="flex items-center gap-2">
+              <mat-icon class="text-base text-blue-600">folder_open</mat-icon>
+              Proyectos activos del beneficiario
+              <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                {{ getProyectosActivos().length }}
+              </span>
+            </span>
+            <mat-icon>{{ proyectosActivosVisible() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </button>
 
-          <table class="w-full text-sm text-gray-700 mt-2">
+          <div
+            *ngIf="proyectosActivosVisible()"
+            class="mt-2 overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm"
+          >
+          <table class="min-w-[620px] w-full text-sm text-gray-700">
             <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
               <tr>
                 <th class="px-3 py-2 text-left">Proyecto</th>
@@ -177,6 +205,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
 
         <!-- 🔹 Mensaje si no hay proyectos activos -->
@@ -292,23 +321,23 @@
               <p class="text-gray-500 text-sm">🛒 No hay productos seleccionados</p>
             </div>
           } @else {
-            <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-200">
-              <table class="w-full text-sm text-left text-gray-700">
-                <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+            <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+              <table class="min-w-[720px] w-full text-left text-sm text-gray-700">
+                <thead class="bg-slate-50 text-xs uppercase text-slate-600">
                   <tr>
-                    <th class="px-4 py-3 w-[20%]">Nombre</th>
-                    <th class="px-4 py-3 w-[30%]">Descripción</th>
-                    <th class="px-4 py-3 text-center w-[10%]">Stock</th>
-                    <th class="px-4 py-3 text-center w-[10%]">Cantidad</th>
-                    <th class="px-4 py-3 text-center w-[10%]">Acción</th>
+                    <th class="w-[24%] px-4 py-3">Producto</th>
+                    <th class="w-[34%] px-4 py-3">Descripción</th>
+                    <th class="w-[12%] px-4 py-3 text-center">Stock</th>
+                    <th class="w-[18%] px-4 py-3 text-center">Cantidad</th>
+                    <th class="w-[12%] px-4 py-3 text-center">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
                   @for (product of selectedProductsInfo(); track product.idProducto) {
-                    <tr class="border-b hover:bg-gray-50 transition">
-                      <td class="px-4 py-3 font-medium text-gray-800">{{ product.nombre }}</td>
-                      <td class="px-4 py-3 text-gray-600">{{ product.descripcion }}</td>
-                      <td class="px-4 py-3 text-center">{{ product.stock }}</td>
+                    <tr class="border-b border-slate-100 transition hover:bg-blue-50/40">
+                      <td class="px-4 py-3 font-semibold text-gray-800">{{ product.nombre }}</td>
+                      <td class="px-4 py-3 text-gray-600">{{ product.descripcion || 'Sin descripción' }}</td>
+                      <td class="px-4 py-3 text-center font-medium">{{ product.stock }}</td>
                       <td class="px-4 py-3 text-center">
                         <input
                           type="number"
@@ -316,7 +345,7 @@
                           min="1"
                           [max]="product.stock"
                           (change)="updateProductQuantity(product.idProducto, $event)"
-                          class="w-20 border border-gray-300 rounded-md text-center py-1 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                          class="w-24 rounded-lg border border-slate-300 py-2 text-center shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                         />
                       </td>
                       <td class="px-4 py-3 text-center">
@@ -351,10 +380,10 @@
           <button 
             type="submit" 
             class="btn-action-blue flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            [disabled]="formActa.invalid"
+            [disabled]="formActa.invalid || isSubmitting"
           >
             <mat-icon>save</mat-icon>
-            Registrar Acta
+            {{ isSubmitting ? 'Registrando...' : 'Registrar Acta' }}
           </button>
         </div>
       </form>

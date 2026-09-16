@@ -84,12 +84,25 @@ export class ProcedingsListComponent implements OnInit {
       .pipe(delay(150)) // pequeña pausa visual
       .subscribe({
         next: (response) => {
-          this.data.set(response);
+          const orderedResponse = [...response].sort((first, second) => {
+            const firstReceived = first.estado === 'R' ? 0 : 1;
+            const secondReceived = second.estado === 'R' ? 0 : 1;
+
+            if (firstReceived !== secondReceived) {
+              return firstReceived - secondReceived;
+            }
+
+            const firstDate = this.parseActaDate(first.fechaCreacion);
+            const secondDate = this.parseActaDate(second.fechaCreacion);
+            return secondDate - firstDate || second.idActa - first.idActa;
+          });
+
+          this.data.set(orderedResponse);
 
           // Crear tabla si no existe
           if (!this.dataTable) {
             this.dataTable = createAngularTable<IActa>(() => ({
-              data: response,
+              data: orderedResponse,
               columns: defaultColumns,
               getCoreRowModel: getCoreRowModel(),
               getPaginationRowModel: getPaginationRowModel(),
@@ -126,7 +139,7 @@ export class ProcedingsListComponent implements OnInit {
             // Si ya existe, solo actualizar los datos
             this.dataTable.setOptions(prev => ({
               ...prev,
-              data: response
+              data: orderedResponse
             }));
           }
 
@@ -137,6 +150,11 @@ export class ProcedingsListComponent implements OnInit {
           this.loading.set(false);
         }
       });
+  }
+
+  private parseActaDate(value: string): number {
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? 0 : parsed;
   }
 
   // ============================================================

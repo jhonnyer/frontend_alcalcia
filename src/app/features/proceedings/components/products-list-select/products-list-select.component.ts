@@ -33,7 +33,7 @@ interface DialogData {
   `,
   templateUrl: './products-list-select.component.html',
   host: {
-    class: "h-[90vh] min-w-[60vw] overflow-hidden p-5"
+    class: "block h-[90vh] w-[min(1100px,95vw)] max-w-[95vw] overflow-hidden p-0"
   }
 })
 export class ProductsListSelectComponent implements OnInit{
@@ -55,7 +55,7 @@ export class ProductsListSelectComponent implements OnInit{
 
   // Paginación
   pageIndex = 0;
-  pageSize = 2; // Número de filas por página
+  pageSize = 5; // Número de filas por página
   pageSizeOptions = [5, 10, 20];
 
   // Filtro de búsqueda
@@ -186,7 +186,18 @@ export class ProductsListSelectComponent implements OnInit{
     }
   }
 
-  removeProduct(product: IProductoFk, checkbox: HTMLInputElement, input: HTMLInputElement) {
+  async removeProduct(product: IProductoFk, checkbox: HTMLInputElement, input: HTMLInputElement): Promise<void> {
+    const confirmado = await this.alert.confirm(
+      'Eliminar producto',
+      `¿Desea eliminar el producto "${product.nombreProducto}" del acta?`,
+      'Eliminar',
+      'Cancelar'
+    );
+
+    if (!confirmado) {
+      return;
+    }
+
     // Uncheck checkbox
     checkbox.checked = false;
 
@@ -223,16 +234,29 @@ export class ProductsListSelectComponent implements OnInit{
     });
   }
 
+  private normalizeSearchText(value: string | null | undefined): string {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase()
+      .trim();
+  }
+
+  onSearchTermChange(value: string): void {
+    this.searchTerm = value;
+    this.pageIndex = 0;
+  }
+
 
   get filteredProducts() {
     let filtered = this.products;
 
     // 🔎 Filtro por nombre o descripción
-    if (this.searchTerm.trim() !== '') {
-      const term = this.searchTerm.toLowerCase();
+    const term = this.normalizeSearchText(this.searchTerm);
+    if (term !== '') {
       filtered = filtered.filter(p =>
-        p.nombreProducto.toLowerCase().includes(term) ||
-        (p.descripcion?.toLowerCase().includes(term))
+        this.normalizeSearchText(p.nombreProducto).includes(term) ||
+        this.normalizeSearchText(p.descripcion).includes(term)
       );
     }
 
@@ -244,11 +268,11 @@ export class ProductsListSelectComponent implements OnInit{
   get totalFiltered() {
     let filtered = this.products;
 
-    if (this.searchTerm.trim() !== '') {
-      const term = this.searchTerm.toLowerCase();
+    const term = this.normalizeSearchText(this.searchTerm);
+    if (term !== '') {
       filtered = filtered.filter(p =>
-        p.nombreProducto.toLowerCase().includes(term) ||
-        (p.descripcion?.toLowerCase().includes(term))
+        this.normalizeSearchText(p.nombreProducto).includes(term) ||
+        this.normalizeSearchText(p.descripcion).includes(term)
       );
     }
 

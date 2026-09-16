@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, HostListener, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormControl, Validators, FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -75,9 +75,11 @@ export class ProcedingsRegisterComponent implements OnInit{
   private actasService = inject(ActasService);
 
   selectedProductsInfo = signal<ProductoWithCantidad[]>([]);
+  isSubmitting = false;
 
   // Lista completa de proyectos asociados al beneficiario
   beneficiariosProyecto = signal<IBeneficiarioProyecto[]>([]);
+  proyectosActivosVisible = signal(false);
 
   // Proyecto seleccionado (uno solo)
   beneficiarioProyecto = signal<IBeneficiarioProyecto | null>(null);
@@ -116,6 +118,21 @@ export class ProcedingsRegisterComponent implements OnInit{
     // this.getBeneficiarios();
     this.getProyectos();
     this.getResponsables();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  protectPendingChanges(event: BeforeUnloadEvent): void {
+    if (this.hasPendingChanges() && !this.isSubmitting) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
+  hasPendingChanges(): boolean {
+    return !!this.beneficiario()
+      || !!this.beneficiarioProyecto()
+      || this.selectedProductsInfo().length > 0
+      || this.formActa.dirty;
   }
 
   onSearchBeneficiario() {
@@ -161,6 +178,7 @@ export class ProcedingsRegisterComponent implements OnInit{
 
                   // 🔹 Si hay proyectos activos → usa solo los activos
                   this.beneficiariosProyecto.set(activos);
+                  this.proyectosActivosVisible.set(false);
 
                   // 🔹 Selecciona el más reciente
                   const seleccionado = activos.sort(
@@ -224,6 +242,7 @@ export class ProcedingsRegisterComponent implements OnInit{
     this.proyectoSelect.set(null);
     this.responsableActa.set(null);
     this.selectedProductsInfo.set([]);
+    this.proyectosActivosVisible.set(false);
 
     // Reinicia controles individuales
     this.selectResponsable.reset('');
@@ -380,6 +399,10 @@ export class ProcedingsRegisterComponent implements OnInit{
     });
   }
 
+  toggleProyectosActivos(): void {
+    this.proyectosActivosVisible.update(visible => !visible);
+  }
+
 
   removeSelectedProduct(productId: number) {
     // Remover del signal de información
@@ -395,6 +418,11 @@ export class ProcedingsRegisterComponent implements OnInit{
   }
 
   cancelar() {
+    if (!this.hasPendingChanges()) {
+      this.router.navigate(['proceedings']);
+      return;
+    }
+
     const confirmRef = this.dialogModal.open(ConfirmDialogComponent, {
       width: '350px',
       data: { mensaje: '¿Deseas cancelar el registro? Los datos ingresados se perderán.' }
@@ -402,6 +430,7 @@ export class ProcedingsRegisterComponent implements OnInit{
 
     confirmRef.afterClosed().subscribe(confirmado => {
       if (confirmado) {
+        this.isSubmitting = false;
         this.formActa.reset();
         this.router.navigate(['proceedings']);
       }
@@ -409,6 +438,8 @@ export class ProcedingsRegisterComponent implements OnInit{
   }
 
   onSubmit() {
+    if (this.isSubmitting) return;
+
     if (this.formActa.invalid) {
       this.formActa.markAllAsTouched();
       this.snackBar.open('⚠️ Formulario no válido. Revisa los campos.', 'Cerrar', { duration: 3000 });
@@ -423,6 +454,8 @@ export class ProcedingsRegisterComponent implements OnInit{
 
     confirmRef.afterClosed().subscribe(confirmado => {
       if (!confirmado) return;
+
+      this.isSubmitting = true;
 
       // Sincronizar productos seleccionados antes de enviar
       const productosSeleccionados = this.selectedProductsInfo().map(p => ({
@@ -454,6 +487,7 @@ export class ProcedingsRegisterComponent implements OnInit{
           }
         },
         error: () => {
+          this.isSubmitting = false;
           this.snackBar.open('❌ Algo salió mal, intenta de nuevo', 'Cerrar', { duration: 3000 });
         }
       });

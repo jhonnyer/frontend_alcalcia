@@ -45,7 +45,12 @@ export const defaultColumns: ColumnDef<IBeneficiario>[] = [
   {
     id: 'nombreNucleo',
     accessorFn: (row) => row.nombreNucleo,
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const row = info.row.original;
+      const nombre = row.nombreNucleo || 'Sin actor social';
+      const ubicacion = [row.barrio, row.direccionNucleo].filter(Boolean).join(' · ');
+      return `<span class="font-medium">#${row.idNucleoFk ?? '-'} - ${nombre}</span>${ubicacion ? `<span class="block text-xs text-slate-500">${ubicacion}</span>` : ''}`;
+    },
     header: 'Núcleo',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' },

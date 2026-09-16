@@ -47,17 +47,50 @@ export class BeneficiaryListComponent implements OnInit {
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
   data = signal<IBeneficiario[]>([]);
-  actorFilter = signal<string>('ALL');
-  actorOptions = computed(() => Array.from(new Set(
-    this.data()
-      .map(beneficiario => beneficiario.nombreNucleo)
-      .filter((nombre): nombre is string => !!nombre)
-  )).sort((a, b) => a.localeCompare(b)));
+  actorFilter = signal<number | 'ALL'>('ALL');
+  actorSearch = signal('');
+  actorSearchQuery = signal('');
+  actorSuggestionsVisible = signal(false);
+  actorOptions = computed(() => {
+    const actors = new Map<number, { id: number; nombre: string; barrio: string; direccion: string }>();
+    this.data().forEach(beneficiario => {
+      if (beneficiario.idNucleoFk && !actors.has(beneficiario.idNucleoFk)) {
+        actors.set(beneficiario.idNucleoFk, {
+          id: beneficiario.idNucleoFk,
+          nombre: beneficiario.nombreNucleo || 'Sin nombre',
+          barrio: beneficiario.barrio || 'Sin barrio',
+          direccion: beneficiario.direccionNucleo || 'Sin dirección'
+        });
+      }
+    });
+    return Array.from(actors.values()).sort((a, b) => a.nombre.localeCompare(b.nombre) || a.id - b.id);
+  });
+  filteredActorOptions = computed(() => {
+    const query = this.actorSearchQuery().trim().toLocaleLowerCase();
+    if (!query) return this.actorOptions();
+    return this.actorOptions().filter(actor =>
+      `${actor.id} ${actor.nombre} ${actor.barrio} ${actor.direccion}`
+        .toLocaleLowerCase()
+        .includes(query)
+    );
+  });
   filteredData = computed(() => {
     const selectedActor = this.actorFilter();
-    return selectedActor === 'ALL'
-      ? this.data()
-      : this.data().filter(beneficiario => beneficiario.nombreNucleo === selectedActor);
+    const query = this.actorSearchQuery().trim().toLocaleLowerCase();
+
+    return this.data().filter(beneficiario => {
+      const matchesSelectedActor = selectedActor === 'ALL'
+        || beneficiario.idNucleoFk === selectedActor;
+      const actorText = [
+        beneficiario.idNucleoFk,
+        beneficiario.nombreNucleo,
+        beneficiario.barrio,
+        beneficiario.direccionNucleo
+      ].filter(Boolean).join(' ').toLocaleLowerCase();
+      const matchesSearch = !query || actorText.includes(query);
+
+      return matchesSelectedActor && matchesSearch;
+    });
   });
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -136,7 +169,41 @@ export class BeneficiaryListComponent implements OnInit {
   }
 
   onActorFilterChange(event: Event): void {
-    this.actorFilter.set((event.target as HTMLSelectElement).value);
+    const value = (event.target as HTMLSelectElement).value;
+    this.actorFilter.set(value === 'ALL' ? 'ALL' : Number(value));
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  onActorSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.actorSearch.set(value);
+    this.actorSearchQuery.set(value);
+    this.actorFilter.set('ALL');
+    this.actorSuggestionsVisible.set(true);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  showActorSuggestions(): void {
+    this.actorSuggestionsVisible.set(true);
+  }
+
+  hideActorSuggestions(): void {
+    setTimeout(() => this.actorSuggestionsVisible.set(false), 150);
+  }
+
+  selectActorSuggestion(actor: { id: number; nombre: string }): void {
+    this.actorSearch.set(`#${actor.id} - ${actor.nombre}`);
+    this.actorSearchQuery.set('');
+    this.actorFilter.set(actor.id);
+    this.actorSuggestionsVisible.set(false);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  clearActorFilter(): void {
+    this.actorSearch.set('');
+    this.actorSearchQuery.set('');
+    this.actorFilter.set('ALL');
+    this.actorSuggestionsVisible.set(true);
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
   }
 

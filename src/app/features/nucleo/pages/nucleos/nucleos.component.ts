@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, Injector, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { NucleoService } from '../../../../core/services/nucleo.service';
@@ -41,6 +41,22 @@ export class NucleosComponent implements OnInit{
   private readonly actasService = inject(ActasService);
   private readonly beneficiaryService=inject(BeneficiaryService);
   data = signal<INucleoUpdate[]>([]);
+  actorNameFilter = signal('');
+  actorSuggestionsVisible = signal(false);
+
+  filteredActors = computed(() => {
+    const query = this.actorNameFilter().trim().toLocaleLowerCase();
+    return this.data().filter(actor => {
+      const searchableText = [
+        actor.idNucleo,
+        actor.nombreNucleo,
+        actor.direccion,
+        actor.nombreBarrio,
+        actor.nombreZona
+      ].filter(Boolean).join(' ').toLocaleLowerCase();
+      return !query || searchableText.includes(query);
+    });
+  });
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
   public readonly rowSelectionState = signal<RowSelectionState>({});
@@ -146,6 +162,44 @@ export class NucleosComponent implements OnInit{
         value: value,
       },
     ]);
+  }
+
+  onActorNameFilter(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.actorNameFilter.set(value);
+    this.actorSuggestionsVisible.set(true);
+    this.dataTable.setColumnFilters([
+      ...this.columnFilters().filter(filter => filter.id !== 'nombreNucleo' && filter.id !== 'idNucleo'),
+      ...(value ? [{ id: 'nombreNucleo', value }] : [])
+    ]);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  showActorSuggestions(): void {
+    this.actorSuggestionsVisible.set(true);
+  }
+
+  hideActorSuggestions(): void {
+    setTimeout(() => this.actorSuggestionsVisible.set(false), 150);
+  }
+
+  selectActorSuggestion(actor: INucleoUpdate): void {
+    this.actorNameFilter.set(`#${actor.idNucleo} - ${actor.nombreNucleo}`);
+    this.actorSuggestionsVisible.set(false);
+    this.dataTable.setColumnFilters([
+      ...this.columnFilters().filter(filter => filter.id !== 'nombreNucleo' && filter.id !== 'idNucleo'),
+      { id: 'idNucleo', value: String(actor.idNucleo) }
+    ]);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  clearActorNameFilter(): void {
+    this.actorNameFilter.set('');
+    this.actorSuggestionsVisible.set(false);
+    this.dataTable.setColumnFilters(
+      this.columnFilters().filter(filter => filter.id !== 'nombreNucleo' && filter.id !== 'idNucleo')
+    );
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
   }
 
   async delete(row: Row<INucleoUpdate>) {

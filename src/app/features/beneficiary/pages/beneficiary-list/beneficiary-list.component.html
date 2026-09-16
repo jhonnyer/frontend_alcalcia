@@ -6,15 +6,49 @@
         <h1 class="text-xl font-semibold text-gray-700">Beneficiarios</h1>
         <p class="text-sm text-slate-500">Personas registradas, agrupables por actor social.</p>
       </div>
-      <label class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-72">
+      <div class="flex w-full flex-col gap-2 text-sm text-slate-600 sm:w-80">
         <span class="font-semibold">Filtrar por actor social</span>
-        <select class="input-base" [value]="actorFilter()" (change)="onActorFilterChange($event)">
-          <option value="ALL">Todos los actores sociales</option>
-          @for (actor of actorOptions(); track actor) {
-            <option [value]="actor">{{ actor }}</option>
+        <div class="relative">
+          <label class="sr-only" for="beneficiary-actor-search">Buscar actor social</label>
+          <input
+            id="beneficiary-actor-search"
+            type="text"
+            class="input-base pr-10"
+            placeholder="Escribe nombre, ID o ubicación"
+            [value]="actorSearch()"
+            (input)="onActorSearch($event)"
+            (focus)="showActorSuggestions()"
+            (blur)="hideActorSuggestions()"
+            autocomplete="off"
+          />
+          @if (actorSearch() || actorFilter() !== 'ALL') {
+            <button
+              type="button"
+              class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100"
+              (click)="clearActorFilter()"
+              aria-label="Limpiar filtro de actor social"
+              title="Limpiar filtro"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
           }
-        </select>
-      </label>
+          @if (actorSuggestionsVisible() && filteredActorOptions().length > 0) {
+            <div class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+              @for (actor of filteredActorOptions(); track actor.id) {
+                <button
+                  type="button"
+                  class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50"
+                  (mousedown)="$event.preventDefault()"
+                  (click)="selectActorSuggestion(actor)"
+                >
+                  <span class="block font-semibold">#{{ actor.id }} - {{ actor.nombre }}</span>
+                  <span class="block text-xs text-slate-500">{{ actor.barrio }} · {{ actor.direccion }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
     </div>
   </header>
 

@@ -1,10 +1,25 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { IBeneficiario, IBeneficiarioUnique } from '../models/beneficiary.models';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import { ResponseStandarUnique } from '../models/response.model';
+
+interface RawNucleoFamiliar {
+  idNucleo?: number | string | null;
+  idNucleoFk?: number | string | null;
+  idNucleoFK?: number | string | null;
+  nombreNucleo?: string | null;
+  direccion?: string | null;
+  nombreBarrio?: string | null;
+  nombreZona?: string | null;
+}
+
+type RawBeneficiario = Partial<IBeneficiario> & {
+  idNucleoFK?: number | string | null;
+  nucleoFamiliar?: RawNucleoFamiliar;
+};
 
 @Injectable({
   providedIn: 'root'
@@ -15,16 +30,30 @@ export class BeneficiaryService {
 
   getAll(): Observable<IBeneficiario[]> {
     return this.http
-      .get<IBeneficiario[]>(`${this.URL}/beneficiarios`, { context: checkToken() })
+      .get<RawBeneficiario[] | { respuesta: RawBeneficiario[] }>(`${this.URL}/beneficiarios`, { context: checkToken() })
       .pipe(
-        tap(list => {
-          if (Array.isArray(list)) {
-            list.forEach(b => {
-              if (b.fechaNacimiento) {
-                b.fechaNacimiento = this.formatDate(b.fechaNacimiento);
-              }
-            });
+        map(payload => {
+          const list: RawBeneficiario[] = Array.isArray(payload)
+            ? payload
+            : Array.isArray(payload.respuesta)
+              ? payload.respuesta
+              : [];
+
+          return list.map((raw: RawBeneficiario) => {
+          const nucleo = raw.nucleoFamiliar ?? {};
+          const rawNucleoId = raw.idNucleoFk ?? raw.idNucleoFK ?? nucleo.idNucleoFk ?? nucleo.idNucleoFK ?? nucleo.idNucleo;
+          raw.idNucleoFk = rawNucleoId === null || rawNucleoId === undefined || rawNucleoId === ''
+            ? null
+            : Number(rawNucleoId);
+          raw.nombreNucleo = raw.nombreNucleo ?? nucleo.nombreNucleo ?? '';
+          raw.direccionNucleo = raw.direccionNucleo ?? nucleo.direccion ?? '';
+          raw.barrio = raw.barrio ?? nucleo.nombreBarrio ?? '';
+          raw.zona = raw.zona ?? nucleo.nombreZona ?? '';
+          if (raw.fechaNacimiento) {
+            raw.fechaNacimiento = this.formatDate(raw.fechaNacimiento);
           }
+          return raw as IBeneficiario;
+          });
         })
       );
   }

@@ -1,7 +1,53 @@
 <section class="h-[calc(100vh-6rem)] overflow-y-auto p-4 bg-gray-50 rounded-xl shadow-sm">
   <!-- HEADER -->
-  <header class="flex justify-between items-center mb-3">
-    <h1 class="text-sm font-semibold text-gray-700">📂 Actores Sociales</h1>
+  <header class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-sm font-semibold text-gray-700">📂 Actores Sociales</h1>
+      <p class="text-sm text-slate-500">Familias o viviendas registradas.</p>
+    </div>
+    <label class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-80">
+      <span class="font-semibold">Filtrar por actor social</span>
+      <div class="relative">
+        <input
+          type="text"
+          class="input-base pr-10"
+          placeholder="Buscar nombre, ID o dirección"
+          [value]="actorNameFilter()"
+          (input)="onActorNameFilter($event)"
+          (focus)="showActorSuggestions()"
+          (blur)="hideActorSuggestions()"
+          autocomplete="off"
+        />
+        @if (actorNameFilter()) {
+          <button
+            type="button"
+            class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100"
+            (click)="clearActorNameFilter()"
+            aria-label="Limpiar filtro de actor social"
+            title="Limpiar filtro"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+        @if (actorSuggestionsVisible() && filteredActors().length > 0) {
+          <div class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+            @for (actor of filteredActors(); track actor.idNucleo) {
+              <button
+                type="button"
+                class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50"
+                (mousedown)="$event.preventDefault()"
+                (click)="selectActorSuggestion(actor)"
+              >
+                <span class="block font-semibold">#{{ actor.idNucleo }} - {{ actor.nombreNucleo }}</span>
+                <span class="block text-xs text-slate-500">
+                  {{ actor.direccion }} · {{ actor.nombreBarrio }} · {{ actor.nombreZona }}
+                </span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </label>
   </header>
 
   <!-- TABLA -->

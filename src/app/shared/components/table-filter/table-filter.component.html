@@ -1,6 +1,9 @@
+<label class="sr-only" [attr.for]="'table-filter-' + column().id">Filtrar {{ column().id }}</label>
 <input
   type="text"
-  class="input text-black w-full text-sm border shadow rounded px-1"
-  [placeholder]="'Buscar...'"
+  class="input w-full rounded-md border border-slate-300 px-2 py-1 text-sm text-slate-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+  [id]="'table-filter-' + column().id"
+  placeholder="Buscar..."
+  autocomplete="off"
   (input)="onInputChange($event)"
 />

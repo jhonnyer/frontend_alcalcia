@@ -11,29 +11,34 @@
 
     <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" class="space-y-5">
       <div>
-        <label class="label-base">Usuario</label>
-        <input formControlName="usuario" type="text" class="input-base" placeholder="nombre de usuario" />
+        <label class="label-base" for="login-usuario">Usuario</label>
+        <input id="login-usuario" formControlName="usuario" type="text" class="input-base" placeholder="nombre de usuario" autocomplete="username" />
       </div>
 
       <div class="relative">
+        <label class="sr-only" for="login-password">Contraseña</label>
         <input
+          id="login-password"
           [type]="showPassword ? 'text' : 'password'"
           formControlName="password"
           placeholder="••••••••"
+          autocomplete="current-password"
           class="input-base pr-10"
         />
-        <mat-icon
-          class="absolute right-3 top-2 text-gray-500 cursor-pointer"
+        <button
+          type="button"
+          class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-500 hover:bg-gray-100"
           (click)="togglePasswordVisibility()"
+          [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
         >
-          {{ showPassword ? 'visibility_off' : 'visibility' }}
-        </mat-icon>
+          <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
       </div>
 
       <div>
-        <label class="label-base">Secretaría</label>
+        <label class="label-base" for="login-secretaria">Secretaría</label>
         @if (requiresSecretarySelection) {
-          <select formControlName="idSecretaria" class="input-base">
+          <select id="login-secretaria" formControlName="idSecretaria" class="input-base">
             <option [ngValue]="null" disabled>Selecciona una secretaría</option>
             @for (secretaria of secretarias; track secretaria.idSecretaria) {
               <option [ngValue]="secretaria.idSecretaria">
@@ -42,7 +47,7 @@
             }
           </select>
         } @else {
-          <select formControlName="idSecretaria" class="input-base" [disabled]="true">
+          <select id="login-secretaria" formControlName="idSecretaria" class="input-base" [disabled]="true">
             <option value="" selected>Valida tus credenciales para continuar</option>
           </select>
         }

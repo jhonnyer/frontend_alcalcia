@@ -3,6 +3,7 @@
     type="button"
     class="btn-aside-dropdown"
     aria-controls="dropdown"
+    [attr.aria-expanded]="activeMenu"
     data-collapse-toggle="dropdown"
     (click)="toggleMenu()"
   >
@@ -24,11 +25,8 @@
     >
       <!-- 🔹 Lista de subopciones -->
       <li *ngFor="let item of menuItems">
-        <a [routerLink]="item.link" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
-          <button
-            type="button"
-            class="flex items-center gap-3 w-full py-2 px-4 text-xs text-white font-medium rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors duration-200"
-          >
+        <a [routerLink]="item.link" routerLinkActive="bg-white/15" [routerLinkActiveOptions]="{ exact: true }"
+          class="!text-white flex w-full items-center gap-3 rounded-lg px-4 py-2 text-xs font-medium transition-colors duration-200 hover:bg-white/10 active:bg-white/20">
             <span
               class="transition-all duration-200"
               [ngClass]="{
@@ -38,7 +36,6 @@
             >
               {{ item.label }}
             </span>
-          </button>
         </a>
       </li>
     </ul>

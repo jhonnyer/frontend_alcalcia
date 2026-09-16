@@ -1,7 +1,7 @@
 import { NgClass, NgFor } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { RouterLink, RouterLinkActive} from '@angular/router';
+import { Router, RouterLink, RouterLinkActive} from '@angular/router';
 
 @Component({
   selector: 'app-list-projects',
@@ -12,9 +12,10 @@ import { RouterLink, RouterLinkActive} from '@angular/router';
   styles: ``,
   templateUrl: './list-projects.component.html',
 })
-export class ListProjectsComponent {
+export class ListProjectsComponent implements OnInit {
   constructor(
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private router: Router
   ) {}
 
   activeMenu: boolean = false;
@@ -25,6 +26,10 @@ export class ListProjectsComponent {
     { label: 'c. Agregar Beneficiario', link: '/projects/add-beneficiary/create'},
     { label: 'd. Beneficiarios de proyecto', link: '/projects/add-beneficiary/list'}
   ];
+
+  ngOnInit(): void {
+    this.activeMenu = this.router.url.startsWith('/projects');
+  }
 
   toggleMenu() {
     if (!this.collapsed) this.activeMenu = !this.activeMenu;

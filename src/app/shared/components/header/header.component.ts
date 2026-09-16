@@ -10,6 +10,7 @@ import {
   CdkMenuBar,
 } from '@angular/cdk/menu';
 import { MatIconModule } from '@angular/material/icon';
+import { ISecretariaAcceso } from '../../../core/models/responseLogin.model';
 
 @Component({
   selector: 'app-header',
@@ -31,6 +32,8 @@ export class HeaderComponent implements OnInit {
   public tokenService = inject(TokenService);
   public route = inject(Router);
   public userRole = signal<string | null>(null);
+  public secretarias: ISecretariaAcceso[] = [];
+  public activeSecretaryId: number | null = null;
 
   loginUser: boolean = false;
 
@@ -46,6 +49,8 @@ export class HeaderComponent implements OnInit {
   ngOnInit(): void {
     this.loginState();
     this.loadUserRole();
+    this.secretarias = this.tokenService.getAvailableSecretaries();
+    this.activeSecretaryId = this.tokenService.getActiveSecretaryId();
   }
 
   loginState(){
@@ -71,5 +76,10 @@ export class HeaderComponent implements OnInit {
 
   goHome(): void {
     this.route.navigate(['/home']);
+  }
+
+  get activeSecretaryName(): string {
+    return this.secretarias.find(secretaria => secretaria.idSecretaria === this.activeSecretaryId)?.nombre
+      ?? 'Secretaría activa';
   }
 }

@@ -30,6 +30,24 @@
         </mat-icon>
       </div>
 
+      <div>
+        <label class="label-base">Secretaría</label>
+        @if (requiresSecretarySelection) {
+          <select formControlName="idSecretaria" class="input-base">
+            <option [ngValue]="null" disabled>Selecciona una secretaría</option>
+            @for (secretaria of secretarias; track secretaria.idSecretaria) {
+              <option [ngValue]="secretaria.idSecretaria">
+                {{ secretaria.nombre }} ({{ secretaria.codigo }})
+              </option>
+            }
+          </select>
+        } @else {
+          <select formControlName="idSecretaria" class="input-base" [disabled]="true">
+            <option value="" selected>Valida tus credenciales para continuar</option>
+          </select>
+        }
+      </div>
+
 
       <button
         type="submit"
@@ -37,16 +55,18 @@
         class="w-full flex justify-center items-center gap-2 py-2.5 text-white font-semibold bg-blue-600 hover:bg-blue-700 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
         @if(isLoading) {
           <mat-spinner diameter="20"></mat-spinner>
-          Iniciando sesión...
+          {{ requiresSecretarySelection ? 'Ingresando...' : 'Validando credenciales...' }}
         } @else {
-          Iniciar sesión
+          {{ requiresSecretarySelection ? 'Iniciar sesión' : 'Validar credenciales' }}
         }
       </button>
     </form>
 
     <p class="mt-4 text-center text-sm text-gray-500">
-      ¿No tienes cuenta?
-      <a routerLink="/auth/register" class="text-blue-600 hover:underline">Regístrate</a>
+      @if (!credentialsValidated) {
+        ¿No tienes cuenta?
+        <a routerLink="/auth/register" class="text-blue-600 hover:underline">Regístrate</a>
+      }
     </p>
   </div>
 </section>

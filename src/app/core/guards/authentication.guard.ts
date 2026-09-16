@@ -10,9 +10,9 @@ export const authenticationGuard: CanMatchFn = (route, segments) => {
 
   // Verificar si el token existe y no está expirado
   const token = tokenService.getToken();
-  if (!token || tokenService.isTokenExpired()) {
+  if (!token || tokenService.isTokenExpired() || tokenService.hasPendingSecretarySelection()) {
     tokenService.clearToken();
-    console.log('No hay token o está expirado');
+    console.log('No hay sesión definitiva o el token está expirado');
     router.navigate(['/auth']);
     return false;
   }

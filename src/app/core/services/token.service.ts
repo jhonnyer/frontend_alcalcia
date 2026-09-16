@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { jwtDecode } from "jwt-decode";
-import { IResponseLogin } from '../models/responseLogin.model';
+import { IResponseLogin, ISecretariaAcceso } from '../models/responseLogin.model';
 import { BehaviorSubject } from 'rxjs';
 
 interface JwtPayload {
@@ -17,6 +17,9 @@ export class TokenService {
   private TOKEN_KEY = 'auth_token';
   private USER_ROLE_KEY = 'user_role';
   private USER_STATE_KEY = 'user_state';
+  private SECRETARY_KEY = 'active_secretary';
+  private SECRETARIES_KEY = 'available_secretaries';
+  private SECRETARY_PENDING_KEY = 'secretary_pending';
 
   // Observable para notificar cambios en el token
   private tokenChangesSubject = new BehaviorSubject<string | null>(this.getToken());
@@ -31,7 +34,7 @@ export class TokenService {
     }
   }
 
-  saveLoginResponse(response: IResponseLogin) {
+  saveLoginResponse(response: IResponseLogin, secretaryPending = false) {
     if (this.isLocalStorageAvailable()) {
       // Guardar token
       this.saveToken(response.token);
@@ -41,6 +44,14 @@ export class TokenService {
 
       // Guardar estado del usuario
       localStorage.setItem(this.USER_STATE_KEY, response.estadoUser);
+
+      if (!secretaryPending && response.idSecretaria !== null && response.idSecretaria !== undefined) {
+        localStorage.setItem(this.SECRETARY_KEY, String(response.idSecretaria));
+      } else if (secretaryPending) {
+        localStorage.removeItem(this.SECRETARY_KEY);
+      }
+      localStorage.setItem(this.SECRETARIES_KEY, JSON.stringify(response.secretarias ?? []));
+      localStorage.setItem(this.SECRETARY_PENDING_KEY, String(secretaryPending));
 
       // Notificar cambio de token
       this.tokenChangesSubject.next(response.token);
@@ -76,11 +87,38 @@ export class TokenService {
     return null;
   }
 
+  getActiveSecretaryId(): number | null {
+    if (this.isLocalStorageAvailable()) {
+      const value = localStorage.getItem(this.SECRETARY_KEY);
+      return value ? Number(value) : null;
+    }
+    return null;
+  }
+
+  getAvailableSecretaries(): ISecretariaAcceso[] {
+    if (this.isLocalStorageAvailable()) {
+      try {
+        return JSON.parse(localStorage.getItem(this.SECRETARIES_KEY) ?? '[]');
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  hasPendingSecretarySelection(): boolean {
+    return this.isLocalStorageAvailable()
+      && localStorage.getItem(this.SECRETARY_PENDING_KEY) === 'true';
+  }
+
   clearToken() {
     if (this.isLocalStorageAvailable()) {
       localStorage.removeItem(this.TOKEN_KEY);
       localStorage.removeItem(this.USER_ROLE_KEY);
       localStorage.removeItem(this.USER_STATE_KEY);
+      localStorage.removeItem(this.SECRETARY_KEY);
+      localStorage.removeItem(this.SECRETARIES_KEY);
+      localStorage.removeItem(this.SECRETARY_PENDING_KEY);
       // Notificar que el token ha sido eliminado
       this.tokenChangesSubject.next(null);
     }

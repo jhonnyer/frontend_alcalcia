@@ -8,7 +8,7 @@ export const unauthenticatedGuard: CanActivateFn = (route, state) => {
 
   // Verificar si NO hay token o está expirado (usuario no autenticado)
   const token = tokenService.getToken();
-  if (!token || tokenService.isTokenExpired()) {
+  if (!token || tokenService.isTokenExpired() || tokenService.hasPendingSecretarySelection()) {
     // Si no hay token o está expirado, permitir el acceso (retornar true)
     return true;
   }
@@ -21,6 +21,6 @@ export const unauthenticatedGuard: CanActivateFn = (route, state) => {
   }
 
   // Si hay un token válido y el usuario está activo, redirigir al dashboard
-  router.navigate(['/dashboard']);
+  router.navigate(['/home']);
   return false;
 };

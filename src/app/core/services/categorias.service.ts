@@ -23,8 +23,8 @@ export class CategoriasService {
    * @param categoriaId string id de la categoría o id del proyecto
    * @returns ICategorias object
    */
-  getByCategoryAndProject(categoriaId: string): Observable<ICategorias>{
-    return this.http.get<ICategorias>(`${environment.URL_API}/categorias/list/${categoriaId}`, { context: checkToken() });
+  getByCategoryAndProject(categoriaId: string, proyectoId: string): Observable<ICategorias>{
+    return this.http.get<ICategorias>(`${environment.URL_API}/categorias/${categoriaId}/proyectos/${proyectoId}`, { context: checkToken() });
   }
 
   post(categoria: Partial<ICategorias>): Observable<ICategorias>{

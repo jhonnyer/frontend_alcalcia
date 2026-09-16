@@ -23,11 +23,11 @@ export class ProyectosService {
   }
 
   getByName(name: string): Observable<ResponseStandar<IProyecto>> {
-    return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${name}`, { context: checkToken() });
+    return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/nombre/${encodeURIComponent(name)}`, { context: checkToken() });
   }
 
   getByCategory(idCategoria: string): Observable<ResponseStandar<IProyecto>> {
-    return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idCategoria}`, { context: checkToken() });
+    return this.http.get<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/categoria/${idCategoria}`, { context: checkToken() });
   }
 
   post(data:Partial<IProyectoCategorias>): Observable<ResponseStandarUnique<IProyectoCategorias>> {
@@ -44,7 +44,7 @@ export class ProyectosService {
 
   //Asignar categoria a un proyecto
   addCategory(idProyecto: string, idCategory: string): Observable<ResponseStandar<IProyecto>>{
-    return this.http.patch<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idProyecto}/estado/${idCategory}`, { context: checkToken() });
+    return this.http.patch<ResponseStandar<IProyecto>>(`${this.URL}/proyectos/${idProyecto}/categoria/${idCategory}`, {}, { context: checkToken() });
   }
 
   delete(idProject: number): Observable<ResponseStandarUnique<IProyectoAndCategoriaArray>> {

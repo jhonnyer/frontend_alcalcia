@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map, shareReplay } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
+import { TokenService } from './token.service';
 import { DashboardReport, ReporteActasPorProyecto, ReporteBarrios, ReporteEdad, ReporteEntregaProyecto, ReportePoblacionVulnerable, ReporteProducto, ReporteProyecto, ReporteResponsable, ReporteSolicitud, ReporteTemporal, ReporteZona, ResumenEstadoProyecto, ResumenGeneral, ResumenProyecto } from '../models/reporte-global/reportes.model';
 
 @Injectable({ providedIn: 'root' })
@@ -10,9 +11,14 @@ export class ReportesService {
   private readonly URL = environment.URL_API;
   private readonly EP = `${this.URL}/reportes/dashboard`;
   private http = inject(HttpClient);
+  private tokenService = inject(TokenService);
 
   /** Cachea la última respuesta del dashboard para reutilizarla */
   private dashboard$?: Observable<DashboardReport>;
+
+  constructor() {
+    this.tokenService.tokenChanges$.subscribe(() => this.invalidateCache());
+  }
 
   /** Llama una vez al endpoint y cachea el resultado */
   obtenerDashboard(): Observable<DashboardReport> {

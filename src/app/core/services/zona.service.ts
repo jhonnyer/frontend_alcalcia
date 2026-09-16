@@ -27,7 +27,7 @@ export class ZonaService {
   }
 
   post(zona: Partial<IZona>): Observable<IZona>{
-    return this.http.post<IZona>(`${environment.URL_API}/zonas}`, zona ,{ context: checkToken() })
+    return this.http.post<IZona>(`${environment.URL_API}/zonas`, zona ,{ context: checkToken() })
   }
 
   //Actualizar zonas
@@ -40,7 +40,7 @@ export class ZonaService {
 
   //Eliminar
   delete(idZona: string): void{
-    this.http.delete(`${environment.URL_API}/zonas/${idZona}}`, { context: checkToken() });
+    this.http.delete(`${environment.URL_API}/zonas/${idZona}`, { context: checkToken() });
   }
 }
 

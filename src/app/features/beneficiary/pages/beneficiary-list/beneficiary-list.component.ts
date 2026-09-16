@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, Injector, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
@@ -45,7 +45,20 @@ export class BeneficiaryListComponent implements OnInit {
   private beneficiaryService = inject(BeneficiaryService);
   injector = inject(Injector);
   private pageTitleService = inject(PageTitleService);
+  private router = inject(Router);
   data = signal<IBeneficiario[]>([]);
+  actorFilter = signal<string>('ALL');
+  actorOptions = computed(() => Array.from(new Set(
+    this.data()
+      .map(beneficiario => beneficiario.nombreNucleo)
+      .filter((nombre): nombre is string => !!nombre)
+  )).sort((a, b) => a.localeCompare(b)));
+  filteredData = computed(() => {
+    const selectedActor = this.actorFilter();
+    return selectedActor === 'ALL'
+      ? this.data()
+      : this.data().filter(beneficiario => beneficiario.nombreNucleo === selectedActor);
+  });
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
   public readonly rowSelectionState = signal<RowSelectionState>({});
@@ -77,7 +90,7 @@ export class BeneficiaryListComponent implements OnInit {
   }
 
   public dataTable = createAngularTable(() => ({
-    data: this.data(),
+    data: this.filteredData(),
     getCoreRowModel: getCoreRowModel(),
     columns: defaultColumns,
 
@@ -122,6 +135,11 @@ export class BeneficiaryListComponent implements OnInit {
     this.dataTable.setPageSize(+element.value);
   }
 
+  onActorFilterChange(event: Event): void {
+    this.actorFilter.set((event.target as HTMLSelectElement).value);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
   onSortingColumn(column: Column<IBeneficiario>) {
     column.toggleSorting();
   }
@@ -154,6 +172,13 @@ export class BeneficiaryListComponent implements OnInit {
         this.getAll();            // Refresca la tabla
       }
     });
+  }
+
+  viewActor(row: Row<IBeneficiario>): void {
+    const idNucleo = row.original.idNucleoFk;
+    if (idNucleo) {
+      this.router.navigate(['/nucleo/detalle', idNucleo]);
+    }
   }
 
 

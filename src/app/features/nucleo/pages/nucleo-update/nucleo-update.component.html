@@ -5,10 +5,15 @@
     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
       <!-- 🔹 Header con título y botones en línea -->
       <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 class="text-base font-semibold text-gray-700">Información del Actor social</h2>
+        <div>
+          <h2 class="text-base font-semibold text-gray-700">Información del Actor social</h2>
+          @if (nucleoID) {
+            <p class="text-xs text-slate-500">Identificador: #{{ nucleoID }}</p>
+          }
+        </div>
         <div class="flex gap-2">
-          <button mat-flat-button color="primary" type="submit" class="px-3 py-1.5 text-sm">
-            Guardar
+          <button mat-flat-button color="primary" type="submit" [disabled]="isSaving" class="px-3 py-1.5 text-sm">
+            {{ isSaving ? 'Guardando...' : (nucleoID ? 'Guardar cambios' : 'Guardar actor') }}
           </button>
           <button mat-stroked-button color="warn" type="button" (click)="cancelar()" class="px-3 py-1.5 text-sm">
             Cancelar
@@ -84,6 +89,12 @@
             style="height: 30px; font-size: 0.875rem; padding: 0 6px;">
           <mat-icon matSuffix style="font-size: 18px;">search</mat-icon>
         </mat-form-field>
+
+        @if (!isNucleoCreado) {
+          <p class="w-full text-xs text-slate-500">
+            Guarda primero el actor social para habilitar el registro de sus beneficiarios.
+          </p>
+        }
 
         <!-- Botón Añadir compacto y moderno -->
         <button mat-flat-button color="primary" type="button" class="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm flex-shrink-0"

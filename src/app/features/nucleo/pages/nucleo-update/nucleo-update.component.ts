@@ -60,6 +60,7 @@ export class NucleoUpdateComponent implements OnInit {
   public tituloPagina = 'Registrar Actor Social';  
   displayedColumns: string[] = ['nombreCompleto','documento','edad', 'acciones'];
   isNucleoCreado = false;
+  isSaving = false;
 
   // Si viene con id es actualización
   private route = inject(ActivatedRoute);
@@ -90,6 +91,7 @@ export class NucleoUpdateComponent implements OnInit {
 
   ngOnInit(): void {
     this.nucleoID = this.route.snapshot.paramMap.get('id');
+    this.initFormFamilyCore();
 
     if (this.nucleoID) {
       this.tituloPagina = 'Actualizar actor social';
@@ -101,7 +103,6 @@ export class NucleoUpdateComponent implements OnInit {
       this.pageTitleService.setCurrentPage(this.tituloPagina);
     }
 
-    this.initFormFamilyCore();
     this.getAllZonas();
     this.changeZona();
     this.dataSource.data = this.beneficiariosForTable ?? [];
@@ -130,12 +131,16 @@ export class NucleoUpdateComponent implements OnInit {
 
     this.nucleoService.getById(this.nucleoID).subscribe({
       next: (response: INucleoUpdate) => {
+        response.beneficiarios = response.beneficiarios ?? [];
         this.nucleo.set(response);
         this.initNucleo(response);
         this.listBeneficiaries.set(response.beneficiarios);
         this.initBeneficiaries(response.beneficiarios);
         this.actualizarTabla();
       },
+      error: () => {
+        this.snackBar.open('❌ No se pudo cargar la información del actor social', 'Cerrar', { duration: 4000 });
+      }
     });
   }
 
@@ -372,6 +377,8 @@ export class NucleoUpdateComponent implements OnInit {
   }
 
   onSubmit() {
+    if (this.isSaving) return;
+
     if (this.formFamilyCore.invalid) {
       
       // Errores de los controles raíz (zona, barrio, nombreNucleo, etc.)
@@ -409,6 +416,8 @@ export class NucleoUpdateComponent implements OnInit {
 
     confirmRef.afterClosed().subscribe(confirmado => {
       if (!confirmado) return;
+
+      this.isSaving = true;
 
       // 🟢 Si es válido, arma el payload
       const zona = Number(this.formFamilyCore.get('idZonaFk')?.value);
@@ -463,12 +472,14 @@ export class NucleoUpdateComponent implements OnInit {
               // 🟢 Redirigir directamente a la vista de actualización
               this.router.navigate(['/nucleo/update', id]);
             } else {
+              this.isSaving = false;
               this.snackBar.open('⚠️ Actor social creado, pero no se recibió el ID del backend', 'Cerrar', { duration: 4000 });
               console.warn('Respuesta backend sin ID:', nuevoNucleo);
             }
           },
           error: (err) => {
             console.error('Error al crear núcleo:', err);
+            this.isSaving = false;
             this.snackBar.open('❌ Error al crear actor social', 'Cerrar', { duration: 3000 });
           }
         });
@@ -481,6 +492,7 @@ export class NucleoUpdateComponent implements OnInit {
             this.router.navigate(['nucleo']);
           },
           error: () => {
+            this.isSaving = false;
             this.snackBar.open('❌ Error al actualizar el actor social', 'Cerrar', { duration: 3000 });
           }
         });

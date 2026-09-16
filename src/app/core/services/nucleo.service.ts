@@ -25,6 +25,7 @@ export class NucleoService {
   getById(id: string): Observable<INucleoUpdate> {
     return this.http.get<INucleoUpdate>(`${this.URL}/nucleosFamiliares/${id}`, { context: checkToken() }).pipe(
       tap(item => {
+        item.beneficiarios = item.beneficiarios ?? [];
         item.beneficiarios.forEach(beneficiario => {
           beneficiario.fechaNacimiento = this.formatDate(beneficiario.fechaNacimiento);
         });

@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
+import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import {
   Column,
@@ -21,6 +22,7 @@ import {
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './inventory-columns-definitions';
 import { IProducto } from '../../../../core/models/products.model';
+import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -44,11 +46,17 @@ export class InventoryListComponent implements OnInit {
   ) {}
 
   private productosService = inject(ProductosService);
+  private proyectosService = inject(ProyectosService);
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
   filtroActual = '';
 
   data = signal<IProducto[]>([]);
+  proyectos = signal<IProyectoAndCategoriaArray[]>([]);
+  selectedProjectId = signal<number | null>(null);
+  selectedCategoryId = signal<number | null>(null);
+  selectedProject = signal<IProyectoAndCategoriaArray | null>(null);
+  categories = signal<IProyectoAndCategoriaArray['categorias']>([]);
 
   // Estados para la tabla
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -69,14 +77,42 @@ export class InventoryListComponent implements OnInit {
   }
 
   getAll() {
-    this.productosService.getAll().subscribe({
+    this.proyectosService.getAll().subscribe({
       next: response => {
-        this.data.set(response);
+        const proyectos = response.respuesta ?? [];
+        this.proyectos.set(proyectos);
+        if (proyectos.length === 1) {
+          this.selectProject(proyectos[0].proyecto.idProyecto);
+        }
       },
       error: error => {
         console.error("Error al cargar productos:", error);
       }
     });
+  }
+
+  selectProject(id: number | string | null): void {
+    const projectId = id === null || id === '' ? null : Number(id);
+    const project = this.proyectos().find(item => item.proyecto.idProyecto === projectId) ?? null;
+    this.selectedProjectId.set(projectId);
+    this.selectedProject.set(project);
+    this.categories.set(project?.categorias ?? []);
+    this.selectedCategoryId.set(null);
+    this.data.set([]);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  selectCategory(id: number | string | null): void {
+    const categoryId = id === null || id === '' ? null : Number(id);
+    this.selectedCategoryId.set(categoryId);
+    this.data.set([]);
+    if (this.selectedProjectId() && categoryId) {
+      this.productosService.getByProjectCategory(this.selectedProjectId()!, categoryId).subscribe({
+        next: products => this.data.set(products),
+        error: error => console.error('Error al cargar productos por proyecto y categoría:', error)
+      });
+    }
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
   }
 
   public dataTable = createAngularTable(() => ({

@@ -15,10 +15,15 @@ export interface Products {
 
 export interface IProducto {
   idProducto: number;
+  codigoProducto: string;
   nombre: string;
   descripcion: string;
   stock: number;
   fechaIngreso: string | null;
+  idProyecto: number | null;
+  nombreProyecto: string;
+  idCategoria: number | null;
+  nombreCategoria: string;
 }
 
 export interface ProductoWithCantidad extends IProducto {

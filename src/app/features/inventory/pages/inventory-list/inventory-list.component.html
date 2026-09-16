@@ -8,9 +8,31 @@
     </h1>
   </header>
 
+  <div class="mb-5 grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
+    <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
+      Proyecto
+      <select class="input-base" [value]="selectedProjectId() ?? ''" (change)="selectProject($any($event.target).value)">
+        <option value="">Seleccione un proyecto</option>
+        @for (item of proyectos(); track item.proyecto.idProyecto) {
+          <option [value]="item.proyecto.idProyecto">#{{ item.proyecto.idProyecto }} - {{ item.proyecto.nombre }}</option>
+        }
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
+      Categoría
+      <select class="input-base" [disabled]="!selectedProjectId()" [value]="selectedCategoryId() ?? ''" (change)="selectCategory($any($event.target).value)">
+        <option value="">Seleccione una categoría</option>
+        @for (category of categories(); track category.idCategoria) {
+          <option [value]="category.idCategoria">#{{ category.idCategoria }} - {{ category.nombre }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
   <!-- 📊 TABLA -->
+  @if (selectedProjectId() && selectedCategoryId()) {
   <div class="overflow-x-auto bg-white rounded-xl shadow border border-gray-200">
-    <table class="w-full text-sm border-collapse">
+    <table class="min-w-[1100px] w-full text-sm border-collapse">
       <thead>
         <tr class="bg-gray-100 text-gray-700">
           @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
@@ -90,6 +112,11 @@
       </tbody>
     </table>
   </div>
+  } @else {
+    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+      Selecciona un proyecto y una categoría para consultar sus productos.
+    </div>
+  }
 
   <!-- 📑 PAGINACIÓN -->
   <footer class="flex flex-col sm:flex-row justify-between items-center mt-5 text-sm text-gray-700">

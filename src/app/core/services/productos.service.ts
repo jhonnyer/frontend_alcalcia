@@ -18,6 +18,13 @@ export class ProductosService {
     return this.http.get<IProducto[]>(`${this.URL}/productos/list`, { context: checkToken() });
   }
 
+  getByProjectCategory(idProyecto: number, idCategoria: number): Observable<IProducto[]> {
+    return this.http.get<IProducto[]>(
+      `${this.URL}/productos/proyecto/${idProyecto}/categoria/${idCategoria}`,
+      { context: checkToken() }
+    );
+  }
+
   getById(idProducto: string): Observable<IProducto> {
     return this.http.get<IProducto>(`${this.URL}/productos/${idProducto}`, { context: checkToken() });
   }

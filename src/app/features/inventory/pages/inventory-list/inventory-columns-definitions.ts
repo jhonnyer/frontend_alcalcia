@@ -17,10 +17,34 @@ export const defaultColumns: ColumnDef<IProducto>[] = [
     meta: { filterVariant: 'text' }
   },
   {
+    id: 'codigoProducto',
+    accessorFn: (row) => row.codigoProducto,
+    cell: info => info.getValue() || 'Sin código',
+    header: 'Código',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' }
+  },
+  {
     id: 'nombre',
     accessorFn: (row) => row.nombre,
     cell: info => info.getValue(),
     header: 'Nombre',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' }
+  },
+  {
+    id: 'nombreProyecto',
+    accessorFn: (row) => row.nombreProyecto,
+    cell: info => info.getValue() || 'Sin proyecto',
+    header: 'Proyecto',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' }
+  },
+  {
+    id: 'nombreCategoria',
+    accessorFn: (row) => row.nombreCategoria,
+    cell: info => info.getValue() || 'Sin categoría',
+    header: 'Categoría',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' }
   },

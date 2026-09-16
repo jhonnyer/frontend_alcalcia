@@ -60,13 +60,28 @@
 
       <!-- Filtro y tamaño de página -->
       <div class="mb-3 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <input
-          type="text"
-          placeholder="Buscar por nombre o descripción..."
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="onSearchTermChange($event)"
-          class="input-base sm:max-w-md"
-        />
+        <div class="relative sm:max-w-md sm:flex-1">
+          <label class="sr-only" for="product-search">Buscar producto</label>
+          <input
+            id="product-search"
+            type="text"
+            placeholder="Buscar por nombre o descripción..."
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchTermChange($event)"
+            class="input-base pr-10"
+          />
+          @if (searchTerm) {
+            <button
+              type="button"
+              class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-100"
+              (click)="clearSearchTerm()"
+              aria-label="Limpiar búsqueda de productos"
+              title="Limpiar búsqueda"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </div>
 
         <div class="flex items-center gap-2 text-sm text-slate-600">
           <label for="product-page-size">Mostrar:</label>

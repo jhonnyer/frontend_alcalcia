@@ -247,6 +247,11 @@ export class ProductsListSelectComponent implements OnInit{
     this.pageIndex = 0;
   }
 
+  clearSearchTerm(): void {
+    this.searchTerm = '';
+    this.pageIndex = 0;
+  }
+
 
   get filteredProducts() {
     let filtered = this.products;

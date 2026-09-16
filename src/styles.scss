@@ -5,15 +5,15 @@
 
 
 .input-base {
-  @apply w-full min-h-10 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500;
+  @apply w-full min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500;
 }
 
 .input-base-col {
-  @apply w-full px-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500;
+  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10;
 }
 
 .label-base{
-  @apply block text-sm font-medium text-gray-700 mb-1;
+  @apply mb-1 block text-sm font-semibold text-slate-700;
 }
 
 .input-radio-base {
@@ -21,15 +21,15 @@
 }
 
 .btn-action-red {
-  @apply px-4 py-2 w-24 self-end text-white bg-red-500 rounded-lg hover:bg-red-700;
+  @apply inline-flex min-h-10 w-24 items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-500/20;
 }
 
 .btn-action-green {
-  @apply px-4 py-2 rounded-lg text-white bg-gradient-to-tr from-green-600 to-green-400 shadow-md shadow-green-500/20 hover:shadow-lg hover:shadow-green-500/40 active:opacity-[0.85];
+  @apply inline-flex min-h-10 items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 active:opacity-90;
 }
 
 .btn-action-gray {
-  @apply px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400;
+  @apply inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-400/20;
 }
 
 .btn-action-black {
@@ -41,7 +41,17 @@
 }
 
 .btn-action-blue {
-  @apply px-4 py-2 rounded-lg text-white bg-gradient-to-tr from-blue-600 to-blue-400 shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40 active:opacity-[0.85];
+  @apply inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/20 active:opacity-90;
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible {
+  @apply outline-none ring-4 ring-blue-500/20;
+}
+
+::selection {
+  @apply bg-blue-100 text-blue-950;
 }
 
 // .btn-aside-dropdown {

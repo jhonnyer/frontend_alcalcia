@@ -1,11 +1,11 @@
-<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
+<div class="font-std relative flex min-h-full w-full flex-col overflow-x-hidden rounded-2xl bg-white font-normal">
   <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()"
-    class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5">
+    class="scrollbar-custom flex h-section flex-col gap-4 overflow-y-auto p-3 leading-relaxed pb-20 sm:p-5 md:pb-5">
 
-    <div class="flex flex-col w-full border border-gray-400 rounded-2xl p-4">
+    <div class="flex w-full flex-col rounded-xl border border-gray-300 bg-gray-50/40 p-3 sm:p-4">
       <!-- Nombre y Stock -->
-      <div class="w-full flex flex-wrap justify-between gap-4">
-        <div class="w-full md:w-[48%]">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div>
           <label for="nombre" class="label-base">Nombre producto</label>
           <input
             formControlName="nombre"
@@ -19,7 +19,7 @@
           }
         </div>
 
-        <div class="w-full md:w-[48%]">
+        <div>
           <label for="stock" class="label-base">Productos en stock actuales {{producto?.stock}} vas a agregar: </label>
           <input
             formControlName="stock"
@@ -54,7 +54,7 @@
     </div>
 
     <!-- Botones -->
-    <div class="flex justify-end space-x-4">
+    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4">
       <button
         type="button"
         routerLink="/inventory"

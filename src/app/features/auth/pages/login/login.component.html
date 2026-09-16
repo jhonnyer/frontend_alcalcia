@@ -60,12 +60,31 @@
           {{ requiresSecretarySelection ? 'Iniciar sesión' : 'Validar credenciales' }}
         }
       </button>
+
+      @if (credentialsValidated) {
+        <div class="flex items-center justify-between gap-3 text-sm">
+          <button
+            type="button"
+            class="text-gray-600 hover:text-gray-900 hover:underline"
+            (click)="cancelSecretarySelection()"
+          >
+            Volver a validar credenciales
+          </button>
+          <button
+            type="button"
+            class="text-blue-600 hover:underline"
+            (click)="goToRegister()"
+          >
+            Ir a registrarse
+          </button>
+        </div>
+      }
     </form>
 
     <p class="mt-4 text-center text-sm text-gray-500">
       @if (!credentialsValidated) {
         ¿No tienes cuenta?
-        <a routerLink="/auth/register" class="text-blue-600 hover:underline">Regístrate</a>
+        <a routerLink="/auth/register" (click)="cancelSecretarySelection()" class="text-blue-600 hover:underline">Regístrate</a>
       }
     </p>
   </div>

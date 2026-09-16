@@ -130,6 +130,19 @@ export class LoginComponent {
     }
   }
 
+  cancelSecretarySelection(): void {
+    this.tokenService.clearToken();
+    this.secretarias = [];
+    this.requiresSecretarySelection = false;
+    this.credentialsValidated = false;
+    this.formFamilyCore.reset();
+  }
+
+  goToRegister(): void {
+    this.cancelSecretarySelection();
+    this.router.navigate(['/auth/register']);
+  }
+
 togglePasswordVisibility(): void {
   this.showPassword = !this.showPassword;
 }

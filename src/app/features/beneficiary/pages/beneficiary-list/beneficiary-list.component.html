@@ -1,4 +1,4 @@
-<section class="h-[calc(100vh-6rem)] scroll-auto scrollbar-custom overflow-y-auto">
+<section class="min-h-[calc(100vh-6rem)] scroll-auto scrollbar-custom overflow-y-auto">
   <!-- HEADER -->
   <header class="flex items-center gap-2 mb-3">
     <h1 class="text-xl font-semibold text-gray-700">Beneficiarios</h1>
@@ -7,7 +7,7 @@
   <!-- TABLA -->
   <mat-card class="shadow-sm">
     <div class="overflow-x-auto">
-      <table class="w-full text-sm border rounded">
+      <table class="min-w-[980px] w-full text-sm border rounded">
         <thead>
           @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
             <tr>
@@ -92,13 +92,13 @@
     </div>
 
     <!-- PAGINACIÓN -->
-    <div class="flex justify-between items-center p-4">
+    <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div class="text-sm text-gray-600">
         Mostrando {{ dataTable.getRowModel().rows.length }} de
         {{ dataTable.getRowCount() }} beneficiarios
       </div>
 
-      <div class="flex gap-4 items-center">
+      <div class="flex flex-wrap gap-3 items-center">
         <span class="text-sm">
           Página {{ dataTable.getState().pagination.pageIndex + 1 }} de
           {{ dataTable.getPageCount() }}

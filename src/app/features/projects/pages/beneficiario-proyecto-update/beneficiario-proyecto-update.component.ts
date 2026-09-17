@@ -27,6 +27,7 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
 
   beneficiarioInfo: IBeneficiarioUnique | null = null;
   proyectoNombre = '';
+  private initialActiveState: boolean | null = null;
 
   form: FormGroup = this.fb.group({
     idBeneficiario: ['', [Validators.required]],
@@ -56,6 +57,7 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
           fechaInicio: response.fechaInicio,
           fechaFin: response.fechaFin
         });
+        this.initialActiveState = response.esBeneficiarioActivo;
 
         this.form.get('fechaInicio')?.disable();
         this.form.get('idBeneficiario')?.disable();
@@ -76,9 +78,22 @@ export class BeneficiarioProyectoUpdateComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.form.valid) {
       const formData = { ...this.form.getRawValue() };
+      const changedActiveState = this.initialActiveState !== null
+        && formData.esBeneficiarioActivo !== this.initialActiveState;
+
+      if (changedActiveState) {
+        const action = formData.esBeneficiarioActivo ? 'activar' : 'desactivar';
+        const confirmed = await this.alert.confirm(
+          `${action === 'activar' ? 'Activar' : 'Desactivar'} beneficiario`,
+          `¿Deseas ${action} este beneficiario en el proyecto "${this.proyectoNombre || 'seleccionado'}"?`,
+          action === 'activar' ? 'Activar' : 'Desactivar',
+          'Cancelar'
+        );
+        if (!confirmed) return;
+      }
 
       this.beneficiarioProyectoService.updateById(this.beneficiarioProyectoId, formData).subscribe({
         next: (response) => {

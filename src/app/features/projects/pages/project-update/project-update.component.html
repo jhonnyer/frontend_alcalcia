@@ -1,18 +1,18 @@
 <!-- 🔹 CONTENEDOR PRINCIPAL CON SCROLL GLOBAL -->
-<div class="h-[90vh] overflow-y-auto p-6 bg-gray-100 rounded-xl shadow-inner scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100">
+<div class="h-[90vh] overflow-y-auto rounded-xl bg-gray-100 p-3 shadow-inner scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 sm:p-4">
 
   <!-- 🔹 FORMULARIO DEL PROYECTO -->
-  <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" class="space-y-6">
+  <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" class="space-y-4">
 
-    <div class="bg-white p-8 rounded-2xl shadow-md border border-gray-200 transition-all hover:shadow-lg">
+    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:shadow-md sm:p-5">
 
       <!-- 🔹 Encabezado -->
-      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 border-b pb-4 gap-4">
+      <div class="mb-4 flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex-1">
-          <h2 class="text-2xl font-bold text-gray-800">
+          <h2 class="text-lg font-bold text-gray-800 sm:text-xl">
             {{ modo === 'crear' ? 'Registrar Proyecto' : 'Actualizar Proyecto' }}
           </h2>
-          <p class="text-sm text-gray-600">
+          <p class="text-xs text-gray-600 sm:text-sm">
             {{ modo === 'crear' ? 'Completa los datos para crear un nuevo proyecto' : 'Actualiza los datos del proyecto seleccionado' }}
           </p>
         </div>
@@ -61,7 +61,7 @@
       </div>
 
       <!-- 🔹 Campos en filas organizadas -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
         <!-- Nombre -->
         <mat-form-field appearance="fill" class="w-full">
@@ -138,25 +138,32 @@
   </form>
 
   <!-- 🔹 SECCIÓN DE CATEGORÍAS Y PRODUCTOS -->
-  <div *ngIf="modo === 'editar'; else mensajeCreacion" class="bg-white p-6 rounded-xl shadow-sm border mt-8">
-    <h2 class="text-2xl font-bold text-gray-800">Categorías del proyecto</h2>
+  <div *ngIf="modo === 'editar'; else mensajeCreacion" class="mt-5 rounded-xl border bg-white p-4 shadow-sm sm:p-5">
+    <div class="mb-3">
+      <h2 class="text-lg font-bold text-gray-800 sm:text-xl">Categorías y productos</h2>
+      <p class="text-sm text-slate-500">Selecciona una categoría para revisar y administrar sus productos.</p>
+    </div>
         <!-- 🔹 Encabezado de Categorías -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-      <!-- 🔍 Buscador -->
-      <div class="relative w-full md:w-[300px]">
-        <input
-          [ngModel]="filtroCategorias()"
-          (ngModelChange)="filtroCategorias.set($event)"
-          placeholder="Buscar categoría..."
-          class="pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 
-                focus:ring-blue-500 w-full transition-shadow duration-200"
-        />
-        <mat-icon
-          class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-base cursor-pointer"
-          (click)="filtroCategorias.set('')"
-        >
-          {{ filtroCategorias() ? 'close' : 'search' }}
-        </mat-icon>
+    <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div class="grid w-full grid-cols-1 gap-3 md:grid-cols-[minmax(16rem,1fr)_auto]">
+        <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
+          Categoría del proyecto
+          <select class="input-base" [value]="categoriaActivaId() ?? ''" (change)="onCategoriaActivaChange($any($event.target).value)">
+            <option value="">Seleccione una categoría</option>
+            @for (categoria of categorias(); track categoria.idCategoria) {
+              <option [value]="categoria.idCategoria">
+                #{{ categoria.idCategoria }} - {{ categoria.nombre }} · {{ categoria.productos?.length || 0 }} productos
+              </option>
+            }
+          </select>
+        </label>
+
+        @if (categoriaSeleccionada()) {
+          <div class="rounded-lg border border-blue-100 bg-blue-50/70 px-3 py-2 text-sm text-slate-700">
+            <span class="block font-semibold">#{{ categoriaSeleccionada()?.idCategoria }} - {{ categoriaSeleccionada()?.nombre }}</span>
+            <span class="text-xs text-slate-500">{{ categoriaSeleccionada()?.productos?.length || 0 }} productos registrados</span>
+          </div>
+        }
       </div>
 
       <!-- 🆕 Botón Nueva Categoría -->
@@ -173,15 +180,20 @@
     </div>
 
     <!-- 🔹 Listado de categorías -->
+    @if (categorias().length === 0) {
+      <div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
+        Este proyecto aún no tiene categorías registradas.
+      </div>
+    }
     <div class="flex flex-col gap-4">
       <div
         *ngFor="let categoria of getCategoriasFiltradasPaginadas(); trackBy: trackByCategoriaId"
-        class="border border-gray-300 rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition"
+        class="rounded-xl border border-slate-200 bg-slate-50/60 p-3 transition hover:bg-slate-50 sm:p-4"
       >
         <!-- Header -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div class="font-semibold text-gray-800">{{ categoria.nombre }}</div>
+            <div class="text-sm font-semibold text-gray-800">{{ categoria.nombre }}</div>
             <p class="text-xs text-gray-500">{{ categoria.descripcion }}</p>
           </div>
 
@@ -221,28 +233,38 @@
         </div>
 
         <!-- Productos -->
-        <div *ngIf="categoria.expanded" class="mt-4 border-t pt-4">
+        <div *ngIf="categoria.expanded" class="mt-3 border-t border-slate-200 pt-3">
 
           <!-- Si hay productos -->
           <div *ngIf="categoria.productos?.length; else noProductos">
 
             <!-- Cabecera de productos: buscador + botón añadir -->
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
+            <div class="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
 
               <!-- Buscador -->
-              <div class="relative w-full md:w-[250px]">
+              <div class="relative w-full md:w-[320px]">
                 <input
                   [(ngModel)]="categoria.filtro"
-                  placeholder="Buscar producto..."
-                  class="pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none
-                        focus:ring-2 focus:ring-blue-500 w-full transition-shadow duration-200"
+                  (ngModelChange)="onProductFilterChange(categoria)"
+                  placeholder="Buscar por producto, descripción, stock o fecha..."
+                  class="input-base pl-10 pr-10"
                 />
                 <mat-icon
-                  class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-base cursor-pointer"
-                  (click)="categoria.filtro = ''"
+                  class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-base"
                 >
-                  {{ categoria.filtro ? 'close' : 'search' }}
+                  search
                 </mat-icon>
+                @if (categoria.filtro) {
+                  <button
+                    type="button"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-100"
+                    (click)="clearProductFilter(categoria)"
+                    aria-label="Limpiar búsqueda de productos"
+                    title="Limpiar búsqueda"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
               </div>
 
               <!-- Botón Añadir Producto -->
@@ -260,31 +282,35 @@
             </div>
 
             <!-- Tabla de productos -->
-            <div class="overflow-x-auto mt-4">
+            <div class="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
               <table
                 mat-table
                 [dataSource]="getPagedData(categoria)"
-                class="w-full text-sm mat-elevation-z2 rounded-md overflow-hidden border border-gray-200"
+                class="min-w-[700px] w-full overflow-hidden text-sm"
               >
                 <!--  Columna Producto -->
                 <ng-container matColumnDef="nombreProducto">
-                  <th mat-header-cell *matHeaderCellDef class="text-gray-700 font-semibold bg-gray-100">
+                  <th mat-header-cell *matHeaderCellDef class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-600">
                     Producto
                   </th>
-                  <td mat-cell *matCellDef="let product" class="py-2 px-3">{{ product.nombreProducto }}</td>
+                  <td mat-cell *matCellDef="let product" class="px-3 py-2 font-semibold text-slate-800">{{ product.nombreProducto }}</td>
                 </ng-container>
 
                 <!-- Columna Stock -->
                 <ng-container matColumnDef="stock">
-                  <th mat-header-cell *matHeaderCellDef class="text-gray-700 font-semibold bg-gray-100 text-center">
+                  <th mat-header-cell *matHeaderCellDef class="bg-slate-50 text-center text-xs font-semibold uppercase tracking-wide text-slate-600">
                     Stock
                   </th>
-                  <td mat-cell *matCellDef="let product" class="text-center py-2">{{ product.stock }}</td>
+                  <td mat-cell *matCellDef="let product" class="py-2 text-center">
+                    <span class="inline-flex min-w-16 justify-center rounded-full border px-2 py-0.5 text-xs font-semibold" [ngClass]="getStockBadgeClass(product.stock)">
+                      {{ product.stock }}
+                    </span>
+                  </td>
                 </ng-container>
 
                 <!-- Columna Fecha Ingreso -->
                 <ng-container matColumnDef="fechaIngreso">
-                  <th mat-header-cell *matHeaderCellDef class="text-gray-700 font-semibold bg-gray-100 text-center">
+                  <th mat-header-cell *matHeaderCellDef class="bg-slate-50 text-center text-xs font-semibold uppercase tracking-wide text-slate-600">
                     Ingreso
                   </th>
                   <td mat-cell *matCellDef="let product" class="text-center py-2">{{ product.fechaIngreso }}</td>
@@ -292,7 +318,7 @@
 
                 <!--  Columna Acciones -->
                 <ng-container matColumnDef="acciones">
-                  <th mat-header-cell *matHeaderCellDef class="text-gray-700 font-semibold bg-gray-100 text-center">
+                  <th mat-header-cell *matHeaderCellDef class="bg-slate-50 text-center text-xs font-semibold uppercase tracking-wide text-slate-600">
                     Acciones
                   </th>
                   <td mat-cell *matCellDef="let product" class="text-center py-2">
@@ -351,7 +377,7 @@
     </div>
 
     <!-- 🔹 Paginador -->
-    <div class="flex justify-center mt-4">
+    <div *ngIf="getFilteredLengthGlobal() > pageSize" class="flex justify-center mt-4">
       <mat-paginator
         [pageSizeOptions]="[3, 5, 10]"
         [length]="getFilteredLengthGlobal()"

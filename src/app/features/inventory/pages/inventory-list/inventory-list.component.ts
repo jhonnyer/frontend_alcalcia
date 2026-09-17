@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
@@ -49,6 +49,7 @@ export class InventoryListComponent implements OnInit {
   private proyectosService = inject(ProyectosService);
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   filtroActual = '';
 
   data = signal<IProducto[]>([]);
@@ -57,6 +58,8 @@ export class InventoryListComponent implements OnInit {
   selectedCategoryId = signal<number | null>(null);
   selectedProject = signal<IProyectoAndCategoriaArray | null>(null);
   categories = signal<IProyectoAndCategoriaArray['categorias']>([]);
+  private initialProjectId: number | null = null;
+  private initialCategoryId: number | null = null;
 
   // Estados para la tabla
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -73,6 +76,8 @@ export class InventoryListComponent implements OnInit {
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Inventario');
+    this.initialProjectId = Number(this.route.snapshot.queryParamMap.get('idProyecto')) || null;
+    this.initialCategoryId = Number(this.route.snapshot.queryParamMap.get('idCategoria')) || null;
     this.getAll();
   }
 
@@ -83,6 +88,14 @@ export class InventoryListComponent implements OnInit {
         this.proyectos.set(proyectos);
         if (proyectos.length === 1) {
           this.selectProject(proyectos[0].proyecto.idProyecto);
+          if (this.initialCategoryId) {
+            this.selectCategory(this.initialCategoryId);
+          }
+        } else if (this.initialProjectId) {
+          this.selectProject(this.initialProjectId);
+          if (this.initialCategoryId) {
+            this.selectCategory(this.initialCategoryId);
+          }
         }
       },
       error: error => {
@@ -185,6 +198,17 @@ export class InventoryListComponent implements OnInit {
 
   update(item: Row<IProducto>) {
     this.router.navigate(["inventory/update/", item.original.idProducto]);
+  }
+
+  goToCreateProducts(): void {
+    const idProyecto = this.selectedProjectId();
+    const idCategoria = this.selectedCategoryId();
+    this.router.navigate(['/inventory/create'], {
+      queryParams: {
+        ...(idProyecto ? { idProyecto } : {}),
+        ...(idCategoria ? { idCategoria } : {})
+      }
+    });
   }
 
   sanitizeHtml(content: string): SafeHtml {

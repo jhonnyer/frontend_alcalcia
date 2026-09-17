@@ -66,6 +66,7 @@ export class ProjectUpdateComponent implements OnInit {
   displayedColumns: string[] = ['nombreProducto', 'stock', 'fechaIngreso', 'acciones'];
   // 🔹 Filtro y selección de categoría
   categoriaSeleccionada = signal<ICategoriaUI | null>(null);
+  categoriaActivaId = signal<number | null>(null);
   filtroCategorias = signal<string>('');
   pageIndex = 0;
   pageSize = 5;
@@ -129,16 +130,22 @@ export class ProjectUpdateComponent implements OnInit {
           descripcion: proyecto.descripcion
         });
 
-        // 🔹 Solo categorías del proyecto
-        this.categorias.set(
-          (categorias || []).map(cat => ({
-            ...cat,
-            expanded: false,
-            currentPage: 0,
-            pageSize: 3,
-            filtro: ''
-          }))
-        );
+        const categoriasUI = (categorias || []).map(cat => ({
+          ...cat,
+          expanded: false,
+          currentPage: 0,
+          pageSize: 5,
+          filtro: ''
+        }));
+        const categoriaActual = categoriasUI.find(cat => cat.idCategoria === this.categoriaActivaId())
+          ?? categoriasUI[0]
+          ?? null;
+        if (categoriaActual) {
+          categoriaActual.expanded = true;
+        }
+        this.categorias.set(categoriasUI);
+        this.categoriaActivaId.set(categoriaActual?.idCategoria ?? null);
+        this.categoriaSeleccionada.set(categoriaActual);
 
         // para que Material refresque bind de select/radio si llegó tarde
         this.cdr.detectChanges();
@@ -158,7 +165,22 @@ export class ProjectUpdateComponent implements OnInit {
   // 🔹 Cuando el usuario selecciona una categoría del combo
   onSeleccionarCategoria(categoria: ICategoriaUI): void {
     this.categoriaSeleccionada.set(categoria);
+    this.categoriaActivaId.set(categoria.idCategoria);
     categoria.expanded = true;
+  }
+
+  onCategoriaActivaChange(value: number | string | null): void {
+    const idCategoria = value === null || value === '' ? null : Number(value);
+    this.categoriaActivaId.set(idCategoria);
+    this.pageIndex = 0;
+    this.categorias.update(categorias => categorias.map(categoria => ({
+      ...categoria,
+      expanded: categoria.idCategoria === idCategoria,
+      currentPage: 0
+    })));
+    this.categoriaSeleccionada.set(
+      this.categorias().find(categoria => categoria.idCategoria === idCategoria) ?? null
+    );
   }
 
 
@@ -175,13 +197,28 @@ export class ProjectUpdateComponent implements OnInit {
     const startIndex = (categoria.currentPage || 0) * (categoria.pageSize || 3);
     const endIndex = startIndex + (categoria.pageSize || 3);
 
-    // 🔍 Si hay filtro aplicado por nombre
-    const filtro = categoria.filtro?.toLowerCase() || '';
+    const filtro = this.normalizeSearchText(categoria.filtro);
     const filtrados = categoria.productos.filter((p: any) =>
-      p.nombreProducto.toLowerCase().includes(filtro)
+      this.productMatchesFilter(p, filtro)
     );
 
     return filtrados.slice(startIndex, endIndex);
+  }
+
+  clearProductFilter(categoria: ICategoriaUI): void {
+    categoria.filtro = '';
+    categoria.currentPage = 0;
+  }
+
+  onProductFilterChange(categoria: ICategoriaUI): void {
+    categoria.currentPage = 0;
+  }
+
+  getStockBadgeClass(stock: number | null | undefined): string {
+    const value = Number(stock ?? 0);
+    if (value <= 0) return 'bg-red-100 text-red-700 border-red-200';
+    if (value <= 5) return 'bg-amber-100 text-amber-700 border-amber-200';
+    return 'bg-emerald-100 text-emerald-700 border-emerald-200';
   }
 
   // 🔹 Actualiza página actual por categoría
@@ -280,10 +317,28 @@ export class ProjectUpdateComponent implements OnInit {
   // 🔹 Longitud total de productos filtrados (para el paginador)
   getFilteredLength(categoria: any): number {
     if (!categoria.productos) return 0;
-    const filtro = categoria.filtro?.toLowerCase() || '';
+    const filtro = this.normalizeSearchText(categoria.filtro);
     return categoria.productos.filter((p: any) =>
-      p.nombreProducto.toLowerCase().includes(filtro)
+      this.productMatchesFilter(p, filtro)
     ).length;
+  }
+
+  private normalizeSearchText(value: string | number | null | undefined): string {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase()
+      .trim();
+  }
+
+  private productMatchesFilter(product: IProductoFk, filter: string): boolean {
+    if (!filter) return true;
+    return [
+      product.nombreProducto,
+      product.descripcion,
+      product.stock,
+      product.fechaIngreso
+    ].some(value => this.normalizeSearchText(value).includes(filter));
   }
 
   confirmarActualizacion(): void {
@@ -325,6 +380,7 @@ export class ProjectUpdateComponent implements OnInit {
         };
         
         this.categorias.update(prev => [...prev, categoriaConCamposUI]);
+        this.onCategoriaActivaChange(nuevaCategoria.idCategoria);
 
         // Actualizar el formControl 'categorias' (ids)
         const actual = this.formFamilyCore.get('categorias')?.value || [];
@@ -339,7 +395,9 @@ export class ProjectUpdateComponent implements OnInit {
 
   getCategoriasFiltradasPaginadas(): ICategoriaUI[] {
     const filtro = this.filtroCategorias().toLowerCase();
+    const categoriaActivaId = this.categoriaActivaId();
     const filtradas = this.categorias().filter(cat =>
+      (!categoriaActivaId || cat.idCategoria === categoriaActivaId) &&
       cat.nombre.toLowerCase().includes(filtro)
     );
     const start = this.pageIndex * this.pageSize;
@@ -348,7 +406,9 @@ export class ProjectUpdateComponent implements OnInit {
 
   getFilteredLengthGlobal(): number {
     const filtro = this.filtroCategorias().toLowerCase();
+    const categoriaActivaId = this.categoriaActivaId();
     return this.categorias().filter(cat =>
+      (!categoriaActivaId || cat.idCategoria === categoriaActivaId) &&
       cat.nombre.toLowerCase().includes(filtro)
     ).length;
   }
@@ -462,6 +522,8 @@ export class ProjectUpdateComponent implements OnInit {
         categoriaActualizada.expanded = true;
         categoriaActualizada.currentPage = paginaActual;
         categoriaActualizada.filtro = filtroActual;
+        this.categoriaActivaId.set(categoriaActualizada.idCategoria);
+        this.categoriaSeleccionada.set(categoriaActualizada);
       }
     }, 300);
   }

@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { CategoriasService } from '../../../core/services/categorias.service';
+import { ProyectosService } from '../../../core/services/proyectos.service';
 import { PageTitleService } from '../../../core/services/pageTitle.service';
 import {
   Column,
@@ -20,6 +21,7 @@ import {
 import { TableFilterComponent } from '../../../shared/components/table-filter/table-filter.component';
 import { defaultColumns } from './categorias-columns-definitions';
 import { ICategorias } from '../../../core/models/categorias.model';
+import { IProyectoAndCategoriaArray } from '../../../core/models/proyecto.model';
 import { CategoriasCreateComponent } from '../categorias-create/categorias-create.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
@@ -27,6 +29,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { AlertService } from '../../../core/services/alert.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-categoria-list',
@@ -48,10 +51,30 @@ export class CategoriaListComponent implements OnInit {
     private sanitizer: DomSanitizer
   ) {}
   private categoriasService = inject(CategoriasService);
+  private proyectosService = inject(ProyectosService);
   private pageTitleService = inject(PageTitleService);
   private alert = inject(AlertService);
+  private router = inject(Router);
 
-  data = signal<ICategorias[]>([]);
+  data = signal<Array<ICategorias & { idProyecto?: number; nombreProyecto?: string; cantidadProductos?: number }>>([]);
+  selectedProjectId = signal<number | 'ALL'>('ALL');
+  projectOptions = computed(() => {
+    const projects = new Map<number, string>();
+    this.data().forEach(categoria => {
+      if (categoria.idProyecto && categoria.nombreProyecto) {
+        projects.set(categoria.idProyecto, categoria.nombreProyecto);
+      }
+    });
+    return Array.from(projects.entries())
+      .map(([idProyecto, nombreProyecto]) => ({ idProyecto, nombreProyecto }))
+      .sort((a, b) => a.nombreProyecto.localeCompare(b.nombreProyecto) || a.idProyecto - b.idProyecto);
+  });
+  filteredData = computed(() => {
+    const selectedProjectId = this.selectedProjectId();
+    return selectedProjectId === 'ALL'
+      ? this.data()
+      : this.data().filter(categoria => categoria.idProyecto === selectedProjectId);
+  });
 
   // Estados para la tabla
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -72,9 +95,17 @@ export class CategoriaListComponent implements OnInit {
   }
 
   getAll() {
-    this.categoriasService.getAll().subscribe({
+    this.proyectosService.getAll().subscribe({
       next: response => {
-        this.data.set(response);
+        const rows = (response.respuesta ?? []).flatMap((item: IProyectoAndCategoriaArray) =>
+          (item.categorias ?? []).map(categoria => ({
+            ...categoria,
+            idProyecto: item.proyecto.idProyecto,
+            nombreProyecto: item.proyecto.nombre,
+            cantidadProductos: categoria.productos?.length ?? 0
+          }))
+        );
+        this.data.set(rows);
       },
       error: error => {
         console.error("Error al cargar categorías:", error);
@@ -83,7 +114,7 @@ export class CategoriaListComponent implements OnInit {
   }
 
   public dataTable = createAngularTable(() => ({
-    data: this.data(),
+    data: this.filteredData(),
     getCoreRowModel: getCoreRowModel(),
     columns: defaultColumns,
 
@@ -126,6 +157,17 @@ export class CategoriaListComponent implements OnInit {
   onChangeValueSizePageSelect(e: Event) {
     const element = (e.target as HTMLSelectElement);
     this.dataTable.setPageSize(+element.value);
+  }
+
+  onProjectFilterChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedProjectId.set(value === 'ALL' ? 'ALL' : Number(value));
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  clearProjectFilter(): void {
+    this.selectedProjectId.set('ALL');
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
   }
 
   onSortingColumn(column: Column<ICategorias>) {
@@ -207,6 +249,10 @@ export class CategoriaListComponent implements OnInit {
         setTimeout(() => this.getAll(), 200); // Recarga con un leve retraso visual
       }
     });
+  }
+
+  abrirProyecto(idProyecto: number): void {
+    this.router.navigate(['/projects/update', idProyecto]);
   }
 
   sanitizeHtml(content: string): SafeHtml {

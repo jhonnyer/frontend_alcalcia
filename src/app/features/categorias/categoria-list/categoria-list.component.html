@@ -1,8 +1,34 @@
 <section class="h-[calc(100vh-6rem)] overflow-y-auto scrollbar-custom">
   <mat-card class="shadow-sm bg-white rounded-lg border border-gray-200">
     <!-- HEADER -->
-    <div class="flex justify-between items-center p-4 border-b border-gray-200">
-      <h1 class="text-xl font-semibold text-blue_primary">Listado de Categorías</h1>
+    <div class="flex flex-col gap-3 p-4 border-b border-gray-200 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h1 class="text-xl font-semibold text-blue_primary">Categorías por proyecto</h1>
+        <p class="text-sm text-slate-500">Revisa a qué proyecto pertenece cada categoría y cuántos productos contiene.</p>
+      </div>
+      <div class="flex w-full flex-col gap-1 text-sm text-slate-600 lg:w-96">
+        <span class="font-semibold">Filtrar por proyecto</span>
+        <div class="relative">
+          <select class="input-base pr-10" [value]="selectedProjectId()" (change)="onProjectFilterChange($event)">
+            <option value="ALL">Todos los proyectos</option>
+            @for (project of projectOptions(); track project.idProyecto) {
+              <option [value]="project.idProyecto">#{{ project.idProyecto }} - {{ project.nombreProyecto }}</option>
+            }
+          </select>
+          @if (selectedProjectId() !== 'ALL') {
+            <button
+              type="button"
+              class="absolute right-8 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-100"
+              (click)="clearProjectFilter()"
+              aria-label="Limpiar filtro de proyecto"
+              title="Limpiar filtro"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </div>
+        <span class="text-xs text-slate-500">{{ dataTable.getRowCount() }} categorías visibles</span>
+      </div>
     </div>
 
     <!-- TABLA -->
@@ -63,6 +89,16 @@
                         matTooltip="Editar categoría"
                       >
                         <mat-icon>edit</mat-icon>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="text-blue-600 hover:text-blue-800 transition"
+                        [title]="'Ver proyecto #' + row.original.idProyecto"
+                        *ngIf="row.original.idProyecto"
+                        (click)="abrirProyecto(row.original.idProyecto)"
+                      >
+                        <mat-icon>folder_open</mat-icon>
                       </button>
 
                       <!-- Botón eliminar -->

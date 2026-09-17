@@ -24,11 +24,14 @@ export class ListProjectsComponent implements OnInit {
     { label: 'a. Registrar Proyecto', link: '/projects/create'},
     { label: 'b. Lista de Proyectos', link: '/projects'},
     { label: 'c. Agregar Beneficiario', link: '/projects/add-beneficiary/create'},
-    { label: 'd. Beneficiarios de proyecto', link: '/projects/add-beneficiary/list'}
+    { label: 'd. Beneficiarios de proyecto', link: '/projects/add-beneficiary/list'},
+    { label: 'e. Categorías por proyecto', link: '/categorias'},
+    { label: 'f. Inventario por proyecto', link: '/inventory'},
+    { label: 'g. Agregar productos', link: '/inventory/create'}
   ];
 
   ngOnInit(): void {
-    this.activeMenu = this.router.url.startsWith('/projects');
+    this.activeMenu = this.router.url.startsWith('/projects') || this.router.url.startsWith('/inventory') || this.router.url.startsWith('/categorias');
   }
 
   toggleMenu() {

@@ -1,11 +1,9 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { ListInventoryComponent } from './components/list-inventory/list-inventory.component';
 import { ListBeneficiaryComponent } from './components/list-beneficiary/list-beneficiary.component';
 import { ListHomeComponent } from './components/list-home/list-home.component';
 import { ListNucleoComponent } from './components/list-nucleo/list-nucleo.component';
 import { ListProceedingsComponent } from './components/list-proceedings/list-proceedings.component';
 import { ListResponsibleComponent } from './components/list-responsible/list-responsible.component';
-import { ListCategoriasComponent } from './components/list-categorias/list-categorias.component';
 import { ListProjectsComponent } from "./components/list-projects/list-projects.component";
 
 import { HasRoleDirective } from '../../../core/directives/has-role/has-role-directive.directive';
@@ -18,12 +16,10 @@ import { NgClass, NgIf} from '@angular/common'
   imports: [
     ListHomeComponent,
     ListNucleoComponent,
-    ListInventoryComponent,
     ListBeneficiaryComponent,
     ListProceedingsComponent,
     ListResponsibleComponent,
     ListProjectsComponent,
-    ListCategoriasComponent,
     HasRoleDirective, 
     MatIconModule,
     NgClass,

@@ -6,6 +6,15 @@
       <mat-icon class="text-blue_primary">inventory_2</mat-icon>
       Productos
     </h1>
+    <button
+      type="button"
+      class="btn-action-blue w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+      [disabled]="!selectedProjectId() || !selectedCategoryId()"
+      (click)="goToCreateProducts()"
+    >
+      <mat-icon class="text-base">add_circle</mat-icon>
+      Agregar productos a esta categoría
+    </button>
   </header>
 
   <div class="mb-5 grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">

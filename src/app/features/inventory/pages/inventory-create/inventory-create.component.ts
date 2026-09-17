@@ -7,6 +7,7 @@ import { ICategorias } from '../../../../core/models/categorias.model';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
@@ -26,16 +27,21 @@ export class InventoryCreateComponent implements OnInit {
   private proyectosService = inject(ProyectosService);
   private productosService = inject(ProductosService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private dialog = inject(MatDialog);
   private alert = inject(AlertService);
 
 
   proyectos = signal<IProyectoAndCategoriaArray[]>([]);
   categoriasDisponibles = signal<ICategorias[]>([]);
+  private initialProjectId: number | null = null;
+  private initialCategoryId: number | null = null;
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Agregar producto');
     this.initFormFamilyCore();
+    this.initialProjectId = Number(this.route.snapshot.queryParamMap.get('idProyecto')) || null;
+    this.initialCategoryId = Number(this.route.snapshot.queryParamMap.get('idCategoria')) || null;
     this.loadProyectos();
   }
 
@@ -44,6 +50,13 @@ export class InventoryCreateComponent implements OnInit {
       next: (response) => {
         if (response.estado === 'exito') {
           this.proyectos.set(response.respuesta);
+          if (this.initialProjectId) {
+            this.formFamilyCore.get('idProyecto')?.setValue(String(this.initialProjectId));
+            this.onProyectoChange(String(this.initialProjectId));
+            if (this.initialCategoryId) {
+              this.formFamilyCore.get('idCategoria')?.setValue(String(this.initialCategoryId));
+            }
+          }
         }
       },
       error: (error) => {
@@ -126,7 +139,7 @@ export class InventoryCreateComponent implements OnInit {
     this.productosService.post(payload).subscribe({
       next: () => {
         this.alert.success('Operación exitosa','✅ Productos creados correctamente.');
-        this.router.navigate(['/inventory']);
+        this.navigateToInventoryContext(payload.idProyecto, payload.idCategoria);
       },
       error: (err) => {
         console.error('❌ Error al crear productos:', err);
@@ -136,7 +149,18 @@ export class InventoryCreateComponent implements OnInit {
   }
 
   cancelar(): void {
-    this.router.navigate(['/inventory']);
+    const idProyecto = Number(this.formFamilyCore.get('idProyecto')?.value) || this.initialProjectId;
+    const idCategoria = Number(this.formFamilyCore.get('idCategoria')?.value) || this.initialCategoryId;
+    this.navigateToInventoryContext(idProyecto, idCategoria);
+  }
+
+  private navigateToInventoryContext(idProyecto: number | null, idCategoria: number | null): void {
+    this.router.navigate(['/inventory'], {
+      queryParams: {
+        ...(idProyecto ? { idProyecto } : {}),
+        ...(idCategoria ? { idCategoria } : {})
+      }
+    });
   }
 
   confirmarGuardar(): void {

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
@@ -59,6 +59,26 @@ export class ProjectsListComponent {
 
   // Cambiamos el tipo del signal para manejar el objeto completo
   data = signal<IProyectoAndCategoriaArray[]>([]);
+  projectSearch = signal('');
+  projectSuggestionsVisible = signal(false);
+  selectedProjectId = signal<number | 'ALL'>('ALL');
+  filteredProjectOptions = computed(() => {
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.data().filter(item => {
+      const text = this.normalizeSearchText(`${item.proyecto.idProyecto} ${item.proyecto.nombre} ${item.proyecto.descripcion}`);
+      return !query || text.includes(query);
+    });
+  });
+  filteredData = computed(() => {
+    const selectedProjectId = this.selectedProjectId();
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.data().filter(item => {
+      const matchesSelected = selectedProjectId === 'ALL' || item.proyecto.idProyecto === selectedProjectId;
+      const text = this.normalizeSearchText(`${item.proyecto.idProyecto} ${item.proyecto.nombre} ${item.proyecto.descripcion}`);
+      const matchesSearch = selectedProjectId !== 'ALL' || !query || text.includes(query);
+      return matchesSelected && matchesSearch;
+    });
+  });
 
   // Estados para la tabla
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -100,7 +120,7 @@ export class ProjectsListComponent {
 
 
   public dataTable = createAngularTable(() => ({
-    data: this.data(),
+    data: this.filteredData(),
     getCoreRowModel: getCoreRowModel(),
     columns: defaultColumns,
 
@@ -161,6 +181,39 @@ export class ProjectsListComponent {
         value: value,
       },
     ]);
+  }
+
+  onProjectSearch(event: Event): void {
+    this.projectSearch.set((event.target as HTMLInputElement).value);
+    this.selectedProjectId.set('ALL');
+    this.projectSuggestionsVisible.set(true);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  selectProjectOption(item: IProyectoAndCategoriaArray): void {
+    this.selectedProjectId.set(item.proyecto.idProyecto);
+    this.projectSearch.set(`#${item.proyecto.idProyecto} - ${item.proyecto.nombre}`);
+    this.projectSuggestionsVisible.set(false);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  clearProjectFilter(): void {
+    this.selectedProjectId.set('ALL');
+    this.projectSearch.set('');
+    this.projectSuggestionsVisible.set(false);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  showProjectSuggestions(): void {
+    this.projectSuggestionsVisible.set(true);
+  }
+
+  hideProjectSuggestions(): void {
+    setTimeout(() => this.projectSuggestionsVisible.set(false), 150);
+  }
+
+  private normalizeSearchText(value: string | number | null | undefined): string {
+    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
   }
 
   delete(item: Row<IProyectoAndCategoriaArray>): void {

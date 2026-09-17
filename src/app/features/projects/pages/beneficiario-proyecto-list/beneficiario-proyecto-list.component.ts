@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, Injector, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
@@ -37,6 +37,31 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   private pageTitleService = inject(PageTitleService);
   private pdfService = inject(PdfBeneficiariosProyectoService);
   data = signal<IBeneficiarioProyecto[]>([]);
+  selectedProjectId = signal<number | 'ALL'>('ALL');
+  projectSearch = signal('');
+  projectSuggestionsVisible = signal(false);
+  projectOptions = computed(() => {
+    const projects = new Map<number, string>();
+    this.data().forEach(item => {
+      if (item.idProyecto && item.nombreProyecto) projects.set(item.idProyecto, item.nombreProyecto);
+    });
+    return Array.from(projects.entries()).map(([idProyecto, nombreProyecto]) => ({ idProyecto, nombreProyecto }))
+      .sort((a, b) => a.nombreProyecto.localeCompare(b.nombreProyecto) || a.idProyecto - b.idProyecto);
+  });
+  filteredProjectOptions = computed(() => {
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.projectOptions().filter(project => !query || this.normalizeSearchText(`${project.idProyecto} ${project.nombreProyecto}`).includes(query));
+  });
+  filteredData = computed(() => {
+    const selectedProjectId = this.selectedProjectId();
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.data().filter(item => {
+      const matchesSelected = selectedProjectId === 'ALL' || item.idProyecto === selectedProjectId;
+      const text = this.normalizeSearchText(`${item.idProyecto} ${item.nombreProyecto}`);
+      const matchesSearch = selectedProjectId !== 'ALL' || !query || text.includes(query);
+      return matchesSelected && matchesSearch;
+    });
+  });
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
   public readonly rowSelectionState = signal<RowSelectionState>({});
@@ -63,7 +88,7 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   }
 
   public dataTable = createAngularTable(() => ({
-    data: this.data(),
+    data: this.filteredData(),
     getCoreRowModel: getCoreRowModel(),
     columns: defaultColumns,
     getPaginationRowModel: getPaginationRowModel(),
@@ -118,6 +143,34 @@ export class BeneficiarioProyectoListComponent implements OnInit {
         value: value,
       },
     ]);
+  }
+
+  onProjectSearch(event: Event): void {
+    this.projectSearch.set((event.target as HTMLInputElement).value);
+    this.selectedProjectId.set('ALL');
+    this.projectSuggestionsVisible.set(true);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  selectProjectOption(project: { idProyecto: number; nombreProyecto: string }): void {
+    this.selectedProjectId.set(project.idProyecto);
+    this.projectSearch.set(`#${project.idProyecto} - ${project.nombreProyecto}`);
+    this.projectSuggestionsVisible.set(false);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  clearProjectFilter(): void {
+    this.selectedProjectId.set('ALL');
+    this.projectSearch.set('');
+    this.projectSuggestionsVisible.set(false);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  showProjectSuggestions(): void { this.projectSuggestionsVisible.set(true); }
+  hideProjectSuggestions(): void { setTimeout(() => this.projectSuggestionsVisible.set(false), 150); }
+
+  private normalizeSearchText(value: string | number | null | undefined): string {
+    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
   }
 
   delete(item: Row<IBeneficiarioProyecto>) {

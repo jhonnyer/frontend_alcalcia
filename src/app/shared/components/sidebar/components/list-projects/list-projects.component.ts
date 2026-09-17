@@ -20,14 +20,29 @@ export class ListProjectsComponent implements OnInit {
 
   activeMenu: boolean = false;
   @Input() collapsed = false;
-  menuItems = [
-    { label: 'a. Registrar Proyecto', link: '/projects/create'},
-    { label: 'b. Lista de Proyectos', link: '/projects'},
-    { label: 'c. Agregar Beneficiario', link: '/projects/add-beneficiary/create'},
-    { label: 'd. Beneficiarios de proyecto', link: '/projects/add-beneficiary/list'},
-    { label: 'e. Categorías por proyecto', link: '/categorias'},
-    { label: 'f. Inventario por proyecto', link: '/inventory'},
-    { label: 'g. Agregar productos', link: '/inventory/create'}
+  menuGroups = [
+    {
+      title: 'Gestión',
+      items: [
+        { label: 'Registrar proyecto', link: '/projects/create'},
+        { label: 'Lista de proyectos', link: '/projects'}
+      ]
+    },
+    {
+      title: 'Beneficiarios',
+      items: [
+        { label: 'Asignar beneficiario', link: '/projects/add-beneficiary/create'},
+        { label: 'Beneficiarios por proyecto', link: '/projects/add-beneficiary/list'}
+      ]
+    },
+    {
+      title: 'Inventario',
+      items: [
+        { label: 'Categorías por proyecto', link: '/categorias'},
+        { label: 'Inventario por proyecto', link: '/inventory'},
+        { label: 'Agregar productos', link: '/inventory/create'}
+      ]
+    }
   ];
 
   ngOnInit(): void {

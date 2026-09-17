@@ -23,19 +23,27 @@
       class="overflow-hidden transition-all duration-300 pl-6"
       [style.maxHeight]="activeMenu && !collapsed ? '400px' : '0px'"
     >
-      <!-- 🔹 Lista de subopciones -->
-      <li *ngFor="let item of menuItems">
-        <a [routerLink]="item.link" routerLinkActive="bg-white/15" [routerLinkActiveOptions]="{ exact: true }"
+      <li *ngFor="let group of menuGroups" class="py-1">
+        <p
+          class="px-4 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wide text-white/50"
+          [ngClass]="{
+            'opacity-0 translate-x-[-10px] scale-95 hidden': collapsed,
+            'block': !collapsed
+          }"
+        >
+          {{ group.title }}
+        </p>
+        <a *ngFor="let item of group.items" [routerLink]="item.link" routerLinkActive="bg-white/15" [routerLinkActiveOptions]="{ exact: true }"
           class="!text-white flex w-full items-center gap-3 rounded-lg px-4 py-2 text-xs font-medium transition-colors duration-200 hover:bg-white/10 active:bg-white/20">
-            <span
-              class="transition-all duration-200"
-              [ngClass]="{
-                'opacity-0 translate-x-[-10px] scale-95 hidden': collapsed,
-                'block': !collapsed
-              }"
-            >
-              {{ item.label }}
-            </span>
+          <span
+            class="transition-all duration-200"
+            [ngClass]="{
+              'opacity-0 translate-x-[-10px] scale-95 hidden': collapsed,
+              'block': !collapsed
+            }"
+          >
+            {{ item.label }}
+          </span>
         </a>
       </li>
     </ul>

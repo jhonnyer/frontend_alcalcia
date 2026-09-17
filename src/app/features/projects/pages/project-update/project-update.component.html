@@ -148,14 +148,24 @@
       <div class="grid w-full grid-cols-1 gap-3 md:grid-cols-[minmax(16rem,1fr)_auto]">
         <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
           Categoría del proyecto
-          <select class="input-base" [value]="categoriaActivaId() ?? ''" (change)="onCategoriaActivaChange($any($event.target).value)">
-            <option value="">Seleccione una categoría</option>
-            @for (categoria of categorias(); track categoria.idCategoria) {
-              <option [value]="categoria.idCategoria">
-                #{{ categoria.idCategoria }} - {{ categoria.nombre }} · {{ categoria.productos?.length || 0 }} productos
-              </option>
+          <div class="relative">
+            <input class="input-base pr-10" type="text" placeholder="Buscar categoría por nombre o ID" [value]="categorySearch()" (input)="onCategorySearch($event)" (focus)="showCategorySuggestions()" (blur)="hideCategorySuggestions()" autocomplete="off" />
+            @if (categorySearch()) {
+              <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearCategorySearch()" aria-label="Limpiar categoría" title="Limpiar categoría">
+                <mat-icon>close</mat-icon>
+              </button>
             }
-          </select>
+            @if (categorySuggestionsVisible() && filteredCategoryOptions().length > 0) {
+              <div class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+                @for (categoria of filteredCategoryOptions(); track categoria.idCategoria) {
+                  <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50" (mousedown)="$event.preventDefault()" (click)="selectCategoryOption(categoria)">
+                    <span class="block font-semibold">#{{ categoria.idCategoria }} - {{ categoria.nombre }}</span>
+                    <span class="block text-xs text-slate-500">{{ categoria.productos?.length || 0 }} productos · {{ categoria.descripcion || 'Sin descripción' }}</span>
+                  </button>
+                }
+              </div>
+            }
+          </div>
         </label>
 
         @if (categoriaSeleccionada()) {

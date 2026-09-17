@@ -58,6 +58,8 @@ export class CategoriaListComponent implements OnInit {
 
   data = signal<Array<ICategorias & { idProyecto?: number; nombreProyecto?: string; cantidadProductos?: number }>>([]);
   selectedProjectId = signal<number | 'ALL'>('ALL');
+  projectSearch = signal('');
+  projectSuggestionsVisible = signal(false);
   projectOptions = computed(() => {
     const projects = new Map<number, string>();
     this.data().forEach(categoria => {
@@ -71,9 +73,20 @@ export class CategoriaListComponent implements OnInit {
   });
   filteredData = computed(() => {
     const selectedProjectId = this.selectedProjectId();
-    return selectedProjectId === 'ALL'
-      ? this.data()
-      : this.data().filter(categoria => categoria.idProyecto === selectedProjectId);
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.data().filter(categoria => {
+      const matchesSelectedProject = selectedProjectId === 'ALL' || categoria.idProyecto === selectedProjectId;
+      const projectText = this.normalizeSearchText(`${categoria.idProyecto ?? ''} ${categoria.nombreProyecto ?? ''}`);
+      const matchesProjectSearch = selectedProjectId !== 'ALL' || !query || projectText.includes(query);
+      return matchesSelectedProject && matchesProjectSearch;
+    });
+  });
+  filteredProjectOptions = computed(() => {
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.projectOptions().filter(project => {
+      const text = this.normalizeSearchText(`${project.idProyecto} ${project.nombreProyecto}`);
+      return !query || text.includes(query);
+    });
   });
 
   // Estados para la tabla
@@ -159,15 +172,37 @@ export class CategoriaListComponent implements OnInit {
     this.dataTable.setPageSize(+element.value);
   }
 
-  onProjectFilterChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    this.selectedProjectId.set(value === 'ALL' ? 'ALL' : Number(value));
+  onProjectSearch(event: Event): void {
+    this.projectSearch.set((event.target as HTMLInputElement).value);
+    this.projectSuggestionsVisible.set(true);
+    this.selectedProjectId.set('ALL');
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  selectProjectOption(project: { idProyecto: number; nombreProyecto: string }): void {
+    this.selectedProjectId.set(project.idProyecto);
+    this.projectSearch.set(`#${project.idProyecto} - ${project.nombreProyecto}`);
+    this.projectSuggestionsVisible.set(false);
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
   }
 
   clearProjectFilter(): void {
     this.selectedProjectId.set('ALL');
+    this.projectSearch.set('');
+    this.projectSuggestionsVisible.set(false);
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  showProjectSuggestions(): void {
+    this.projectSuggestionsVisible.set(true);
+  }
+
+  hideProjectSuggestions(): void {
+    setTimeout(() => this.projectSuggestionsVisible.set(false), 150);
+  }
+
+  private normalizeSearchText(value: string | number | null | undefined): string {
+    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
   }
 
   onSortingColumn(column: Column<ICategorias>) {

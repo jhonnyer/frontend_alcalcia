@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
@@ -11,11 +11,12 @@ import { IProyecto } from '../../../../core/models/proyecto.model';
 import { debounceTime } from 'rxjs';
 import { timer } from 'rxjs';
 import { AlertService } from '../../../../core/services/alert.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-add-beneficiary-project',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule],
   templateUrl: './add-beneficiary-project.component.html',
   styleUrl: './add-beneficiary-project.component.scss',
 })
@@ -29,6 +30,15 @@ export class AddBeneficiaryProjectComponent implements OnInit {
 
   beneficiarios: IBeneficiario[] = [];
   proyectos: IProyecto[] = [];
+  projectSearch = signal('');
+  projectSuggestionsVisible = signal(false);
+  filteredProjects = computed(() => {
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.proyectos.filter(project => {
+      const text = this.normalizeSearchText(`${project.idProyecto} ${project.nombre} ${project.descripcion}`);
+      return !query || text.includes(query);
+    });
+  });
 
   beneficiarioNoEncontrado = false;
   beneficiario = signal<IBeneficiarioUnique | null>(null);
@@ -155,5 +165,35 @@ export class AddBeneficiaryProjectComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/projects/add-beneficiary/list']);
+  }
+
+  onProjectSearch(event: Event): void {
+    this.projectSearch.set((event.target as HTMLInputElement).value);
+    this.projectSuggestionsVisible.set(true);
+    this.form.patchValue({ idProyecto: '' });
+  }
+
+  selectProject(project: IProyecto): void {
+    this.projectSearch.set(`#${project.idProyecto} - ${project.nombre}`);
+    this.form.patchValue({ idProyecto: project.idProyecto });
+    this.projectSuggestionsVisible.set(false);
+  }
+
+  clearProjectFilter(): void {
+    this.projectSearch.set('');
+    this.form.patchValue({ idProyecto: '' });
+    this.projectSuggestionsVisible.set(false);
+  }
+
+  showProjectSuggestions(): void {
+    this.projectSuggestionsVisible.set(true);
+  }
+
+  hideProjectSuggestions(): void {
+    setTimeout(() => this.projectSuggestionsVisible.set(false), 150);
+  }
+
+  private normalizeSearchText(value: string | number | null | undefined): string {
+    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
   }
 }

@@ -20,21 +20,45 @@
   <div class="mb-5 grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
     <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
       Proyecto
-      <select class="input-base" [value]="selectedProjectId() ?? ''" (change)="selectProject($any($event.target).value)">
-        <option value="">Seleccione un proyecto</option>
-        @for (item of proyectos(); track item.proyecto.idProyecto) {
-          <option [value]="item.proyecto.idProyecto">#{{ item.proyecto.idProyecto }} - {{ item.proyecto.nombre }}</option>
+      <div class="relative">
+        <input class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
+        @if (projectSearch()) {
+          <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearProjectFilter()" aria-label="Limpiar proyecto" title="Limpiar proyecto">
+            <mat-icon>close</mat-icon>
+          </button>
         }
-      </select>
+        @if (projectSuggestionsVisible() && filteredProjects().length > 0) {
+          <div class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+            @for (item of filteredProjects(); track item.proyecto.idProyecto) {
+              <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50" (mousedown)="$event.preventDefault()" (click)="selectProjectOption(item)">
+                <span class="block font-semibold">#{{ item.proyecto.idProyecto }} - {{ item.proyecto.nombre }}</span>
+                <span class="block text-xs text-slate-500">{{ item.categorias.length }} categorías</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
     </label>
     <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
       Categoría
-      <select class="input-base" [disabled]="!selectedProjectId()" [value]="selectedCategoryId() ?? ''" (change)="selectCategory($any($event.target).value)">
-        <option value="">Seleccione una categoría</option>
-        @for (category of categories(); track category.idCategoria) {
-          <option [value]="category.idCategoria">#{{ category.idCategoria }} - {{ category.nombre }}</option>
+      <div class="relative">
+        <input class="input-base pr-10" type="text" placeholder="Buscar categoría por nombre o ID" [disabled]="!selectedProjectId()" [value]="categorySearch()" (input)="onCategorySearch($event)" (focus)="showCategorySuggestions()" (blur)="hideCategorySuggestions()" autocomplete="off" />
+        @if (categorySearch()) {
+          <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearCategoryFilter()" aria-label="Limpiar categoría" title="Limpiar categoría">
+            <mat-icon>close</mat-icon>
+          </button>
         }
-      </select>
+        @if (categorySuggestionsVisible() && filteredCategories().length > 0) {
+          <div class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+            @for (category of filteredCategories(); track category.idCategoria) {
+              <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50" (mousedown)="$event.preventDefault()" (click)="selectCategoryOption(category)">
+                <span class="block font-semibold">#{{ category.idCategoria }} - {{ category.nombre }}</span>
+                <span class="block text-xs text-slate-500">{{ category.descripcion || 'Sin descripción' }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
     </label>
   </div>
 

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, inject, signal, ChangeDetectorRef, computed } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -68,6 +68,15 @@ export class ProjectUpdateComponent implements OnInit {
   categoriaSeleccionada = signal<ICategoriaUI | null>(null);
   categoriaActivaId = signal<number | null>(null);
   filtroCategorias = signal<string>('');
+  categorySearch = signal('');
+  categorySuggestionsVisible = signal(false);
+  filteredCategoryOptions = computed(() => {
+    const query = this.normalizeSearchText(this.categorySearch());
+    return this.categorias().filter(categoria => {
+      const text = this.normalizeSearchText(`${categoria.idCategoria} ${categoria.nombre} ${categoria.descripcion}`);
+      return !query || text.includes(query);
+    });
+  });
   pageIndex = 0;
   pageSize = 5;
   modoCreacion = false;
@@ -146,6 +155,7 @@ export class ProjectUpdateComponent implements OnInit {
         this.categorias.set(categoriasUI);
         this.categoriaActivaId.set(categoriaActual?.idCategoria ?? null);
         this.categoriaSeleccionada.set(categoriaActual);
+        this.categorySearch.set(categoriaActual ? `#${categoriaActual.idCategoria} - ${categoriaActual.nombre}` : '');
 
         // para que Material refresque bind de select/radio si llegó tarde
         this.cdr.detectChanges();
@@ -181,6 +191,38 @@ export class ProjectUpdateComponent implements OnInit {
     this.categoriaSeleccionada.set(
       this.categorias().find(categoria => categoria.idCategoria === idCategoria) ?? null
     );
+    const categoria = this.categoriaSeleccionada();
+    this.categorySearch.set(categoria ? `#${categoria.idCategoria} - ${categoria.nombre}` : '');
+    this.categorySuggestionsVisible.set(false);
+  }
+
+  onCategorySearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.categorySearch.set(value);
+    this.categorySuggestionsVisible.set(true);
+    if (this.categoriaActivaId()) {
+      this.categoriaActivaId.set(null);
+      this.categoriaSeleccionada.set(null);
+    }
+  }
+
+  selectCategoryOption(categoria: ICategoriaUI): void {
+    this.onCategoriaActivaChange(categoria.idCategoria);
+  }
+
+  clearCategorySearch(): void {
+    this.categorySearch.set('');
+    this.categoriaActivaId.set(null);
+    this.categoriaSeleccionada.set(null);
+    this.categorySuggestionsVisible.set(false);
+  }
+
+  showCategorySuggestions(): void {
+    this.categorySuggestionsVisible.set(true);
+  }
+
+  hideCategorySuggestions(): void {
+    setTimeout(() => this.categorySuggestionsVisible.set(false), 150);
   }
 
 

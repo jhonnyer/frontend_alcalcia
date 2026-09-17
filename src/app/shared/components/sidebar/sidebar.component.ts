@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
-import { ListBeneficiaryComponent } from './components/list-beneficiary/list-beneficiary.component';
 import { ListHomeComponent } from './components/list-home/list-home.component';
 import { ListNucleoComponent } from './components/list-nucleo/list-nucleo.component';
 import { ListProceedingsComponent } from './components/list-proceedings/list-proceedings.component';
@@ -16,7 +15,6 @@ import { NgClass, NgIf} from '@angular/common'
   imports: [
     ListHomeComponent,
     ListNucleoComponent,
-    ListBeneficiaryComponent,
     ListProceedingsComponent,
     ListResponsibleComponent,
     ListProjectsComponent,

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormGroup, Validators } from '@angular/forms';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
@@ -12,11 +12,12 @@ import { ProductosService } from '../../../../core/services/productos.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { AlertService } from '../../../../core/services/alert.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-inventory-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule],
   templateUrl: './inventory-create.component.html',
   styleUrl: './inventory-create.component.scss'
 })
@@ -34,6 +35,18 @@ export class InventoryCreateComponent implements OnInit {
 
   proyectos = signal<IProyectoAndCategoriaArray[]>([]);
   categoriasDisponibles = signal<ICategorias[]>([]);
+  projectSearch = signal('');
+  categorySearch = signal('');
+  projectSuggestionsVisible = signal(false);
+  categorySuggestionsVisible = signal(false);
+  filteredProjects = computed(() => {
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.proyectos().filter(item => !query || this.normalizeSearchText(`${item.proyecto.idProyecto} ${item.proyecto.nombre}`).includes(query));
+  });
+  filteredCategories = computed(() => {
+    const query = this.normalizeSearchText(this.categorySearch());
+    return this.categoriasDisponibles().filter(category => !query || this.normalizeSearchText(`${category.idCategoria} ${category.nombre} ${category.descripcion}`).includes(query));
+  });
   private initialProjectId: number | null = null;
   private initialCategoryId: number | null = null;
 
@@ -53,8 +66,12 @@ export class InventoryCreateComponent implements OnInit {
           if (this.initialProjectId) {
             this.formFamilyCore.get('idProyecto')?.setValue(String(this.initialProjectId));
             this.onProyectoChange(String(this.initialProjectId));
+            const project = this.proyectos().find(item => item.proyecto.idProyecto === this.initialProjectId);
+            this.projectSearch.set(project ? `#${project.proyecto.idProyecto} - ${project.proyecto.nombre}` : '');
             if (this.initialCategoryId) {
               this.formFamilyCore.get('idCategoria')?.setValue(String(this.initialCategoryId));
+              const category = this.categoriasDisponibles().find(item => item.idCategoria === this.initialCategoryId);
+              this.categorySearch.set(category ? `#${category.idCategoria} - ${category.nombre}` : '');
             }
           }
         }
@@ -94,6 +111,66 @@ export class InventoryCreateComponent implements OnInit {
       categoriaControl?.disable();
       categoriaControl?.setValue('');
     }
+  }
+
+  selectProjectOption(item: IProyectoAndCategoriaArray): void {
+    this.projectSearch.set(`#${item.proyecto.idProyecto} - ${item.proyecto.nombre}`);
+    this.projectSuggestionsVisible.set(false);
+    this.formFamilyCore.get('idProyecto')?.setValue(String(item.proyecto.idProyecto));
+  }
+
+  selectCategoryOption(category: ICategorias): void {
+    this.categorySearch.set(`#${category.idCategoria} - ${category.nombre}`);
+    this.categorySuggestionsVisible.set(false);
+    this.formFamilyCore.get('idCategoria')?.setValue(String(category.idCategoria));
+  }
+
+  onProjectSearch(event: Event): void {
+    this.projectSearch.set((event.target as HTMLInputElement).value);
+    this.projectSuggestionsVisible.set(true);
+    this.categorySearch.set('');
+    this.formFamilyCore.get('idProyecto')?.setValue('', { emitEvent: true });
+  }
+
+  onCategorySearch(event: Event): void {
+    this.categorySearch.set((event.target as HTMLInputElement).value);
+    this.categorySuggestionsVisible.set(true);
+    this.formFamilyCore.get('idCategoria')?.setValue('');
+  }
+
+  clearProjectFilter(): void {
+    this.projectSearch.set('');
+    this.categorySearch.set('');
+    this.projectSuggestionsVisible.set(false);
+    this.formFamilyCore.get('idProyecto')?.setValue('', { emitEvent: true });
+  }
+
+  clearCategoryFilter(): void {
+    this.categorySearch.set('');
+    this.categorySuggestionsVisible.set(false);
+    this.formFamilyCore.get('idCategoria')?.setValue('');
+  }
+
+  showProjectSuggestions(): void {
+    this.projectSuggestionsVisible.set(true);
+  }
+
+  hideProjectSuggestions(): void {
+    setTimeout(() => this.projectSuggestionsVisible.set(false), 150);
+  }
+
+  showCategorySuggestions(): void {
+    if (this.formFamilyCore.get('idProyecto')?.value) {
+      this.categorySuggestionsVisible.set(true);
+    }
+  }
+
+  hideCategorySuggestions(): void {
+    setTimeout(() => this.categorySuggestionsVisible.set(false), 150);
+  }
+
+  private normalizeSearchText(value: string | number | null | undefined): string {
+    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
   }
 
   get productosArray(): FormArray {

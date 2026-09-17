@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
@@ -23,6 +23,7 @@ import { TableFilterComponent } from '../../../../shared/components/table-filter
 import { defaultColumns } from './inventory-columns-definitions';
 import { IProducto } from '../../../../core/models/products.model';
 import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.model';
+import { ICategorias } from '../../../../core/models/categorias.model';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -58,6 +59,24 @@ export class InventoryListComponent implements OnInit {
   selectedCategoryId = signal<number | null>(null);
   selectedProject = signal<IProyectoAndCategoriaArray | null>(null);
   categories = signal<IProyectoAndCategoriaArray['categorias']>([]);
+  projectSearch = signal('');
+  categorySearch = signal('');
+  projectSuggestionsVisible = signal(false);
+  categorySuggestionsVisible = signal(false);
+  filteredProjects = computed(() => {
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.proyectos().filter(item => {
+      const text = this.normalizeSearchText(`${item.proyecto.idProyecto} ${item.proyecto.nombre}`);
+      return !query || text.includes(query);
+    });
+  });
+  filteredCategories = computed(() => {
+    const query = this.normalizeSearchText(this.categorySearch());
+    return this.categories().filter(category => {
+      const text = this.normalizeSearchText(`${category.idCategoria} ${category.nombre} ${category.descripcion}`);
+      return !query || text.includes(query);
+    });
+  });
   private initialProjectId: number | null = null;
   private initialCategoryId: number | null = null;
 
@@ -111,13 +130,19 @@ export class InventoryListComponent implements OnInit {
     this.selectedProject.set(project);
     this.categories.set(project?.categorias ?? []);
     this.selectedCategoryId.set(null);
+    this.projectSearch.set(project ? `#${project.proyecto.idProyecto} - ${project.proyecto.nombre}` : '');
+    this.categorySearch.set('');
+    this.projectSuggestionsVisible.set(false);
     this.data.set([]);
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
   }
 
   selectCategory(id: number | string | null): void {
     const categoryId = id === null || id === '' ? null : Number(id);
+    const category = this.categories().find(item => item.idCategoria === categoryId) ?? null;
     this.selectedCategoryId.set(categoryId);
+    this.categorySearch.set(category ? `#${category.idCategoria} - ${category.nombre}` : '');
+    this.categorySuggestionsVisible.set(false);
     this.data.set([]);
     if (this.selectedProjectId() && categoryId) {
       this.productosService.getByProjectCategory(this.selectedProjectId()!, categoryId).subscribe({
@@ -126,6 +151,68 @@ export class InventoryListComponent implements OnInit {
       });
     }
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  onProjectSearch(event: Event): void {
+    this.projectSearch.set((event.target as HTMLInputElement).value);
+    this.projectSuggestionsVisible.set(true);
+    if (this.selectedProjectId()) {
+      this.selectProject(null);
+      this.projectSuggestionsVisible.set(true);
+    }
+  }
+
+  onCategorySearch(event: Event): void {
+    this.categorySearch.set((event.target as HTMLInputElement).value);
+    this.categorySuggestionsVisible.set(true);
+    if (this.selectedCategoryId()) {
+      this.selectedCategoryId.set(null);
+      this.data.set([]);
+    }
+  }
+
+  selectProjectOption(item: IProyectoAndCategoriaArray): void {
+    this.selectProject(item.proyecto.idProyecto);
+  }
+
+  selectCategoryOption(category: ICategorias): void {
+    this.selectCategory(category.idCategoria);
+  }
+
+  clearProjectFilter(): void {
+    this.selectProject(null);
+    this.projectSuggestionsVisible.set(false);
+  }
+
+  clearCategoryFilter(): void {
+    this.selectCategory(null);
+    this.categorySuggestionsVisible.set(false);
+  }
+
+  showProjectSuggestions(): void {
+    this.projectSuggestionsVisible.set(true);
+  }
+
+  hideProjectSuggestions(): void {
+    setTimeout(() => this.projectSuggestionsVisible.set(false), 150);
+  }
+
+  showCategorySuggestions(): void {
+    if (this.selectedProjectId()) {
+      this.categorySuggestionsVisible.set(true);
+    }
+  }
+
+  hideCategorySuggestions(): void {
+    setTimeout(() => this.categorySuggestionsVisible.set(false), 150);
+  }
+
+  private normalizeSearchText(value: string | number | null | undefined): string {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase()
+      .trim();
   }
 
   public dataTable = createAngularTable(() => ({

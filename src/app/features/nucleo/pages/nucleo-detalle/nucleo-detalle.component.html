@@ -1,71 +1,89 @@
-<div class="min-h-screen bg-gray-50 py-6">
+<div class="min-h-screen bg-gray-50 py-4 sm:py-6">
   <div *ngIf="loading" class="flex justify-center items-center h-[80vh]">
     <mat-spinner diameter="50"></mat-spinner>
   </div>
 
   <div *ngIf="!loading && detalle"
-     class="max-w-5xl mx-auto bg-white rounded-lg shadow-md border border-gray-200 p-6 
-            overflow-y-auto max-h-[80vh]">
+     class="mx-auto max-h-[82vh] max-w-6xl overflow-y-auto rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
 
     <!-- Encabezado -->
-    <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-4 top-0 bg-white z-10">
-      <h2 class="text-xl font-semibold text-gray-800">
-        🏠 Actor Social: <span class="text-blue-600">{{ detalle.nombreNucleo }}</span>
-      </h2>
-      <button mat-stroked-button color="primary" (click)="exportarPdf()">
-        <mat-icon class="mr-1">picture_as_pdf</mat-icon> Exportar PDF
-      </button>
-      <button mat-icon-button color="primary" (click)="volver()" aria-label="Volver">
-        <mat-icon>arrow_back</mat-icon>
-      </button>
+    <div class="sticky top-0 z-10 mb-4 flex flex-col gap-3 border-b border-slate-200 bg-white/95 pb-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Detalle de actor social</p>
+        <h2 class="truncate text-xl font-bold text-slate-800 sm:text-2xl">
+          #{{ detalle.idNucleo }} - {{ detalle.nombreNucleo }}
+        </h2>
+        <p class="text-sm text-slate-500">{{ detalle.direccion || 'Sin dirección' }} · {{ detalle.nombreBarrio || 'Sin barrio' }} · {{ detalle.nombreZona || 'Sin zona' }}</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button class="btn-action-gray" type="button" (click)="volver()">
+          <mat-icon class="text-base">arrow_back</mat-icon>
+          Volver
+        </button>
+        <button class="btn-action-blue" type="button" (click)="exportarPdf()">
+          <mat-icon class="text-base">picture_as_pdf</mat-icon>
+          Exportar PDF
+        </button>
+      </div>
     </div>
 
     <!-- Información general -->
-    <section class="mb-4">
-      <h3 class="text-base font-medium text-gray-700 mb-2">📋 Información general</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-        <p><strong>Dirección:</strong> {{ detalle.direccion || '—' }}</p>
-        <p><strong>Zona:</strong> {{ detalle.nombreZona || '—' }}</p>
-        <p><strong>Barrio:</strong> {{ detalle.nombreBarrio || '—' }}</p>
-        <p><strong>Integrantes:</strong> {{ detalle.numeroIntegrantes }}</p>
+    <section class="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <p class="text-xs font-semibold text-slate-500">Integrantes</p>
+        <p class="text-2xl font-bold text-slate-800">{{ detalle.numeroIntegrantes }}</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <p class="text-xs font-semibold text-slate-500">Beneficiarios</p>
+        <p class="text-2xl font-bold text-slate-800">{{ detalle.beneficiariosNucleo.length }}</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <p class="text-xs font-semibold text-slate-500">Proyectos activos</p>
+        <p class="text-2xl font-bold text-slate-800">{{ proyectosActivos }}</p>
+      </div>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <p class="text-xs font-semibold text-slate-500">Actas</p>
+        <p class="text-2xl font-bold text-slate-800">{{ actasCount }}</p>
       </div>
     </section>
 
     <!-- Beneficiarios -->
-    <section class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="text-base font-semibold text-gray-700">👨‍👩‍👧 Beneficiarios</h3>
+    <section class="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+      <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h3 class="text-base font-semibold text-slate-700">Beneficiarios</h3>
 
         <!-- Campo de búsqueda -->
-        <input
-          type="text"
-          placeholder="Nombre o Documento..."
-          class="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          [(ngModel)]="filtroBeneficiario"
-        />
+        <div class="relative w-full sm:w-80">
+          <input type="text" placeholder="Nombre o documento" class="input-base pr-10" [(ngModel)]="filtroBeneficiario" />
+          @if (filtroBeneficiario) {
+            <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearBeneficiarioFilter()" aria-label="Limpiar filtro de beneficiarios" title="Limpiar filtro">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </div>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
-          <thead class="bg-gray-100">
+      <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <table class="min-w-[760px] w-full text-sm">
+          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
             <tr>
-              <th class="text-left px-2 py-1 font-medium">Nombre</th>
-              <th class="text-left px-2 py-1 font-medium">Documento</th>
-              <th class="text-left px-2 py-1 font-medium">Edad</th>
-              <th class="text-left px-2 py-1 font-medium">Genero</th>
-              <th class="text-left px-2 py-1 font-medium">Vivo</th>
-              <th class="text-left px-2 py-1 font-medium">Discapacidad</th>
-              <th class="text-left px-2 py-1 font-medium">Victima</th>
+              <th class="px-3 py-2 text-left font-semibold">Nombre</th>
+              <th class="px-3 py-2 text-left font-semibold">Documento</th>
+              <th class="px-3 py-2 text-left font-semibold">Edad</th>
+              <th class="px-3 py-2 text-left font-semibold">Género</th>
+              <th class="px-3 py-2 text-left font-semibold">Vivo</th>
+              <th class="px-3 py-2 text-left font-semibold">Discapacidad</th>
+              <th class="px-3 py-2 text-left font-semibold">Víctima</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let b of detalle.beneficiariosNucleo | filterBeneficiario:filtroBeneficiario">
-              <td class="px-2 py-1">{{ b.primerNombre }} {{ b.primerApellido }}</td>
-              <td class="px-2 py-1">{{ b.numeroDocumento }}</td>
-              <td class="px-2 py-1">{{ b.edad }}</td>
-              <td class="px-2 py-1">{{ b.genero | uppercase }}</td>
-              <td class="px-2 py-1">{{ b.esVivo ? 'Sí' : 'No' }}</td>
-              <td class="px-2 py-1">{{ b.discapacidad ? 'Sí' : 'No' }}</td>
-              <td class="px-2 py-1">{{ b.victimaConflicto ? 'Sí' : 'No' }}</td>
+            <tr *ngFor="let b of detalle.beneficiariosNucleo | filterBeneficiario:filtroBeneficiario" class="border-t border-slate-100 hover:bg-blue-50/40">
+              <td class="px-3 py-2 font-medium text-slate-800">{{ b.primerNombre }} {{ b.primerApellido }}</td>
+              <td class="px-3 py-2">{{ b.numeroDocumento }}</td>
+              <td class="px-3 py-2">{{ b.edad }}</td>
+              <td class="px-3 py-2">{{ b.genero | uppercase }}</td>
+              <td class="px-3 py-2">{{ b.esVivo ? 'Sí' : 'No' }}</td>
+              <td class="px-3 py-2">{{ b.discapacidad ? 'Sí' : 'No' }}</td>
+              <td class="px-3 py-2">{{ b.victimaConflicto ? 'Sí' : 'No' }}</td>
             </tr>
           </tbody>
         </table>
@@ -73,24 +91,28 @@
     </section>
 
     <!-- Beneficiarios con proyecto -->
-    <section class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
-      <h3 class="text-base font-semibold text-gray-700 mb-2">🎯 Beneficiarios con proyectos</h3>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
-          <thead class="bg-gray-100">
+    <section class="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+      <h3 class="mb-3 text-base font-semibold text-slate-700">Beneficiarios con proyectos</h3>
+      <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <table class="min-w-[680px] w-full text-sm">
+          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
             <tr>
-              <th class="text-left px-2 py-1 font-medium">Beneficiario</th>
-              <th class="text-left px-2 py-1 font-medium">Proyecto</th>
-              <th class="text-left px-2 py-1 font-medium">Estado</th>
-              <th class="text-left px-2 py-1 font-medium">Activo</th>
+              <th class="px-3 py-2 text-left font-semibold">Beneficiario</th>
+              <th class="px-3 py-2 text-left font-semibold">Proyecto</th>
+              <th class="px-3 py-2 text-left font-semibold">Estado</th>
+              <th class="px-3 py-2 text-left font-semibold">Activo</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let bp of detalle.beneficiariosProyecto" class="border-b hover:bg-gray-50">
-              <td class="px-2 py-1">{{ bp.nombreCompleto }}</td>
-              <td class="px-2 py-1">{{ bp.nombreProyecto }}</td>
-              <td class="px-2 py-1">{{ bp.estadoProyecto }}</td>
-              <td class="px-2 py-1">{{ bp.esBeneficiarioActivo ? 'Sí' : 'No' }}</td>
+            <tr *ngFor="let bp of detalle.beneficiariosProyecto" class="border-t border-slate-100 hover:bg-blue-50/40">
+              <td class="px-3 py-2 font-medium text-slate-800">{{ bp.nombreCompleto }}</td>
+              <td class="px-3 py-2">{{ bp.nombreProyecto }}</td>
+              <td class="px-3 py-2">{{ bp.estadoProyecto }}</td>
+              <td class="px-3 py-2">
+                <span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold" [ngClass]="bp.esBeneficiarioActivo ? 'border-emerald-200 bg-emerald-100 text-emerald-700' : 'border-slate-200 bg-slate-100 text-slate-600'">
+                  {{ bp.esBeneficiarioActivo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -98,17 +120,19 @@
     </section>
 
     <!-- Actas asociadas -->
-    <section class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="text-base font-semibold text-gray-700">🧾 Actas asociadas</h3>
+    <section class="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+      <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h3 class="text-base font-semibold text-slate-700">Actas asociadas</h3>
 
         <!-- Campo de búsqueda -->
-        <input
-          type="text"
-          placeholder="Buscar acta"
-          class="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          [(ngModel)]="filtroEstado"
-        />
+        <div class="relative w-full sm:w-80">
+          <input type="text" placeholder="Buscar por estado" class="input-base pr-10" [(ngModel)]="filtroEstado" />
+          @if (filtroEstado) {
+            <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearEstadoFilter()" aria-label="Limpiar filtro de actas" title="Limpiar filtro">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </div>
       </div>
       <mat-accordion>
         <mat-expansion-panel *ngFor="let acta of detalle.actas | filterActaEstado:filtroEstado">
@@ -116,7 +140,7 @@
             <mat-panel-title>
               <span class="font-medium text-gray-800">Acta #{{ acta.idActa }}</span>
               <span 
-                class="px-2 py-0.5 rounded-full text-xs font-semibold"
+                class="rounded-full border px-2 py-0.5 text-xs font-semibold"
                 [ngClass]="getEstadoColor(acta.estado)">
                 {{ traducirEstado(acta.estado) }}
               </span>

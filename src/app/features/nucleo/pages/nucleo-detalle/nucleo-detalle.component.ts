@@ -71,13 +71,29 @@ export class NucleoDetalleComponent implements OnInit {
 
   getEstadoColor(estado: string): string {
     const colores: any = {
-      P: 'text-yellow-600',
-      R: 'text-green-600',
-      A: 'text-blue-600',
-      RC: 'text-red-600',
-      E: 'text-indigo-600'
+      P: 'bg-amber-100 text-amber-700 border-amber-200',
+      R: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+      A: 'bg-blue-100 text-blue-700 border-blue-200',
+      RC: 'bg-red-100 text-red-700 border-red-200',
+      E: 'bg-indigo-100 text-indigo-700 border-indigo-200'
     };
-    return colores[estado] || 'text-gray-600';
+    return colores[estado] || 'bg-slate-100 text-slate-700 border-slate-200';
+  }
+
+  clearBeneficiarioFilter(): void {
+    this.filtroBeneficiario = '';
+  }
+
+  clearEstadoFilter(): void {
+    this.filtroEstado = '';
+  }
+
+  get proyectosActivos(): number {
+    return this.detalle?.beneficiariosProyecto?.filter(bp => bp.esBeneficiarioActivo).length ?? 0;
+  }
+
+  get actasCount(): number {
+    return this.detalle?.actas?.length ?? 0;
   }
 
   exportarPdf(): void {

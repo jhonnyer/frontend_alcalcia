@@ -1,7 +1,10 @@
-<section class="h-[calc(100vh-6rem)] overflow-y-auto scrollbar-custom bg-white rounded-xl shadow-sm p-5">
+<section class="h-[calc(100vh-6rem)] overflow-y-auto scrollbar-custom bg-white rounded-xl shadow-sm p-3 sm:p-4">
   <!-- HEADER -->
-  <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-5 gap-3">
-    <h1 class="text-2xl font-semibold text-gray-800">Usuarios</h1>
+  <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
+    <div>
+      <h1 class="text-xl font-semibold text-gray-800">Usuarios de la secretaría activa</h1>
+      <p class="text-sm text-slate-500">La lista corresponde al contexto de secretaría con el que se inició sesión.</p>
+    </div>
 
     <button
       type="button"
@@ -14,13 +17,13 @@
   </header>
 
   <!-- TABLA -->
-  <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
-    <table class="min-w-full text-sm text-left text-gray-800">
+  <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+    <table class="min-w-[980px] w-full text-sm text-left text-gray-800">
       <thead class="bg-gray-100 uppercase text-xs border-b border-gray-300">
         @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
           <tr>
             @for(headerItem of headerGroup.headers; track headerItem.id) {
-              <th class="py-2 px-3 font-semibold text-gray-700 border-r border-gray-200 align-top">
+              <th class="py-2 px-2 font-semibold text-gray-700 border-r border-gray-200 align-top">
                 <div class="flex flex-col gap-1 justify-between h-full">
                   <ng-container
                     *flexRender="
@@ -59,7 +62,7 @@
         @for(row of dataTable.getRowModel().rows; track row.id) {
           <tr class="hover:bg-gray-50 border-b border-gray-200 transition">
             @for(cell of row.getVisibleCells(); track cell.id) {
-              <td class="py-2 px-3">
+              <td class="py-2 px-2">
                 @if (cell.column.id === 'acciones') {
                   <!-- Botones de acción -->
                   <button
@@ -98,14 +101,14 @@
   </div>
 
   <!-- PAGINACIÓN -->
-  <div class="flex justify-between items-center mt-4 text-sm text-gray-700">
+  <div class="flex flex-col gap-3 justify-between mt-4 text-sm text-gray-700 sm:flex-row sm:items-center">
     <div>
       Mostrando
       <b>{{ dataTable.getRowModel().rows.length }}</b> de
       <b>{{ dataTable.getRowCount() }}</b> registros
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3">
       <!-- Selector de cantidad -->
       <select
         (change)="onChangeValueSizePageSelect($event)"

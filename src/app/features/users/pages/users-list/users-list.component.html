@@ -1,1 +1,143 @@
-<p>User lists</p>
+<section class="min-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl bg-slate-50 p-4">
+	<header class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+		<div>
+			<h1 class="text-xl font-bold text-slate-800">Gestión administrativa</h1>
+			<p class="text-sm text-slate-500">Usuarios, secretarías y parámetros de operación del sistema.</p>
+		</div>
+		<div class="flex flex-col gap-2 sm:flex-row">
+			<button type="button" class="btn-action-green" (click)="openSecretaryModal()">
+				<mat-icon class="text-base">add_business</mat-icon>
+				Nueva secretaría
+			</button>
+			<button type="button" class="btn-action-blue" (click)="goToUsers()">
+				<mat-icon class="text-base">manage_accounts</mat-icon>
+				Gestionar usuarios
+			</button>
+		</div>
+	</header>
+
+	<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+		<article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Secretarías</p>
+			<p class="mt-2 text-3xl font-bold text-slate-800">{{ secretarias().length }}</p>
+			<p class="text-sm text-slate-500">Áreas habilitadas para operación multi-secretaría.</p>
+		</article>
+
+		<article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Usuarios</p>
+			<p class="mt-2 text-3xl font-bold text-slate-800">{{ responsables().length }}</p>
+			<p class="text-sm text-slate-500">Responsables y administradores registrados.</p>
+		</article>
+
+		<article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Parámetros</p>
+			<p class="mt-2 text-3xl font-bold text-slate-800">Por secretaría</p>
+			<p class="text-sm text-slate-500">Datos institucionales usados en actas y documentos.</p>
+		</article>
+	</div>
+
+	<form [formGroup]="activeSecretaryForm" (ngSubmit)="updateActiveSecretaryName()" class="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+		<div class="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+			<div>
+				<h2 class="text-base font-semibold text-slate-800">Secretaría activa</h2>
+				<p class="text-sm text-slate-500">Solo se permite editar el nombre de la secretaría con la sesión actual.</p>
+			</div>
+			<button type="submit" class="btn-action-blue" [disabled]="activeSecretaryForm.invalid || editingActiveSecretary()">
+				<mat-icon class="text-base">save</mat-icon>
+				{{ editingActiveSecretary() ? 'Guardando...' : 'Actualizar nombre' }}
+			</button>
+		</div>
+		<div class="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-end">
+			<label class="text-sm font-semibold text-slate-700">Nombre actual
+				<input class="input-base" formControlName="nombre" [placeholder]="activeSecretaryName() || 'Secretaría activa'" />
+			</label>
+		</div>
+	</form>
+
+	@if (secretaryModalOpen()) {
+		<div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
+			<form [formGroup]="secretariaForm" (ngSubmit)="createSecretary()" class="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-5 shadow-xl">
+				<div class="mb-4 flex items-start justify-between gap-3">
+					<div>
+						<h2 class="text-lg font-bold text-slate-800">Crear secretaría</h2>
+						<p class="text-sm text-slate-500">Se crea activa por defecto. La activación/inactivación se definirá con negocio.</p>
+					</div>
+					<button type="button" class="rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="closeSecretaryModal()" aria-label="Cerrar modal">
+						<mat-icon>close</mat-icon>
+					</button>
+				</div>
+				<div class="grid grid-cols-1 gap-3">
+					<label class="text-sm font-semibold text-slate-700">Nombre
+						<input class="input-base" formControlName="nombre" placeholder="Secretaría de Educación" />
+					</label>
+					<label class="text-sm font-semibold text-slate-700">Código
+						<input class="input-base" formControlName="codigo" placeholder="EDU" />
+					</label>
+					<label class="text-sm font-semibold text-slate-700">Prefijo productos
+						<input class="input-base" formControlName="prefijoProducto" placeholder="EDU" />
+					</label>
+				</div>
+				<div class="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+					<button type="button" class="btn-action-gray" (click)="closeSecretaryModal()">Cancelar</button>
+					<button type="submit" class="btn-action-green" [disabled]="secretariaForm.invalid || creatingSecretary()">
+						{{ creatingSecretary() ? 'Creando...' : 'Crear secretaría' }}
+					</button>
+				</div>
+			</form>
+		</div>
+	}
+
+	<div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
+		<section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+			<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+				<h2 class="text-base font-semibold text-slate-800">Secretarías configuradas</h2>
+				<div class="relative w-full sm:w-72">
+					<input class="input-base pr-10" type="text" placeholder="Buscar secretaría" [value]="secretariaSearch()" (input)="secretariaSearch.set($any($event.target).value)" />
+					@if (secretariaSearch()) {
+						<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearSecretariaSearch()" aria-label="Limpiar filtro de secretarías"><mat-icon>close</mat-icon></button>
+					}
+				</div>
+			</div>
+			<div class="max-h-80 overflow-auto rounded-lg border border-slate-100">
+				<table class="min-w-full text-sm">
+					<thead class="bg-slate-50 text-xs uppercase text-slate-600">
+						<tr>
+							<th class="px-3 py-2 text-left">ID</th>
+							<th class="px-3 py-2 text-left">Nombre</th>
+							<th class="px-3 py-2 text-left">Código</th>
+						</tr>
+					</thead>
+					<tbody>
+						@for (secretaria of filteredSecretarias(); track secretaria.idSecretaria) {
+							<tr class="border-t border-slate-100 hover:bg-blue-50/40">
+								<td class="px-3 py-2 font-semibold text-slate-700">#{{ secretaria.idSecretaria }}</td>
+								<td class="px-3 py-2">{{ secretaria.nombre }}</td>
+								<td class="px-3 py-2">{{ secretaria.codigo }}</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+			<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+				<h2 class="text-base font-semibold text-slate-800">Usuarios de la secretaría activa</h2>
+				<div class="relative w-full sm:w-72">
+					<input class="input-base pr-10" type="text" placeholder="Buscar usuario" [value]="usuarioSearch()" (input)="usuarioSearch.set($any($event.target).value)" />
+					@if (usuarioSearch()) {
+						<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearUsuarioSearch()" aria-label="Limpiar filtro de usuarios"><mat-icon>close</mat-icon></button>
+					}
+				</div>
+			</div>
+			<div class="max-h-80 space-y-2 overflow-auto pr-1">
+				@for (responsable of filteredResponsables(); track responsable.idResponsable) {
+					<div class="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
+						<p class="font-semibold text-slate-800">#{{ responsable.idResponsable }} - {{ responsable.primerNombre }} {{ responsable.primerApellido }}</p>
+						<p class="text-xs text-slate-500">{{ responsable.tipoIdentificacion }} {{ responsable.numeroIdentificacion }} · {{ responsable.usuario }} · {{ responsable.perfilUsuario }} · {{ responsable.estado === 'A' ? 'Activo' : 'Inactivo' }}</p>
+					</div>
+				}
+			</div>
+		</section>
+	</div>
+</section>

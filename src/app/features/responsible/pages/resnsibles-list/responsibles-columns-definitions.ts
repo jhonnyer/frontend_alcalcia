@@ -38,6 +38,14 @@ export const defaultColumns: ColumnDef<IResponsable>[] = [
     meta: { filterVariant: 'text' },
   },
   {
+    id: 'identificacion',
+    accessorFn: (r) => `${r.tipoIdentificacion ?? ''} ${r.numeroIdentificacion ?? ''}`.trim(),
+    cell: (info) => info.getValue() || 'Sin identificación',
+    header: 'Identificación',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' },
+  },
+  {
     id: 'area',
     accessorFn: (r) => r.area,
     cell: (info) => info.getValue(),

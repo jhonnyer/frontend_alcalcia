@@ -33,4 +33,8 @@ export class SecretariaAdminService {
       { context: checkToken() }
     );
   }
+
+  delete(idSecretaria: number): Observable<void> {
+    return this.http.delete<void>(`${this.URL}/administracion/secretarias/${idSecretaria}`, { context: checkToken() });
+  }
 }

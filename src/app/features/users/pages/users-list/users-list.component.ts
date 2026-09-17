@@ -9,6 +9,7 @@ import { IResponsable } from '../../../../core/models/responsable.model';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { MatIconModule } from '@angular/material/icon';
 import { TokenService } from '../../../../core/services/token.service';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-users-list',
@@ -29,6 +30,7 @@ export class UsersListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly tokenService = inject(TokenService);
+  private readonly alert = inject(AlertService);
 
   secretarias = signal<ISecretaria[]>([]);
   responsables = signal<IResponsable[]>([]);
@@ -102,7 +104,7 @@ export class UsersListComponent implements OnInit {
     this.router.navigate(['/resposibles']);
   }
 
-  createSecretary(): void {
+  async createSecretary(): Promise<void> {
     if (this.secretariaForm.invalid) {
       this.secretariaForm.markAllAsTouched();
       return;
@@ -116,6 +118,14 @@ export class UsersListComponent implements OnInit {
       estado: 'A'
     };
 
+    const confirmed = await this.alert.confirm(
+      'Crear secretaría',
+      `¿Deseas crear la secretaría "${payload.nombre}"? Se creará activa por defecto.`,
+      'Crear',
+      'Cancelar'
+    );
+    if (!confirmed) return;
+
     this.creatingSecretary.set(true);
     this.secretariaAdminService.create(payload).subscribe({
       next: secretaria => {
@@ -123,10 +133,12 @@ export class UsersListComponent implements OnInit {
         this.secretariaForm.reset({ nombre: '', codigo: '', prefijoProducto: '', estado: 'A' });
         this.secretaryModalOpen.set(false);
         this.creatingSecretary.set(false);
+        this.alert.success('Operación exitosa', 'Secretaría creada correctamente');
       },
       error: error => {
         console.error('Error al crear secretaría:', error);
         this.creatingSecretary.set(false);
+        this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo crear la secretaría');
       }
     });
   }
@@ -150,12 +162,20 @@ export class UsersListComponent implements OnInit {
     }
   }
 
-  updateActiveSecretaryName(): void {
+  async updateActiveSecretaryName(): Promise<void> {
     if (this.activeSecretaryForm.invalid) {
       this.activeSecretaryForm.markAllAsTouched();
       return;
     }
     const nombre = String(this.activeSecretaryForm.getRawValue().nombre ?? '').trim();
+    const confirmed = await this.alert.confirm(
+      'Actualizar secretaría activa',
+      `¿Deseas cambiar el nombre de la secretaría activa a "${nombre}"?`,
+      'Actualizar',
+      'Cancelar'
+    );
+    if (!confirmed) return;
+
     this.editingActiveSecretary.set(true);
     this.secretariaAdminService.updateActiveName(nombre).subscribe({
       next: secretaria => {
@@ -164,10 +184,33 @@ export class UsersListComponent implements OnInit {
           item.idSecretaria === secretaria.idSecretaria ? secretaria : item
         ));
         this.editingActiveSecretary.set(false);
+        this.alert.success('Operación exitosa', 'Nombre de secretaría actualizado');
       },
       error: error => {
         console.error('Error al actualizar secretaría activa:', error);
         this.editingActiveSecretary.set(false);
+        this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo actualizar la secretaría activa');
+      }
+    });
+  }
+
+  async deleteSecretary(secretaria: ISecretaria): Promise<void> {
+    const confirmed = await this.alert.confirm(
+      'Eliminar secretaría',
+      `¿Deseas eliminar la secretaría "${secretaria.nombre}"? Solo se eliminará si no tiene datos asociados.`,
+      'Eliminar',
+      'Cancelar'
+    );
+    if (!confirmed) return;
+
+    this.secretariaAdminService.delete(secretaria.idSecretaria).subscribe({
+      next: () => {
+        this.secretarias.update(secretarias => secretarias.filter(item => item.idSecretaria !== secretaria.idSecretaria));
+        this.alert.success('Operación exitosa', 'Secretaría eliminada correctamente');
+      },
+      error: error => {
+        console.error('Error al eliminar secretaría:', error);
+        this.alert.error('No se puede eliminar', error?.error?.mensaje || error?.error || 'La secretaría tiene datos asociados o no pudo eliminarse');
       }
     });
   }

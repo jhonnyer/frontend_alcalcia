@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, Injector, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { ActasService } from '../../../../core/services/actas.service';
@@ -52,6 +52,37 @@ export class ProcedingsListComponent implements OnInit {
   // 🔹 Estados reactivos
   loading = signal(true);
   data = signal<IActa[]>([]);
+  selectedProjectId = signal<number | 'ALL'>('ALL');
+  projectSearch = signal('');
+  projectSuggestionsVisible = signal(false);
+  projectOptions = computed(() => {
+    const projects = new Map<number, string>();
+    this.data().forEach(acta => {
+      if (acta.proyecto?.idProyecto && acta.proyecto?.nombre) {
+        projects.set(acta.proyecto.idProyecto, acta.proyecto.nombre);
+      }
+    });
+    return Array.from(projects.entries())
+      .map(([idProyecto, nombreProyecto]) => ({ idProyecto, nombreProyecto }))
+      .sort((a, b) => a.nombreProyecto.localeCompare(b.nombreProyecto) || a.idProyecto - b.idProyecto);
+  });
+  filteredProjectOptions = computed(() => {
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.projectOptions().filter(project => {
+      const text = this.normalizeSearchText(`${project.idProyecto} ${project.nombreProyecto}`);
+      return !query || text.includes(query);
+    });
+  });
+  filteredData = computed(() => {
+    const selectedProjectId = this.selectedProjectId();
+    const query = this.normalizeSearchText(this.projectSearch());
+    return this.data().filter(acta => {
+      const matchesSelected = selectedProjectId === 'ALL' || acta.proyecto?.idProyecto === selectedProjectId;
+      const text = this.normalizeSearchText(`${acta.proyecto?.idProyecto ?? ''} ${acta.proyecto?.nombre ?? ''}`);
+      const matchesSearch = selectedProjectId !== 'ALL' || !query || text.includes(query);
+      return matchesSelected && matchesSearch;
+    });
+  });
   dataTable?: ReturnType<() => ReturnType<typeof createAngularTable<IActa>>>;
 
   // 🔹 Configuración de tabla
@@ -102,7 +133,7 @@ export class ProcedingsListComponent implements OnInit {
           // Crear tabla si no existe
           if (!this.dataTable) {
             this.dataTable = createAngularTable<IActa>(() => ({
-              data: orderedResponse,
+              data: this.filteredData(),
               columns: defaultColumns,
               getCoreRowModel: getCoreRowModel(),
               getPaginationRowModel: getPaginationRowModel(),
@@ -139,7 +170,7 @@ export class ProcedingsListComponent implements OnInit {
             // Si ya existe, solo actualizar los datos
             this.dataTable.setOptions(prev => ({
               ...prev,
-              data: orderedResponse
+              data: this.filteredData()
             }));
           }
 
@@ -176,6 +207,53 @@ export class ProcedingsListComponent implements OnInit {
   onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.dataTable?.setColumnFilters([{ id: 'estado', value }]);
+  }
+
+  onProjectSearch(event: Event): void {
+    this.projectSearch.set((event.target as HTMLInputElement).value);
+    this.selectedProjectId.set('ALL');
+    this.projectSuggestionsVisible.set(true);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.refreshTableData();
+  }
+
+  selectProjectOption(project: { idProyecto: number; nombreProyecto: string }): void {
+    this.selectedProjectId.set(project.idProyecto);
+    this.projectSearch.set(`#${project.idProyecto} - ${project.nombreProyecto}`);
+    this.projectSuggestionsVisible.set(false);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.refreshTableData();
+  }
+
+  clearProjectFilter(): void {
+    this.selectedProjectId.set('ALL');
+    this.projectSearch.set('');
+    this.projectSuggestionsVisible.set(false);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.refreshTableData();
+  }
+
+  showProjectSuggestions(): void {
+    this.projectSuggestionsVisible.set(true);
+  }
+
+  hideProjectSuggestions(): void {
+    setTimeout(() => this.projectSuggestionsVisible.set(false), 150);
+  }
+
+  private refreshTableData(): void {
+    this.dataTable?.setOptions(prev => ({
+      ...prev,
+      data: this.filteredData()
+    }));
+  }
+
+  private normalizeSearchText(value: string | number | null | undefined): string {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase()
+      .trim();
   }
 
   delete(item: Row<IActa>): void {

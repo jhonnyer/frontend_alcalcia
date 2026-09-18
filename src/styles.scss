@@ -12,6 +12,10 @@
   @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10;
 }
 
+.select-base {
+  @apply min-h-9 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-slate-100;
+}
+
 .label-base{
   @apply mb-1 block text-sm font-semibold text-slate-700;
 }

@@ -110,6 +110,13 @@
             }
           </tr>
         }
+        @if (dataTable.getRowModel().rows.length === 0) {
+          <tr>
+            <td class="px-4 py-10 text-center text-sm text-slate-500" [attr.colspan]="dataTable.getAllColumns().length">
+              No se encontraron proyectos con los filtros actuales.
+            </td>
+          </tr>
+        }
       </tbody>
     </table>
     </div>
@@ -133,7 +140,7 @@
       <label class="flex items-center gap-1">
         <span>Filas por página:</span>
         <select 
-          class="border border-gray-300 rounded px-2 py-1 text-sm"
+          class="select-base"
           (change)="onChangeValueSizePageSelect($event)"
         >
           @for(size of sizePage(); track size){
@@ -148,18 +155,18 @@
       <button 
         [disabled]="!dataTable.getCanPreviousPage()" 
         (click)="dataTable.previousPage()" 
-        class="text-gray-700 disabled:text-gray-400 hover:text-blue-600 font-medium"
+        class="btn-navigate-black"
         type="button"
       >
-        ⬅ Anterior
+        Anterior
       </button>
       <button 
         [disabled]="!dataTable.getCanNextPage()" 
         (click)="dataTable.nextPage()" 
-        class="text-gray-700 disabled:text-gray-400 hover:text-blue-600 font-medium"
+        class="btn-navigate-black"
         type="button"
       >
-        Siguiente ➡
+        Siguiente
       </button>
     </div>
   </div>

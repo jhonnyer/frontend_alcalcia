@@ -145,7 +145,7 @@
 
         <select
           (change)="onChangeValueSizePageSelect($event)"
-          class="border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-blue-400"
+          class="select-base"
         >
           @for (size of sizePage(); track size) {
             <option [value]="size" [selected]="size === dataTable.getState().pagination.pageSize">
@@ -158,7 +158,7 @@
           <button
             [disabled]="!dataTable.getCanPreviousPage()"
             (click)="dataTable.previousPage()"
-            class="px-4 py-1.5 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 disabled:bg-gray-300 flex items-center gap-1 transition"
+            class="btn-navigate-black"
             type="button"
           >
             <mat-icon class="text-sm">arrow_back</mat-icon>
@@ -168,7 +168,7 @@
           <button
             [disabled]="!dataTable.getCanNextPage()"
             (click)="dataTable.nextPage()"
-            class="px-4 py-1.5 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 disabled:bg-gray-300 flex items-center gap-1 transition"
+            class="btn-navigate-black"
             type="button"
           >
             Siguiente

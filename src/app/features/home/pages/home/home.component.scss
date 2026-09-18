@@ -116,6 +116,14 @@ section {
   @apply min-w-0 w-full;
 }
 
+.report-search-control {
+  @apply relative;
+}
+
+.report-search-clear {
+  @apply absolute right-2 top-1/2 -translate-y-1/2 rounded px-1 text-xs text-slate-400 hover:bg-slate-100 hover:text-slate-700;
+}
+
 .report-clear-filters {
   @apply min-h-9 self-end px-3 py-1 text-xs;
 }
@@ -202,18 +210,18 @@ section {
   @apply flex flex-col items-center justify-center 
          bg-white text-gray-700 rounded-xl shadow-md border border-gray-100
          hover:shadow-lg transition cursor-pointer
-         h-[100px] w-full p-1.5;
+         h-[92px] w-full p-1;
 }
 
 /* 🟦 Caja del ícono */
 .report-icon-box {
   @apply flex items-center justify-center rounded-xl text-white shadow-md
-         w-8 h-8 mb-0.5;
+         w-7 h-7 mb-0.5;
 }
 
 /* 🟧 Ícono principal */
 .report-icon {
-  @apply text-white text-lg;
+  @apply text-white text-base;
 }
 
 /* 🟪 Texto */

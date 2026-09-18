@@ -190,6 +190,20 @@ export class HomeComponent implements OnInit{
     this.reportResponsibleId = selected?.id ?? null;
   }
 
+  clearReportProjectSearch(): void {
+    this.searchReportProjects('');
+  }
+
+  clearReportCategorySearch(): void {
+    this.reportCategorySearch = '';
+    this.reportCategoryId = null;
+    this.updateReportCategoryOptions();
+  }
+
+  clearReportResponsibleSearch(): void {
+    this.searchReportResponsibles('');
+  }
+
   private updateReportCategoryOptions(): void {
     this.reportFilteredCategories = this.reportCategoryOptions.filter(category =>
       !this.reportProjectId || category.projectId === this.reportProjectId);

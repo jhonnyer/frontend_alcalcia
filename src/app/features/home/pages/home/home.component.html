@@ -99,7 +99,7 @@
         >
           <div class="report-group-title report-group-title-filtered">
             <mat-icon>date_range</mat-icon>
-            <div>
+            <div class="report-group-heading">
               <h3>Reportes por período</h3>
               <p>El período filtra actas, proyectos, productos y relaciones con fecha operativa.</p>
             </div>
@@ -133,39 +133,57 @@
                 </label>
               }
             </div>
-            <div class="report-advanced-filters">
-              <span class="report-filter-label">Filtros:</span>
-              @for (state of [{ value: 'E', label: 'Entregado' }, { value: 'A', label: 'Autorizado' }, { value: 'P', label: 'Pendiente' }, { value: 'RC', label: 'Rechazado' }]; track state.value) {
-                <label class="report-filter-option">
-                  <input type="checkbox" [checked]="isReportFilterSelected(reportEstadosActa, state.value)" (change)="toggleReportFilter(reportEstadosActa, state.value)">
-                  {{ state.label }}
-                </label>
-              }
-              @for (priority of [{ value: 'A', label: 'Prioridad alta' }, { value: 'M', label: 'Prioridad media' }, { value: 'B', label: 'Prioridad baja' }]; track priority.value) {
-                <label class="report-filter-option">
-                  <input type="checkbox" [checked]="isReportFilterSelected(reportPrioridades, priority.value)" (change)="toggleReportFilter(reportPrioridades, priority.value)">
-                  {{ priority.label }}
-                </label>
-              }
+          </div>
+          <div class="report-advanced-filters">
+            <div class="report-filter-section">
+              <span class="report-filter-label">Estado del acta</span>
+              <div class="report-filter-options">
+                @for (state of [{ value: 'E', label: 'Entregado' }, { value: 'A', label: 'Autorizado' }, { value: 'P', label: 'Pendiente' }, { value: 'RC', label: 'Rechazado' }]; track state.value) {
+                  <label class="report-filter-option">
+                    <input type="checkbox" [checked]="isReportFilterSelected(reportEstadosActa, state.value)" (change)="toggleReportFilter(reportEstadosActa, state.value)">
+                    {{ state.label }}
+                  </label>
+                }
+              </div>
+            </div>
+            <div class="report-filter-section">
+              <span class="report-filter-label">Prioridad</span>
+              <div class="report-filter-options">
+                @for (priority of [{ value: 'A', label: 'Alta' }, { value: 'M', label: 'Media' }, { value: 'B', label: 'Baja' }]; track priority.value) {
+                  <label class="report-filter-option">
+                    <input type="checkbox" [checked]="isReportFilterSelected(reportPrioridades, priority.value)" (change)="toggleReportFilter(reportPrioridades, priority.value)">
+                    {{ priority.label }}
+                  </label>
+                }
+              </div>
+            </div>
+            <label class="report-filter-field">
+              <span>Proyecto</span>
               <select [(ngModel)]="reportProjectId" class="select-base report-filter-select" aria-label="Filtrar por proyecto">
-                <option [ngValue]="null">Todos los proyectos</option>
+                <option [ngValue]="null">Todos</option>
                 @for (project of reportProjectOptions; track project.id) {
                   <option [ngValue]="project.id">{{ project.nombre }}</option>
                 }
               </select>
+            </label>
+            <label class="report-filter-field">
+              <span>Categoría</span>
               <select [(ngModel)]="reportCategoryId" class="select-base report-filter-select" aria-label="Filtrar por categoría">
-                <option [ngValue]="null">Todas las categorías</option>
+                <option [ngValue]="null">Todas</option>
                 @for (category of reportCategoryOptions; track category.id) {
                   <option [ngValue]="category.id">{{ category.nombre }}</option>
                 }
               </select>
+            </label>
+            <label class="report-filter-field">
+              <span>Responsable</span>
               <select [(ngModel)]="reportResponsibleId" class="select-base report-filter-select" aria-label="Filtrar por responsable">
-                <option [ngValue]="null">Todos los responsables</option>
+                <option [ngValue]="null">Todos</option>
                 @for (responsible of reportResponsibleOptions; track responsible.id) {
                   <option [ngValue]="responsible.id">{{ responsible.nombre }}</option>
                 }
               </select>
-            </div>
+            </label>
           </div>
           <!-- Proyectos -->
           <div (click)="!isLoadingReport.proyectos && downloadProyectos()"

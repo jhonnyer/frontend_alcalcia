@@ -458,10 +458,22 @@ export class ProcedingsRegisterComponent implements OnInit{
       return;
     }
 
-    // 🟢 Confirmación antes de enviar
+    const beneficiarioNombre = `${this.beneficiario()?.primerNombre ?? ''} ${this.beneficiario()?.primerApellido ?? ''}`.trim();
+    const proyectoNombre = this.beneficiarioProyecto()?.nombreProyecto ?? 'No seleccionado';
+    const productos = this.selectedProductsInfo();
+    const totalUnidades = productos.reduce((total, producto) => total + producto.cantidad, 0);
+    const mensaje = [
+      '¿Desea registrar esta acta?',
+      '',
+      `Beneficiario: ${beneficiarioNombre || 'No disponible'}`,
+      `Proyecto: ${proyectoNombre}`,
+      `Productos: ${productos.length} tipo(s), ${totalUnidades} unidad(es)`
+    ].join('\n');
+
+    // Confirmación antes de enviar
     const confirmRef = this.dialogModal.open(ConfirmDialogComponent, {
       width: '350px',
-      data: { mensaje: '¿Desea registrar esta acta?' }
+      data: { mensaje }
     });
 
     confirmRef.afterClosed().subscribe(confirmado => {

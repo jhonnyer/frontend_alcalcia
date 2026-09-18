@@ -28,6 +28,10 @@
   @apply bg-slate-100 text-slate-600;
 }
 
+.status-badge-warning {
+  @apply bg-amber-50 text-amber-700;
+}
+
 .label-base{
   @apply mb-1 block text-sm font-semibold text-slate-700;
 }

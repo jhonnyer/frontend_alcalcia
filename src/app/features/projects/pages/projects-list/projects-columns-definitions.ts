@@ -49,7 +49,12 @@ export const defaultColumns: ColumnDef<IProyectoAndCategoriaArray>[] = [
     accessorFn: (row) => row.proyecto.estado,
     cell: info => {
       const estado = info.getValue() as EstadoProyecto;
-      return estadoProyectoLabel[estado];
+      const badgeClass = estado === 'A'
+        ? 'status-badge-active'
+        : estado === 'I'
+          ? 'status-badge-inactive'
+          : 'status-badge-warning';
+      return `<span class="status-badge ${badgeClass}">${estadoProyectoLabel[estado]}</span>`;
     },
     header: 'Estado',
     filterFn: 'includesString',

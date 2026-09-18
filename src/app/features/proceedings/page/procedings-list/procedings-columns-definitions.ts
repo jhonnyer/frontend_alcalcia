@@ -99,13 +99,13 @@ export const defaultColumns: ColumnDef<IActa>[] = [
     cell: info => {
       const estado = info.getValue() as EstadoActa;
       const colorMap = {
-        'R': 'bg-yellow-100 text-yellow-800',
-        'P': 'bg-blue-100 text-blue-800',
-        'A': 'bg-green-100 text-green-800',
-        'RC': 'bg-red-100 text-red-800',
-        'E': 'bg-gray-200 text-gray-700',
+        'R': 'status-badge-warning',
+        'P': 'status-badge-warning',
+        'A': 'status-badge-warning',
+        'RC': 'status-badge-inactive',
+        'E': 'status-badge-active',
       };
-      return `<span class="px-2 py-1 rounded-md text-xs font-medium ${colorMap[estado]}">
+      return `<span class="status-badge ${colorMap[estado]}">
                 ${estadosLabel[estado]}
               </span>`;
     },
@@ -119,11 +119,11 @@ export const defaultColumns: ColumnDef<IActa>[] = [
     cell: info => {
       const prioridad = info.getValue() as PrioridadActa;
       const colorMap = {
-        'A': 'bg-red-100 text-red-700',
-        'M': 'bg-yellow-100 text-yellow-700',
-        'B': 'bg-green-100 text-green-700',
+        'A': 'status-badge-inactive',
+        'M': 'status-badge-warning',
+        'B': 'status-badge-active',
       };
-      return `<span class="px-2 py-1 rounded-md text-xs font-medium ${colorMap[prioridad]}">
+      return `<span class="status-badge ${colorMap[prioridad]}">
                 ${prioridadLabel[prioridad]}
               </span>`;
     },
@@ -133,6 +133,9 @@ export const defaultColumns: ColumnDef<IActa>[] = [
     id: 'fechaEntrega',
     accessorFn: (row) => row.fechaEntrega || 'Pendiente',
     header: 'Entrega',
+    cell: info => info.getValue() === 'Pendiente'
+      ? '<span class="status-badge status-badge-warning">Pendiente</span>'
+      : info.getValue(),
     meta: { filterVariant: 'text' }
   },
   {

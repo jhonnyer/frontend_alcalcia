@@ -49,7 +49,7 @@ export class PdfGeneradorDashboardService {
           margin: [0, 0, 0, 4]
         },
         {
-          text: `Período solicitado: ${periodo}. Este PDF consolida el dashboard general disponible.`,
+          text: `Período solicitado: ${periodo}. El período se aplica a actas, proyectos, productos y relaciones con fecha operativa; actores sociales y categorías se presentan como información general.`,
           style: 'reportPeriod',
           margin: [0, 0, 0, 12]
         },

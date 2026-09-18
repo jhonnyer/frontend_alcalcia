@@ -6,6 +6,18 @@ import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import { TokenService } from './token.service';
 import { DashboardReport, ReporteActasPorProyecto, ReporteBarrios, ReporteEdad, ReporteEntregaProyecto, ReportePoblacionVulnerable, ReporteProducto, ReporteProyecto, ReporteResponsable, ReporteSolicitud, ReporteTemporal, ReporteZona, ResumenEstadoProyecto, ResumenGeneral, ResumenProyecto } from '../models/reporte-global/reportes.model';
 
+export interface ReporteFiltroRequest {
+  alcance?: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+  estadoActa?: string[];
+  prioridades?: string[];
+  idProyecto?: number;
+  idCategoria?: number;
+  idResponsable?: number;
+  incluirActoresSinFecha?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ReportesService {
   private readonly URL = environment.URL_API;
@@ -31,6 +43,12 @@ export class ReportesService {
         );
     }
     return this.dashboard$;
+  }
+
+  obtenerDashboardFiltrado(filtro: ReporteFiltroRequest): Observable<DashboardReport> {
+    return this.http
+      .post<DashboardReport>(`${this.EP}/filtrado`, filtro, { context: checkToken() })
+      .pipe(map(d => this.normalizeDashboard(d)));
   }
 
   // ---- Selectores (derivados del mismo dashboard) ----

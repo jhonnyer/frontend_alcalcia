@@ -10,7 +10,7 @@ import { NucleoService } from '../../../../core/services/nucleo.service';
 import * as XLSX from 'xlsx';
 
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
-import { ReportesService } from '../../../../core/services/reportes.service';
+import { ReportesService, ReporteFiltroRequest } from '../../../../core/services/reportes.service';
 import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -80,6 +80,14 @@ export class HomeComponent implements OnInit{
   reportPeriod: 'ALL' | 'YEAR' | 'MONTH' = 'ALL';
   reportYear = new Date().getFullYear();
   reportMonth = new Date().getMonth() + 1;
+  reportEstadosActa: string[] = [];
+  reportPrioridades: string[] = [];
+  reportProjectId: number | null = null;
+  reportCategoryId: number | null = null;
+  reportResponsibleId: number | null = null;
+  reportProjectOptions: Array<{ id: number; nombre: string }> = [];
+  reportCategoryOptions: Array<{ id: number; nombre: string }> = [];
+  reportResponsibleOptions: Array<{ id: number; nombre: string }> = [];
   reportYears = Array.from({ length: 5 }, (_, index) => new Date().getFullYear() - index);
   reportMonths = [
     { value: 1, label: 'Enero' },
@@ -114,6 +122,38 @@ export class HomeComponent implements OnInit{
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('SISTEMA INTEGRAL DE PROYECTOS Y DONACIONES MUNICIPALES');
+    this.loadReportFilterOptions();
+  }
+
+  private loadReportFilterOptions(): void {
+    this.proyectosService.getAll().subscribe(response => {
+      this.reportProjectOptions = (response.respuesta ?? []).map(item => ({
+        id: item.proyecto.idProyecto,
+        nombre: item.proyecto.nombre
+      }));
+    });
+    this.categoriasService.getAll().subscribe(categories => {
+      this.reportCategoryOptions = (categories ?? []).map(category => ({
+        id: category.idCategoria,
+        nombre: category.nombre
+      }));
+    });
+    this.responsibleService.getAll().subscribe(responsables => {
+      this.reportResponsibleOptions = (responsables ?? []).map(responsable => ({
+        id: responsable.idResponsable,
+        nombre: `${responsable.primerNombre} ${responsable.primerApellido}`.trim()
+      }));
+    });
+  }
+
+  toggleReportFilter(list: string[], value: string): void {
+    const index = list.indexOf(value);
+    if (index >= 0) list.splice(index, 1);
+    else list.push(value);
+  }
+
+  isReportFilterSelected(list: string[], value: string): boolean {
+    return list.includes(value);
   }
 
   private getFormattedDate(): string {
@@ -165,6 +205,16 @@ export class HomeComponent implements OnInit{
     if (this.reportPeriod === 'ALL') return 'Todos los registros';
     if (this.reportPeriod === 'YEAR') return `Año ${this.reportYear}`;
     return `${this.reportMonths.find(month => month.value === this.reportMonth)?.label} ${this.reportYear}`;
+  }
+
+  private getReportFilterLabel(): string {
+    const parts = [this.getReportPeriodLabel()];
+    if (this.reportEstadosActa.length) parts.push(`Estados: ${this.reportEstadosActa.join(', ')}`);
+    if (this.reportPrioridades.length) parts.push(`Prioridades: ${this.reportPrioridades.join(', ')}`);
+    if (this.reportProjectId) parts.push(`Proyecto: ${this.reportProjectOptions.find(p => p.id === this.reportProjectId)?.nombre ?? this.reportProjectId}`);
+    if (this.reportCategoryId) parts.push(`Categoría: ${this.reportCategoryOptions.find(c => c.id === this.reportCategoryId)?.nombre ?? this.reportCategoryId}`);
+    if (this.reportResponsibleId) parts.push(`Responsable: ${this.reportResponsibleOptions.find(r => r.id === this.reportResponsibleId)?.nombre ?? this.reportResponsibleId}`);
+    return parts.join(' · ');
   }
 
   downloadGlobalReport() {
@@ -571,8 +621,20 @@ export class HomeComponent implements OnInit{
 
   descargarReporte() {
     this.isLoadingPDF = true;
-    this.reportes.obtenerDashboard().subscribe(d => {
-      this.pdfDashboard.generateDashboardReport(d, this.getReportPeriodLabel())
+    const { fechaInicio, fechaFin } = this.getReportDateRange();
+    const filtro: ReporteFiltroRequest = {
+      alcance: this.reportPeriod,
+      fechaInicio,
+      fechaFin,
+      estadoActa: this.reportEstadosActa,
+      prioridades: this.reportPrioridades,
+      idProyecto: this.reportProjectId ?? undefined,
+      idCategoria: this.reportCategoryId ?? undefined,
+      idResponsable: this.reportResponsibleId ?? undefined,
+      incluirActoresSinFecha: true
+    };
+    this.reportes.obtenerDashboardFiltrado(filtro).subscribe(d => {
+      this.pdfDashboard.generateDashboardReport(d, this.getReportFilterLabel())
         .finally(() => this.isLoadingPDF = false);
     }, error => {
       this.isLoadingPDF = false;

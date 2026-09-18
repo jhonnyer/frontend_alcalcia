@@ -3,7 +3,7 @@ import { TableFilterComponent } from './table-filter.component';
 import { Column } from '@tanstack/angular-table';
 import { By } from '@angular/platform-browser';
 
-fdescribe('TableFilterComponent', () => {
+describe('TableFilterComponent', () => {
   let component: TableFilterComponent;
   let fixture: ComponentFixture<TableFilterComponent>;
   let mockColumn: jasmine.SpyObj<Column<any, any>>;
@@ -105,6 +105,6 @@ fdescribe('TableFilterComponent', () => {
     component.onInputChange(event);
 
     // Assert
-    expect(mockColumn.setFilterValue).toHaveBeenCalledWith('');
+    expect(mockColumn.setFilterValue).toHaveBeenCalledWith(undefined);
   });
 });

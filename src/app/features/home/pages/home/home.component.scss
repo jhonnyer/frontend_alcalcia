@@ -56,6 +56,32 @@ section {
   @apply flex min-w-28 flex-col gap-1 text-xs font-semibold text-slate-600;
 }
 
+.report-group-title {
+  @apply col-span-full flex items-center gap-3 border-b border-slate-200 pb-2 pt-2 text-slate-700;
+}
+
+.report-group-title h3 {
+  @apply text-sm font-semibold;
+}
+
+.report-group-title p {
+  @apply mt-0.5 text-xs font-normal text-slate-500;
+}
+
+.report-group-title-filtered,
+.report-card-filtered {
+  order: 1;
+}
+
+.report-group-title-general,
+.report-card-general {
+  order: 2;
+}
+
+.report-group-title-general {
+  @apply mt-4;
+}
+
 /* Estilos del scrollbar */
 .reportes-wrapper::-webkit-scrollbar {
   height: 8px;

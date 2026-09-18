@@ -138,6 +138,18 @@ export class HomeComponent implements OnInit{
     };
   }
 
+  private isDateInRange(value: string | null | undefined, fechaInicio?: string, fechaFin?: string): boolean {
+    if (!fechaInicio || !fechaFin) return true;
+    if (!value) return false;
+    return value >= fechaInicio && value <= fechaFin;
+  }
+
+  private overlapsRange(start: string | null | undefined, end: string | null | undefined, fechaInicio?: string, fechaFin?: string): boolean {
+    if (!fechaInicio || !fechaFin) return true;
+    if (!start) return false;
+    return start <= fechaFin && (!end || end >= fechaInicio);
+  }
+
   private downloadBlob(blob: Blob, filename: string): void {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -166,8 +178,9 @@ export class HomeComponent implements OnInit{
   }
 
   downloadProductProjectReport() {
+    const { fechaInicio, fechaFin } = this.getReportDateRange();
     this.isLoadingReport.productProject = true;
-    this.actasService.getExcelProductosProyecto().subscribe({
+    this.actasService.getExcelProductosProyecto(fechaInicio, fechaFin).subscribe({
       next: (blob: Blob) => {
         // Crear URL del blob
         const url = window.URL.createObjectURL(blob);
@@ -196,10 +209,13 @@ export class HomeComponent implements OnInit{
 
   downloadBeneficiarios() {
     this.isLoadingReport.beneficiarios = true;
+    const { fechaInicio, fechaFin } = this.getReportDateRange();
     this.beneficiaryService.getAll().subscribe({
       next: (beneficiarios) => {
+        const filteredBeneficiarios = beneficiarios.filter(beneficiario =>
+          this.isDateInRange(beneficiario.fechaNacimiento, fechaInicio, fechaFin));
         // Preparar los datos para el Excel
-        const data = beneficiarios.map(b => ({
+        const data = filteredBeneficiarios.map(b => ({
           'ID': b.idBeneficiario,
           'Primer Nombre': b.primerNombre,
           'Segundo Nombre': b.segundoNombre,
@@ -424,10 +440,13 @@ export class HomeComponent implements OnInit{
 
   downloadProductos() {
     this.isLoadingReport.productos = true;
+    const { fechaInicio, fechaFin } = this.getReportDateRange();
     this.productosService.getAll().subscribe({
       next: (productos) => {
+        const filteredProductos = productos.filter(producto =>
+          this.isDateInRange(producto.fechaIngreso, fechaInicio, fechaFin));
         // Preparar los datos para el Excel
-        const data = productos.map(prod => ({
+        const data = filteredProductos.map(prod => ({
           'ID': prod.idProducto,
           'Nombre': prod.nombre,
           'Descripción': prod.descripcion,
@@ -557,9 +576,12 @@ export class HomeComponent implements OnInit{
 
   downloadProyectos() {
     this.isLoadingReport.proyectos = true;
+    const { fechaInicio, fechaFin } = this.getReportDateRange();
     this.proyectosService.getAll().subscribe({
       next: (response) => {
-        const proyectos = response.respuesta.map(p => p.proyecto);
+        const proyectos = response.respuesta
+          .map(p => p.proyecto)
+          .filter(proyecto => this.overlapsRange(proyecto.fechaInicio, proyecto.fechaFin, fechaInicio, fechaFin));
 
         const data = proyectos.map(p => ({
           'ID Proyecto': p.idProyecto,
@@ -598,10 +620,12 @@ export class HomeComponent implements OnInit{
 
   downloadBeneficiariosPorProyecto() {
     this.isLoadingReport.beneficiariosProyecto = true;
+    const { fechaInicio, fechaFin } = this.getReportDateRange();
 
     this.beneficiarioProyectoService.getAll().subscribe({
       next: (response) => {
-        const beneficiariosProyecto = response; // ya viene como lista del DTO
+        const beneficiariosProyecto = response.filter(relacion =>
+          this.overlapsRange(relacion.fechaInicio, relacion.fechaFin, fechaInicio, fechaFin));
 
         if (!beneficiariosProyecto || beneficiariosProyecto.length === 0) {
           this.alert.info('Sin datos', 'No se encontraron beneficiarios asignados a proyectos.');
@@ -656,6 +680,7 @@ export class HomeComponent implements OnInit{
 
   downloadReporteExcelCompleto() {
     this.isLoadingReport.reportGeneral = true;
+    const { fechaInicio, fechaFin } = this.getReportDateRange();
 
     forkJoin({
       proyectosResp: this.proyectosService.getAll(),
@@ -666,11 +691,15 @@ export class HomeComponent implements OnInit{
     }).subscribe({
       next: ({ proyectosResp, dashboard, actas, nucleos, productos }) => {
         // Adaptación de estructuras
-        const proyectosData = proyectosResp?.respuesta ?? [];
-        const beneficiariosProyecto = dashboard ?? [];
-        const actasData = actas ?? [];
+        const proyectosData = (proyectosResp?.respuesta ?? []).filter(item =>
+          this.overlapsRange(item.proyecto.fechaInicio, item.proyecto.fechaFin, fechaInicio, fechaFin));
+        const beneficiariosProyecto = (dashboard ?? []).filter(relacion =>
+          this.overlapsRange(relacion.fechaInicio, relacion.fechaFin, fechaInicio, fechaFin));
+        const actasData = (actas ?? []).filter(acta =>
+          this.isDateInRange(acta.fechaCreacion, fechaInicio, fechaFin));
         const nucleosData = nucleos ?? [];
-        const productosData = productos ?? [];
+        const productosData = (productos ?? []).filter(producto =>
+          this.isDateInRange(producto.fechaIngreso, fechaInicio, fechaFin));
 
         // Generar Excel integral
         this.excelReportes.generarExcelIntegral(

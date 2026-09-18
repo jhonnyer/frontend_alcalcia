@@ -114,8 +114,14 @@ export class ActasService {
     });
   }
 
-  getExcelProductosProyecto(): Observable<Blob> {
+  getExcelProductosProyecto(fechaInicio?: string, fechaFin?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (fechaInicio && fechaFin) {
+      params = params.set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
+    }
+
     return this.http.get(`${this.URL}/proyectos/producto-excel`, {
+      params,
       responseType: 'blob',
       context: checkToken()
     });

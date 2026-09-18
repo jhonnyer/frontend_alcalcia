@@ -95,7 +95,7 @@
         <section class="report-period-filter" *hasRole="['ADMIN', 'RESP']" aria-labelledby="report-period-title">
           <div>
             <h2 id="report-period-title" class="text-base font-semibold text-slate-800">Período del reporte</h2>
-            <p class="text-xs text-slate-500">El filtro se aplica a las exportaciones de actas.</p>
+            <p class="text-xs text-slate-500">El período se aplica a los reportes que tienen una fecha definida.</p>
           </div>
           <div class="flex flex-wrap items-end gap-2">
             <label class="report-period-field">
@@ -133,9 +133,16 @@
                 px-3 sm:px-5"
           *hasRole="['ADMIN', 'RESP']"
         >
+          <div class="report-group-title report-group-title-filtered">
+            <mat-icon>date_range</mat-icon>
+            <div>
+              <h3>Reportes por período</h3>
+              <p>Usan el alcance temporal seleccionado arriba.</p>
+            </div>
+          </div>
           <!-- Proyectos -->
           <div (click)="!isLoadingReport.proyectos && downloadProyectos()"
-              class="report-card"
+              class="report-card report-card-filtered"
               [class.opacity-60]="isLoadingReport.proyectos">
             <div class="report-icon-box bg-gradient-to-tr from-blue-600 to-blue-400 shadow-blue-500/40">
               <div *ngIf="isLoadingReport.proyectos; else iconProyectos" class="loading-icon">
@@ -152,7 +159,7 @@
 
           <!-- Productos Proyectos -->
           <div (click)="!isLoadingReport.productProject && downloadProductProjectReport()"
-              class="report-card"
+              class="report-card report-card-filtered"
               [class.opacity-60]="isLoadingReport.productProject">
             <div class="report-icon-box bg-gradient-to-tr from-sky-600 to-blue-400 shadow-blue-500/40">
               <div *ngIf="isLoadingReport.productProject; else iconProyectos" class="loading-icon">
@@ -166,8 +173,15 @@
           </div>
 
           <!-- Núcleos -->
+          <div class="report-group-title report-group-title-general">
+            <mat-icon>all_inclusive</mat-icon>
+            <div>
+              <h3>Reportes generales</h3>
+              <p>Incluyen todos los registros disponibles.</p>
+            </div>
+          </div>
           <div (click)="!isLoadingReport.nucleos && downloadNucleos()"
-              class="report-card"
+              class="report-card report-card-general"
               [class.opacity-60]="isLoadingReport.nucleos">
             <div class="report-icon-box bg-gradient-to-tr from-violet-600 to-violet-400 shadow-violet-500/40">
               <div *ngIf="isLoadingReport.nucleos; else iconNucleos" class="loading-icon">
@@ -182,7 +196,7 @@
 
           <!-- Productos -->
           <div (click)="!isLoadingReport.productos && downloadProductos()"
-              class="report-card"
+              class="report-card report-card-filtered"
               [class.opacity-60]="isLoadingReport.productos">
             <div class="report-icon-box bg-gradient-to-tr from-green-600 to-green-400 shadow-green-500/40">
               <div *ngIf="isLoadingReport.productos; else iconProd" class="loading-icon">
@@ -197,7 +211,7 @@
 
           <!-- Actas -->
           <div (click)="!isLoadingReport.actas && downloadActas()"
-              class="report-card"
+              class="report-card report-card-filtered"
               [class.opacity-60]="isLoadingReport.actas">
             <div class="report-icon-box bg-gradient-to-tr from-indigo-600 to-blue-400 shadow-blue-500/40">
               <div *ngIf="isLoadingReport.actas; else iconActas" class="loading-icon">
@@ -212,7 +226,7 @@
 
           <!-- 🌐 Reporte Global -->
           <div (click)="!isLoadingReport.global && downloadGlobalReport()"
-              class="report-card"
+              class="report-card report-card-filtered"
               [class.opacity-60]="isLoadingReport.global">
             <div class="report-icon-box bg-gradient-to-tr from-blue-600 to-blue-400 shadow-blue-500/40">
               <div *ngIf="isLoadingReport.global; else iconGlobal" class="loading-icon">
@@ -227,7 +241,7 @@
 
                     <!-- Beneficiarios por Proyecto -->
           <div (click)="!isLoadingReport.beneficiariosProyecto && downloadBeneficiariosPorProyecto()"
-              class="report-card"
+              class="report-card report-card-filtered"
               [class.opacity-60]="isLoadingReport.beneficiariosProyecto">
             <div class="report-icon-box bg-gradient-to-tr from-orange-600 to-orange-400 shadow-orange-500/40">
               <div *ngIf="isLoadingReport.beneficiariosProyecto; else iconBP" class="loading-icon">
@@ -244,7 +258,7 @@
           
           <!-- Beneficiarios -->
           <div (click)="!isLoadingReport.beneficiarios && downloadBeneficiarios()"
-              class="report-card"
+              class="report-card report-card-filtered"
               [class.opacity-60]="isLoadingReport.beneficiarios">
             <div class="report-icon-box bg-gradient-to-tr from-pink-600 to-pink-400 shadow-pink-500/40">
               <div *ngIf="isLoadingReport.beneficiarios; else iconBenef" class="loading-icon">
@@ -259,7 +273,7 @@
 
           <!-- Categorías -->
           <div (click)="!isLoadingReport.categorias && downloadCategorias()"
-              class="report-card"
+              class="report-card report-card-general"
               [class.opacity-60]="isLoadingReport.categorias">
             <div class="report-icon-box bg-gradient-to-tr from-cyan-600 to-cyan-400 shadow-cyan-500/40">
               <div *ngIf="isLoadingReport.categorias; else iconCategorias" class="loading-icon">
@@ -275,7 +289,7 @@
           <!-- Reporte global -->
           <div 
             (click)="!isLoadingReport.reportGeneral && downloadReporteExcelCompleto()"
-            class="report-card"
+            class="report-card report-card-filtered"
             [class.opacity-60]="isLoadingReport.reportGeneral">
 
             <div class="report-icon-box bg-gradient-to-tr from-cyan-600 to-cyan-400 shadow-cyan-500/40">
@@ -296,7 +310,7 @@
 
           <!-- Usuarios -->
           <div (click)="!isLoadingReport.responsables && downloadResponsables()"
-              class="report-card"
+              class="report-card report-card-general"
               [class.opacity-60]="isLoadingReport.responsables"
               *hasRole="['ADMIN']">
             <div class="report-icon-box bg-gradient-to-tr from-orange-600 to-orange-400 shadow-orange-500/40">

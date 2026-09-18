@@ -19,16 +19,6 @@
   min-width: 100%;
 }
 
-::ng-deep .custom-field .mat-mdc-form-field-infix {
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
-}
-::ng-deep .custom-field .mdc-floating-label {
-  top: 0 !important;
-  transform: none !important;
-  font-size: 0.85rem !important;
-}
-
 @media (max-width: 640px) {
   .btn-responsive {
     font-size: 0.85rem !important;

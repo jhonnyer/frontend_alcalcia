@@ -76,6 +76,14 @@ section {
   @apply mt-0.5 text-xs text-slate-500;
 }
 
+.report-general-heading-button {
+  @apply min-w-0 flex-1 text-left;
+}
+
+.report-collapse-button {
+  @apply rounded-md p-1 text-slate-500 hover:bg-blue-100;
+}
+
 .report-general-heading > mat-icon {
   @apply text-blue-600;
 }
@@ -132,6 +140,14 @@ section {
 
 .report-group-title-general {
   @apply mt-4;
+}
+
+.report-group-toggle {
+  @apply cursor-pointer text-left;
+}
+
+.report-general-reports-collapsed .report-card-general {
+  display: none;
 }
 
 /* Estilos del scrollbar */

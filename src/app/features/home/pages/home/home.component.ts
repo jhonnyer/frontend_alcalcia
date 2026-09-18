@@ -86,8 +86,16 @@ export class HomeComponent implements OnInit{
   reportCategoryId: number | null = null;
   reportResponsibleId: number | null = null;
   reportProjectOptions: Array<{ id: number; nombre: string }> = [];
-  reportCategoryOptions: Array<{ id: number; nombre: string }> = [];
+  reportCategoryOptions: Array<{ id: number; nombre: string; projectId?: number }> = [];
   reportResponsibleOptions: Array<{ id: number; nombre: string }> = [];
+  reportFilteredProjects: Array<{ id: number; nombre: string }> = [];
+  reportFilteredCategories: Array<{ id: number; nombre: string; projectId?: number }> = [];
+  reportFilteredResponsibles: Array<{ id: number; nombre: string }> = [];
+  reportProjectSearch = '';
+  reportCategorySearch = '';
+  reportResponsibleSearch = '';
+  reportGeneralOpen = true;
+  reportGeneralReportsOpen = true;
   reportYears = Array.from({ length: 5 }, (_, index) => new Date().getFullYear() - index);
   reportMonths = [
     { value: 1, label: 'Enero' },
@@ -131,19 +139,59 @@ export class HomeComponent implements OnInit{
         id: item.proyecto.idProyecto,
         nombre: item.proyecto.nombre
       }));
+      this.reportFilteredProjects = [...this.reportProjectOptions];
     });
     this.categoriasService.getAll().subscribe(categories => {
       this.reportCategoryOptions = (categories ?? []).map(category => ({
         id: category.idCategoria,
-        nombre: category.nombre
+        nombre: category.nombre,
+        projectId: category.idProyectoFk
       }));
+      this.updateReportCategoryOptions();
     });
     this.responsibleService.getAll().subscribe(responsables => {
       this.reportResponsibleOptions = (responsables ?? []).map(responsable => ({
         id: responsable.idResponsable,
         nombre: `${responsable.primerNombre} ${responsable.primerApellido}`.trim()
       }));
+      this.reportFilteredResponsibles = [...this.reportResponsibleOptions];
     });
+  }
+
+  searchReportProjects(value: string): void {
+    this.reportProjectSearch = value;
+    const query = value.trim().toLowerCase();
+    this.reportFilteredProjects = this.reportProjectOptions.filter(project =>
+      !query || `${project.id} ${project.nombre}`.toLowerCase().includes(query));
+    const selected = this.reportProjectOptions.find(project => `${project.id} - ${project.nombre}` === value);
+    this.reportProjectId = selected?.id ?? null;
+    this.reportCategoryId = null;
+    this.reportCategorySearch = '';
+    this.updateReportCategoryOptions();
+  }
+
+  searchReportCategories(value: string): void {
+    this.reportCategorySearch = value;
+    const query = value.trim().toLowerCase();
+    this.reportFilteredCategories = this.reportCategoryOptions.filter(category =>
+      (!this.reportProjectId || category.projectId === this.reportProjectId) &&
+      (!query || `${category.id} ${category.nombre}`.toLowerCase().includes(query)));
+    const selected = this.reportFilteredCategories.find(category => `${category.id} - ${category.nombre}` === value);
+    this.reportCategoryId = selected?.id ?? null;
+  }
+
+  searchReportResponsibles(value: string): void {
+    this.reportResponsibleSearch = value;
+    const query = value.trim().toLowerCase();
+    this.reportFilteredResponsibles = this.reportResponsibleOptions.filter(responsible =>
+      !query || `${responsible.id} ${responsible.nombre}`.toLowerCase().includes(query));
+    const selected = this.reportResponsibleOptions.find(responsible => `${responsible.id} - ${responsible.nombre}` === value);
+    this.reportResponsibleId = selected?.id ?? null;
+  }
+
+  private updateReportCategoryOptions(): void {
+    this.reportFilteredCategories = this.reportCategoryOptions.filter(category =>
+      !this.reportProjectId || category.projectId === this.reportProjectId);
   }
 
   toggleReportFilter(list: string[], value: string): void {

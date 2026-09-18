@@ -75,6 +75,7 @@
         <div
           class="reportes-container mt-6 mb-8 grid gap-y-6 gap-x-4
                 px-3 sm:px-5"
+              [class.report-period-collapsed]="!reportPeriodOpen"
               [class.report-general-reports-collapsed]="!reportGeneralReportsOpen"
           *hasRole="['ADMIN', 'RESP']"
         >
@@ -114,6 +115,9 @@
                 </label>
               }
             </div>
+            <button type="button" class="report-collapse-button" (click)="reportPeriodOpen = !reportPeriodOpen" [attr.aria-label]="reportPeriodOpen ? 'Contraer reportes por período' : 'Expandir reportes por período'" [attr.aria-expanded]="reportPeriodOpen">
+              <mat-icon>{{ reportPeriodOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
           </div>
           <section class="report-general-panel" aria-labelledby="general-report-title">
             <div class="report-general-heading">
@@ -122,7 +126,6 @@
                 <h3 id="general-report-title">Informe general</h3>
                 <p>Combina los filtros seleccionados y genera un PDF consolidado.</p>
               </button>
-              <button type="button" class="report-collapse-button" (click)="reportGeneralOpen = !reportGeneralOpen" [attr.aria-label]="reportGeneralOpen ? 'Contraer informe general' : 'Expandir informe general'"><mat-icon>{{ reportGeneralOpen ? 'expand_less' : 'expand_more' }}</mat-icon></button>
               <button type="button" class="btn-action-blue report-pdf-button" (click)="descargarReporte()" [disabled]="isLoadingPDF">
                 @if (isLoadingPDF) {
                   <mat-progress-spinner diameter="18" mode="indeterminate" color="accent"></mat-progress-spinner>
@@ -132,6 +135,7 @@
                   Generar PDF
                 }
               </button>
+              <button type="button" class="report-collapse-button" (click)="reportGeneralOpen = !reportGeneralOpen" [attr.aria-label]="reportGeneralOpen ? 'Contraer informe general' : 'Expandir informe general'"><mat-icon>{{ reportGeneralOpen ? 'expand_less' : 'expand_more' }}</mat-icon></button>
             </div>
             @if (reportGeneralOpen) {
             <div class="report-advanced-filters">

@@ -95,6 +95,7 @@ export class HomeComponent implements OnInit{
   reportCategorySearch = '';
   reportResponsibleSearch = '';
   reportGeneralOpen = true;
+  reportPeriodOpen = true;
   reportGeneralReportsOpen = true;
   reportYears = Array.from({ length: 5 }, (_, index) => new Date().getFullYear() - index);
   reportMonths = [
@@ -135,18 +136,18 @@ export class HomeComponent implements OnInit{
 
   private loadReportFilterOptions(): void {
     this.proyectosService.getAll().subscribe(response => {
-      this.reportProjectOptions = (response.respuesta ?? []).map(item => ({
+      const projects = response.respuesta ?? [];
+      this.reportProjectOptions = projects.map(item => ({
         id: item.proyecto.idProyecto,
         nombre: item.proyecto.nombre
       }));
       this.reportFilteredProjects = [...this.reportProjectOptions];
-    });
-    this.categoriasService.getAll().subscribe(categories => {
-      this.reportCategoryOptions = (categories ?? []).map(category => ({
+      this.reportCategoryOptions = projects.flatMap(item => (item.categorias ?? []).map(category => ({
         id: category.idCategoria,
         nombre: category.nombre,
-        projectId: category.idProyectoFk
-      }));
+        projectId: item.proyecto.idProyecto
+      }))).filter((category, index, categories) =>
+        categories.findIndex(item => item.id === category.id && item.projectId === category.projectId) === index);
       this.updateReportCategoryOptions();
     });
     this.responsibleService.getAll().subscribe(responsables => {

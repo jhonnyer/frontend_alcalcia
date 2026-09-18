@@ -150,6 +150,10 @@ section {
   display: none;
 }
 
+.report-period-collapsed .report-card-filtered {
+  display: none;
+}
+
 /* Estilos del scrollbar */
 .reportes-wrapper::-webkit-scrollbar {
   height: 8px;

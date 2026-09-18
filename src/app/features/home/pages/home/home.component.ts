@@ -161,6 +161,12 @@ export class HomeComponent implements OnInit{
     window.URL.revokeObjectURL(url);
   }
 
+  private getReportPeriodLabel(): string {
+    if (this.reportPeriod === 'ALL') return 'Todos los registros';
+    if (this.reportPeriod === 'YEAR') return `Año ${this.reportYear}`;
+    return `${this.reportMonths.find(month => month.value === this.reportMonth)?.label} ${this.reportYear}`;
+  }
+
   downloadGlobalReport() {
     const { fechaInicio, fechaFin } = this.getReportDateRange();
     this.isLoadingReport.global = true;
@@ -566,9 +572,13 @@ export class HomeComponent implements OnInit{
   descargarReporte() {
     this.isLoadingPDF = true;
     this.reportes.obtenerDashboard().subscribe(d => {
-          this.pdfDashboard.generateDashboardReport(d);
-          this.isLoadingPDF = false;
-        });
+      this.pdfDashboard.generateDashboardReport(d, this.getReportPeriodLabel())
+        .finally(() => this.isLoadingPDF = false);
+    }, error => {
+      this.isLoadingPDF = false;
+      console.error('Error al generar el PDF:', error);
+      this.alert.error('Operación fallida', 'No se pudo generar el informe general.');
+    });
   }
 
   downloadProyectos() {

@@ -15,7 +15,7 @@ export class PdfGeneradorDashboardService {
     E: 'Entregado'
   };
 
-  async generateDashboardReport(data: any) {
+  async generateDashboardReport(data: any, periodo = 'Todos los registros') {
     const logoUrl = '/img/alcaldiaAlmaguer.png';
     const logo = await this.getBase64ImageFromAssets(logoUrl);
 
@@ -43,6 +43,16 @@ export class PdfGeneradorDashboardService {
       }),
 
       content: [
+        {
+          text: 'Informe general del sistema',
+          style: 'reportTitle',
+          margin: [0, 0, 0, 4]
+        },
+        {
+          text: `Período solicitado: ${periodo}. Este PDF consolida el dashboard general disponible.`,
+          style: 'reportPeriod',
+          margin: [0, 0, 0, 12]
+        },
         // ============================
         // TABLA DE CONTENIDO
         // ============================
@@ -153,6 +163,18 @@ export class PdfGeneradorDashboardService {
           fillColor: '#e0f2fe',
           margin: [0, 4, 0, 2],
         },
+        reportTitle: {
+          fontSize: 18,
+          bold: true,
+          color: '#0f172a',
+          alignment: 'center',
+          margin: [0, 4, 0, 4]
+        },
+        reportPeriod: {
+          fontSize: 9,
+          color: '#64748b',
+          alignment: 'center'
+        },
         tocTitle: {
           fontSize: 18,
           bold: true,
@@ -175,7 +197,33 @@ export class PdfGeneradorDashboardService {
       pageMargins: [40, 100, 40, 60],
     };
 
+    this.normalizarTablas(docDefinition.content);
     pdfMake.createPdf(docDefinition).open();
+  }
+
+  private normalizarTablas(node: any): void {
+    if (Array.isArray(node)) {
+      node.forEach(item => this.normalizarTablas(item));
+      return;
+    }
+
+    if (!node || typeof node !== 'object') return;
+
+    if (node.table) {
+      node.table.headerRows = node.table.headerRows ?? 1;
+      node.layout = node.layout ?? {
+        hLineColor: '#cbd5e1',
+        vLineColor: '#e2e8f0',
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.25,
+        paddingLeft: () => 5,
+        paddingRight: () => 5,
+        paddingTop: () => 4,
+        paddingBottom: () => 4
+      };
+    }
+
+    Object.values(node).forEach(value => this.normalizarTablas(value));
   }
 
   private linea() {

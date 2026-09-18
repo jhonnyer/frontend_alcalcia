@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { IActa, IActaById, ICreateActa, ICreateActaResponse } from '../models/acta.model';
 import { environment } from '../../../environments/environment';
-import { HttpClient, HttpHeaders  } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams  } from '@angular/common/http';
 import { TokenService } from './token.service';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import { ResponseStandar, ResponseStandarUnique } from '../models/response.model';
@@ -101,8 +101,14 @@ export class ActasService {
     return date.toISOString().split('T')[0]; // Extraemos solo la parte de la fecha
   }
 
-  getExcelActas(): Observable<Blob> {
+  getExcelActas(fechaInicio?: string, fechaFin?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (fechaInicio && fechaFin) {
+      params = params.set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
+    }
+
     return this.http.get(`${this.URL}/actas/excel`, {
+      params,
       responseType: 'blob',
       context: checkToken()
     });

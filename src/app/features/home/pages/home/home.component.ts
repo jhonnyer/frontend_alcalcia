@@ -13,6 +13,7 @@ import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-
 import { ReportesService } from '../../../../core/services/reportes.service';
 import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
@@ -48,6 +49,7 @@ type ReportKeys =
     RouterLink, 
     HasRoleDirective,
     CommonModule,
+    FormsModule,
     MatMenuModule,
     MatDividerModule,
     MatIconModule,
@@ -75,6 +77,24 @@ export class HomeComponent implements OnInit{
   private excelReportes = inject(ExcelGeneradorReportesService);
 
   isLoadingPDF = false;
+  reportPeriod: 'ALL' | 'YEAR' | 'MONTH' = 'ALL';
+  reportYear = new Date().getFullYear();
+  reportMonth = new Date().getMonth() + 1;
+  reportYears = Array.from({ length: 5 }, (_, index) => new Date().getFullYear() - index);
+  reportMonths = [
+    { value: 1, label: 'Enero' },
+    { value: 2, label: 'Febrero' },
+    { value: 3, label: 'Marzo' },
+    { value: 4, label: 'Abril' },
+    { value: 5, label: 'Mayo' },
+    { value: 6, label: 'Junio' },
+    { value: 7, label: 'Julio' },
+    { value: 8, label: 'Agosto' },
+    { value: 9, label: 'Septiembre' },
+    { value: 10, label: 'Octubre' },
+    { value: 11, label: 'Noviembre' },
+    { value: 12, label: 'Diciembre' }
+  ];
   nucleoId = 1;     // ejemplo: luego puedes asignar dinámicamente
   proyectoId = 1;   // idem
   // 🔹 Nuevo objeto para controlar el estado de cada botón
@@ -101,25 +121,40 @@ export class HomeComponent implements OnInit{
     return today.toISOString().split('T')[0]; // Retorna YYYY-MM-DD
   }
 
+  private getReportDateRange(): { fechaInicio?: string; fechaFin?: string } {
+    if (this.reportPeriod === 'ALL') return {};
+
+    if (this.reportPeriod === 'YEAR') {
+      return {
+        fechaInicio: `${this.reportYear}-01-01`,
+        fechaFin: `${this.reportYear}-12-31`
+      };
+    }
+
+    const lastDay = new Date(this.reportYear, this.reportMonth, 0).getDate();
+    return {
+      fechaInicio: `${this.reportYear}-${String(this.reportMonth).padStart(2, '0')}-01`,
+      fechaFin: `${this.reportYear}-${String(this.reportMonth).padStart(2, '0')}-${lastDay}`
+    };
+  }
+
+  private downloadBlob(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
   downloadGlobalReport() {
+    const { fechaInicio, fechaFin } = this.getReportDateRange();
     this.isLoadingReport.global = true;
-    this.actasService.getExcelActas().subscribe({
+    this.actasService.getExcelActas(fechaInicio, fechaFin).subscribe({
       next: (blob: Blob) => {
-        // Crear URL del blob
-        const url = window.URL.createObjectURL(blob);
-
-        // Crear elemento a temporal
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Actas por proyecto ${this.getFormattedDate()}.xlsx`;
-
-        // Simular click para descargar
-        document.body.appendChild(link);
-        link.click();
-
-        // Limpieza
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        this.downloadBlob(blob, `Actas por proyecto ${this.getFormattedDate()}.xlsx`);
         this.isLoadingReport.global = false;
       },
       error: error => {
@@ -239,6 +274,23 @@ export class HomeComponent implements OnInit{
 
   downloadActas() {
     this.isLoadingReport.actas = true;
+    const { fechaInicio, fechaFin } = this.getReportDateRange();
+    this.actasService.getExcelActas(fechaInicio, fechaFin).subscribe({
+      next: (blob: Blob) => {
+        this.downloadBlob(blob, `Actas ${this.getFormattedDate()}.xlsx`);
+        this.isLoadingReport.actas = false;
+      },
+      error: (error) => {
+        this.isLoadingReport.actas = false;
+        console.error('Error al obtener actas:', error);
+        this.alert.error('Operación fallida','Error al descargar la información de actas');
+      }
+    });
+  }
+
+  /* Legacy local export kept below for reference during report migration.
+  downloadActasLegacy() {
+    this.isLoadingReport.actas = true;
     this.actasService.getAll().subscribe({
       next: (actas) => {
         // Preparar los datos para el Excel con formato más plano
@@ -314,6 +366,7 @@ export class HomeComponent implements OnInit{
       }
     });
   }
+  */
 
   downloadResponsables() {
     this.isLoadingReport.responsables = true;

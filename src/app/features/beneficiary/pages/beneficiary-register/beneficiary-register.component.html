@@ -72,8 +72,8 @@
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label for="nombre_1" class="label-base">Primer nombre</label>
-              <input formControlName="nombre1" type="text" id="nombre_1" class="input-base" placeholder="Primer nombre">
+              <label [for]="'nombre_1_' + formBeneficiary" class="label-base">Primer nombre</label>
+              <input formControlName="nombre1" type="text" [id]="'nombre_1_' + formBeneficiary" class="input-base" placeholder="Primer nombre">
 
               @if(beneficiario.get('nombre1')?.hasError('required') && beneficiario.get('nombre1')?.touched) {
                 <p class="text-red-500">
@@ -83,8 +83,8 @@
             </div>
 
             <div>
-              <label for="nombre_2" class="label-base">Segundo nombre</label>
-              <input formControlName="nombre2" type="text" id="nombre_2" class="input-base" placeholder="Segundo nombre">
+              <label [for]="'nombre_2_' + formBeneficiary" class="label-base">Segundo nombre</label>
+              <input formControlName="nombre2" type="text" [id]="'nombre_2_' + formBeneficiary" class="input-base" placeholder="Segundo nombre">
 
               @if(beneficiario.get('nombre2')?.hasError('required') && beneficiario.get('nombre2')?.touched) {
                 <p class="text-red-500">
@@ -96,8 +96,8 @@
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="my-2">
-              <label for="apellido_1" class="label-base">Primer apellido</label>
-              <input formControlName="apellido1" type="text" id="apellido_1" class="input-base" placeholder="Primer apellido">
+              <label [for]="'apellido_1_' + formBeneficiary" class="label-base">Primer apellido</label>
+              <input formControlName="apellido1" type="text" [id]="'apellido_1_' + formBeneficiary" class="input-base" placeholder="Primer apellido">
 
               @if(beneficiario.get('apellido1')?.hasError('required') && beneficiario.get('apellido1')?.touched) {
                 <p class="text-red-500">
@@ -107,8 +107,8 @@
             </div>
 
             <div class="my-2">
-              <label for="apellido_2" class="label-base">Segundo apellido</label>
-              <input formControlName="apellido2" type="text" id="apellido_2" class="input-base" placeholder="Segundo apellido">
+              <label [for]="'apellido_2_' + formBeneficiary" class="label-base">Segundo apellido</label>
+              <input formControlName="apellido2" type="text" [id]="'apellido_2_' + formBeneficiary" class="input-base" placeholder="Segundo apellido">
 
               @if(beneficiario.get('apellido2')?.hasError('required') && beneficiario.get('apellido2')?.touched) {
                 <p class="text-red-500">
@@ -120,8 +120,8 @@
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-[minmax(12rem,14rem)_1fr]">
             <div>
-              <label for="tipo_documento" class="label-base">Tipo de documento</label>
-              <select formControlName="tipoDocumento" name="tipo_documento" id="tipo_documento" class="input-base">
+              <label [for]="'tipo_documento_' + formBeneficiary" class="label-base">Tipo de documento</label>
+              <select formControlName="tipoDocumento" name="tipo_documento" [id]="'tipo_documento_' + formBeneficiary" class="input-base">
                 <option value="CC" class="input-base capitalize">Cedula de Ciudadania</option>
                 <option value="TI" class="input-base capitalize" >Tarjeta de identidad</option>
                 <option value="pasaporte" class="input-base capitalize" >pasaporte</option>
@@ -136,8 +136,8 @@
             </div>
 
             <div class="w-full">
-              <label for="id" class="label-base">Número de documento</label>
-              <input formControlName="numeroDocumento" type="text" id="id" class="input-base" placeholder="Documento">
+              <label [for]="'documento_' + formBeneficiary" class="label-base">Número de documento</label>
+              <input formControlName="numeroDocumento" type="text" [id]="'documento_' + formBeneficiary" class="input-base" placeholder="Documento">
 
               @if(beneficiario.get('numeroDocumento')?.hasError('required') && beneficiario.get('numeroDocumento')?.touched) {
                 <p class="text-red-500">
@@ -149,10 +149,14 @@
 
           <div class="grid grid-cols-1 gap-3 py-2 lg:grid-cols-2 xl:grid-cols-4">
 
-            <fieldset class="rounded-md border border-gray-300 p-2">
-              <label>Sexo: </label>
-              <input formControlName="sexo" name="sexo" type="radio" value="f" class="input-radio-base"> Femenino
-              <input formControlName="sexo" name="sexo" type="radio" value="m" class="input-radio-base"> Masculino
+            <fieldset class="rounded-lg border border-slate-200 p-3">
+              <legend class="mb-2 text-sm font-semibold text-slate-700">Sexo</legend>
+              <label [for]="'sexo_f_' + formBeneficiary" class="mr-3 inline-flex items-center gap-1 text-sm text-slate-600">
+                <input formControlName="sexo" name="sexo" type="radio" value="f" [id]="'sexo_f_' + formBeneficiary" class="input-radio-base"> Femenino
+              </label>
+              <label [for]="'sexo_m_' + formBeneficiary" class="inline-flex items-center gap-1 text-sm text-slate-600">
+                <input formControlName="sexo" name="sexo" type="radio" value="m" [id]="'sexo_m_' + formBeneficiary" class="input-radio-base"> Masculino
+              </label>
 
               @if(beneficiario.get('sexo')?.hasError('required') && beneficiario.get('sexo')?.touched) {
                 <p class="text-red-500">
@@ -161,10 +165,14 @@
               }
             </fieldset>
 
-            <fieldset class="rounded-md border border-gray-300 p-2">
-              <label>Genero: </label>
-              <input formControlName="genero" name="genero" type="radio" value="na"   class="input-radio-base"> No aplica
-              <input formControlName="genero" name="genero" type="radio" value="LGBTI" class="input-radio-base"> LGBTI
+            <fieldset class="rounded-lg border border-slate-200 p-3">
+              <legend class="mb-2 text-sm font-semibold text-slate-700">Género</legend>
+              <label [for]="'genero_na_' + formBeneficiary" class="mr-3 inline-flex items-center gap-1 text-sm text-slate-600">
+                <input formControlName="genero" name="genero" type="radio" value="na" [id]="'genero_na_' + formBeneficiary" class="input-radio-base"> No aplica
+              </label>
+              <label [for]="'genero_lgbti_' + formBeneficiary" class="inline-flex items-center gap-1 text-sm text-slate-600">
+                <input formControlName="genero" name="genero" type="radio" value="LGBTI" [id]="'genero_lgbti_' + formBeneficiary" class="input-radio-base"> LGBTI
+              </label>
 
               @if(beneficiario.get('genero')?.hasError('required') && beneficiario.get('genero')?.touched) {
                 <p class="text-red-500">
@@ -173,10 +181,14 @@
               }
             </fieldset>
 
-            <fieldset class="rounded-md border border-gray-300 p-2">
-              <label>Victima del conflicto: </label>
-              <input formControlName="victimaConflico" type="radio" name="victimaConflico" value="0" class="input-radio-base"> No
-              <input formControlName="victimaConflico" type="radio" name="victimaConflico" value="1" class="input-radio-base"> Si
+            <fieldset class="rounded-lg border border-slate-200 p-3">
+              <legend class="mb-2 text-sm font-semibold text-slate-700">Víctima del conflicto</legend>
+              <label [for]="'victima_no_' + formBeneficiary" class="mr-3 inline-flex items-center gap-1 text-sm text-slate-600">
+                <input formControlName="victimaConflico" type="radio" name="victimaConflico" value="0" [id]="'victima_no_' + formBeneficiary" class="input-radio-base"> No
+              </label>
+              <label [for]="'victima_si_' + formBeneficiary" class="inline-flex items-center gap-1 text-sm text-slate-600">
+                <input formControlName="victimaConflico" type="radio" name="victimaConflico" value="1" [id]="'victima_si_' + formBeneficiary" class="input-radio-base"> Sí
+              </label>
 
               @if(beneficiario.get('victimaConflico')?.hasError('required') && beneficiario.get('victimaConflico')?.touched) {
                 <p class="text-red-500">
@@ -187,8 +199,8 @@
 
             <div class="flex flex-col">
               <div class="relative flex  items-center gap-2">
-                <label for="birthdate">Nacimiento</label>
-                <input formControlName="fechaNacimiento" id="birthdate" datepicker type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5" placeholder="Select date">
+                <label [for]="'birthdate_' + formBeneficiary" class="label-base">Nacimiento</label>
+                <input formControlName="fechaNacimiento" [id]="'birthdate_' + formBeneficiary" datepicker type="date" class="input-base" placeholder="Seleccionar fecha">
               </div>
               @if(beneficiario.get('fechaNacimiento')?.hasError('required') && beneficiario.get('fechaNacimiento')?.touched) {
                 <p class="text-red-500">
@@ -199,8 +211,8 @@
 
             <div class="flex flex-col">
               <div class="flex items-center gap-4">
-                <label for="edad" class="label-base">Edad</label>
-                <input formControlName="edad" type="number" id="edad" class="w-20 px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" value="0">
+                <label [for]="'edad_' + formBeneficiary" class="label-base">Edad</label>
+                <input formControlName="edad" type="number" [id]="'edad_' + formBeneficiary" class="input-base max-w-28" min="0">
               </div>
               @if(beneficiario.get('edad')?.hasError('required') && beneficiario.get('edad')?.touched) {
                 <p class="text-red-500">
@@ -212,8 +224,8 @@
           </div>
 
           <div>
-            <label for="etnia" class="label-base">Etnia</label>
-            <input formControlName="etnia" type="text" id="etnia" class="input-base" placeholder="etnia">
+            <label [for]="'etnia_' + formBeneficiary" class="label-base">Etnia</label>
+            <input formControlName="etnia" type="text" [id]="'etnia_' + formBeneficiary" class="input-base" placeholder="Etnia">
             @if(beneficiario.get('etnia')?.hasError('required') && beneficiario.get('etnia')?.touched) {
               <p class="text-red-500">
                 * Este campo es requerido
@@ -223,8 +235,8 @@
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label for="email" class="label-base">Email</label>
-              <input formControlName="email" type="email" id="email" class="input-base" placeholder="beneficiario@correo.com">
+              <label [for]="'email_' + formBeneficiary" class="label-base">Email</label>
+              <input formControlName="email" type="email" [id]="'email_' + formBeneficiary" class="input-base" placeholder="beneficiario@correo.com">
               @if(beneficiario.get('email')?.hasError('pattern') && beneficiario.get('email')?.touched) {
                 <p class="text-red-500">
                   * ⚠️ El formato del correo debe ser válido - ej: correo&#64;gmail.com
@@ -233,8 +245,8 @@
             </div>
 
             <div>
-              <label for="phone" class="label-base">Telefono</label>
-              <input formControlName="telefono" type="tel" id="phone" class="input-base" placeholder="+1 (555) 123-4567">
+              <label [for]="'phone_' + formBeneficiary" class="label-base">Teléfono</label>
+              <input formControlName="telefono" type="tel" [id]="'phone_' + formBeneficiary" class="input-base" placeholder="+57 300 123 4567">
               @if(beneficiario.get('telefono')?.hasError('required') && beneficiario.get('telefono')?.touched) {
                 <p class="text-red-500">
                   * Este campo es requerido
@@ -243,9 +255,9 @@
             </div>
           </div>
 
-          <button (click)="deletePerson(formBeneficiary)" type="button"
-            class="btn-action-red"
-          >Eliminar</button>
+          <button (click)="deletePerson(formBeneficiary)" type="button" class="btn-action-red self-start" [attr.aria-label]="'Eliminar integrante ' + (formBeneficiary + 1)">
+            Eliminar integrante
+          </button>
 
         </div>
       </div>
@@ -255,7 +267,7 @@
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
       <button (click)="addBeneficiary()" type="button"
         class="btn-action-green">Agregar integrante</button>
-      <button type="button"
+      <button type="button" (click)="cancelar()"
         class="btn-action-gray"
       >Cancelar</button>
       <button type="submit"

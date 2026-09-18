@@ -30,7 +30,7 @@
   </header>
 
   <!-- 📊 TABLA -->
-  <div class="overflow-x-auto bg-white rounded-xl shadow border border-gray-200">
+  <div class="table-shell">
 
     @if (loading()) {
       <!-- Loader elegante mientras se cargan las actas -->
@@ -47,14 +47,15 @@
       </div>
     }
     @else if (dataTable) {
-      <table class="w-full text-sm border-collapse">
+      <div class="table-scroll">
+      <table class="table-compact min-w-[760px]">
         <thead>
           <tr class="bg-gray-100 text-gray-700">
             @for (headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
               @for (headerItem of headerGroup.headers; track headerItem.id) {
                 <th
                   scope="col"
-                  class="text-left py-3 px-3 font-medium border-b border-gray-300 select-none"
+                  class="select-none"
                 >
                   <ng-container
                     *flexRender="headerItem.column.columnDef.header; props: headerItem.getContext(); let header"
@@ -84,7 +85,7 @@
           @for (row of dataTable.getRowModel().rows; track row.id) {
             <tr class="hover:bg-blue-50 transition-colors duration-150 border-b border-gray-200">
               @for (cell of row.getVisibleCells(); track cell.id) {
-                <td class="px-3 py-2 align-middle">
+                <td>
                   @if (cell.column.id === 'acciones') {
                     <div class="flex justify-center gap-2">
                       <button
@@ -117,6 +118,7 @@
           }
         </tbody>
       </table>
+      </div>
     }
     @else {
       <div class="flex items-center justify-center h-40 text-gray-500 italic">

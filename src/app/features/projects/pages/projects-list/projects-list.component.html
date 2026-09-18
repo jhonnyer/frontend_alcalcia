@@ -33,13 +33,14 @@
   </header>
 
   <!-- TABLA -->
-  <mat-card class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-    <table class="min-w-[900px] w-full text-sm">
+  <mat-card class="table-shell">
+    <div class="table-scroll">
+    <table class="table-compact">
       <thead>
         @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id){
             <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-600">
             @for(headerItem of headerGroup.headers; track headerItem.id){
-              <th scope="col" class="border-b border-slate-200 px-3 py-3">
+              <th scope="col">
                 <div class="flex flex-col gap-1">
                   <!-- Botón de ordenamiento -->
                   <ng-container
@@ -72,7 +73,7 @@
         @for(row of dataTable.getRowModel().rows; track row.id){
           <tr class="border-b border-slate-100 text-slate-700 transition-colors hover:bg-blue-50/40">
             @for(cell of row.getVisibleCells(); track cell.id){
-              <td class="px-3 py-3 align-top">
+              <td class="align-top">
                 @if(cell.column.id === 'acciones'){
                   <div class="flex gap-2 justify-center">
                     <!-- Botón editar -->
@@ -111,6 +112,7 @@
         }
       </tbody>
     </table>
+    </div>
   </mat-card>
 
   <!-- PAGINACIÓN -->

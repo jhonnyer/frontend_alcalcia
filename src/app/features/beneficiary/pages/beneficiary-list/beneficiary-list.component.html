@@ -53,16 +53,17 @@
   </header>
 
   <!-- TABLA -->
-  <mat-card class="rounded-xl border border-slate-200 bg-white shadow-sm">
-    <div class="overflow-x-auto">
-      <table class="min-w-[980px] w-full text-sm border rounded">
+  <mat-card class="table-shell">
+    <div class="table-scroll">
+      <table class="table-compact">
+        <caption class="sr-only">Listado de beneficiarios registrados</caption>
         <thead>
           @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
             <tr>
               @for(headerItem of headerGroup.headers; track headerItem.id) {
                 <th
                   scope="col"
-                  class="h-10 border-b border-slate-200 bg-slate-50 px-2 text-xs font-bold uppercase tracking-wide text-slate-600"
+                  class="h-9"
                 >
                   <div class="flex flex-col h-full justify-between">
                     <ng-container
@@ -98,9 +99,9 @@
 
         <tbody>
           @for(row of dataTable.getRowModel().rows; track row.id) {
-            <tr class="border-b border-slate-100 transition-colors hover:bg-blue-50/40">
+              <tr>
               @for(cell of row.getVisibleCells(); track cell.id) {
-                <td class="border-b border-slate-100 px-2 py-3">
+                <td>
                   @if(cell.column.id === 'acciones') {
                     <div class="flex gap-2">
                       @if(row.original.idNucleoFk) {
@@ -118,6 +119,8 @@
                         type="button"
                         (click)="update(row)"
                         class="text-green-600 hover:text-green-800"
+                        title="Editar beneficiario"
+                        aria-label="Editar beneficiario"
                       >
                         <mat-icon>edit</mat-icon>
                       </button>
@@ -125,6 +128,8 @@
                         type="button"
                         (click)="delete(row)"
                         class="text-red-600 hover:text-red-800"
+                        title="Eliminar beneficiario"
+                        aria-label="Eliminar beneficiario"
                         *hasRole="['ADMIN']"
                       >
                         <mat-icon>delete</mat-icon>
@@ -146,25 +151,32 @@
               }
             </tr>
           }
+          @if (dataTable.getRowModel().rows.length === 0) {
+            <tr>
+              <td class="px-4 py-10 text-center text-sm text-slate-500" [attr.colspan]="dataTable.getAllColumns().length">
+                No se encontraron beneficiarios con los filtros actuales.
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
 
     <!-- PAGINACIÓN -->
-    <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div class="text-sm text-gray-600">
+    <div class="flex flex-col gap-2 border-t border-slate-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+      <div class="text-xs text-slate-500">
         Mostrando {{ dataTable.getRowModel().rows.length }} de
         {{ dataTable.getRowCount() }} beneficiarios
       </div>
 
-      <div class="flex flex-wrap gap-3 items-center">
-        <span class="text-sm">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-xs text-slate-600">
           Página {{ dataTable.getState().pagination.pageIndex + 1 }} de
           {{ dataTable.getPageCount() }}
         </span>
 
         <select
-          class="border rounded px-2 py-1 text-sm"
+          class="min-h-9 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
           (change)="onChangeValueSizePageSelect($event)"
         >
           @for(size of sizePage(); track size) {

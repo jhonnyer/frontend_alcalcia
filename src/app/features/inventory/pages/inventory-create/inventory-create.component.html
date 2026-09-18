@@ -4,9 +4,9 @@
     <!-- 🔹 Selección Proyecto y Categoría -->
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div>
-        <label class="label-base">Proyecto</label>
+        <label class="label-base" for="inventory-project-search">Proyecto</label>
         <div class="relative">
-          <input class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
+          <input id="inventory-project-search" class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
           @if (projectSearch()) {
             <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearProjectFilter()" aria-label="Limpiar proyecto" title="Limpiar proyecto"><mat-icon>close</mat-icon></button>
           }
@@ -24,9 +24,9 @@
       </div>
 
       <div>
-        <label class="label-base">Categoría</label>
+        <label class="label-base" for="inventory-category-search">Categoría</label>
         <div class="relative">
-          <input class="input-base pr-10" type="text" placeholder="Buscar categoría por nombre o ID" [disabled]="!formFamilyCore.get('idProyecto')?.value" [value]="categorySearch()" (input)="onCategorySearch($event)" (focus)="showCategorySuggestions()" (blur)="hideCategorySuggestions()" autocomplete="off" />
+          <input id="inventory-category-search" class="input-base pr-10" type="text" placeholder="Buscar categoría por nombre o ID" [disabled]="!formFamilyCore.get('idProyecto')?.value" [value]="categorySearch()" (input)="onCategorySearch($event)" (focus)="showCategorySuggestions()" (blur)="hideCategorySuggestions()" autocomplete="off" />
           @if (categorySearch()) {
             <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearCategoryFilter()" aria-label="Limpiar categoría" title="Limpiar categoría"><mat-icon>close</mat-icon></button>
           }
@@ -47,7 +47,7 @@
     <!-- 🔹 Tabla de productos -->
     <div formArrayName="productos">
       <div class="overflow-x-auto w-full">
-        <table class="min-w-[700px] w-full border-collapse border border-gray-300 text-sm rounded-md overflow-hidden">
+        <table class="table-compact min-w-[700px]">
           <thead class="bg-gray-100">
             <tr class="text-gray-700 text-left">
               <th class="border p-2">Nombre</th>
@@ -59,20 +59,30 @@
           </thead>
           <tbody>
             <tr *ngFor="let producto of productosArray.controls; index as i" [formGroupName]="i">
-              <td class="border p-2">
-                <input type="text" formControlName="nombreProducto" class="input-base" placeholder="Ej: Jabon">
+              <td>
+                <input type="text" formControlName="nombreProducto" class="input-base" placeholder="Ej: Jabón">
+                @if (producto.get('nombreProducto')?.hasError('required') && producto.get('nombreProducto')?.touched) {
+                  <p class="mt-1 text-xs text-red-600">El nombre es obligatorio.</p>
+                }
               </td>
-              <td class="border p-2 text-center">
-                <input type="number" formControlName="stock" class="w-20 border rounded p-1 text-center" min="0">
+              <td class="text-center">
+                <input type="number" formControlName="stock" class="input-base mx-auto w-24 text-center" min="0">
+                @if (producto.get('stock')?.hasError('required') && producto.get('stock')?.touched) {
+                  <p class="mt-1 text-xs text-red-600">El stock es obligatorio.</p>
+                }
+                @if (producto.get('stock')?.hasError('min')) {
+                  <p class="mt-1 text-xs text-red-600">No puede ser negativo.</p>
+                }
               </td>
-              <td class="border p-2">
+              <td>
                 <input type="text" formControlName="descripcion" class="input-base" placeholder="Descripción...">
               </td>
-              <td class="border p-2 text-center">
-                <input type="date" formControlName="fechaIngreso" class="border rounded p-1">
+              <td class="text-center">
+                <input type="date" formControlName="fechaIngreso" class="input-base">
               </td>
-              <td class="border p-2 text-center">
-                <button type="button" class="text-red-600 hover:text-red-800 font-semibold"
+              <td class="text-center">
+                <button type="button" class="text-sm font-semibold text-red-600 hover:text-red-800"
+                        [attr.aria-label]="'Eliminar ' + (producto.get('nombreProducto')?.value || 'producto')"
                         (click)="deleteProducto(i)">Eliminar</button>
               </td>
             </tr>
@@ -81,7 +91,10 @@
       </div>
 
       <div class="mt-3 flex justify-stretch sm:justify-end">
-        <button type="button" class="btn-action-green" (click)="addProducto()">➕ Agregar producto</button>
+        <button type="button" class="btn-action-green" (click)="addProducto()">
+          <mat-icon class="mr-1 text-base">add</mat-icon>
+          Agregar producto
+        </button>
       </div>
     </div>
 
@@ -96,7 +109,7 @@
           'bg-blue-600 hover:bg-blue-700 text-white': !formFamilyCore.invalid,
           'bg-gray-300 text-gray-500 cursor-not-allowed': formFamilyCore.invalid
         }"
-        class="px-4 py-2 text-sm rounded-md transition-all duration-200"
+        class="inline-flex min-h-10 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200"
       >
         Guardar
       </button>

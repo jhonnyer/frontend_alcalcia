@@ -16,20 +16,20 @@
 		</div>
 	</header>
 
-	<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-		<article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+	<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+		<article class="rounded-xl border border-slate-200 border-l-4 border-l-blue-500 bg-white p-4 shadow-sm">
 			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Secretarías</p>
 			<p class="mt-2 text-3xl font-bold text-slate-800">{{ secretarias().length }}</p>
 			<p class="text-sm text-slate-500">Áreas habilitadas para operación multi-secretaría.</p>
 		</article>
 
-		<article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+		<article class="rounded-xl border border-slate-200 border-l-4 border-l-emerald-500 bg-white p-4 shadow-sm">
 			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Usuarios</p>
 			<p class="mt-2 text-3xl font-bold text-slate-800">{{ responsables().length }}</p>
 			<p class="text-sm text-slate-500">Responsables y administradores registrados.</p>
 		</article>
 
-		<article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+		<article class="rounded-xl border border-slate-200 border-l-4 border-l-amber-500 bg-white p-4 shadow-sm">
 			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Parámetros</p>
 			<p class="mt-2 text-3xl font-bold text-slate-800">Por secretaría</p>
 			<p class="text-sm text-slate-500">Datos institucionales usados en actas y documentos.</p>
@@ -117,6 +117,7 @@
 							<th class="px-3 py-2 text-left">ID</th>
 							<th class="px-3 py-2 text-left">Nombre</th>
 							<th class="px-3 py-2 text-left">Código</th>
+							<th class="px-3 py-2 text-center">Estado</th>
 							<th class="px-3 py-2 text-center">Acción</th>
 						</tr>
 					</thead>
@@ -126,6 +127,14 @@
 								<td class="px-3 py-2 font-semibold text-slate-700">#{{ secretaria.idSecretaria }}</td>
 								<td class="px-3 py-2">{{ secretaria.nombre }}</td>
 								<td class="px-3 py-2">{{ secretaria.codigo }}</td>
+								<td class="px-3 py-2 text-center">
+									<span
+										class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
+										[ngClass]="secretaria.estado === 'A' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'"
+									>
+										{{ secretaria.estado === 'A' ? 'Activa' : 'Inactiva' }}
+									</span>
+								</td>
 								<td class="px-3 py-2 text-center">
 									<button type="button" class="rounded-md p-1 text-red-600 hover:bg-red-50" (click)="deleteSecretary(secretaria)" title="Eliminar secretaría vacía" aria-label="Eliminar secretaría">
 										<mat-icon>delete</mat-icon>
@@ -161,9 +170,17 @@
 			} @else {
 			<div class="max-h-80 space-y-2 overflow-auto pr-1">
 				@for (responsable of filteredResponsables(); track responsable.idResponsable) {
-					<div class="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
-						<p class="font-semibold text-slate-800">#{{ responsable.idResponsable }} - {{ responsable.primerNombre }} {{ responsable.primerApellido }}</p>
-						<p class="text-xs text-slate-500">{{ responsable.tipoIdentificacion }} {{ responsable.numeroIdentificacion }} · {{ responsable.usuario }} · {{ responsable.perfilUsuario }} · {{ responsable.estado === 'A' ? 'Activo' : 'Inactivo' }}</p>
+					<div class="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm transition-colors hover:border-blue-100 hover:bg-blue-50/40">
+						<div class="flex flex-wrap items-center justify-between gap-2">
+							<p class="font-semibold text-slate-800">#{{ responsable.idResponsable }} - {{ responsable.primerNombre }} {{ responsable.primerApellido }}</p>
+							<span
+								class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
+								[ngClass]="responsable.estado === 'A' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-200 text-slate-600'"
+							>
+								{{ responsable.estado === 'A' ? 'Activo' : 'Inactivo' }}
+							</span>
+						</div>
+						<p class="mt-1 text-xs text-slate-500">{{ responsable.tipoIdentificacion }} {{ responsable.numeroIdentificacion }} · {{ responsable.usuario }} · {{ responsable.perfilUsuario }}</p>
 					</div>
 				}
 			</div>

@@ -1,7 +1,4 @@
-<section
-  class="relative flex flex-col min-h-[calc(100vh-6rem)]
-         overflow-x-auto scrollbar-custom px-5 pb-8"
->
+<section class="relative flex min-h-[calc(100vh-6rem)] flex-col overflow-x-hidden scrollbar-custom px-3 pb-8 sm:px-5">
   <!-- 🔹 Grupo de pestañas -->
   <mat-tab-group animationDuration="400ms" mat-stretch-tabs>
 
@@ -26,11 +23,12 @@
       </ng-template>
 
       <!-- 🔹 Título -->
-      <div class="w-full py-4 border-b-4" *hasRole="['ADMIN', 'RESP']">
-        <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+      <div class="w-full border-b border-slate-200 py-4" *hasRole="['ADMIN', 'RESP']">
+        <h2 class="flex items-center gap-2 text-xl font-semibold text-gray-800">
           <mat-icon class="text-blue-700">domain</mat-icon>
           Menú de navegación
         </h2>
+        <p class="mt-1 text-sm text-slate-500">Accede rápidamente a las tareas más utilizadas.</p>
       </div>
 
       <!-- 🔸 Contenedor con scroll -->
@@ -39,17 +37,34 @@
           class="accesos-container"
           *hasRole="['ADMIN', 'RESP']"
         >
-          <div routerLink="/nucleo" class="shortcut bg-blue-600 hover:bg-blue-700">1. Actores Sociales</div>  
-          <div routerLink="/projects" class="shortcut bg-lime-600 hover:bg-lime-700">2. Proyectos</div>
-          <div routerLink="/proceedings" class="shortcut bg-green-600 hover:bg-green-700">3. Actas</div>
-          <div routerLink="/beneficary" class="shortcut bg-red-600 hover:bg-red-700">4. Beneficiarios</div>
-          <div routerLink="/categorias" class="shortcut bg-purple-600 hover:bg-purple-700">5. Categorías</div>
-          <div routerLink="/inventory" class="shortcut bg-orange-500 hover:bg-orange-600">6. Inventario</div>
-          <div routerLink="/resposibles" *hasRole="['ADMIN']" class="shortcut bg-slate-500 hover:bg-slate-600">7. Usuarios</div>
+          <a routerLink="/nucleo" class="shortcut bg-blue-600 hover:bg-blue-700" aria-label="Abrir actores sociales">
+            <mat-icon>groups</mat-icon><span>Actores sociales</span>
+          </a>
+          <a routerLink="/projects" class="shortcut bg-lime-600 hover:bg-lime-700" aria-label="Abrir proyectos">
+            <mat-icon>work_outline</mat-icon><span>Proyectos</span>
+          </a>
+          <a routerLink="/proceedings" class="shortcut bg-green-600 hover:bg-green-700" aria-label="Abrir actas">
+            <mat-icon>description</mat-icon><span>Actas</span>
+          </a>
+          <a routerLink="/beneficary" class="shortcut bg-red-600 hover:bg-red-700" aria-label="Abrir beneficiarios">
+            <mat-icon>person_search</mat-icon><span>Beneficiarios</span>
+          </a>
+          <a routerLink="/categorias" class="shortcut bg-purple-600 hover:bg-purple-700" aria-label="Abrir categorías">
+            <mat-icon>category</mat-icon><span>Categorías</span>
+          </a>
+          <a routerLink="/inventory" class="shortcut bg-orange-500 hover:bg-orange-600" aria-label="Abrir inventario">
+            <mat-icon>inventory_2</mat-icon><span>Inventario</span>
+          </a>
+          <a routerLink="/resposibles" *hasRole="['ADMIN']" class="shortcut bg-slate-600 hover:bg-slate-700" aria-label="Abrir usuarios">
+            <mat-icon>manage_accounts</mat-icon><span>Usuarios</span>
+          </a>
 
-          <div
+          <button
+            type="button"
             class="shortcut bg-blue-700 hover:bg-blue-800 relative"
             (click)="descargarReporte()"
+            [disabled]="isLoadingPDF"
+            aria-label="Descargar informe general"
           >
             <ng-container *ngIf="!isLoadingPDF; else loadingTpl">
               <mat-icon class="mr-2">picture_as_pdf</mat-icon>
@@ -63,7 +78,7 @@
                 class="absolute"
               ></mat-progress-spinner>
             </ng-template>
-          </div>
+          </button>
         </div>
       </div>
     </mat-tab>
@@ -238,7 +253,7 @@
 
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">
-                @if(isLoadingReport.global){ Generando... }@else{ 10. Reporte Global }
+                @if(isLoadingReport.reportGeneral){ Generando... }@else{ 10. Reporte Global }
               </p>
             </div>
           </div>

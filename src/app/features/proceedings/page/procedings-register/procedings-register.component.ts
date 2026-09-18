@@ -404,7 +404,19 @@ export class ProcedingsRegisterComponent implements OnInit{
   }
 
 
-  removeSelectedProduct(productId: number) {
+  async removeSelectedProduct(productId: number): Promise<void> {
+    const product = this.selectedProductsInfo().find(item => item.idProducto === productId);
+    if (!product) return;
+
+    const confirmed = await this.alert.confirm(
+      'Quitar producto',
+      `¿Deseas quitar "${product.nombre}" del acta?`,
+      'Quitar',
+      'Cancelar'
+    );
+
+    if (!confirmed) return;
+
     // Remover del signal de información
     const updatedInfo = this.selectedProductsInfo().filter(p => p.idProducto !== productId);
     this.selectedProductsInfo.set(updatedInfo);

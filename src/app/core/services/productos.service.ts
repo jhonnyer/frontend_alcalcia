@@ -37,8 +37,8 @@ export class ProductosService {
     return this.http.put<ResponseStandarUnique<IProducto>>(`${this.URL}/productos/${idProducto}`, data, { context: checkToken() });
   }
 
-  delete(idProducto: string) {
-    this.http.delete(`${this.URL}/productos/${idProducto}`, { context: checkToken() });
+  delete(idProducto: string): Observable<void> {
+    return this.http.delete<void>(`${this.URL}/productos/${idProducto}`, { context: checkToken() });
   }
 
 }

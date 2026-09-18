@@ -27,6 +27,7 @@ import { ICategorias } from '../../../../core/models/categorias.model';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-inventory-list',
@@ -51,6 +52,7 @@ export class InventoryListComponent implements OnInit {
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private alert = inject(AlertService);
   filtroActual = '';
 
   data = signal<IProducto[]>([]);
@@ -279,8 +281,24 @@ export class InventoryListComponent implements OnInit {
     ]);
   }
 
-  delete(item: Row<IProducto>) {
-    this.productosService.delete(item.original.idProducto.toString());
+  async delete(item: Row<IProducto>): Promise<void> {
+    const productName = item.original.nombre || 'este producto';
+    const confirmed = await this.alert.confirm(
+      'Eliminar producto',
+      `¿Deseas eliminar "${productName}"? Esta acción no se puede deshacer.`,
+      'Eliminar',
+      'Cancelar'
+    );
+
+    if (!confirmed) return;
+
+    this.productosService.delete(item.original.idProducto.toString()).subscribe({
+      next: () => {
+        this.data.update(products => products.filter(product => product.idProducto !== item.original.idProducto));
+        this.alert.success('Producto eliminado', 'El producto fue eliminado correctamente.');
+      },
+      error: () => this.alert.error('Operación fallida', 'No se pudo eliminar el producto.')
+    });
   }
 
   update(item: Row<IProducto>) {

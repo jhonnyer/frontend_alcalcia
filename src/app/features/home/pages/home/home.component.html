@@ -80,11 +80,12 @@
           *hasRole="['ADMIN', 'RESP']"
         >
           <div class="report-group-title report-group-title-filtered">
-            <mat-icon>date_range</mat-icon>
+            <mat-icon class="report-group-icon report-group-icon-filtered">date_range</mat-icon>
             <div class="report-group-heading">
               <h3>Reportes por período</h3>
               <p>El período filtra actas, proyectos, productos y relaciones con fecha operativa.</p>
             </div>
+            @if (reportPeriodOpen) {
             <div class="report-period-controls">
               <label class="report-period-field">
                 <span>Alcance</span>
@@ -115,6 +116,7 @@
                 </label>
               }
             </div>
+            }
             <button type="button" class="report-collapse-button" (click)="reportPeriodOpen = !reportPeriodOpen" [attr.aria-label]="reportPeriodOpen ? 'Contraer reportes por período' : 'Expandir reportes por período'" [attr.aria-expanded]="reportPeriodOpen">
               <mat-icon>{{ reportPeriodOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
             </button>
@@ -196,7 +198,7 @@
 
           <!-- Núcleos -->
           <button type="button" class="report-group-title report-group-title-general report-group-toggle" (click)="reportGeneralReportsOpen = !reportGeneralReportsOpen" [attr.aria-expanded]="reportGeneralReportsOpen">
-            <mat-icon>all_inclusive</mat-icon>
+            <mat-icon class="report-group-icon report-group-icon-general">all_inclusive</mat-icon>
             <div>
               <h3>Reportes generales</h3>
               <p>Actores sociales, categorías y usuarios se muestran completos porque no tienen una fecha de reporte propia.</p>

@@ -132,6 +132,18 @@ section {
   @apply text-sm font-semibold;
 }
 
+.report-group-icon {
+  @apply rounded-lg p-1 text-xl;
+}
+
+.report-group-icon-filtered {
+  @apply bg-blue-100 text-blue-600;
+}
+
+.report-group-icon-general {
+  @apply bg-violet-100 text-violet-600;
+}
+
 .report-group-title p {
   @apply mt-0.5 text-xs font-normal text-slate-500;
 }
@@ -190,23 +202,23 @@ section {
   @apply flex flex-col items-center justify-center 
          bg-white text-gray-700 rounded-xl shadow-md border border-gray-100
          hover:shadow-lg transition cursor-pointer
-         h-[116px] w-full p-2;
+         h-[100px] w-full p-1.5;
 }
 
 /* 🟦 Caja del ícono */
 .report-icon-box {
   @apply flex items-center justify-center rounded-xl text-white shadow-md
-         w-10 h-10 mb-1;
+         w-8 h-8 mb-0.5;
 }
 
 /* 🟧 Ícono principal */
 .report-icon {
-  @apply text-white text-xl;
+  @apply text-white text-lg;
 }
 
 /* 🟪 Texto */
 .report-card p {
-  @apply text-center text-[13px] leading-tight mt-1;
+  @apply text-center text-xs leading-tight mt-0.5;
 }
 
 /* ========================================================= */

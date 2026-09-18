@@ -85,12 +85,7 @@
         <p class="text-sm text-gray-700">Documento: <b>{{ beneficiario()?.numeroDocumento }}</b></p>
         <p class="text-sm text-gray-700">
           Estado:
-          <span
-            [ngClass]="{
-              'text-green-600 font-semibold': beneficiarioProyecto()?.esBeneficiarioActivo,
-              'text-red-600 font-semibold': !beneficiarioProyecto()?.esBeneficiarioActivo
-            }"
-          >
+          <span class="status-badge" [ngClass]="beneficiarioProyecto()?.esBeneficiarioActivo ? 'status-badge-active' : 'status-badge-inactive'">
             {{ beneficiarioProyecto()?.esBeneficiarioActivo ? 'Activo' : 'Inactivo' }}
           </span>
         </p>
@@ -126,24 +121,14 @@
 
           <p class="text-sm text-gray-700">
             Estado:
-            <span
-              [ngClass]="{
-                'text-green-600 font-semibold': beneficiarioProyecto()?.estadoProyecto === 'A',
-                'text-red-600 font-semibold': beneficiarioProyecto()?.estadoProyecto === 'I'
-              }"
-            >
+            <span class="status-badge" [ngClass]="beneficiarioProyecto()?.estadoProyecto === 'A' ? 'status-badge-active' : 'status-badge-inactive'">
               {{ beneficiarioProyecto()?.estadoProyecto === 'A' ? 'Activo' : 'Inactivo' }}
             </span>
           </p>
 
           <p class="text-sm text-gray-700">
             Beneficiario:
-            <span
-              [ngClass]="{
-                'text-green-600 font-semibold': beneficiarioProyecto()?.esBeneficiarioActivo,
-                'text-red-600 font-semibold': !beneficiarioProyecto()?.esBeneficiarioActivo
-              }"
-            >
+            <span class="status-badge" [ngClass]="beneficiarioProyecto()?.esBeneficiarioActivo ? 'status-badge-active' : 'status-badge-inactive'">
               {{ beneficiarioProyecto()?.esBeneficiarioActivo ? 'Activo' : 'Inactivo' }}
             </span>
           </p>
@@ -198,12 +183,9 @@
                   }"
                   class="transition">
                 <td class="px-3 py-2 font-medium">{{ p.nombreProyecto }}</td>
-                <td class="px-3 py-2 text-center text-green-600 font-semibold">Activo</td>
+                <td class="px-3 py-2 text-center"><span class="status-badge status-badge-active">Activo</span></td>
                 <td class="px-3 py-2 text-center">
-                  <span [ngClass]="{
-                    'text-green-600 font-semibold': p.esBeneficiarioActivo,
-                    'text-red-600 font-semibold': !p.esBeneficiarioActivo
-                  }">
+                  <span class="status-badge" [ngClass]="p.esBeneficiarioActivo ? 'status-badge-active' : 'status-badge-inactive'">
                     {{ p.esBeneficiarioActivo ? 'Activo' : 'Inactivo' }}
                   </span>
                   </td>

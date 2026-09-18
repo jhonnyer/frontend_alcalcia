@@ -16,6 +16,18 @@
   @apply min-h-9 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-slate-100;
 }
 
+.status-badge {
+  @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold;
+}
+
+.status-badge-active {
+  @apply bg-emerald-50 text-emerald-700;
+}
+
+.status-badge-inactive {
+  @apply bg-slate-100 text-slate-600;
+}
+
 .label-base{
   @apply mb-1 block text-sm font-semibold text-slate-700;
 }

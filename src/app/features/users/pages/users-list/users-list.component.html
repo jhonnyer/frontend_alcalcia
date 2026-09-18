@@ -129,8 +129,8 @@
 								<td class="px-3 py-2">{{ secretaria.codigo }}</td>
 								<td class="px-3 py-2 text-center">
 									<span
-										class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
-										[ngClass]="secretaria.estado === 'A' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'"
+										class="status-badge"
+										[ngClass]="secretaria.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'"
 									>
 										{{ secretaria.estado === 'A' ? 'Activa' : 'Inactiva' }}
 									</span>
@@ -174,8 +174,8 @@
 						<div class="flex flex-wrap items-center justify-between gap-2">
 							<p class="font-semibold text-slate-800">#{{ responsable.idResponsable }} - {{ responsable.primerNombre }} {{ responsable.primerApellido }}</p>
 							<span
-								class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold"
-								[ngClass]="responsable.estado === 'A' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-200 text-slate-600'"
+								class="status-badge"
+								[ngClass]="responsable.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'"
 							>
 								{{ responsable.estado === 'A' ? 'Activo' : 'Inactivo' }}
 							</span>

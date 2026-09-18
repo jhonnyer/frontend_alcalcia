@@ -209,13 +209,10 @@ export class HomeComponent implements OnInit{
 
   downloadBeneficiarios() {
     this.isLoadingReport.beneficiarios = true;
-    const { fechaInicio, fechaFin } = this.getReportDateRange();
     this.beneficiaryService.getAll().subscribe({
       next: (beneficiarios) => {
-        const filteredBeneficiarios = beneficiarios.filter(beneficiario =>
-          this.isDateInRange(beneficiario.fechaNacimiento, fechaInicio, fechaFin));
         // Preparar los datos para el Excel
-        const data = filteredBeneficiarios.map(b => ({
+        const data = beneficiarios.map(b => ({
           'ID': b.idBeneficiario,
           'Primer Nombre': b.primerNombre,
           'Segundo Nombre': b.segundoNombre,

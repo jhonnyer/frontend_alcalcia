@@ -93,10 +93,6 @@
       <!-- 🧱 Bloques de reportes con scroll horizontal y vertical -->
       <div class="reportes-wrapper pb-4">
         <section class="report-period-filter" *hasRole="['ADMIN', 'RESP']" aria-labelledby="report-period-title">
-          <div>
-            <h2 id="report-period-title" class="text-base font-semibold text-slate-800">Período del reporte</h2>
-            <p class="text-xs text-slate-500">El período se aplica a los reportes que tienen una fecha definida.</p>
-          </div>
           <div class="flex flex-wrap items-end gap-2">
             <label class="report-period-field">
               <span>Alcance</span>
@@ -127,6 +123,10 @@
               </label>
             }
           </div>
+          <div>
+            <h2 id="report-period-title" class="text-base font-semibold text-slate-800">Período del reporte</h2>
+            <p class="text-xs text-slate-500">El período se aplica a los reportes con fecha operativa definida.</p>
+          </div>
         </section>
         <div
           class="reportes-container mt-6 mb-8 grid gap-y-6 gap-x-4
@@ -137,7 +137,7 @@
             <mat-icon>date_range</mat-icon>
             <div>
               <h3>Reportes por período</h3>
-              <p>Usan el alcance temporal seleccionado arriba.</p>
+              <p>Proyectos: solapamiento inicio/fin · Actas: fecha de creación · Productos: fecha de ingreso.</p>
             </div>
           </div>
           <!-- Proyectos -->
@@ -258,7 +258,7 @@
           
           <!-- Beneficiarios -->
           <div (click)="!isLoadingReport.beneficiarios && downloadBeneficiarios()"
-              class="report-card report-card-filtered"
+              class="report-card report-card-general"
               [class.opacity-60]="isLoadingReport.beneficiarios">
             <div class="report-icon-box bg-gradient-to-tr from-pink-600 to-pink-400 shadow-pink-500/40">
               <div *ngIf="isLoadingReport.beneficiarios; else iconBenef" class="loading-icon">
@@ -303,7 +303,7 @@
 
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">
-                @if(isLoadingReport.reportGeneral){ Generando... }@else{ 10. Reporte Global }
+                @if(isLoadingReport.reportGeneral){ Generando... }@else{ 10. Reporte Global (mixto) }
               </p>
             </div>
           </div>

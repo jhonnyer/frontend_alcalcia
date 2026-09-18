@@ -57,7 +57,7 @@ section {
 }
 
 .report-advanced-filters {
-  @apply col-span-full grid gap-3 border-t border-slate-200 pt-3 sm:grid-cols-2 xl:grid-cols-5;
+  @apply col-span-full grid gap-2 border-t border-slate-200 pt-2 sm:grid-cols-2 xl:grid-cols-6;
 }
 
 .report-general-panel {
@@ -65,7 +65,7 @@ section {
 }
 
 .report-general-heading {
-  @apply flex flex-wrap items-center gap-3;
+  @apply flex flex-wrap items-center gap-2;
 }
 
 .report-general-heading h3 {
@@ -112,8 +112,12 @@ section {
   @apply min-w-40;
 }
 
+.report-clear-filters {
+  @apply min-h-9 self-end px-3 py-1 text-xs;
+}
+
 .report-group-title {
-  @apply col-span-full grid gap-3 border-b border-slate-200 pb-3 pt-2 text-slate-700 sm:grid-cols-[auto_1fr_auto] sm:items-center;
+  @apply col-span-full grid gap-2 border-b border-slate-200 pb-2 pt-1 text-slate-700 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] sm:items-center;
 }
 
 .report-group-heading {
@@ -182,7 +186,7 @@ section {
   @apply flex flex-col items-center justify-center 
          bg-white text-gray-700 rounded-xl shadow-md border border-gray-100
          hover:shadow-lg transition cursor-pointer
-         h-[130px] w-full p-3;
+         h-[122px] w-full p-2.5;
 }
 
 /* 🟦 Caja del ícono */

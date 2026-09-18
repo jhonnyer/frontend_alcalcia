@@ -94,9 +94,9 @@ export class HomeComponent implements OnInit{
   reportProjectSearch = '';
   reportCategorySearch = '';
   reportResponsibleSearch = '';
-  reportGeneralOpen = true;
-  reportPeriodOpen = true;
-  reportGeneralReportsOpen = true;
+  reportGeneralOpen = false;
+  reportPeriodOpen = false;
+  reportGeneralReportsOpen = false;
   reportYears = Array.from({ length: 5 }, (_, index) => new Date().getFullYear() - index);
   reportMonths = [
     { value: 1, label: 'Enero' },
@@ -203,6 +203,18 @@ export class HomeComponent implements OnInit{
 
   isReportFilterSelected(list: string[], value: string): boolean {
     return list.includes(value);
+  }
+
+  clearReportFilters(): void {
+    this.reportEstadosActa = [];
+    this.reportPrioridades = [];
+    this.reportProjectId = null;
+    this.reportCategoryId = null;
+    this.reportResponsibleId = null;
+    this.reportProjectSearch = '';
+    this.reportCategorySearch = '';
+    this.reportResponsibleSearch = '';
+    this.updateReportCategoryOptions();
   }
 
   private getFormattedDate(): string {

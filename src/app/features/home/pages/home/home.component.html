@@ -92,42 +92,6 @@
 
       <!-- 🧱 Bloques de reportes con scroll horizontal y vertical -->
       <div class="reportes-wrapper pb-4">
-        <section class="report-period-filter" *hasRole="['ADMIN', 'RESP']" aria-labelledby="report-period-title">
-          <div class="flex flex-wrap items-end gap-2">
-            <label class="report-period-field">
-              <span>Alcance</span>
-              <select [(ngModel)]="reportPeriod" class="select-base" aria-label="Alcance temporal del reporte">
-                <option value="ALL">Todos</option>
-                <option value="YEAR">Año</option>
-                <option value="MONTH">Mes</option>
-              </select>
-            </label>
-            @if (reportPeriod !== 'ALL') {
-              <label class="report-period-field">
-                <span>Año</span>
-                <select [(ngModel)]="reportYear" class="select-base" aria-label="Año del reporte">
-                  @for (year of reportYears; track year) {
-                    <option [ngValue]="year">{{ year }}</option>
-                  }
-                </select>
-              </label>
-            }
-            @if (reportPeriod === 'MONTH') {
-              <label class="report-period-field">
-                <span>Mes</span>
-                <select [(ngModel)]="reportMonth" class="select-base" aria-label="Mes del reporte">
-                  @for (month of reportMonths; track month.value) {
-                    <option [ngValue]="month.value">{{ month.label }}</option>
-                  }
-                </select>
-              </label>
-            }
-          </div>
-          <div>
-            <h2 id="report-period-title" class="text-base font-semibold text-slate-800">Período del reporte</h2>
-            <p class="text-xs text-slate-500">El período se aplica a los reportes con fecha operativa definida.</p>
-          </div>
-        </section>
         <div
           class="reportes-container mt-6 mb-8 grid gap-y-6 gap-x-4
                 px-3 sm:px-5"
@@ -138,6 +102,36 @@
             <div>
               <h3>Reportes por período</h3>
               <p>Proyectos: solapamiento inicio/fin · Actas: fecha de creación · Productos: fecha de ingreso.</p>
+            </div>
+            <div class="report-period-controls">
+              <label class="report-period-field">
+                <span>Alcance</span>
+                <select [(ngModel)]="reportPeriod" class="select-base" aria-label="Alcance temporal del reporte">
+                  <option value="ALL">Todos</option>
+                  <option value="YEAR">Año</option>
+                  <option value="MONTH">Mes</option>
+                </select>
+              </label>
+              @if (reportPeriod !== 'ALL') {
+                <label class="report-period-field">
+                  <span>Año</span>
+                  <select [(ngModel)]="reportYear" class="select-base" aria-label="Año del reporte">
+                    @for (year of reportYears; track year) {
+                      <option [ngValue]="year">{{ year }}</option>
+                    }
+                  </select>
+                </label>
+              }
+              @if (reportPeriod === 'MONTH') {
+                <label class="report-period-field">
+                  <span>Mes</span>
+                  <select [(ngModel)]="reportMonth" class="select-base" aria-label="Mes del reporte">
+                    @for (month of reportMonths; track month.value) {
+                      <option [ngValue]="month.value">{{ month.label }}</option>
+                    }
+                  </select>
+                </label>
+              }
             </div>
           </div>
           <!-- Proyectos -->

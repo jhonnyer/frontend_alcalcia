@@ -501,6 +501,7 @@ export class ProcedingsRegisterComponent implements OnInit{
     // Validar que la cantidad sea válida
     if (isNaN(newQuantity) || newQuantity < 1) {
       this.alert.warning('Alerta','La cantidad debe ser mayor a 0');
+      input.value = this.selectedProductsInfo().find(product => product.idProducto === productId)?.cantidad.toString() ?? '1';
       return;
     }
 

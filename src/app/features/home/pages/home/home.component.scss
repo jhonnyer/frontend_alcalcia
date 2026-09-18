@@ -129,10 +129,8 @@ section {
 /* 🧭 Contenedor principal: controla ambos scrolls */
 .accesos-wrapper {
   @apply relative w-full pb-4;
-  overflow-x: auto; /* scroll horizontal si se necesita */
-  overflow-y: auto; /* scroll vertical si se necesita */
-  overflow-x: auto; /* ✅ solo scroll horizontal */
-  overflow-y: visible; /* ❌ evita scroll vertical interno */
+  overflow-x: auto;
+  overflow-y: visible;
   scroll-behavior: smooth;
   min-height: 100px;
   min-width: 100%;

@@ -23,6 +23,7 @@ import { IResponsable } from '../../../../core/models/responsable.model';
 import { MatIconModule } from '@angular/material/icon';
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-responsibles-list',
@@ -45,6 +46,7 @@ export class ResponsiblesListComponent {
   injector = inject(Injector);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
+  private alert = inject(AlertService);
   data = signal<IResponsable[]>([]);
 
   // Estados para la tabla
@@ -72,6 +74,7 @@ export class ResponsiblesListComponent {
       },
       error: error => {
         console.error("Error getAll responsables:", error);
+        this.alert.error('No se pudieron cargar los usuarios', 'Intenta nuevamente en unos momentos.');
       }
     });
   }

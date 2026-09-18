@@ -57,7 +57,11 @@ export const defaultColumns: ColumnDef<IProyectoAndCategoriaArray>[] = [
       return `<span class="status-badge ${badgeClass}">${estadoProyectoLabel[estado]}</span>`;
     },
     header: 'Estado',
-    filterFn: 'includesString',
+    filterFn: (row, columnId, filterValue) => {
+      const estado = row.original.proyecto.estado as EstadoProyecto;
+      const searchableValue = `${estado} ${estadoProyectoLabel[estado]}`.toLocaleLowerCase();
+      return searchableValue.includes(String(filterValue ?? '').toLocaleLowerCase());
+    },
     meta: { filterVariant: 'text' }
   },
   {

@@ -85,7 +85,7 @@
 }
 
 .btn-action-blue {
-  @apply inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/20 active:opacity-90;
+  @apply inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/20 active:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600;
 }
 
 button:focus-visible,
@@ -133,7 +133,7 @@ html, body {
 }
 
 /* 🔧 Corrige el mat-drawer-content (contenedor principal del layout) */
-::ng-deep .mat-drawer-content {
+.mat-drawer-content {
   min-height: 100vh !important;
   overflow-y: auto !important; /* 👈 habilita scroll vertical aquí */
   overflow-x: hidden !important;
@@ -142,10 +142,10 @@ html, body {
 }
 
 /* 🔧 Libera restricciones de los tabs */
-::ng-deep .mat-tab-group,
-::ng-deep .mat-tab-body-wrapper,
-::ng-deep .mat-tab-body,
-::ng-deep .mat-tab-body-content {
+.mat-tab-group,
+.mat-tab-body-wrapper,
+.mat-tab-body,
+.mat-tab-body-content {
   height: auto !important;
   overflow: visible !important;
   display: block !important;

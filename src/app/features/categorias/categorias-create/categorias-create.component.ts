@@ -29,6 +29,8 @@ export class CategoriasCreateComponent {
   public idProyecto?: number;
   public modo: 'crear' | 'editar' = 'crear';
   public categoriaId?: number;
+  public isSaving = false;
+  public isConfirming = false;
   private alert = inject(AlertService);
   
 
@@ -70,6 +72,8 @@ export class CategoriasCreateComponent {
   }
 
   onSubmit(): void {
+    if (this.isSaving) return;
+
     if (this.formFamilyCore.invalid) {
       this.formFamilyCore.markAllAsTouched();
       return;
@@ -82,8 +86,10 @@ export class CategoriasCreateComponent {
 
     // 🟦 Editar
     if (this.modo === 'editar' && this.categoriaId) {
+      this.isSaving = true;
       this.categoriasService.updateById(String(this.categoriaId), payload).subscribe({
         next: (response) => {
+          this.isSaving = false;
           this.alert.success('Operación exitosa','✅ Categoría actualizada correctamente');
           if (this.dialogRef) {
             this.dialogRef.close(response);
@@ -92,6 +98,7 @@ export class CategoriasCreateComponent {
           }
         },
         error: (error) => {
+          this.isSaving = false;
           console.error('❌ Error al actualizar la categoría:', error);
           this.alert.error('Operación fallida','⚠️ No se pudo actualizar la categoría. Intenta nuevamente.');
         }
@@ -99,8 +106,10 @@ export class CategoriasCreateComponent {
 
     // 🟩 Crear
     } else {
+      this.isSaving = true;
       this.categoriasService.post(payload).subscribe({
         next: (response) => {
+          this.isSaving = false;
           this.alert.success('Operación exitosa','✅ Categoría creada correctamente');
           if (this.dialogRef) {
             this.dialogRef.close(response);
@@ -109,6 +118,7 @@ export class CategoriasCreateComponent {
           }
         },
         error: (error) => {
+          this.isSaving = false;
           console.error('❌ Error al crear la categoría:', error);
           this.alert.error('Operación fallida','⚠️ No se pudo crear la categoría. Verifica los datos e intenta nuevamente.');
         }
@@ -117,6 +127,8 @@ export class CategoriasCreateComponent {
   }
 
   confirmarGuardarCategoria(): void {
+    if (this.isSaving || this.isConfirming) return;
+
     if (this.formFamilyCore.invalid) {
       this.alert.warning('Formulario Inválido','⚠️ Verifica los campos del formulario');
       this.formFamilyCore.markAllAsTouched();
@@ -128,12 +140,14 @@ export class CategoriasCreateComponent {
         ? '¿Deseas guardar los cambios de esta categoría?'
         : '¿Deseas crear esta nueva categoría?';
 
+    this.isConfirming = true;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '350px',
       data: { mensaje }
     });
 
     dialogRef.afterClosed().subscribe((confirmado) => {
+      this.isConfirming = false;
       if (confirmado) {
         this.onSubmit(); // Ejecuta la lógica normal
       }

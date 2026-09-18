@@ -28,7 +28,15 @@
 
     <div class="flex justify-end space-x-4">
       <button type="button" class="btn-action-gray" (click)="cancelar()">Cancelar</button>
-      <button type="submit" class="btn-action-blue">{{ modo === 'editar' ? 'Guardar cambios' : 'Crear categoría' }}</button>
+      <button type="submit" class="btn-action-blue" [disabled]="isSaving || isConfirming">
+        @if (isSaving) {
+          Guardando...
+        } @else if (isConfirming) {
+          Confirmando...
+        } @else {
+          {{ modo === 'editar' ? 'Guardar cambios' : 'Crear categoría' }}
+        }
+      </button>
     </div>
   </form>
 </div>

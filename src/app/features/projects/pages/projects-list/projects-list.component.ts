@@ -114,6 +114,7 @@ export class ProjectsListComponent {
       },
       error: (error) => {
         console.error('❌ Error al cargar proyectos:', error);
+        this.alert.error('No se pudieron cargar los proyectos', 'Intenta nuevamente en unos momentos.');
       }
     });
   }

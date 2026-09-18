@@ -97,7 +97,7 @@
         <!-- Fechas -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 lg:col-span-2">
           <div>
-            <label for="fechaInicio" class="label-base block mb-1">* Fecha Inicio</label>
+            <label for="fechaInicio" class="label-base block mb-1">* Fecha de inicio</label>
             <input
               type="date"
               id="fechaInicio"
@@ -111,7 +111,7 @@
           </div>
 
           <div>
-            <label for="fechaFin" class="label-base block mb-1">Fecha Fin</label>
+            <label for="fechaFin" class="label-base block mb-1">Fecha de fin</label>
             <input
               type="date"
               id="fechaFin"
@@ -185,7 +185,7 @@
               font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-[1.03]"
       >
         <mat-icon class="text-white text-base">add_circle</mat-icon>
-        <span>Nueva Categoría</span>
+        <span>Nueva categoría</span>
       </button>
     </div>
 
@@ -323,7 +323,7 @@
                   <th mat-header-cell *matHeaderCellDef class="bg-slate-50 text-center text-xs font-semibold uppercase tracking-wide text-slate-600">
                     Ingreso
                   </th>
-                  <td mat-cell *matCellDef="let product" class="text-center py-2">{{ product.fechaIngreso }}</td>
+                  <td mat-cell *matCellDef="let product" class="text-center py-2">{{ product.fechaIngreso | date:'dd/MM/yyyy' }}</td>
                 </ng-container>
 
                 <!--  Columna Acciones -->

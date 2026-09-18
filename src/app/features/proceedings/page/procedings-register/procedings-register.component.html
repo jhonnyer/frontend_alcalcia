@@ -134,7 +134,7 @@
           </p>
 
           <p class="text-sm text-gray-700">
-            Inicio: <b>{{ beneficiarioProyecto()?.fechaInicio }}</b>
+            Inicio: <b>{{ beneficiarioProyecto()?.fechaInicio | date:'dd/MM/yyyy' }}</b>
           </p>
         </div>
 
@@ -189,7 +189,7 @@
                     {{ p.esBeneficiarioActivo ? 'Activo' : 'Inactivo' }}
                   </span>
                   </td>
-                <td class="px-3 py-2 text-center">{{ p.fechaInicio }}</td>
+                <td class="px-3 py-2 text-center">{{ p.fechaInicio | date:'dd/MM/yyyy' }}</td>
               </tr>
             </tbody>
           </table>

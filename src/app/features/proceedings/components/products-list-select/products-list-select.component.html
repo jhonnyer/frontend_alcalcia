@@ -31,7 +31,7 @@
           <span class="mt-1 hidden truncate text-xs text-slate-500 sm:block">{{ proyecto()?.proyecto?.descripcion }}</span>
         </div>
         <span class="shrink-0 text-xs text-slate-500">
-          {{ proyecto()?.proyecto?.fechaInicio }} - {{ proyecto()?.proyecto?.fechaFin || 'Sin fecha fin' }}
+          {{ proyecto()?.proyecto?.fechaInicio | date:'dd/MM/yyyy' }} - {{ proyecto()?.proyecto?.fechaFin ? (proyecto()?.proyecto?.fechaFin | date:'dd/MM/yyyy') : 'Sin fecha fin' }}
         </span>
       </div>
 

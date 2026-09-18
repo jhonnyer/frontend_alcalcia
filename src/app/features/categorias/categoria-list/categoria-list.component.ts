@@ -122,6 +122,7 @@ export class CategoriaListComponent implements OnInit {
       },
       error: error => {
         console.error("Error al cargar categorías:", error);
+        this.alert.error('No se pudieron cargar las categorías', 'Intenta nuevamente en unos momentos.');
       }
     });
   }

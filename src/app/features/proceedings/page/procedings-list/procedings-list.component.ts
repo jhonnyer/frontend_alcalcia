@@ -24,6 +24,7 @@ import { IActa } from '../../../../core/models/acta.model';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { delay } from 'rxjs/operators';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-procedings-list',
@@ -42,6 +43,7 @@ import { delay } from 'rxjs/operators';
 export class ProcedingsListComponent implements OnInit {
 
   constructor(private sanitizer: DomSanitizer) {}
+  private alert = inject(AlertService);
 
   // 🔹 Inyecciones
   private actasService = inject(ActasService);
@@ -178,6 +180,7 @@ export class ProcedingsListComponent implements OnInit {
         },
         error: (error) => {
           console.error('❌ Error getAll actas:', error);
+          this.alert.error('No se pudieron cargar las actas', 'Intenta nuevamente en unos momentos.');
           this.loading.set(false);
         }
       });

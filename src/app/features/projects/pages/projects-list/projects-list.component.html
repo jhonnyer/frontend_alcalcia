@@ -77,11 +77,11 @@
                 @if(cell.column.id === 'acciones'){
                   <div class="flex gap-2 justify-center">
                     <!-- Botón editar -->
-                    <button type="button" (click)="update(row)" class="text-green-600 hover:text-green-800" matTooltip="Editar proyecto">
+                    <button type="button" (click)="update(row)" class="text-green-600 hover:text-green-800" matTooltip="Editar proyecto" aria-label="Editar proyecto">
                       <mat-icon>edit</mat-icon>
                     </button>
                     <!-- Botón eliminar -->
-                    <button type="button" (click)="delete(row)" class="text-red-600 hover:text-red-800 transition" matTooltip="Eliminar proyecto" *hasRole="['ADMIN']">
+                    <button type="button" (click)="delete(row)" class="text-red-600 hover:text-red-800 transition" matTooltip="Eliminar proyecto" aria-label="Eliminar proyecto" *hasRole="['ADMIN']">
                       <mat-icon>delete</mat-icon>
                     </button>
                   </div>

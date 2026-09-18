@@ -29,6 +29,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { BeneficiaryUpdateComponent } from '../beneficiary-update/beneficiary-update.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
   selector: 'app-beneficiary-list',
@@ -46,6 +47,7 @@ export class BeneficiaryListComponent implements OnInit {
   injector = inject(Injector);
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
+  private alert = inject(AlertService);
   data = signal<IBeneficiario[]>([]);
   actorFilter = signal<number | 'ALL'>('ALL');
   actorSearch = signal('');
@@ -118,6 +120,7 @@ export class BeneficiaryListComponent implements OnInit {
       },
       error: error => {
         console.error("Error getAll Beneficiarios:", error);
+        this.alert.error('No se pudieron cargar los beneficiarios', 'Intenta nuevamente en unos momentos.');
       }
     });
   }

@@ -270,6 +270,7 @@ export class CategoriaListComponent implements OnInit {
   abrirDialogEditarCategoria(categoria: ICategorias): void {
     const dialogRef = this.dialog.open(CategoriasCreateComponent, {
       width: '500px',
+      maxWidth: 'calc(100vw - 32px)',
       data: { 
         modo: 'editar',
         categoria

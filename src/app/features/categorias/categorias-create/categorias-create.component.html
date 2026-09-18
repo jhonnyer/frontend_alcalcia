@@ -1,14 +1,20 @@
-<div class="font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
-  <form [formGroup]="formFamilyCore" class="form" (ngSubmit)="confirmarGuardarCategoria()"
-    class="scrollbar-custom overflow-y-scroll h-section p-5 leading-relaxed flex flex-col gap-3 pb-20 md:pb-5"
-  >
+<div class="relative flex h-section w-full flex-col overflow-x-auto rounded-2xl bg-white font-std font-normal scrollbar-custom" role="dialog" aria-labelledby="category-dialog-title">
+  <form [formGroup]="formFamilyCore" (ngSubmit)="confirmarGuardarCategoria()" class="flex h-section flex-col gap-3 overflow-y-scroll p-5 leading-relaxed pb-20 scrollbar-custom md:pb-5">
+    <header class="mb-1 border-b border-slate-200 pb-3">
+      <h2 id="category-dialog-title" class="text-lg font-semibold text-slate-800">
+        {{ modo === 'editar' ? 'Editar categoría' : 'Nueva categoría' }}
+      </h2>
+      <p class="mt-1 text-sm text-slate-500">Completa la información de la categoría.</p>
+    </header>
     <div class="flex flex-wrap justify-between">
       <div class="w-full">
         <label for="nombre" class="label-base">Nombre</label>
-        <input [formControlName]="'nombre'" type="text" id="nombre" class="input-base" placeholder="Nombre">
+        <input [formControlName]="'nombre'" type="text" id="nombre" class="input-base" placeholder="Nombre"
+          [attr.aria-invalid]="formFamilyCore.get('nombre')?.invalid && formFamilyCore.get('nombre')?.touched"
+          aria-describedby="category-name-error">
 
         @if(formFamilyCore.get('nombre')?.hasError('required') && formFamilyCore.get('nombre')?.touched) {
-          <p class="text-red-500">
+          <p id="category-name-error" class="text-sm text-red-500">
             * Este campo es requerido
           </p>
         }
@@ -16,13 +22,13 @@
     </div>
 
     <div class="flex flex-wrap justify-between">
-      <label for="descripcion"class="block mb-2 text-sm font-medium text-gray-900 ">Descripción</label>
-      <textarea id="descripcion" formControlName="descripcion" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 " placeholder="Observacioes para está entrega..."></textarea>
+      <label for="descripcion" class="label-base">Descripción</label>
+      <textarea id="descripcion" formControlName="descripcion" rows="4" class="input-base" placeholder="Observaciones para esta categoría..."></textarea>
     </div>
 
     <div class="flex justify-end space-x-4">
       <button type="button" class="btn-action-gray" (click)="cancelar()">Cancelar</button>
-      <button type="submit" class="btn-action-blue">Guardar cambios</button>
+      <button type="submit" class="btn-action-blue">{{ modo === 'editar' ? 'Guardar cambios' : 'Crear categoría' }}</button>
     </div>
   </form>
 </div>

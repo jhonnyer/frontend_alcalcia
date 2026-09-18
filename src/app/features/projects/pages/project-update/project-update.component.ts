@@ -405,6 +405,7 @@ export class ProjectUpdateComponent implements OnInit {
   abrirDialogNuevaCategoria(): void {
     const dialogRef = this.dialog.open(CategoriasCreateComponent, {
       width: '500px',
+      maxWidth: 'calc(100vw - 32px)',
       data: { idProyecto: this.proyectoId },
       autoFocus: false
     });
@@ -467,6 +468,7 @@ export class ProjectUpdateComponent implements OnInit {
   abrirDialogEditarCategoria(categoria: ICategorias): void {
     const dialogRef = this.dialog.open(CategoriasCreateComponent, {
       width: '500px',
+      maxWidth: 'calc(100vw - 32px)',
       data: { 
         modo: 'editar',
         categoria,

@@ -67,6 +67,26 @@ export interface ApiImportacionesPendientesResponse {
   estado: string;
 }
 
+export interface ImportacionHistorica {
+  importacionId: string;
+  nombreArchivo: string;
+  estado: string;
+  versionDatos: number;
+  totalFilas: number;
+  totalGrupos: number;
+  totalGruposConfirmados: number;
+  totalGruposRechazados: number;
+  totalBeneficiariosCreados: number;
+  fechaCreacion: string;
+  fechaConfirmacion: string | null;
+}
+
+export interface ApiImportacionesHistoricasResponse {
+  respuesta: ImportacionHistorica[];
+  mensaje: string;
+  estado: string;
+}
+
 export interface ActualizarImportacionRequest {
   versionDatos: number;
   filas: ImportacionFila[];

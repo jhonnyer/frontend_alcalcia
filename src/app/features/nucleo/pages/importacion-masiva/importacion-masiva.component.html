@@ -74,7 +74,13 @@
             <mat-icon class="mr-1 text-base">save</mat-icon>
             Guardar correcciones
           </button>
-          <button type="button" class="btn-action-green" (click)="confirmar()" [disabled]="!puedeConfirmar()">
+          <button type="button"
+            class="btn-action-green transition-colors"
+            [class.confirm-disabled]="!puedeConfirmar()"
+            [class.confirm-ready]="puedeConfirmar()"
+            [title]="motivoBloqueoConfirmacion()"
+            (click)="confirmar()"
+            [disabled]="!puedeConfirmar()">
             <mat-icon class="mr-1 text-base">check_circle</mat-icon>
             Confirmar carga
           </button>
@@ -135,24 +141,24 @@
                 @let fila = item.fila;
                 <tr>
                   <td class="text-xs text-slate-500">{{ fila.numeroFila }}</td>
-                  <td><input aria-label="Actor ref" class="import-input" [class.import-error]="tieneError(fila, 'actor_ref')" [(ngModel)]="fila.actorRef" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Nombre del núcleo" class="import-input" [class.import-error]="tieneError(fila, 'nombre_nucleo')" [(ngModel)]="fila.nombreNucleo" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Dirección" class="import-input" [class.import-error]="tieneError(fila, 'direccion')" [(ngModel)]="fila.direccion" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="ID de zona" type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_zona')" [(ngModel)]="fila.idZona" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="ID de barrio" type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_barrio')" [(ngModel)]="fila.idBarrio" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Primer nombre" class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_nombre')" [(ngModel)]="fila.beneficiarioPrimerNombre" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Segundo nombre" class="import-input" [(ngModel)]="fila.beneficiarioSegundoNombre" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Primer apellido" class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_apellido')" [(ngModel)]="fila.beneficiarioPrimerApellido" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Segundo apellido" class="import-input" [(ngModel)]="fila.beneficiarioSegundoApellido" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input aria-label="Actor ref" class="import-input" [class.import-error]="tieneError(fila, 'actor_ref')" [(ngModel)]="fila.actorRef" (ngModelChange)="cambioCampo(fila, 'actor_ref')" /></td>
+                  <td><input aria-label="Nombre del núcleo" class="import-input" [class.import-error]="tieneError(fila, 'nombre_nucleo')" [(ngModel)]="fila.nombreNucleo" (ngModelChange)="cambioCampo(fila, 'nombre_nucleo')" /></td>
+                  <td><input aria-label="Dirección" class="import-input" [class.import-error]="tieneError(fila, 'direccion')" [(ngModel)]="fila.direccion" (ngModelChange)="cambioCampo(fila, 'direccion')" /></td>
+                  <td><input aria-label="ID de zona" type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_zona')" [(ngModel)]="fila.idZona" (ngModelChange)="cambioCampo(fila, 'id_zona')" /></td>
+                  <td><input aria-label="ID de barrio" type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_barrio')" [(ngModel)]="fila.idBarrio" (ngModelChange)="cambioCampo(fila, 'id_barrio')" /></td>
+                  <td><input aria-label="Primer nombre" class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_nombre')" [(ngModel)]="fila.beneficiarioPrimerNombre" (ngModelChange)="cambioCampo(fila, 'beneficiario_primer_nombre')" /></td>
+                  <td><input aria-label="Segundo nombre" class="import-input" [(ngModel)]="fila.beneficiarioSegundoNombre" (ngModelChange)="cambioCampo(fila, 'segundo_nombre')" /></td>
+                  <td><input aria-label="Primer apellido" class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_apellido')" [(ngModel)]="fila.beneficiarioPrimerApellido" (ngModelChange)="cambioCampo(fila, 'beneficiario_primer_apellido')" /></td>
+                  <td><input aria-label="Segundo apellido" class="import-input" [(ngModel)]="fila.beneficiarioSegundoApellido" (ngModelChange)="cambioCampo(fila, 'segundo_apellido')" /></td>
                   <td>
-                    <select aria-label="Sexo" class="import-input w-20" [class.import-error]="tieneError(fila, 'sexo')" [(ngModel)]="fila.sexo" (ngModelChange)="editando.set(true)">
+                    <select aria-label="Sexo" class="import-input w-20" [class.import-error]="tieneError(fila, 'sexo')" [(ngModel)]="fila.sexo" (ngModelChange)="cambioCampo(fila, 'sexo')">
                       <option value="">-</option>
                       <option value="M">M</option>
                       <option value="F">F</option>
                     </select>
                   </td>
                   <td>
-                    <select aria-label="Género" class="import-input w-24" [(ngModel)]="fila.genero" (ngModelChange)="editando.set(true)">
+                    <select aria-label="Género" class="import-input w-24" [class.import-error]="tieneError(fila, 'genero')" [(ngModel)]="fila.genero" (ngModelChange)="cambioCampo(fila, 'genero')">
                       <option value="">-</option>
                       <option value="Masculino">Masculino</option>
                       <option value="Femenino">Femenino</option>
@@ -160,7 +166,7 @@
                     </select>
                   </td>
                   <td>
-                    <select aria-label="Etnia" class="import-input w-20" [class.import-error]="tieneError(fila, 'etnia')" [(ngModel)]="fila.etnia" (ngModelChange)="editando.set(true)">
+                    <select aria-label="Etnia" class="import-input w-20" [class.import-error]="tieneError(fila, 'etnia')" [(ngModel)]="fila.etnia" (ngModelChange)="cambioCampo(fila, 'etnia')">
                       <option value="">-</option>
                       <option value="C">C - Campesino</option>
                       <option value="I">I - Indígena</option>
@@ -170,30 +176,30 @@
                       <option value="M">M - Mestizo</option>
                     </select>
                   </td>
-                  <td><input aria-label="Tipo de documento" class="import-input w-20" [class.import-error]="tieneError(fila, 'tipo_documento')" [(ngModel)]="fila.tipoDocumento" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Número de documento" class="import-input" [class.import-error]="tieneError(fila, 'numero_documento')" [(ngModel)]="fila.numeroDocumento" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Fecha de nacimiento" type="date" class="import-input" [class.import-error]="tieneError(fila, 'fecha_nacimiento')" [(ngModel)]="fila.fechaNacimiento" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input aria-label="Tipo de documento" class="import-input w-20" [class.import-error]="tieneError(fila, 'tipo_documento')" [(ngModel)]="fila.tipoDocumento" (ngModelChange)="cambioCampo(fila, 'tipo_documento')" /></td>
+                  <td><input aria-label="Número de documento" class="import-input" [class.import-error]="tieneError(fila, 'numero_documento')" [(ngModel)]="fila.numeroDocumento" (ngModelChange)="cambioCampo(fila, 'numero_documento')" /></td>
+                  <td><input aria-label="Fecha de nacimiento" type="date" class="import-input" [class.import-error]="tieneError(fila, 'fecha_nacimiento')" [(ngModel)]="fila.fechaNacimiento" (ngModelChange)="cambioCampo(fila, 'fecha_nacimiento')" /></td>
                   <td class="text-center text-xs text-slate-500">{{ fila.edadCalculada ?? '-' }}</td>
                   <td>
-                    <select aria-label="Víctima de conflicto" class="import-input w-20" [class.import-error]="tieneError(fila, 'victima_conflicto')" [(ngModel)]="fila.victimaConflicto" (ngModelChange)="editando.set(true)">
+                    <select aria-label="Víctima de conflicto" class="import-input w-20" [class.import-error]="tieneError(fila, 'victima_conflicto')" [(ngModel)]="fila.victimaConflicto" (ngModelChange)="cambioCampo(fila, 'victima_conflicto')">
                       <option value="NO">NO</option>
                       <option value="SI">SI</option>
                     </select>
                   </td>
                   <td>
-                    <select aria-label="Es vivo" class="import-input w-20" [class.import-error]="tieneError(fila, 'es_vivo')" [(ngModel)]="fila.esVivo" (ngModelChange)="editando.set(true)">
+                    <select aria-label="Es vivo" class="import-input w-20" [class.import-error]="tieneError(fila, 'es_vivo')" [(ngModel)]="fila.esVivo" (ngModelChange)="cambioCampo(fila, 'es_vivo')">
                       <option value="SI">SI</option>
                       <option value="NO">NO</option>
                     </select>
                   </td>
                   <td>
-                    <select aria-label="Discapacidad" class="import-input w-20" [class.import-error]="tieneError(fila, 'discapacidad')" [(ngModel)]="fila.discapacidad" (ngModelChange)="editando.set(true)">
+                    <select aria-label="Discapacidad" class="import-input w-20" [class.import-error]="tieneError(fila, 'discapacidad')" [(ngModel)]="fila.discapacidad" (ngModelChange)="cambioCampo(fila, 'discapacidad')">
                       <option value="NO">NO</option>
                       <option value="SI">SI</option>
                     </select>
                   </td>
-                  <td><input aria-label="Teléfono" class="import-input" [(ngModel)]="fila.telefono" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Correo electrónico" type="email" class="import-input" [class.import-error]="tieneError(fila, 'email')" [(ngModel)]="fila.email" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input aria-label="Teléfono" class="import-input" [(ngModel)]="fila.telefono" (ngModelChange)="cambioCampo(fila, 'telefono')" /></td>
+                  <td><input aria-label="Correo electrónico" type="email" class="import-input" [class.import-error]="tieneError(fila, 'email')" [(ngModel)]="fila.email" (ngModelChange)="cambioCampo(fila, 'email')" /></td>
                   <td><button type="button" class="icon-button text-red-600" title="Eliminar fila" (click)="eliminarFila(item.index)"><mat-icon>delete</mat-icon></button></td>
                 </tr>
               }

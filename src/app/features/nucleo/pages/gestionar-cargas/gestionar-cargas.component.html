@@ -15,16 +15,27 @@
   </header>
 
   <main class="mx-auto mt-5 max-w-[1200px]">
-    @if (cargando()) {
+    <div class="mb-4 flex gap-1 border-b border-slate-200" role="tablist" aria-label="Cargas masivas">
+      <button type="button" class="load-tab" [class.load-tab-active]="pestaña() === 'pendientes'" (click)="cambiarPestana('pendientes')">
+        Pendientes
+        <span class="load-count">{{ cargas().length }}</span>
+      </button>
+      <button type="button" class="load-tab" [class.load-tab-active]="pestaña() === 'historico'" (click)="cambiarPestana('historico')">
+        Histórico
+        <span class="load-count">{{ historico().length }}</span>
+      </button>
+    </div>
+
+    @if (pestaña() === 'pendientes' && cargando()) {
       <div class="rounded-xl border border-blue-100 bg-blue-50 p-5 text-sm text-blue-800">Consultando cargas pendientes...</div>
-    } @else if (cargas().length === 0) {
+    } @else if (pestaña() === 'pendientes' && cargas().length === 0) {
       <div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 shadow-sm">
         No hay cargas pendientes de gestión.
       </div>
-    } @else {
+    } @else if (pestaña() === 'pendientes') {
       <div class="table-shell overflow-x-auto">
-        <table class="table-compact min-w-[800px]">
-          <thead><tr><th>Archivo</th><th>Estado</th><th>Filas</th><th>Grupos</th><th>Errores</th><th>Versión</th><th>Expira</th><th>Acción</th></tr></thead>
+        <table class="table-compact min-w-[900px]">
+          <thead><tr><th>Archivo</th><th>Estado</th><th>Filas</th><th>Grupos</th><th>Errores</th><th>Versión</th><th>Expira</th><th>Acciones</th></tr></thead>
           <tbody>
             @for (carga of cargas(); track carga.importacionId) {
               <tr>
@@ -36,10 +47,37 @@
                 <td>{{ carga.versionDatos }}</td>
                 <td>{{ carga.fechaExpiracion | date:'yyyy-MM-dd HH:mm' }}</td>
                 <td>
-                  <a class="btn-navigate-black" [routerLink]="['/nucleo/importacion-masiva']" [queryParams]="{ importacionId: carga.importacionId }">
-                    Gestionar
-                  </a>
+                  <div class="flex gap-2">
+                    <a class="btn-navigate-black" [routerLink]="['/nucleo/importacion-masiva']" [queryParams]="{ importacionId: carga.importacionId }">Gestionar</a>
+                    <button type="button" class="icon-button text-red-600" title="Eliminar carga pendiente" (click)="eliminar(carga)"><mat-icon>delete</mat-icon></button>
+                  </div>
                 </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else if (cargandoHistorico()) {
+      <div class="rounded-xl border border-blue-100 bg-blue-50 p-5 text-sm text-blue-800">Consultando histórico...</div>
+    } @else if (historico().length === 0) {
+      <div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 shadow-sm">
+        Aún no hay cargas completadas o cerradas.
+      </div>
+    } @else {
+      <div class="table-shell overflow-x-auto">
+        <table class="table-compact min-w-[950px]">
+          <thead><tr><th>Archivo</th><th>Estado</th><th>Filas</th><th>Grupos confirmados</th><th>Grupos rechazados</th><th>Beneficiarios creados</th><th>Creada</th><th>Confirmada</th></tr></thead>
+          <tbody>
+            @for (carga of historico(); track carga.importacionId) {
+              <tr>
+                <td>{{ carga.nombreArchivo }}</td>
+                <td><span class="status-badge" [class.status-badge-active]="carga.estado === 'CONFIRMADA'" [class.status-badge-warning]="carga.estado !== 'CONFIRMADA'">{{ carga.estado }}</span></td>
+                <td>{{ carga.totalFilas }}</td>
+                <td>{{ carga.totalGruposConfirmados }}</td>
+                <td>{{ carga.totalGruposRechazados }}</td>
+                <td>{{ carga.totalBeneficiariosCreados }}</td>
+                <td>{{ carga.fechaCreacion | date:'yyyy-MM-dd HH:mm' }}</td>
+                <td>{{ carga.fechaConfirmacion ? (carga.fechaConfirmacion | date:'yyyy-MM-dd HH:mm') : '-' }}</td>
               </tr>
             }
           </tbody>

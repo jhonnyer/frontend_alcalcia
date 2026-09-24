@@ -21,3 +21,11 @@
 .icon-button {
   @apply inline-flex h-8 w-8 items-center justify-center rounded-md transition hover:bg-red-50;
 }
+
+.confirm-disabled {
+  @apply bg-slate-300 text-slate-500 shadow-none hover:bg-slate-300;
+}
+
+.confirm-ready {
+  @apply bg-emerald-600 text-white shadow-sm hover:bg-emerald-700;
+}

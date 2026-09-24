@@ -109,6 +109,27 @@ export class ImportacionMasivaComponent {
       && !this.cargando();
   }
 
+  motivoBloqueoConfirmacion(): string {
+    const resultado = this.resultado();
+    if (!resultado) return 'Carga un archivo para comenzar.';
+    if (resultado.estado !== 'VALIDADA') return `La carga está en estado ${resultado.estado}.`;
+    if (this.erroresLocales().length > 0) return 'Corrige los campos marcados en rojo.';
+    if (this.errores().length > 0) return 'Guarda las correcciones para volver a validar.';
+    if (this.editando()) return 'Guarda los cambios pendientes antes de confirmar.';
+    if (this.cargando()) return 'Hay una operación en curso.';
+    return 'Confirmar carga';
+  }
+
+  cambioCampo(fila: ImportacionFila, campo: string): void {
+    this.editando.set(true);
+    const erroresRestantes = this.errores().filter(error =>
+      !(error.numeroFila === fila.numeroFila && error.campo === campo)
+    );
+    if (erroresRestantes.length !== this.errores().length) {
+      this.errores.set(erroresRestantes);
+    }
+  }
+
   seleccionarArchivo(event: Event): void {
     const input = event.target as HTMLInputElement;
     const archivo = input.files?.[0];

@@ -7,6 +7,7 @@ import {
   ActualizarImportacionRequest,
   ApiImportacionResponse,
   ApiImportacionesPendientesResponse,
+  ApiImportacionesHistoricasResponse,
 } from '../models/importacion-masiva.model';
 
 @Injectable({ providedIn: 'root' })
@@ -37,6 +38,18 @@ export class ImportacionMasivaService {
 
   pendientes(): Observable<ApiImportacionesPendientesResponse> {
     return this.http.get<ApiImportacionesPendientesResponse>(`${this.url}/pendientes`, {
+      context: checkToken(),
+    });
+  }
+
+  historial(): Observable<ApiImportacionesHistoricasResponse> {
+    return this.http.get<ApiImportacionesHistoricasResponse>(`${this.url}/historial`, {
+      context: checkToken(),
+    });
+  }
+
+  eliminar(importacionId: string): Observable<ApiImportacionResponse> {
+    return this.http.delete<ApiImportacionResponse>(`${this.url}/${importacionId}`, {
       context: checkToken(),
     });
   }

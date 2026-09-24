@@ -27,7 +27,7 @@ export class GestionarCargasComponent implements OnInit {
   readonly historico = signal<ImportacionHistorica[]>([]);
   readonly cargando = signal(true);
   readonly cargandoHistorico = signal(false);
-  readonly pestaña = signal<'pendientes' | 'historico'>('pendientes');
+  readonly pestana = signal<'pendientes' | 'historico'>('pendientes');
 
   ngOnInit(): void {
     this.service.pendientes().subscribe({
@@ -42,9 +42,9 @@ export class GestionarCargasComponent implements OnInit {
     });
   }
 
-  cambiarPestana(pestaña: 'pendientes' | 'historico'): void {
-    this.pestaña.set(pestaña);
-    if (pestaña === 'historico' && this.historico().length === 0) {
+  cambiarPestana(pestana: 'pendientes' | 'historico'): void {
+    this.pestana.set(pestana);
+    if (pestana === 'historico' && this.historico().length === 0) {
       this.cargandoHistorico.set(true);
       this.service.historial().subscribe({
         next: response => {

@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { ImportacionMasivaService } from '../../../../core/services/importacion-masiva.service';
@@ -23,6 +23,7 @@ export class ImportacionMasivaComponent {
   private readonly service = inject(ImportacionMasivaService);
   private readonly alert = inject(AlertService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   readonly resultado = signal<ImportacionResultado | null>(null);
   readonly filas = signal<ImportacionFila[]>([]);
@@ -169,6 +170,7 @@ export class ImportacionMasivaComponent {
         this.aplicarRespuesta(response.respuesta);
         this.cargando.set(false);
         this.alert.success('Carga confirmada', 'Los nucleos y beneficiarios fueron creados.');
+        this.router.navigateByUrl('/nucleo');
       },
       error: error => {
         this.cargando.set(false);

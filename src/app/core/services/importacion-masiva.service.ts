@@ -21,6 +21,13 @@ export class ImportacionMasivaService {
     });
   }
 
+  descargarPlantilla(): Observable<Blob> {
+    return this.http.get(`${this.url}/plantilla`, {
+      context: checkToken(),
+      responseType: 'blob',
+    });
+  }
+
   obtener(importacionId: string): Observable<ApiImportacionResponse> {
     return this.http.get<ApiImportacionResponse>(`${this.url}/${importacionId}`, {
       context: checkToken(),

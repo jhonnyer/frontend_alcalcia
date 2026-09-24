@@ -34,8 +34,8 @@ export class ImportacionMasivaComponent {
     const archivo = input.files?.[0];
     if (!archivo) return;
 
-    if (!archivo.name.toLowerCase().endsWith('.csv')) {
-      this.alert.error('Archivo no valido', 'Selecciona un archivo CSV UTF-8.');
+    if (!archivo.name.toLowerCase().endsWith('.xlsx')) {
+      this.alert.error('Archivo no valido', 'Selecciona un archivo Excel .xlsx.');
       input.value = '';
       return;
     }
@@ -130,15 +130,17 @@ export class ImportacionMasivaComponent {
   }
 
   descargarPlantilla(): void {
-    const contenido = [
-      'actor_ref,nombre_nucleo,direccion,id_zona,id_barrio,beneficiario_primer_nombre,beneficiario_primer_apellido,tipo_documento,numero_documento,fecha_nacimiento,telefono,email',
-      'AS-001,Fundacion Luz de Vida,Calle 10 # 5-20,3,12,Maria,Gomez,CC,1032456789,1992-04-15,3001234567,maria.gomez@email.com',
-    ].join('\n');
-    const enlace = document.createElement('a');
-    enlace.href = URL.createObjectURL(new Blob([contenido], { type: 'text/csv;charset=utf-8' }));
-    enlace.download = 'plantilla-actores-sociales.csv';
-    enlace.click();
-    URL.revokeObjectURL(enlace.href);
+    this.service.descargarPlantilla().subscribe({
+      next: archivo => {
+        const enlace = document.createElement('a');
+        const url = URL.createObjectURL(archivo);
+        enlace.href = url;
+        enlace.download = 'plantilla-actores-sociales.xlsx';
+        enlace.click();
+        URL.revokeObjectURL(url);
+      },
+      error: error => this.alert.error('No se pudo descargar la plantilla', this.mensajeError(error)),
+    });
   }
 
   reiniciar(): void {

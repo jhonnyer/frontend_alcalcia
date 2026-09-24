@@ -70,7 +70,13 @@
             <mat-icon class="mr-1 text-base">add</mat-icon>
             Agregar fila
           </button>
-          <button type="button" class="btn-action-blue" (click)="guardarCorrecciones()" [disabled]="!editando() || importacion.estado !== 'VALIDADA' || cargando() || erroresLocales().length > 0">
+          <button type="button"
+            class="btn-action-blue transition-colors"
+            [class.save-disabled]="!puedeGuardarCorrecciones()"
+            [class.save-ready]="puedeGuardarCorrecciones()"
+            title="Guardar correcciones y volver a validar"
+            (click)="guardarCorrecciones()"
+            [disabled]="!puedeGuardarCorrecciones()">
             <mat-icon class="mr-1 text-base">save</mat-icon>
             Guardar correcciones
           </button>

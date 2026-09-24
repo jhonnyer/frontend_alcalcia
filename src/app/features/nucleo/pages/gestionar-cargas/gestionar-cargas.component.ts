@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { ImportacionMasivaService } from '../../../../core/services/importacion-masiva.service';
@@ -28,6 +28,24 @@ export class GestionarCargasComponent implements OnInit {
   readonly cargando = signal(true);
   readonly cargandoHistorico = signal(false);
   readonly pestana = signal<'pendientes' | 'historico'>('pendientes');
+  readonly filtroPendientes = signal('');
+  readonly filtroHistorico = signal('');
+  readonly paginaPendientes = signal(0);
+  readonly paginaHistorico = signal(0);
+  readonly tamanoPagina = 15;
+
+  readonly pendientesFiltrados = computed(() => this.filtrarPendientes(this.filtroPendientes()));
+  readonly historicoFiltrado = computed(() => this.filtrarHistorico(this.filtroHistorico()));
+  readonly pendientesPagina = computed(() => this.pendientesFiltrados().slice(
+    this.paginaPendientes() * this.tamanoPagina,
+    (this.paginaPendientes() + 1) * this.tamanoPagina
+  ));
+  readonly historicoPagina = computed(() => this.historicoFiltrado().slice(
+    this.paginaHistorico() * this.tamanoPagina,
+    (this.paginaHistorico() + 1) * this.tamanoPagina
+  ));
+  readonly totalPaginasPendientes = computed(() => Math.max(1, Math.ceil(this.pendientesFiltrados().length / this.tamanoPagina)));
+  readonly totalPaginasHistorico = computed(() => Math.max(1, Math.ceil(this.historicoFiltrado().length / this.tamanoPagina)));
 
   ngOnInit(): void {
     this.service.pendientes().subscribe({
@@ -40,24 +58,41 @@ export class GestionarCargasComponent implements OnInit {
         this.alert.error('No se pudieron consultar las cargas', error?.error?.mensaje ?? 'Intenta nuevamente.');
       },
     });
+    this.cargarHistorico();
+  }
+
+  private cargarHistorico(): void {
+    this.cargandoHistorico.set(true);
+    this.service.historial().subscribe({
+      next: response => {
+        this.historico.set(response.respuesta ?? []);
+        this.cargandoHistorico.set(false);
+      },
+      error: error => {
+        this.cargandoHistorico.set(false);
+        this.alert.error('No se pudo consultar el histórico', error?.error?.mensaje ?? 'Intenta nuevamente.');
+      },
+    });
   }
 
   cambiarPestana(pestana: 'pendientes' | 'historico'): void {
     this.pestana.set(pestana);
-    if (pestana === 'historico' && this.historico().length === 0) {
-      this.cargandoHistorico.set(true);
-      this.service.historial().subscribe({
-        next: response => {
-          this.historico.set(response.respuesta ?? []);
-          this.cargandoHistorico.set(false);
-        },
-        error: error => {
-          this.cargandoHistorico.set(false);
-          this.alert.error('No se pudo consultar el histórico', error?.error?.mensaje ?? 'Intenta nuevamente.');
-        },
-      });
-    }
   }
+
+  cambiarFiltroPendientes(event: Event): void {
+    this.filtroPendientes.set((event.target as HTMLInputElement).value);
+    this.paginaPendientes.set(0);
+  }
+
+  cambiarFiltroHistorico(event: Event): void {
+    this.filtroHistorico.set((event.target as HTMLInputElement).value);
+    this.paginaHistorico.set(0);
+  }
+
+  paginaPendienteAnterior(): void { this.paginaPendientes.update(value => Math.max(0, value - 1)); }
+  paginaPendienteSiguiente(): void { this.paginaPendientes.update(value => Math.min(this.totalPaginasPendientes() - 1, value + 1)); }
+  paginaHistoricoAnterior(): void { this.paginaHistorico.update(value => Math.max(0, value - 1)); }
+  paginaHistoricoSiguiente(): void { this.paginaHistorico.update(value => Math.min(this.totalPaginasHistorico() - 1, value + 1)); }
 
   async eliminar(carga: ImportacionPendiente): Promise<void> {
     const confirmado = await this.alert.confirm(
@@ -75,5 +110,17 @@ export class GestionarCargasComponent implements OnInit {
       },
       error: error => this.alert.error('No se pudo eliminar la carga', error?.error?.mensaje ?? 'Intenta nuevamente.'),
     });
+  }
+
+  private filtrarPendientes(query: string): ImportacionPendiente[] {
+    const normalized = query.trim().toLocaleLowerCase();
+    return this.cargas().filter(carga => !normalized || [carga.nombreArchivo, carga.estado, carga.importacionId]
+      .some(value => value?.toLocaleLowerCase().includes(normalized)));
+  }
+
+  private filtrarHistorico(query: string): ImportacionHistorica[] {
+    const normalized = query.trim().toLocaleLowerCase();
+    return this.historico().filter(carga => !normalized || [carga.nombreArchivo, carga.estado, carga.importacionId]
+      .some(value => value?.toLocaleLowerCase().includes(normalized)));
   }
 }

@@ -109,6 +109,15 @@ export class ImportacionMasivaComponent {
       && !this.cargando();
   }
 
+  puedeGuardarCorrecciones(): boolean {
+    const resultado = this.resultado();
+    return !!resultado
+      && resultado.estado === 'VALIDADA'
+      && this.editando()
+      && this.erroresLocales().length === 0
+      && !this.cargando();
+  }
+
   motivoBloqueoConfirmacion(): string {
     const resultado = this.resultado();
     if (!resultado) return 'Carga un archivo para comenzar.';

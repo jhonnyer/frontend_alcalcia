@@ -29,3 +29,11 @@
 .confirm-ready {
   @apply bg-emerald-600 text-white shadow-sm hover:bg-emerald-700;
 }
+
+.save-disabled {
+  @apply bg-slate-300 text-slate-500 shadow-none hover:bg-slate-300;
+}
+
+.save-ready {
+  @apply bg-blue-600 text-white shadow-sm hover:bg-blue-700;
+}

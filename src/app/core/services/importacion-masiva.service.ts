@@ -6,6 +6,7 @@ import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import {
   ActualizarImportacionRequest,
   ApiImportacionResponse,
+  ApiImportacionesPendientesResponse,
 } from '../models/importacion-masiva.model';
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +31,12 @@ export class ImportacionMasivaService {
 
   obtener(importacionId: string): Observable<ApiImportacionResponse> {
     return this.http.get<ApiImportacionResponse>(`${this.url}/${importacionId}`, {
+      context: checkToken(),
+    });
+  }
+
+  pendientes(): Observable<ApiImportacionesPendientesResponse> {
+    return this.http.get<ApiImportacionesPendientesResponse>(`${this.url}/pendientes`, {
       context: checkToken(),
     });
   }

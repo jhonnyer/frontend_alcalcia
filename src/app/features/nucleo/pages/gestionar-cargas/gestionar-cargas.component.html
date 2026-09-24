@@ -1,0 +1,50 @@
+<section class="min-h-full bg-slate-50 p-4 sm:p-6">
+  <header class="mx-auto flex max-w-[1200px] items-end justify-between gap-4">
+    <div>
+      <a routerLink="/nucleo" class="mb-2 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">
+        <mat-icon class="text-base">arrow_back</mat-icon>
+        Actores sociales
+      </a>
+      <h1 class="text-2xl font-bold text-slate-900">Gestionar cargas masivas</h1>
+      <p class="mt-1 text-sm text-slate-600">Retoma simulaciones pendientes de corrección o confirmación.</p>
+    </div>
+    <a routerLink="/nucleo/importacion-masiva" class="btn-action-blue">
+      <mat-icon class="mr-1 text-base">upload_file</mat-icon>
+      Nueva carga
+    </a>
+  </header>
+
+  <main class="mx-auto mt-5 max-w-[1200px]">
+    @if (cargando()) {
+      <div class="rounded-xl border border-blue-100 bg-blue-50 p-5 text-sm text-blue-800">Consultando cargas pendientes...</div>
+    } @else if (cargas().length === 0) {
+      <div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 shadow-sm">
+        No hay cargas pendientes de gestión.
+      </div>
+    } @else {
+      <div class="table-shell overflow-x-auto">
+        <table class="table-compact min-w-[800px]">
+          <thead><tr><th>Archivo</th><th>Estado</th><th>Filas</th><th>Grupos</th><th>Errores</th><th>Versión</th><th>Expira</th><th>Acción</th></tr></thead>
+          <tbody>
+            @for (carga of cargas(); track carga.importacionId) {
+              <tr>
+                <td>{{ carga.nombreArchivo }}</td>
+                <td><span class="status-badge status-badge-warning">{{ carga.estado }}</span></td>
+                <td>{{ carga.totalFilas }}</td>
+                <td>{{ carga.totalGrupos }}</td>
+                <td>{{ carga.totalGruposRechazados }}</td>
+                <td>{{ carga.versionDatos }}</td>
+                <td>{{ carga.fechaExpiracion | date:'yyyy-MM-dd HH:mm' }}</td>
+                <td>
+                  <a class="btn-navigate-black" [routerLink]="['/nucleo/importacion-masiva']" [queryParams]="{ importacionId: carga.importacionId }">
+                    Gestionar
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </main>
+</section>

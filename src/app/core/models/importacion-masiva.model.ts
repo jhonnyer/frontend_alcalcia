@@ -9,6 +9,7 @@ export interface ImportacionFila {
   beneficiarioSegundoNombre?: string | null;
   beneficiarioPrimerApellido: string;
   beneficiarioSegundoApellido?: string | null;
+  sexo: string;
   tipoDocumento: string;
   numeroDocumento: string;
   fechaNacimiento: string;
@@ -38,6 +39,24 @@ export interface ImportacionResultado {
 
 export interface ApiImportacionResponse {
   respuesta: ImportacionResultado;
+  mensaje: string;
+  estado: string;
+}
+
+export interface ImportacionPendiente {
+  importacionId: string;
+  nombreArchivo: string;
+  estado: string;
+  versionDatos: number;
+  totalFilas: number;
+  totalGrupos: number;
+  totalGruposRechazados: number;
+  fechaCreacion: string;
+  fechaExpiracion: string;
+}
+
+export interface ApiImportacionesPendientesResponse {
+  respuesta: ImportacionPendiente[];
   mensaje: string;
   estado: string;
 }

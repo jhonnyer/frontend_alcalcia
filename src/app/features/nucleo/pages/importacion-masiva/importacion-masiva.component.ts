@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { ImportacionMasivaService } from '../../../../core/services/importacion-masiva.service';
 import { AlertService } from '../../../../core/services/alert.service';
@@ -21,13 +22,86 @@ import {
 export class ImportacionMasivaComponent {
   private readonly service = inject(ImportacionMasivaService);
   private readonly alert = inject(AlertService);
+  private readonly route = inject(ActivatedRoute);
 
   readonly resultado = signal<ImportacionResultado | null>(null);
   readonly filas = signal<ImportacionFila[]>([]);
   readonly errores = signal<ImportacionError[]>([]);
   readonly archivoNombre = signal('');
   readonly cargando = signal(false);
+  readonly descargandoPlantilla = signal(false);
   readonly editando = signal(false);
+  readonly filtro = signal('');
+  readonly pagina = signal(0);
+  readonly tamanoPagina = 25;
+
+  readonly erroresLocales = computed(() => this.filas().flatMap(fila => this.camposInvalidos(fila)));
+
+  private camposInvalidos(fila: ImportacionFila): string[] {
+    const errores: string[] = [];
+    if (!fila.actorRef?.trim()) errores.push('actor_ref');
+    if (!fila.nombreNucleo?.trim()) errores.push('nombre_nucleo');
+    if (!fila.direccion?.trim()) errores.push('direccion');
+    if (!fila.idZona || fila.idZona <= 0) errores.push('id_zona');
+    if (!fila.idBarrio || fila.idBarrio <= 0) errores.push('id_barrio');
+    if (!fila.beneficiarioPrimerNombre?.trim()) errores.push('beneficiario_primer_nombre');
+    if (!fila.beneficiarioPrimerApellido?.trim()) errores.push('beneficiario_primer_apellido');
+    if (!['M', 'F'].includes(fila.sexo?.trim().toUpperCase())) errores.push('sexo');
+    if (!fila.tipoDocumento?.trim()) errores.push('tipo_documento');
+    if (!['CC', 'TI', 'CE', 'NIT', 'PPT', 'RC'].includes(fila.tipoDocumento?.trim().toUpperCase())) errores.push('tipo_documento');
+    if (!fila.numeroDocumento?.trim()) errores.push('numero_documento');
+    if (fila.fechaNacimiento?.trim() && !this.fechaValida(fila.fechaNacimiento)) errores.push('fecha_nacimiento');
+    if (fila.email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fila.email.trim())) errores.push('email');
+    return errores;
+  }
+
+  readonly filasFiltradas = computed(() => {
+    const query = this.filtro().trim().toLocaleLowerCase();
+    return this.filas()
+      .map((fila, index) => ({ fila, index }))
+      .filter(item => !query || [
+        item.fila.actorRef,
+        item.fila.nombreNucleo,
+        item.fila.numeroDocumento,
+        item.fila.beneficiarioPrimerNombre,
+        item.fila.beneficiarioPrimerApellido,
+      ].some(valor => valor?.toLocaleLowerCase().includes(query)));
+  });
+
+  readonly filasPagina = computed(() => {
+    const inicio = this.pagina() * this.tamanoPagina;
+    return this.filasFiltradas().slice(inicio, inicio + this.tamanoPagina);
+  });
+
+  readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.filasFiltradas().length / this.tamanoPagina)));
+
+  constructor() {
+    this.route.queryParamMap.subscribe(params => {
+      const importacionId = params.get('importacionId');
+      if (importacionId) {
+        this.cargando.set(true);
+        this.service.obtener(importacionId).subscribe({
+          next: response => {
+            this.aplicarRespuesta(response.respuesta);
+            this.cargando.set(false);
+          },
+          error: error => {
+            this.cargando.set(false);
+            this.alert.error('No se pudo recuperar la carga', this.mensajeError(error));
+          },
+        });
+      }
+    });
+  }
+
+  puedeConfirmar(): boolean {
+    const resultado = this.resultado();
+    return resultado?.estado === 'VALIDADA'
+      && this.errores().length === 0
+      && this.erroresLocales().length === 0
+      && !this.editando()
+      && !this.cargando();
+  }
 
   seleccionarArchivo(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -57,6 +131,10 @@ export class ImportacionMasivaComponent {
   guardarCorrecciones(): void {
     const resultado = this.resultado();
     if (!resultado) return;
+    if (this.erroresLocales().length > 0) {
+      this.alert.warning('Corrige los datos antes de guardar', 'Hay filas vacías o campos con formato inválido.');
+      return;
+    }
 
     this.cargando.set(true);
     this.service.actualizar(resultado.importacionId, {
@@ -104,6 +182,7 @@ export class ImportacionMasivaComponent {
       idBarrio: null,
       beneficiarioPrimerNombre: '',
       beneficiarioPrimerApellido: '',
+      sexo: '',
       tipoDocumento: '',
       numeroDocumento: '',
       fechaNacimiento: '',
@@ -111,11 +190,26 @@ export class ImportacionMasivaComponent {
       email: '',
     }]);
     this.editando.set(true);
+    this.pagina.set(Math.floor((this.filas().length - 1) / this.tamanoPagina));
   }
 
   eliminarFila(index: number): void {
     this.filas.update(filas => filas.filter((_, filaIndex) => filaIndex !== index));
     this.editando.set(true);
+    this.pagina.set(Math.min(this.pagina(), this.totalPaginas() - 1));
+  }
+
+  cambiarFiltro(event: Event): void {
+    this.filtro.set((event.target as HTMLInputElement).value);
+    this.pagina.set(0);
+  }
+
+  paginaAnterior(): void {
+    this.pagina.update(valor => Math.max(0, valor - 1));
+  }
+
+  paginaSiguiente(): void {
+    this.pagina.update(valor => Math.min(this.totalPaginas() - 1, valor + 1));
   }
 
   errorDe(fila: ImportacionFila, campo: string): string | null {
@@ -126,10 +220,12 @@ export class ImportacionMasivaComponent {
   }
 
   tieneError(fila: ImportacionFila, campo: string): boolean {
-    return this.errorDe(fila, campo) !== null;
+    return this.errorDe(fila, campo) !== null || this.camposInvalidos(fila).includes(campo);
   }
 
   descargarPlantilla(): void {
+    if (this.descargandoPlantilla()) return;
+    this.descargandoPlantilla.set(true);
     this.service.descargarPlantilla().subscribe({
       next: archivo => {
         const enlace = document.createElement('a');
@@ -138,8 +234,12 @@ export class ImportacionMasivaComponent {
         enlace.download = 'plantilla-actores-sociales.xlsx';
         enlace.click();
         URL.revokeObjectURL(url);
+        this.descargandoPlantilla.set(false);
       },
-      error: error => this.alert.error('No se pudo descargar la plantilla', this.mensajeError(error)),
+      error: error => {
+        this.descargandoPlantilla.set(false);
+        this.alert.error('No se pudo descargar la plantilla', this.mensajeError(error));
+      },
     });
   }
 
@@ -159,5 +259,11 @@ export class ImportacionMasivaComponent {
 
   private mensajeError(error: any): string {
     return error?.error?.mensaje ?? error?.error?.message ?? 'Revisa la respuesta del servidor.';
+  }
+
+  private fechaValida(fecha: string | null | undefined): boolean {
+    if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return false;
+    const valor = new Date(`${fecha}T00:00:00`);
+    return !Number.isNaN(valor.getTime()) && valor.toISOString().startsWith(fecha);
   }
 }

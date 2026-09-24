@@ -26,6 +26,7 @@ export class ListNucleoComponent implements OnInit {
         { label: 'Registrar actor social', link: '/nucleo/register'},
         { label: 'Lista de actores sociales', link: '/nucleo'},
         { label: 'Carga masiva de actores sociales', link: '/nucleo/importacion-masiva'},
+        { label: 'Gestionar cargas masivas', link: '/nucleo/gestionar-cargas'},
       ]
     },
     {

@@ -150,8 +150,22 @@
                   <td><input aria-label="Actor ref" class="import-input" [class.import-error]="tieneError(fila, 'actor_ref')" [(ngModel)]="fila.actorRef" (ngModelChange)="cambioCampo(fila, 'actor_ref')" /></td>
                   <td><input aria-label="Nombre del núcleo" class="import-input" [class.import-error]="tieneError(fila, 'nombre_nucleo')" [(ngModel)]="fila.nombreNucleo" (ngModelChange)="cambioCampo(fila, 'nombre_nucleo')" /></td>
                   <td><input aria-label="Dirección" class="import-input" [class.import-error]="tieneError(fila, 'direccion')" [(ngModel)]="fila.direccion" (ngModelChange)="cambioCampo(fila, 'direccion')" /></td>
-                  <td><input aria-label="ID de zona" type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_zona')" [(ngModel)]="fila.idZona" (ngModelChange)="cambioCampo(fila, 'id_zona')" /></td>
-                  <td><input aria-label="ID de barrio" type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_barrio')" [(ngModel)]="fila.idBarrio" (ngModelChange)="cambioCampo(fila, 'id_barrio')" /></td>
+                  <td>
+                    <select aria-label="Zona" class="import-input w-32" [class.import-error]="tieneError(fila, 'id_zona')" [ngModel]="fila.idZona" (ngModelChange)="cambioZona(fila, $event)">
+                      <option [ngValue]="null">-</option>
+                      @for (zona of zonas(); track zona.idZona) {
+                        <option [ngValue]="zona.idZona">{{ zona.nombreZona }}</option>
+                      }
+                    </select>
+                  </td>
+                  <td>
+                    <select aria-label="Barrio" class="import-input w-32" [class.import-error]="tieneError(fila, 'id_barrio')" [(ngModel)]="fila.idBarrio" (ngModelChange)="cambioCampo(fila, 'id_barrio')" [disabled]="!fila.idZona">
+                      <option [ngValue]="null">-</option>
+                      @for (barrio of barriosDe(fila); track barrio.idBarrio) {
+                        <option [ngValue]="barrio.idBarrio">{{ barrio.nombre }}</option>
+                      }
+                    </select>
+                  </td>
                   <td><input aria-label="Primer nombre" class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_nombre')" [(ngModel)]="fila.beneficiarioPrimerNombre" (ngModelChange)="cambioCampo(fila, 'beneficiario_primer_nombre')" /></td>
                   <td><input aria-label="Segundo nombre" class="import-input" [(ngModel)]="fila.beneficiarioSegundoNombre" (ngModelChange)="cambioCampo(fila, 'segundo_nombre')" /></td>
                   <td><input aria-label="Primer apellido" class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_apellido')" [(ngModel)]="fila.beneficiarioPrimerApellido" (ngModelChange)="cambioCampo(fila, 'beneficiario_primer_apellido')" /></td>

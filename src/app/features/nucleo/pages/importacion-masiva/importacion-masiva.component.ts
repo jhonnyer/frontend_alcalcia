@@ -6,6 +6,9 @@ import { ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { ImportacionMasivaService } from '../../../../core/services/importacion-masiva.service';
 import { AlertService } from '../../../../core/services/alert.service';
+import { ZonaService } from '../../../../core/services/zona.service';
+import { IZona } from '../../../../core/models/zona.models';
+import { IBarrio } from '../../../../core/models/barrio.model';
 import {
   ImportacionError,
   ImportacionFila,
@@ -24,6 +27,7 @@ export class ImportacionMasivaComponent {
   private readonly alert = inject(AlertService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly zonaService = inject(ZonaService);
 
   readonly resultado = signal<ImportacionResultado | null>(null);
   readonly filas = signal<ImportacionFila[]>([]);
@@ -35,6 +39,8 @@ export class ImportacionMasivaComponent {
   readonly filtro = signal('');
   readonly pagina = signal(0);
   readonly tamanoPagina = 25;
+  readonly zonas = signal<IZona[]>([]);
+  private readonly barriosPorZona = signal<Map<number, IBarrio[]>>(new Map());
 
   readonly erroresLocales = computed(() => this.filas().flatMap(fila => this.camposInvalidos(fila)));
 
@@ -82,6 +88,11 @@ export class ImportacionMasivaComponent {
   readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.filasFiltradas().length / this.tamanoPagina)));
 
   constructor() {
+    this.zonaService.getAll().subscribe({
+      next: zonas => this.zonas.set(zonas),
+      error: error => console.error('Error al obtener zonas', error),
+    });
+
     this.route.queryParamMap.subscribe(params => {
       const importacionId = params.get('importacionId');
       if (importacionId) {
@@ -129,14 +140,52 @@ export class ImportacionMasivaComponent {
     return 'Confirmar carga';
   }
 
+  barriosDe(fila: ImportacionFila): IBarrio[] {
+    if (!fila.idZona) return [];
+    return this.barriosPorZona().get(fila.idZona) ?? [];
+  }
+
+  cambioZona(fila: ImportacionFila, valor: string): void {
+    const idZona = valor ? Number(valor) : null;
+    fila.idZona = idZona;
+    fila.idBarrio = null;
+    this.cambioCampo(fila, 'id_zona');
+    this.cambioCampo(fila, 'id_barrio');
+
+    if (idZona && !this.barriosPorZona().has(idZona)) {
+      this.zonaService.getById(idZona).subscribe({
+        next: zona => {
+          this.barriosPorZona.update(mapa => new Map(mapa).set(idZona, zona.barrios ?? []));
+        },
+        error: error => console.error('Error al obtener barrios de la zona', error),
+      });
+    }
+  }
+
   cambioCampo(fila: ImportacionFila, campo: string): void {
+    if (campo === 'fecha_nacimiento') {
+      fila.edadCalculada = this.calcularEdad(fila.fechaNacimiento);
+    }
     this.editando.set(true);
+    // fuerza la reactividad del signal para reflejar la mutación in-place de la fila
+    this.filas.update(filas => [...filas]);
     const erroresRestantes = this.errores().filter(error =>
       !(error.numeroFila === fila.numeroFila && error.campo === campo)
     );
     if (erroresRestantes.length !== this.errores().length) {
       this.errores.set(erroresRestantes);
     }
+  }
+
+  private calcularEdad(fechaNacimiento: string | null | undefined): number | null {
+    if (!fechaNacimiento || !this.fechaValida(fechaNacimiento)) return null;
+    const nacimiento = new Date(`${fechaNacimiento}T00:00:00`);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const cumplioEsteAnio = hoy.getMonth() > nacimiento.getMonth()
+      || (hoy.getMonth() === nacimiento.getMonth() && hoy.getDate() >= nacimiento.getDate());
+    if (!cumplioEsteAnio) edad--;
+    return edad >= 0 ? edad : null;
   }
 
   seleccionarArchivo(event: Event): void {
@@ -300,6 +349,20 @@ export class ImportacionMasivaComponent {
     this.resultado.set(resultado);
     this.filas.set(resultado.filas ?? []);
     this.errores.set(resultado.errores ?? []);
+
+    const zonasPendientes = new Set(
+      (resultado.filas ?? [])
+        .map(fila => fila.idZona)
+        .filter((idZona): idZona is number => !!idZona && !this.barriosPorZona().has(idZona))
+    );
+    zonasPendientes.forEach(idZona => {
+      this.zonaService.getById(idZona).subscribe({
+        next: zona => {
+          this.barriosPorZona.update(mapa => new Map(mapa).set(idZona, zona.barrios ?? []));
+        },
+        error: error => console.error('Error al obtener barrios de la zona', error),
+      });
+    });
   }
 
   private mensajeError(error: any): string {

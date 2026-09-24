@@ -18,11 +18,12 @@ import { ActasService } from '../../../../core/services/actas.service';
 import { firstValueFrom } from 'rxjs';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-nucleos',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective, MatCardModule, MatIconModule],
+  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective, MatCardModule, MatIconModule, RouterLink],
   templateUrl: './nucleos.component.html',
   styles: '',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,0 +1,139 @@
+<section class="min-h-full bg-slate-50 p-4 sm:p-6">
+  <header class="mx-auto flex max-w-[1500px] flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <a routerLink="/nucleo" class="mb-2 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:text-blue-900">
+        <mat-icon class="text-base">arrow_back</mat-icon>
+        Actores sociales
+      </a>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900">Carga masiva</h1>
+      <p class="mt-1 max-w-3xl text-sm text-slate-600">
+        Valida, corrige y confirma nucleos con sus beneficiarios antes de guardar.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="btn-action-gray" (click)="descargarPlantilla()">
+        <mat-icon class="mr-1 text-base">download</mat-icon>
+        Descargar plantilla
+      </button>
+      @if (resultado()) {
+        <button type="button" class="btn-action-gray" (click)="reiniciar()">
+          <mat-icon class="mr-1 text-base">restart_alt</mat-icon>
+          Nueva carga
+        </button>
+      }
+    </div>
+  </header>
+
+  <main class="mx-auto mt-5 max-w-[1500px] space-y-4">
+    <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wide text-slate-700">Archivo CSV</h2>
+          <p class="mt-1 text-xs text-slate-500">UTF-8, máximo 5000 filas y 10 MB.</p>
+        </div>
+        <label class="btn-action-blue cursor-pointer">
+          <mat-icon class="mr-1 text-base">upload_file</mat-icon>
+          {{ archivoNombre() || 'Seleccionar archivo' }}
+          <input type="file" accept=".csv,text/csv" class="hidden" (change)="seleccionarArchivo($event)" />
+        </label>
+      </div>
+      <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+        Usa los <strong>id_zona</strong> e <strong>id_barrio</strong> del catálogo válido del municipio. El backend volverá a validar ambas relaciones.
+      </div>
+    </section>
+
+    @if (cargando()) {
+      <section class="rounded-xl border border-blue-100 bg-blue-50 p-5 text-sm text-blue-800">
+        Procesando la importación...
+      </section>
+    }
+
+    @if (resultado(); as importacion) {
+      <section class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        <div class="stat-card"><span>Estado</span><strong>{{ importacion.estado }}</strong></div>
+        <div class="stat-card"><span>Versión</span><strong>{{ importacion.versionDatos }}</strong></div>
+        <div class="stat-card"><span>Filas</span><strong>{{ importacion.totalFilas }}</strong></div>
+        <div class="stat-card"><span>Grupos</span><strong>{{ importacion.totalGrupos }}</strong></div>
+        <div class="stat-card"><span>Con errores</span><strong class="text-amber-700">{{ importacion.totalGruposRechazados }}</strong></div>
+        <div class="stat-card"><span>Creados</span><strong class="text-emerald-700">{{ importacion.totalBeneficiariosCreados }}</strong></div>
+      </section>
+
+      <section class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm font-semibold text-slate-800">Previsualización editable</p>
+          <p class="text-xs text-slate-500">Corrige los campos marcados y guarda la nueva versión antes de confirmar.</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="btn-action-gray" (click)="agregarFila()" [disabled]="importacion.estado !== 'VALIDADA'">
+            <mat-icon class="mr-1 text-base">add</mat-icon>
+            Agregar fila
+          </button>
+          <button type="button" class="btn-action-blue" (click)="guardarCorrecciones()" [disabled]="!editando() || importacion.estado !== 'VALIDADA' || cargando()">
+            <mat-icon class="mr-1 text-base">save</mat-icon>
+            Guardar correcciones
+          </button>
+          <button type="button" class="btn-action-green" (click)="confirmar()" [disabled]="importacion.estado !== 'VALIDADA' || errores().length > 0 || editando() || cargando()">
+            <mat-icon class="mr-1 text-base">check_circle</mat-icon>
+            Confirmar carga
+          </button>
+        </div>
+      </section>
+
+      @if (errores().length > 0) {
+        <section class="rounded-xl border border-red-200 bg-red-50 p-4">
+          <h2 class="text-sm font-bold text-red-900">Errores que deben corregirse</h2>
+          <ul class="mt-2 space-y-1 text-xs text-red-800">
+            @for (error of errores(); track $index) {
+              <li>Fila {{ error.numeroFila }} · {{ error.campo }}: {{ error.mensaje }}</li>
+            }
+          </ul>
+        </section>
+      }
+
+      <section class="table-shell">
+        <div class="table-scroll">
+          <table class="table-compact min-w-[1700px]">
+            <thead>
+              <tr>
+                <th>Fila</th>
+                <th>Actor ref</th>
+                <th>Núcleo</th>
+                <th>Dirección</th>
+                <th>Zona</th>
+                <th>Barrio</th>
+                <th>Primer nombre</th>
+                <th>Primer apellido</th>
+                <th>Tipo doc.</th>
+                <th>Documento</th>
+                <th>Fecha nacimiento</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of filas(); track $index; let index = $index) {
+                <tr>
+                  <td class="text-xs text-slate-500">{{ fila.numeroFila }}</td>
+                  <td><input class="import-input" [class.import-error]="tieneError(fila, 'actor_ref')" [(ngModel)]="fila.actorRef" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input class="import-input" [class.import-error]="tieneError(fila, 'nombre_nucleo')" [(ngModel)]="fila.nombreNucleo" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input class="import-input" [class.import-error]="tieneError(fila, 'direccion')" [(ngModel)]="fila.direccion" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_zona')" [(ngModel)]="fila.idZona" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_barrio')" [(ngModel)]="fila.idBarrio" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_nombre')" [(ngModel)]="fila.beneficiarioPrimerNombre" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_apellido')" [(ngModel)]="fila.beneficiarioPrimerApellido" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input class="import-input w-20" [class.import-error]="tieneError(fila, 'tipo_documento')" [(ngModel)]="fila.tipoDocumento" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input class="import-input" [class.import-error]="tieneError(fila, 'numero_documento')" [(ngModel)]="fila.numeroDocumento" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input type="date" class="import-input" [class.import-error]="tieneError(fila, 'fecha_nacimiento')" [(ngModel)]="fila.fechaNacimiento" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input class="import-input" [(ngModel)]="fila.telefono" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input type="email" class="import-input" [class.import-error]="tieneError(fila, 'email')" [(ngModel)]="fila.email" (ngModelChange)="editando.set(true)" /></td>
+                  <td><button type="button" class="icon-button text-red-600" title="Eliminar fila" (click)="eliminarFila(index)"><mat-icon>delete</mat-icon></button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+  </main>
+</section>

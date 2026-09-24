@@ -39,6 +39,8 @@
       </div>
       <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
         Usa los <strong>id_zona</strong> e <strong>id_barrio</strong> del catálogo válido del municipio. El backend volverá a validar ambas relaciones.
+        Los campos <strong>segundo nombre, segundo apellido, género, etnia, víctima de conflicto, es vivo y discapacidad</strong> son opcionales;
+        la <strong>edad</strong> se calcula automáticamente desde la fecha de nacimiento.
       </div>
     </section>
 
@@ -49,7 +51,7 @@
     }
 
     @if (resultado(); as importacion) {
-      <section class="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+      <section class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <div class="stat-card"><span>Estado</span><strong>{{ importacion.estado }}</strong></div>
         <div class="stat-card"><span>Versión</span><strong>{{ importacion.versionDatos }}</strong></div>
         <div class="stat-card"><span>Filas</span><strong>{{ importacion.totalFilas }}</strong></div>
@@ -100,7 +102,7 @@
 
       <section class="table-shell">
         <div class="table-scroll">
-          <table class="table-compact min-w-[1700px]">
+          <table class="table-compact min-w-[2400px]">
             <thead>
               <tr>
                 <th>Fila</th>
@@ -110,11 +112,19 @@
                 <th>Zona</th>
                 <th>Barrio</th>
                 <th>Primer nombre</th>
+                <th>Segundo nombre</th>
                 <th>Primer apellido</th>
+                <th>Segundo apellido</th>
                 <th>Sexo</th>
+                <th>Género</th>
+                <th>Etnia</th>
                 <th>Tipo doc.</th>
                 <th>Documento</th>
                 <th>Fecha nacimiento</th>
+                <th>Edad</th>
+                <th>Víctima conflicto</th>
+                <th>Es vivo</th>
+                <th>Discapacidad</th>
                 <th>Teléfono</th>
                 <th>Email</th>
                 <th>Acción</th>
@@ -131,11 +141,57 @@
                   <td><input aria-label="ID de zona" type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_zona')" [(ngModel)]="fila.idZona" (ngModelChange)="editando.set(true)" /></td>
                   <td><input aria-label="ID de barrio" type="number" class="import-input w-20" [class.import-error]="tieneError(fila, 'id_barrio')" [(ngModel)]="fila.idBarrio" (ngModelChange)="editando.set(true)" /></td>
                   <td><input aria-label="Primer nombre" class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_nombre')" [(ngModel)]="fila.beneficiarioPrimerNombre" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input aria-label="Segundo nombre" class="import-input" [(ngModel)]="fila.beneficiarioSegundoNombre" (ngModelChange)="editando.set(true)" /></td>
                   <td><input aria-label="Primer apellido" class="import-input" [class.import-error]="tieneError(fila, 'beneficiario_primer_apellido')" [(ngModel)]="fila.beneficiarioPrimerApellido" (ngModelChange)="editando.set(true)" /></td>
-                  <td><input aria-label="Sexo" class="import-input w-16" [class.import-error]="tieneError(fila, 'sexo')" [(ngModel)]="fila.sexo" (ngModelChange)="editando.set(true)" /></td>
+                  <td><input aria-label="Segundo apellido" class="import-input" [(ngModel)]="fila.beneficiarioSegundoApellido" (ngModelChange)="editando.set(true)" /></td>
+                  <td>
+                    <select aria-label="Sexo" class="import-input w-20" [class.import-error]="tieneError(fila, 'sexo')" [(ngModel)]="fila.sexo" (ngModelChange)="editando.set(true)">
+                      <option value="">-</option>
+                      <option value="M">M</option>
+                      <option value="F">F</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select aria-label="Género" class="import-input w-24" [(ngModel)]="fila.genero" (ngModelChange)="editando.set(true)">
+                      <option value="">-</option>
+                      <option value="Masculino">Masculino</option>
+                      <option value="Femenino">Femenino</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select aria-label="Etnia" class="import-input w-20" [class.import-error]="tieneError(fila, 'etnia')" [(ngModel)]="fila.etnia" (ngModelChange)="editando.set(true)">
+                      <option value="">-</option>
+                      <option value="C">C - Campesino</option>
+                      <option value="I">I - Indígena</option>
+                      <option value="A">A - Afrocolombiano</option>
+                      <option value="N">N - No aplica</option>
+                      <option value="E">E - Extranjero</option>
+                      <option value="M">M - Mestizo</option>
+                    </select>
+                  </td>
                   <td><input aria-label="Tipo de documento" class="import-input w-20" [class.import-error]="tieneError(fila, 'tipo_documento')" [(ngModel)]="fila.tipoDocumento" (ngModelChange)="editando.set(true)" /></td>
                   <td><input aria-label="Número de documento" class="import-input" [class.import-error]="tieneError(fila, 'numero_documento')" [(ngModel)]="fila.numeroDocumento" (ngModelChange)="editando.set(true)" /></td>
                   <td><input aria-label="Fecha de nacimiento" type="date" class="import-input" [class.import-error]="tieneError(fila, 'fecha_nacimiento')" [(ngModel)]="fila.fechaNacimiento" (ngModelChange)="editando.set(true)" /></td>
+                  <td class="text-center text-xs text-slate-500">{{ fila.edadCalculada ?? '-' }}</td>
+                  <td>
+                    <select aria-label="Víctima de conflicto" class="import-input w-20" [class.import-error]="tieneError(fila, 'victima_conflicto')" [(ngModel)]="fila.victimaConflicto" (ngModelChange)="editando.set(true)">
+                      <option value="NO">NO</option>
+                      <option value="SI">SI</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select aria-label="Es vivo" class="import-input w-20" [class.import-error]="tieneError(fila, 'es_vivo')" [(ngModel)]="fila.esVivo" (ngModelChange)="editando.set(true)">
+                      <option value="SI">SI</option>
+                      <option value="NO">NO</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select aria-label="Discapacidad" class="import-input w-20" [class.import-error]="tieneError(fila, 'discapacidad')" [(ngModel)]="fila.discapacidad" (ngModelChange)="editando.set(true)">
+                      <option value="NO">NO</option>
+                      <option value="SI">SI</option>
+                    </select>
+                  </td>
                   <td><input aria-label="Teléfono" class="import-input" [(ngModel)]="fila.telefono" (ngModelChange)="editando.set(true)" /></td>
                   <td><input aria-label="Correo electrónico" type="email" class="import-input" [class.import-error]="tieneError(fila, 'email')" [(ngModel)]="fila.email" (ngModelChange)="editando.set(true)" /></td>
                   <td><button type="button" class="icon-button text-red-600" title="Eliminar fila" (click)="eliminarFila(item.index)"><mat-icon>delete</mat-icon></button></td>

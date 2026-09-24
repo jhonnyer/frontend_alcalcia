@@ -10,9 +10,15 @@ export interface ImportacionFila {
   beneficiarioPrimerApellido: string;
   beneficiarioSegundoApellido?: string | null;
   sexo: string;
+  genero?: string | null;
+  etnia?: string | null;
+  edadCalculada?: number | null;
   tipoDocumento: string;
   numeroDocumento: string;
   fechaNacimiento: string;
+  victimaConflicto?: string | null;
+  esVivo?: string | null;
+  discapacidad?: string | null;
   telefono?: string | null;
   email?: string | null;
 }

@@ -47,6 +47,10 @@ export class ImportacionMasivaComponent {
     if (!fila.beneficiarioPrimerNombre?.trim()) errores.push('beneficiario_primer_nombre');
     if (!fila.beneficiarioPrimerApellido?.trim()) errores.push('beneficiario_primer_apellido');
     if (!['M', 'F'].includes(fila.sexo?.trim().toUpperCase())) errores.push('sexo');
+    if (fila.etnia?.trim() && !['C', 'I', 'A', 'N', 'E', 'M'].includes(fila.etnia.trim().toUpperCase())) errores.push('etnia');
+    if (fila.victimaConflicto?.trim() && !['SI', 'NO'].includes(fila.victimaConflicto.trim().toUpperCase())) errores.push('victima_conflicto');
+    if (fila.esVivo?.trim() && !['SI', 'NO'].includes(fila.esVivo.trim().toUpperCase())) errores.push('es_vivo');
+    if (fila.discapacidad?.trim() && !['SI', 'NO'].includes(fila.discapacidad.trim().toUpperCase())) errores.push('discapacidad');
     if (!fila.tipoDocumento?.trim()) errores.push('tipo_documento');
     if (!['CC', 'TI', 'CE', 'NIT', 'PPT', 'RC'].includes(fila.tipoDocumento?.trim().toUpperCase())) errores.push('tipo_documento');
     if (!fila.numeroDocumento?.trim()) errores.push('numero_documento');
@@ -181,11 +185,19 @@ export class ImportacionMasivaComponent {
       idZona: null,
       idBarrio: null,
       beneficiarioPrimerNombre: '',
+      beneficiarioSegundoNombre: '',
       beneficiarioPrimerApellido: '',
+      beneficiarioSegundoApellido: '',
       sexo: '',
+      genero: '',
+      etnia: '',
+      edadCalculada: null,
       tipoDocumento: '',
       numeroDocumento: '',
       fechaNacimiento: '',
+      victimaConflicto: 'NO',
+      esVivo: 'SI',
+      discapacidad: 'NO',
       telefono: '',
       email: '',
     }]);

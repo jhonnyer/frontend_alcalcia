@@ -1,4 +1,6 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
+import { Router } from '@angular/router';
+import { TokenService } from '../../../core/services/token.service';
 import { ListHomeComponent } from './components/list-home/list-home.component';
 import { ListNucleoComponent } from './components/list-nucleo/list-nucleo.component';
 import { ListProceedingsComponent } from './components/list-proceedings/list-proceedings.component';
@@ -27,6 +29,9 @@ import { NgClass, NgIf} from '@angular/common'
   styleUrl: './sidebar.component.scss'
 })
 export class SidebarComponent {
+  private tokenService = inject(TokenService);
+  private router = inject(Router);
+
   isAnimating = false;
   /** Abierto/cerrado en móviles */
   @Input() open = false;
@@ -46,5 +51,11 @@ export class SidebarComponent {
 
   close() {
     this.closed.emit();
+  }
+
+  logout() {
+    this.tokenService.clearToken();
+    this.closed.emit();
+    this.router.navigate(['/auth']);
   }
 }

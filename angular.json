@@ -64,6 +64,7 @@
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
+              "serviceWorker": "ngsw-config.json",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.development.ts",

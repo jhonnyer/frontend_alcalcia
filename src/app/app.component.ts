@@ -33,7 +33,7 @@ export class AppComponent {
         });
       });
 
-    // Revisa si hay versión nueva cada 30 minutos
+    // Comando encargado de revisar si hay versión nueva cada 30 minutos
     setInterval(() => this.swUpdate?.checkForUpdate(), 30 * 60 * 1000);
   }
 }

@@ -97,6 +97,8 @@ function getWorker(): Worker {
   return worker;
 }
 
+const WORKER_TIMEOUT_MS = 20000;
+
 function buildInWorker(docDefinition: any): Promise<Blob> {
   return new Promise<Blob>((resolve, reject) => {
     if (typeof Worker === 'undefined') {
@@ -106,7 +108,16 @@ function buildInWorker(docDefinition: any): Promise<Blob> {
     try {
       const id = ++seq;
       const json = serializeDoc(docDefinition);
-      pending.set(id, { resolve, reject });
+      const timer = window.setTimeout(() => {
+        pending.delete(id);
+        worker?.terminate();
+        worker = null;
+        reject(new Error('El worker no respondió'));
+      }, WORKER_TIMEOUT_MS);
+      pending.set(id, {
+        resolve: (b) => { clearTimeout(timer); resolve(b); },
+        reject: (e) => { clearTimeout(timer); reject(e); },
+      });
       getWorker().postMessage({ id, doc: json });
     } catch (e) {
       reject(e);

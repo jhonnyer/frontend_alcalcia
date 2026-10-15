@@ -47,8 +47,16 @@ function revive(doc: any): any {
   return result;
 }
 
+let currentId = 0;
+
+// pdfmake 0.2 pierde los errores de render en promesas internas y el callback nunca se llama.
+addEventListener('unhandledrejection', (ev: PromiseRejectionEvent) => {
+  postMessage({ id: currentId, error: String(ev.reason?.message ?? ev.reason) });
+});
+
 addEventListener('message', async (ev: MessageEvent) => {
   const { id, doc } = ev.data;
+  currentId = id;
   try {
     const pdfMake = await loadPdfMake();
     const definition = revive(doc);

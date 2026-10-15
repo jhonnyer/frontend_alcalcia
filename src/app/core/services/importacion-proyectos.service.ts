@@ -3,7 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
-import { ApiImportacionProyectosHistorialResponse, ApiImportacionProyectosResponse } from '../models/importacion-proyectos.model';
+import {
+  ApiImportacionProyectosHistorialResponse,
+  ApiImportacionProyectosResponse,
+  ImportacionProyectosFilasRequest,
+} from '../models/importacion-proyectos.model';
 
 @Injectable({ providedIn: 'root' })
 export class ImportacionProyectosService {
@@ -24,6 +28,14 @@ export class ImportacionProyectosService {
     return this.http.post<ApiImportacionProyectosResponse>(`${this.url}/confirmar`, this.formData(archivo), {
       context: checkToken(),
     });
+  }
+
+  simularFilas(request: ImportacionProyectosFilasRequest): Observable<ApiImportacionProyectosResponse> {
+    return this.http.post<ApiImportacionProyectosResponse>(`${this.url}/simular-filas`, request, { context: checkToken() });
+  }
+
+  confirmarFilas(request: ImportacionProyectosFilasRequest): Observable<ApiImportacionProyectosResponse> {
+    return this.http.post<ApiImportacionProyectosResponse>(`${this.url}/confirmar-filas`, request, { context: checkToken() });
   }
 
   historial(): Observable<ApiImportacionProyectosHistorialResponse> {

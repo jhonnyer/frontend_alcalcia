@@ -1,7 +1,7 @@
 import { ImportacionError } from './importacion-masiva.model';
 
 export interface ImportacionProyectoFila {
-  numeroFila: number;
+  numeroFila: number | null;
   proyecto: string | null;
   descripcionProyecto: string | null;
   tipoProyecto: string | null;
@@ -21,6 +21,11 @@ export interface ImportacionProyectosResultado {
   totalProductos: number;
   filas: ImportacionProyectoFila[];
   errores: ImportacionError[];
+}
+
+export interface ImportacionProyectosFilasRequest {
+  nombreArchivo: string;
+  filas: ImportacionProyectoFila[];
 }
 
 export interface ApiImportacionProyectosResponse {

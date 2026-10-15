@@ -25,7 +25,8 @@ export class ListProjectsComponent implements OnInit {
       title: 'Gestión',
       items: [
         { label: 'Registrar proyecto', link: '/projects/create'},
-        { label: 'Lista de proyectos', link: '/projects'}
+        { label: 'Lista de proyectos', link: '/projects'},
+        { label: 'Carga masiva de proyectos', link: '/projects/importacion-masiva'}
       ]
     },
     {

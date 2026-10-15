@@ -180,6 +180,8 @@
                   <td>
                     <select aria-label="Género" class="import-input w-24" [class.import-error]="tieneError(fila, 'genero')" [(ngModel)]="fila.genero" (ngModelChange)="cambioCampo(fila, 'genero')">
                       <option value="">-</option>
+                      <option value="na">No aplica</option>
+                      <option value="LGBTI">LGBTI</option>
                       <option value="Masculino">Masculino</option>
                       <option value="Femenino">Femenino</option>
                       <option value="Otro">Otro</option>

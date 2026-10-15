@@ -188,14 +188,15 @@ export class BeneficiarioProyectoListComponent implements OnInit {
 
   async exportarBeneficiariosPorProyecto() {
     if (this.isExportingPdf) return;
-    if (!this.data() || this.data().length === 0) {
+    const datosExportar = this.filteredData();
+    if (!datosExportar || datosExportar.length === 0) {
       console.warn('No hay datos para exportar');
       return;
     }
 
     this.isExportingPdf = true;
     try {
-      await this.pdfService.generarReporte(this.data());
+      await this.pdfService.generarReporte(datosExportar);
     } catch (error) {
       console.error('Error al exportar beneficiarios por proyecto:', error);
     } finally {

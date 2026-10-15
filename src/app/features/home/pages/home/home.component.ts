@@ -709,7 +709,7 @@ export class HomeComponent implements OnInit{
       incluirActoresSinFecha: true
     };
     this.reportes.obtenerDashboardFiltrado(filtro).subscribe(d => {
-      this.pdfDashboard.generateDashboardReport(d, this.getReportFilterLabel())
+      this.pdfDashboard.generateDashboardReport(d, this.getReportFilterLabel(), { lightweight: true })
         .catch((err) => {
           console.error('Error al abrir el PDF:', err);
           this.alert.warning('Descarga lenta', 'La generación del PDF tardó más de lo esperado. Inténtalo de nuevo.');

@@ -16,7 +16,12 @@ export class PdfGeneradorDashboardService {
     E: 'Entregado'
   };
 
-  async generateDashboardReport(data: any, periodo = 'Todos los registros') {
+  async generateDashboardReport(
+    data: any,
+    periodo = 'Todos los registros',
+    options?: { lightweight?: boolean }
+  ) {
+    const lightweight = options?.lightweight ?? false;
     const logoUrl = '/img/alcaldiaAlmaguer.png';
     const logo = await this.getBase64ImageFromAssets(logoUrl);
 
@@ -54,6 +59,13 @@ export class PdfGeneradorDashboardService {
           style: 'reportPeriod',
           margin: [0, 0, 0, 12]
         },
+        ...(lightweight
+          ? [{
+              text: 'Modo liviano: se omitieron secciones de detalle extenso para priorizar velocidad y fluidez de la interfaz.',
+              style: 'reportPeriod',
+              margin: [0, 0, 0, 12]
+            }]
+          : []),
         // ============================
         // TABLA DE CONTENIDO
         // ============================
@@ -117,9 +129,13 @@ export class PdfGeneradorDashboardService {
         this.tablaEntregasPorProyecto(data.entregasPorProyecto),
         this.linea(),
 
-        { text: 'Detalle de Entregas por Proyecto', style: 'subheader', tocItem: true, id: 'Detalle de Entregas por Proyecto' },
-        this.tablaEntregasDetallePorProyecto(data),
-        this.linea(),
+        ...(lightweight
+          ? []
+          : [
+              { text: 'Detalle de Entregas por Proyecto', style: 'subheader', tocItem: true, id: 'Detalle de Entregas por Proyecto' },
+              this.tablaEntregasDetallePorProyecto(data),
+              this.linea(),
+            ]),
 
         { text: 'Actas por Estado y Proyecto', style: 'subheader', tocItem: true, id: 'Actas por Estado y Proyecto' },
         this.tablaActasPorEstadoProyecto(data.actasPorEstadoProyecto),
@@ -129,9 +145,13 @@ export class PdfGeneradorDashboardService {
         this.tablaResumenEstadoProyecto(data.resumenEstadoProyeto),
         this.linea(),
 
-        { text: 'Detalle de Proyectos', style: 'subheader', tocItem: true, id: 'Detalle de Proyectos' },
-        ...this.detalleProyectos(data.proyectosResumen),
-        this.linea(),
+        ...(lightweight
+          ? []
+          : [
+              { text: 'Detalle de Proyectos', style: 'subheader', tocItem: true, id: 'Detalle de Proyectos' },
+              ...this.detalleProyectos(data.proyectosResumen),
+              this.linea(),
+            ]),
 
         { text: 'Información Institucional', style: 'subheader', tocItem: true, id: 'Información Institucional' },
         this.generateParametrosTable(data.parametros),

@@ -36,6 +36,6 @@ export const PROJECTS_ROUTES: Routes = [
     component: BeneficiarioProyectoUpdateComponent
   },
   { path: 'dashboard', component: ReportDashboardComponent },
-  { path: 'importacion-masiva', component: ImportacionProyectosComponent },
+  { path: 'importacion-masiva', component: ImportacionProyectosComponent, canDeactivate: [(c: ImportacionProyectosComponent) => c.puedeSalir()] },
   { path: 'importacion-masiva/gestionar', component: GestionarCargasProyectosComponent },
 ]

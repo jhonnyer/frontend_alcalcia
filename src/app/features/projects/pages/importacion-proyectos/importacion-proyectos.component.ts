@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AlertService } from '../../../../core/services/alert.service';
@@ -241,6 +241,21 @@ export class ImportacionProyectosComponent {
   readonly puedeConfirmar = computed(() =>
     !!this.resultado() && !this.cambiosPendientes() && this.errores().length === 0
     && this.filas().length > 0 && !this.cargando());
+
+  // Cierre o recarga de la pestaña con cambios sin validar.
+  @HostListener('window:beforeunload', ['$event'])
+  avisarAlCerrar(event: BeforeUnloadEvent): void {
+    if (this.cambiosPendientes()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
+  // Navegación interna (lo usa el guard de la ruta).
+  puedeSalir(): boolean {
+    return !this.cambiosPendientes()
+      || window.confirm('Hay cambios sin validar en la carga. Si sales, se perderán. ¿Deseas salir?');
+  }
 
   seleccionarArchivo(event: Event): void {
     const input = event.target as HTMLInputElement;

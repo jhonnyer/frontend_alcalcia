@@ -31,6 +31,61 @@
 
 
   <ng-container *ngIf="dashboard() as d; else loading">
+    <!-- Filtros del reporte (afectan KPIs, gráficas, listado y PDF) -->
+    <mat-card class="p-3 border border-gray-200">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
+        <div class="grid flex-1 grid-cols-1 gap-3 md:grid-cols-3">
+          <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="always">
+            <mat-label>Proyecto</mat-label>
+            <mat-icon matPrefix>folder</mat-icon>
+            <mat-select [value]="selProyecto()" (selectionChange)="selProyecto.set($event.value)">
+              <mat-option value="ALL">Todos los proyectos</mat-option>
+              <mat-option *ngFor="let p of proyectosOpciones()" [value]="p.id">{{ p.nombre }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="always">
+            <mat-label>Año</mat-label>
+            <mat-icon matPrefix>event</mat-icon>
+            <mat-select [value]="selAnio()" (selectionChange)="onSelAnio($event.value)">
+              <mat-option value="ALL">Todos los años</mat-option>
+              <mat-option *ngFor="let y of aniosDisponibles" [value]="y">{{ y }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="always">
+            <mat-label>Mes</mat-label>
+            <mat-icon matPrefix>calendar_month</mat-icon>
+            <mat-select [value]="selMes()" (selectionChange)="selMes.set($event.value)" [disabled]="selAnio() === 'ALL'">
+              <mat-option value="ALL">Todos los meses</mat-option>
+              <mat-option *ngFor="let m of mesesDisponibles" [value]="m.numero">{{ m.nombre }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="flex gap-2 pb-5">
+          <button type="button" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-2 rounded-md transition"
+                  [disabled]="aplicandoFiltros() || !filtrosPendientes()" (click)="aplicarFiltros()">
+            <mat-icon>filter_alt</mat-icon>
+            {{ aplicandoFiltros() ? 'Aplicando…' : 'Aplicar' }}
+          </button>
+          <button type="button" class="inline-flex items-center gap-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold px-3 py-2 rounded-md transition"
+                  [disabled]="aplicandoFiltros() || (!hayFiltrosAplicados() && !filtrosPendientes())" (click)="limpiarFiltros()">
+            <mat-icon>filter_alt_off</mat-icon>
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <div class="-mt-2 text-xs text-gray-500">
+        @if (hayFiltrosAplicados()) {
+          Mostrando: <strong class="text-gray-700">{{ etiquetaFiltro() }}</strong>. El PDF se genera con este filtro.
+        } @else {
+          Mostrando todos los registros. El PDF se genera con todo el período.
+        }
+      </div>
+    </mat-card>
+
     <!-- KPIs -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div class="kpi">
@@ -97,45 +152,6 @@
         <mat-card class="p-3 border border-gray-200">
             <div class="flex justify-between items-start mb-3">
                 <div class="text-sm font-semibold">Actas por mes / estado</div>
-
-                <!-- 🔹 Filtros Año / Mes -->
-                <div class="flex items-center gap-3">
-                <!-- Filtro Año -->
-                <mat-form-field appearance="outline" class="filter-field w-[130px]" floatLabel="auto">
-                    <mat-icon matPrefix>event</mat-icon>
-                    <mat-select [value]="filtroAnio()" (selectionChange)="onChangeAnio($event.value)">
-                    <mat-option value="ALL">Año</mat-option>
-                    <mat-option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</mat-option>
-                    </mat-select>
-                    <button
-                    matSuffix
-                    mat-icon-button
-                    *ngIf="filtroAnio() !== 'ALL'"
-                    (click)="onChangeAnio('ALL')"
-                    aria-label="Limpiar año">
-                    <mat-icon>close</mat-icon>
-                    </button>
-                </mat-form-field>
-
-                <!-- Filtro Mes -->
-                <mat-form-field appearance="outline" class="filter-field w-[130px]" floatLabel="auto">
-                    <mat-icon matPrefix>calendar_month</mat-icon>
-                    <mat-select [value]="filtroMes()" (selectionChange)="onChangeMes($event.value)">
-                    <mat-option value="ALL">Mes</mat-option>
-                    <mat-option *ngFor="let mes of mesesDisponibles" [value]="mes.numero">
-                        {{ mes.nombre }}
-                    </mat-option>
-                    </mat-select>
-                    <button
-                    matSuffix
-                    mat-icon-button
-                    *ngIf="filtroMes() !== 'ALL'"
-                    (click)="onChangeMes('ALL')"
-                    aria-label="Limpiar mes">
-                    <mat-icon>close</mat-icon>
-                    </button>
-                </mat-form-field>
-                </div>
             </div>
 
             <!-- Gráfico -->
@@ -178,7 +194,7 @@
 
     <!-- Filtros -->
     <mat-card class="p-3 border border-gray-200">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <!-- Buscar texto -->
             <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="auto">
             <mat-icon matPrefix>search</mat-icon>
@@ -223,23 +239,6 @@
                 <mat-icon>close</mat-icon>
             </button>
             </mat-form-field>
-
-            <!-- Filtro por Año -->
-            <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="auto">
-                <mat-icon matPrefix>event</mat-icon>
-                <mat-select [value]="filtroAnio()" (selectionChange)="filtroAnio.set($event.value)">
-                    <mat-option value="ALL">Año</mat-option>
-                    <mat-option *ngFor="let y of aniosDisponibles" [value]="y">{{ y }}</mat-option>
-                </mat-select>
-                <button
-                    matSuffix
-                    mat-icon-button
-                    *ngIf="filtroAnio() !== 'ALL'"
-                    (click)="filtroAnio.set('ALL')"
-                    aria-label="Limpiar año">
-                    <mat-icon>close</mat-icon>
-                </button>
-            </mat-form-field>
         </div>
     </mat-card>
 
@@ -254,17 +253,26 @@
         <div class="proj-card" *ngFor="let p of proyectosFiltrados(); trackBy: trackByProyecto">
         <mat-expansion-panel class="proj-panel">
             <mat-expansion-panel-header class="proj-header">
-            <div class="flex items-center justify-between w-full">
-                <div>
-                <div class="font-medium text-[15px] leading-5">{{ p.nombre }}</div>
+            <div class="flex w-full flex-col gap-2 pr-2 md:flex-row md:items-center md:justify-between">
+                <div class="min-w-0">
+                <div class="font-medium text-[15px] leading-5 break-words">{{ p.nombre }}</div>
                 <div class="text-xs text-gray-500 line-clamp-1">{{ p.descripcion || '—' }}</div>
                 <div class="text-[11px] text-gray-400 mt-1">
                     {{ p.fechaInicio ? (p.fechaInicio | date:'dd/MM/yyyy') : '—' }} → {{ p.fechaFin ? (p.fechaFin | date:'dd/MM/yyyy') : '—' }} • {{ p.duracionDias }} días
                 </div>
+                <div class="mt-1.5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-gray-100" [title]="'Avance del tiempo: ' + progreso(p) + '%'">
+                    <div class="h-full rounded-full bg-indigo-500" [style.width.%]="progreso(p)"></div>
                 </div>
-                <span class="chip" [ngClass]="p.estado === 'A' ? 'chip-a' : 'chip-i'">
-                {{ p.estado === 'A' ? 'Activo' : 'Inactivo' }}
-                </span>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 md:justify-end">
+                    <span class="stat-pill" title="Categorías"><mat-icon>category</mat-icon>{{ p.totalCategorias }}</span>
+                    <span class="stat-pill" title="Productos"><mat-icon>inventory</mat-icon>{{ p.totalProductosAsociados }}</span>
+                    <span class="stat-pill" title="Actas"><mat-icon>checklist_rtl</mat-icon>{{ p.totalActas }}</span>
+                    <span class="stat-pill" title="Beneficiarios"><mat-icon>groups</mat-icon>{{ p.totalBeneficiarios }}</span>
+                    <span class="chip" [ngClass]="p.estado === 'A' ? 'chip-a' : 'chip-i'">
+                    {{ p.estado === 'A' ? 'Activo' : 'Inactivo' }}
+                    </span>
+                </div>
             </div>
             </mat-expansion-panel-header>
 
@@ -376,7 +384,8 @@
             <!-- Beneficiarios -->
             <div class="mb-1">
             <div class="text-xs font-semibold text-gray-600 mb-1">Beneficiarios</div>
-            <table class="table" *ngIf="p.beneficiarios?.length; else noBens">
+            <div class="overflow-x-auto" *ngIf="p.beneficiarios?.length; else noBens">
+            <table class="table min-w-[700px]">
                 <thead>
                 <tr>
                     <th class="th">Nombre</th>
@@ -389,7 +398,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr *ngFor="let b of p.beneficiarios">
+                <tr *ngFor="let b of beneficiariosVisibles(p)">
                     <td class="td">{{ b.nombreCompleto }}</td>
                     <td class="td">{{ b.tipoDocumento }} {{ b.documento }}</td>
                     <td class="td">{{ b.sexo }}</td>
@@ -400,6 +409,10 @@
                 </tr>
                 </tbody>
             </table>
+            <button *ngIf="(p.beneficiarios?.length ?? 0) > MAX_BENS" type="button" class="btn-more" (click)="toggleBens(p.idProyecto)">
+                {{ expandedBens()[p.idProyecto] ? 'Ver menos' : ('Ver todos (' + p.beneficiarios!.length + ')') }}
+            </button>
+            </div>
             <ng-template #noBens>
                 <div class="text-xs text-gray-500">Sin beneficiarios listados.</div>
             </ng-template>

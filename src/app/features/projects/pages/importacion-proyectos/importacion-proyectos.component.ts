@@ -252,9 +252,14 @@ export class ImportacionProyectosComponent {
   }
 
   // Navegación interna (lo usa el guard de la ruta).
-  puedeSalir(): boolean {
-    return !this.cambiosPendientes()
-      || window.confirm('Hay cambios sin validar en la carga. Si sales, se perderán. ¿Deseas salir?');
+  puedeSalir(): boolean | Promise<boolean> {
+    if (!this.cambiosPendientes()) return true;
+    return this.alert.confirm(
+      'Cambios sin validar',
+      'Hay cambios sin validar en la carga. Si sales, se perderán.',
+      'Salir',
+      'Quedarme'
+    );
   }
 
   seleccionarArchivo(event: Event): void {

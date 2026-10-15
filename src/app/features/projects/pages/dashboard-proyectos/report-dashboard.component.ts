@@ -12,7 +12,9 @@ import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables, ChartConfiguration, ChartType, ChartData, ChartOptions } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-import { ReportesService } from '../../../../core/services/reportes.service';
+import { ReportesService, ReporteFiltroRequest } from '../../../../core/services/reportes.service';
+import { AlertService } from '../../../../core/services/alert.service';
+import { timeout } from 'rxjs';
 import { DashboardReport, ResumenProyecto } from '../../../../core/models/reporte-global/reportes.model';
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
@@ -38,6 +40,44 @@ export class ReportDashboardComponent implements OnInit {
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
   private pdfService = inject(PdfGeneradorDashboardService);
+  private alert = inject(AlertService);
+
+  // Dashboard sin filtrar (para opciones de filtro y para restaurar)
+  baseDashboard = signal<DashboardReport | null>(null);
+  // Selección pendiente de aplicar; filtroAnio/filtroMes guardan lo ya aplicado
+  selProyecto = signal<'ALL' | number>('ALL');
+  selAnio = signal<'ALL' | number>('ALL');
+  selMes = signal<'ALL' | number>('ALL');
+  private proyectoAplicado = signal<'ALL' | number>('ALL');
+  aplicandoFiltros = signal(false);
+  expandedBens = signal<Record<number, boolean>>({});
+  readonly MAX_BENS = 15;
+
+  proyectosOpciones = computed(() =>
+    (this.baseDashboard()?.proyectosResumen ?? [])
+      .map(p => ({ id: p.idProyecto, nombre: p.nombre }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre)));
+
+  hayFiltrosAplicados = computed(() =>
+    this.proyectoAplicado() !== 'ALL' || this.filtroAnio() !== 'ALL' || this.filtroMes() !== 'ALL');
+
+  filtrosPendientes = computed(() =>
+    this.selProyecto() !== this.proyectoAplicado() || this.selAnio() !== this.filtroAnio()
+    || this.selMes() !== this.filtroMes());
+
+  etiquetaFiltro = computed(() => {
+    const partes: string[] = [];
+    const idProyecto = this.proyectoAplicado();
+    if (idProyecto !== 'ALL') {
+      const nombre = this.proyectosOpciones().find(p => p.id === idProyecto)?.nombre;
+      partes.push(`Proyecto: ${nombre ?? idProyecto}`);
+    }
+    const mes = this.filtroMes();
+    if (mes !== 'ALL') partes.push(this.mesesDisponibles.find(m => m.numero === mes)?.nombre ?? String(mes));
+    const anio = this.filtroAnio();
+    if (anio !== 'ALL') partes.push(String(anio));
+    return partes.join(' · ');
+  });
 
   // Payload cacheado
   dashboard = signal<DashboardReport | null>(null);
@@ -213,6 +253,7 @@ export class ReportDashboardComponent implements OnInit {
     ngOnInit(): void {
         this.pageTitleService.setCurrentPage('Dashboard Proyectos');
         this.reportes.obtenerDashboard().subscribe(d => {
+            this.baseDashboard.set(d);
             this.dashboard.set(d);
             // categorías únicas para filtro
             const setCats = new Set<string>();
@@ -396,13 +437,95 @@ export class ReportDashboardComponent implements OnInit {
   trackByProyecto = (_: number, p: ResumenProyecto) => p.idProyecto;
   trackByCategoria = (_: number, c: any) => c?.idCategoria ?? _;
 
+  // ========= Filtros del reporte (se aplican en el backend) =========
+  onSelAnio(anio: 'ALL' | number) {
+    this.selAnio.set(anio);
+    if (anio === 'ALL') this.selMes.set('ALL');
+  }
+
+  aplicarFiltros() {
+    const proyecto = this.selProyecto();
+    const anio = this.selAnio();
+    const mes = this.selMes();
+
+    if (proyecto === 'ALL' && anio === 'ALL' && mes === 'ALL') {
+      this.limpiarFiltros();
+      return;
+    }
+    if (mes !== 'ALL' && anio === 'ALL') {
+      this.alert.warning('Selecciona un año', 'Para filtrar por mes debes elegir también el año.');
+      return;
+    }
+
+    const filtro: ReporteFiltroRequest = {
+      idProyecto: proyecto === 'ALL' ? undefined : proyecto,
+      incluirActoresSinFecha: true,
+    };
+    if (anio !== 'ALL') {
+      const m = mes === 'ALL' ? null : mes;
+      const mm = String(m ?? 1).padStart(2, '0');
+      const ultimoDia = m ? new Date(anio, m, 0).getDate() : 31;
+      filtro.fechaInicio = `${anio}-${mm}-01`;
+      filtro.fechaFin = `${anio}-${m ? mm : '12'}-${String(ultimoDia).padStart(2, '0')}`;
+    }
+
+    this.aplicandoFiltros.set(true);
+    this.reportes.obtenerDashboardFiltrado(filtro).pipe(timeout(45000)).subscribe({
+      next: d => {
+        this.proyectoAplicado.set(proyecto);
+        this.filtroAnio.set(anio);
+        this.filtroMes.set(mes);
+        this.dashboard.set(d);
+        this.buildCharts(d);
+        this.aplicandoFiltros.set(false);
+      },
+      error: error => {
+        this.aplicandoFiltros.set(false);
+        console.error('Error al aplicar filtros del reporte:', error);
+        this.alert.error('No se pudo aplicar el filtro', 'La consulta falló o tardó demasiado. Inténtalo de nuevo.');
+      },
+    });
+  }
+
+  limpiarFiltros() {
+    this.selProyecto.set('ALL');
+    this.selAnio.set('ALL');
+    this.selMes.set('ALL');
+    this.proyectoAplicado.set('ALL');
+    this.filtroAnio.set('ALL');
+    this.filtroMes.set('ALL');
+    const base = this.baseDashboard();
+    if (base) {
+      this.dashboard.set(base);
+      this.buildCharts(base);
+    }
+  }
+
+  // ========= Presentación de proyectos =========
+  progreso(p: ResumenProyecto): number {
+    const ini = p.fechaInicio ? Date.parse(p.fechaInicio) : NaN;
+    const fin = p.fechaFin ? Date.parse(p.fechaFin) : NaN;
+    if (Number.isNaN(ini) || Number.isNaN(fin) || fin <= ini) return 0;
+    return Math.max(0, Math.min(100, Math.round(((Date.now() - ini) / (fin - ini)) * 100)));
+  }
+
+  beneficiariosVisibles(p: ResumenProyecto) {
+    const lista = p.beneficiarios ?? [];
+    return this.expandedBens()[p.idProyecto] ? lista : lista.slice(0, this.MAX_BENS);
+  }
+
+  toggleBens(idProyecto: number) {
+    this.expandedBens.update(s => ({ ...s, [idProyecto]: !s[idProyecto] }));
+  }
+
   // ========= Exportar PDF =========
   async exportarPDF() {
     const d = this.dashboard();
     if (!d) return;
     this.isLoadingPDF = true;
     try {
-      await this.pdfService.generateDashboardReport(d, 'Todos los registros', { lightweight: true });
+      const periodo = this.hayFiltrosAplicados() ? this.etiquetaFiltro() : 'Todos los registros';
+      await this.pdfService.generateDashboardReport(d, periodo, { lightweight: true });
     } catch (error) {
       console.error('Error al exportar PDF:', error);
     } finally {

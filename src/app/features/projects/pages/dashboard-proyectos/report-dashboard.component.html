@@ -1,30 +1,23 @@
 <section id="contenedor-reporte" class="h-[calc(100vh-6rem)] overflow-y-auto p-4 bg-gray-50 rounded-xl shadow-sm space-y-4">
     <!-- Header -->
-    <header class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-
-            <h1 class="text-base font-semibold text-gray-800 flex items-center gap-2">
-            <mat-icon>analytics</mat-icon>
-            Reportes y Estadísticas
-            </h1>
+    <header class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex min-w-0 items-center gap-3">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                <mat-icon>analytics</mat-icon>
+            </span>
+            <div class="min-w-0">
+                <h1 class="!m-0 !text-xl !font-bold !leading-tight text-gray-900">Reportes y estadísticas</h1>
+                <p class="!m-0 text-xs text-gray-500">Proyectos, actas, productos y beneficiarios</p>
+            </div>
         </div>
 
         <button
-            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-md transition"
-            type="button"
-            [disabled]="isLoadingPDF"
-            (click)="exportarPDF()"
-        >
-            <mat-icon>picture_as_pdf</mat-icon>
-            {{ isLoadingPDF ? 'Generando…' : 'Exportar PDF' }}
-        </button>
-        <button
             type="button"
             (click)="cerrar()"
-            class="inline-flex items-center gap-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold px-3 py-2 rounded-md transition"
+            class="btn-action-gray"
             aria-label="Cerrar y volver a Proyectos"
             >
-            <mat-icon>arrow_back</mat-icon>
+            <mat-icon class="mr-1 text-base">arrow_back</mat-icon>
             Volver
         </button>
     </header>
@@ -34,50 +27,52 @@
     <!-- Filtros del reporte (afectan KPIs, gráficas, listado y PDF) -->
     <mat-card class="p-3 border border-gray-200">
       <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
-        <div class="grid flex-1 grid-cols-1 gap-3 md:grid-cols-3">
-          <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="always">
-            <mat-label>Proyecto</mat-label>
-            <mat-icon matPrefix>folder</mat-icon>
-            <mat-select [value]="selProyecto()" (selectionChange)="selProyecto.set($event.value)">
-              <mat-option value="ALL">Todos los proyectos</mat-option>
-              <mat-option *ngFor="let p of proyectosOpciones()" [value]="p.id">{{ p.nombre }}</mat-option>
-            </mat-select>
-          </mat-form-field>
+        <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <label class="block">
+            <span class="label-base">Proyecto</span>
+            <select class="input-base" (change)="onSelProyecto($event)">
+              <option value="ALL" [selected]="selProyecto() === 'ALL'">Todos los proyectos</option>
+              <option *ngFor="let p of proyectosOpciones()" [value]="p.id" [selected]="selProyecto() === p.id">{{ p.nombre }}</option>
+            </select>
+          </label>
 
-          <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="always">
-            <mat-label>Año</mat-label>
-            <mat-icon matPrefix>event</mat-icon>
-            <mat-select [value]="selAnio()" (selectionChange)="onSelAnio($event.value)">
-              <mat-option value="ALL">Todos los años</mat-option>
-              <mat-option *ngFor="let y of aniosDisponibles" [value]="y">{{ y }}</mat-option>
-            </mat-select>
-          </mat-form-field>
+          <label class="block">
+            <span class="label-base">Año</span>
+            <select class="input-base" (change)="onSelAnioEvt($event)">
+              <option value="ALL" [selected]="selAnio() === 'ALL'">Todos los años</option>
+              <option *ngFor="let y of aniosDisponibles" [value]="y" [selected]="selAnio() === y">{{ y }}</option>
+            </select>
+          </label>
 
-          <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="always">
-            <mat-label>Mes</mat-label>
-            <mat-icon matPrefix>calendar_month</mat-icon>
-            <mat-select [value]="selMes()" (selectionChange)="selMes.set($event.value)" [disabled]="selAnio() === 'ALL'">
-              <mat-option value="ALL">Todos los meses</mat-option>
-              <mat-option *ngFor="let m of mesesDisponibles" [value]="m.numero">{{ m.nombre }}</mat-option>
-            </mat-select>
-          </mat-form-field>
+          <label class="block">
+            <span class="label-base">Mes</span>
+            <select class="input-base" (change)="onSelMesEvt($event)" [disabled]="selAnio() === 'ALL'">
+              <option value="ALL" [selected]="selMes() === 'ALL'">Todos los meses</option>
+              <option *ngFor="let m of mesesDisponibles" [value]="m.numero" [selected]="selMes() === m.numero">{{ m.nombre }}</option>
+            </select>
+          </label>
         </div>
 
-        <div class="flex gap-2 pb-5">
-          <button type="button" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-2 rounded-md transition"
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="btn-action-blue"
                   [disabled]="aplicandoFiltros() || !filtrosPendientes()" (click)="aplicarFiltros()">
-            <mat-icon>filter_alt</mat-icon>
+            <mat-icon class="mr-1 text-base">filter_alt</mat-icon>
             {{ aplicandoFiltros() ? 'Aplicando…' : 'Aplicar' }}
           </button>
-          <button type="button" class="inline-flex items-center gap-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold px-3 py-2 rounded-md transition"
+          <button type="button" class="btn-action-gray"
                   [disabled]="aplicandoFiltros() || (!hayFiltrosAplicados() && !filtrosPendientes())" (click)="limpiarFiltros()">
-            <mat-icon>filter_alt_off</mat-icon>
+            <mat-icon class="mr-1 text-base">filter_alt_off</mat-icon>
             Limpiar
+          </button>
+          <button type="button" class="btn-action-green" [disabled]="isLoadingPDF" (click)="exportarPDF()">
+            <mat-icon class="mr-1 text-base">picture_as_pdf</mat-icon>
+            {{ isLoadingPDF ? 'Generando…' : 'Exportar PDF' }}
           </button>
         </div>
       </div>
 
-      <div class="-mt-2 text-xs text-gray-500">
+      <div class="mt-3 flex items-center gap-1.5 border-t border-gray-100 pt-3 text-xs text-gray-500">
+        <mat-icon class="!h-4 !w-4 !text-base text-gray-400">info</mat-icon>
         @if (hayFiltrosAplicados()) {
           Mostrando: <strong class="text-gray-700">{{ etiquetaFiltro() }}</strong>. El PDF se genera con este filtro.
         } @else {
@@ -192,69 +187,47 @@
         </mat-card>
     </div>
 
-    <!-- Filtros -->
+    <!-- Filtros de la lista de proyectos -->
     <mat-card class="p-3 border border-gray-200">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <!-- Buscar texto -->
-            <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="auto">
-            <mat-icon matPrefix>search</mat-icon>
-            <input
-                matInput
-                placeholder="Proyecto"
-                [value]="filtroTexto()"
-                (input)="filtroTexto.set($any($event.target).value)" />
-            <button
-                matSuffix
-                mat-icon-button
-                *ngIf="filtroTexto()"
-                (click)="filtroTexto.set('')"
-                aria-label="Limpiar búsqueda">
-                <mat-icon>close</mat-icon>
-            </button>
-            </mat-form-field>
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <label class="block">
+                <span class="label-base">Buscar proyecto</span>
+                <input class="input-base" placeholder="Nombre o descripción" [value]="filtroTexto()"
+                       (input)="filtroTexto.set($any($event.target).value)" />
+            </label>
 
-            <!-- Estado -->
-            <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="auto">
-            <mat-icon matPrefix>flag</mat-icon>
-            <mat-select [value]="filtroEstado()" (selectionChange)="filtroEstado.set($event.value)">
-                <mat-option value="ALL">Estado</mat-option>
-                <mat-option value="A">Activos</mat-option>
-                <mat-option value="I">Inactivos</mat-option>
-            </mat-select>
-            </mat-form-field>
+            <label class="block">
+                <span class="label-base">Estado</span>
+                <select class="input-base" (change)="filtroEstado.set($any($event.target).value)">
+                    <option value="ALL" [selected]="filtroEstado() === 'ALL'">Todos</option>
+                    <option value="A" [selected]="filtroEstado() === 'A'">Activos</option>
+                    <option value="I" [selected]="filtroEstado() === 'I'">Inactivos</option>
+                </select>
+            </label>
 
-            <!-- Categoría -->
-            <mat-form-field appearance="outline" class="filter-field w-full" floatLabel="auto">
-            <mat-icon matPrefix>category</mat-icon>
-            <mat-select [value]="filtroCategoria()" (selectionChange)="filtroCategoria.set($event.value)">
-                <mat-option value="ALL">Categoría</mat-option>
-                <mat-option *ngFor="let c of categoriasDisponibles" [value]="c">{{ c }}</mat-option>
-            </mat-select>
-            <button
-                matSuffix
-                mat-icon-button
-                *ngIf="filtroCategoria() !== 'ALL'"
-                (click)="filtroCategoria.set('ALL')"
-                aria-label="Limpiar categoría">
-                <mat-icon>close</mat-icon>
-            </button>
-            </mat-form-field>
+            <label class="block">
+                <span class="label-base">Categoría</span>
+                <select class="input-base" (change)="filtroCategoria.set($any($event.target).value)">
+                    <option value="ALL" [selected]="filtroCategoria() === 'ALL'">Todas</option>
+                    <option *ngFor="let c of categoriasDisponibles" [value]="c" [selected]="filtroCategoria() === c">{{ c }}</option>
+                </select>
+            </label>
         </div>
     </mat-card>
 
     <!-- Proyectos (paneles) -->
     <mat-card class="p-4 border border-gray-200">
-    <div class="text-sm font-semibold mb-3 flex items-center gap-2">
-        <mat-icon>folder_open</mat-icon>
-        Proyectos ({{ proyectosFiltrados().length }})
+    <div class="mb-3 flex items-center gap-2 text-base font-semibold text-gray-800">
+        <mat-icon class="text-indigo-600">folder_open</mat-icon>
+        Proyectos <span class="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">{{ proyectosFiltrados().length }}</span>
     </div>
 
     <mat-accordion multi class="proj-accordion">
         <div class="proj-card" *ngFor="let p of proyectosFiltrados(); trackBy: trackByProyecto">
         <mat-expansion-panel class="proj-panel">
-            <mat-expansion-panel-header class="proj-header">
-            <div class="flex w-full flex-col gap-2 pr-2 md:flex-row md:items-center md:justify-between">
-                <div class="min-w-0">
+            <mat-expansion-panel-header class="proj-header" collapsedHeight="auto" expandedHeight="auto">
+            <div class="flex w-full flex-col gap-2 py-2.5 pr-2 md:flex-row md:items-center md:justify-between">
+                <div class="min-w-0 flex-1">
                 <div class="font-medium text-[15px] leading-5 break-words">{{ p.nombre }}</div>
                 <div class="text-xs text-gray-500 line-clamp-1">{{ p.descripcion || '—' }}</div>
                 <div class="text-[11px] text-gray-400 mt-1">
@@ -264,7 +237,7 @@
                     <div class="h-full rounded-full bg-indigo-500" [style.width.%]="progreso(p)"></div>
                 </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-1.5 md:justify-end">
+                <div class="flex shrink-0 flex-wrap items-center gap-1.5 md:flex-nowrap md:justify-end">
                     <span class="stat-pill" title="Categorías"><mat-icon>category</mat-icon>{{ p.totalCategorias }}</span>
                     <span class="stat-pill" title="Productos"><mat-icon>inventory</mat-icon>{{ p.totalProductosAsociados }}</span>
                     <span class="stat-pill" title="Actas"><mat-icon>checklist_rtl</mat-icon>{{ p.totalActas }}</span>

@@ -443,6 +443,15 @@ export class ReportDashboardComponent implements OnInit {
     if (anio === 'ALL') this.selMes.set('ALL');
   }
 
+  private valorSel(event: Event): 'ALL' | number {
+    const v = (event.target as HTMLSelectElement).value;
+    return v === 'ALL' ? 'ALL' : Number(v);
+  }
+
+  onSelProyecto(event: Event) { this.selProyecto.set(this.valorSel(event)); }
+  onSelAnioEvt(event: Event) { this.onSelAnio(this.valorSel(event)); }
+  onSelMesEvt(event: Event) { this.selMes.set(this.valorSel(event)); }
+
   aplicarFiltros() {
     const proyecto = this.selProyecto();
     const anio = this.selAnio();

@@ -6,6 +6,7 @@ import { BeneficiarioProyectoListComponent } from "./pages/beneficiario-proyecto
 import { BeneficiarioProyectoUpdateComponent } from "./pages/beneficiario-proyecto-update/beneficiario-proyecto-update.component";
 import { ReportDashboardComponent } from "./pages/dashboard-proyectos/report-dashboard.component";
 import { ImportacionProyectosComponent } from "./pages/importacion-proyectos/importacion-proyectos.component";
+import { GestionarCargasProyectosComponent } from "./pages/gestionar-cargas-proyectos/gestionar-cargas-proyectos.component";
 
 export const PROJECTS_ROUTES: Routes = [
   {
@@ -36,4 +37,5 @@ export const PROJECTS_ROUTES: Routes = [
   },
   { path: 'dashboard', component: ReportDashboardComponent },
   { path: 'importacion-masiva', component: ImportacionProyectosComponent },
+  { path: 'importacion-masiva/gestionar', component: GestionarCargasProyectosComponent },
 ]

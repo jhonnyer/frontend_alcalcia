@@ -28,3 +28,22 @@ export interface ApiImportacionProyectosResponse {
   mensaje: string;
   estado: string;
 }
+
+export interface ImportacionProyectosHistorica {
+  idImportacion: number;
+  nombreArchivo: string;
+  usuario: string;
+  estado: string;
+  fechaConfirmacion: string;
+  totalFilas: number;
+  totalProyectos: number;
+  totalCategorias: number;
+  totalProductos: number;
+  proyectosCreados: string | null;
+}
+
+export interface ApiImportacionProyectosHistorialResponse {
+  respuesta: ImportacionProyectosHistorica[];
+  mensaje: string;
+  estado: string;
+}

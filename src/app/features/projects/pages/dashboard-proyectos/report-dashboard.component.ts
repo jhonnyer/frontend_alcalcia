@@ -397,12 +397,12 @@ export class ReportDashboardComponent implements OnInit {
   trackByCategoria = (_: number, c: any) => c?.idCategoria ?? _;
 
   // ========= Exportar PDF =========
-  async exportarPDF(completo = false) {
+  async exportarPDF() {
     const d = this.dashboard();
     if (!d) return;
     this.isLoadingPDF = true;
     try {
-      await this.pdfService.generateDashboardReport(d, 'Todos los registros', { lightweight: !completo });
+      await this.pdfService.generateDashboardReport(d, 'Todos los registros', { lightweight: true });
     } catch (error) {
       console.error('Error al exportar PDF:', error);
     } finally {

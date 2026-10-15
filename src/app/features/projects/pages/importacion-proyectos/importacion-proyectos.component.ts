@@ -35,6 +35,10 @@ import { ImportacionProyectosResultado } from '../../../../core/models/importaci
               Nueva carga
             </button>
           }
+          <a routerLink="/projects/importacion-masiva/gestionar" class="btn-action-gray">
+            <mat-icon class="mr-1 text-base">history</mat-icon>
+            Gestionar cargas
+          </a>
         </div>
       </header>
 

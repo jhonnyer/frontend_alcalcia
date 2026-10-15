@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
-import { ApiImportacionProyectosResponse } from '../models/importacion-proyectos.model';
+import { ApiImportacionProyectosHistorialResponse, ApiImportacionProyectosResponse } from '../models/importacion-proyectos.model';
 
 @Injectable({ providedIn: 'root' })
 export class ImportacionProyectosService {
@@ -24,6 +24,10 @@ export class ImportacionProyectosService {
     return this.http.post<ApiImportacionProyectosResponse>(`${this.url}/confirmar`, this.formData(archivo), {
       context: checkToken(),
     });
+  }
+
+  historial(): Observable<ApiImportacionProyectosHistorialResponse> {
+    return this.http.get<ApiImportacionProyectosHistorialResponse>(`${this.url}/historial`, { context: checkToken() });
   }
 
   private formData(archivo: File): FormData {

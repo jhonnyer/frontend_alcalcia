@@ -61,7 +61,7 @@
 }
 
 .table-shell {
-  @apply overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm;
+  @apply overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm;
 }
 
 .table-scroll {
@@ -162,4 +162,12 @@ html, body {
 }
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
   background-color: #888;
+}
+
+/* En pantallas sin sidebar fijo, las vistas con alto fijo fluyen y el contenedor del layout hace el scroll. */
+@media (max-width: 1279px) {
+  .h-\[calc\(100vh-6rem\)\] {
+    height: auto !important;
+    overflow-y: visible !important;
+  }
 }

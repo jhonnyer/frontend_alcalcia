@@ -260,12 +260,10 @@ section {
 /* 🧭 Contenedor principal: controla ambos scrolls */
 .accesos-wrapper {
   @apply relative w-full pb-4;
-  overflow-x: auto;
-  overflow-y: visible;
+  overflow: visible;
   scroll-behavior: smooth;
   min-height: 100px;
   min-width: 100%;
-  max-height: calc(100vh - 10rem);
   display: flex;
   justify-content: center;
 }

@@ -1,10 +1,6 @@
 import { Injectable } from '@angular/core';
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { IBeneficiarioProyecto } from '../../../core/models/beneficiarioProyecto.model';
-import { openPdfWithoutBlocking } from './pdf-export.utils';
-
-pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
+import { getCachedImageBase64, openPdfWithoutBlocking } from './pdf-export.utils';
 
 @Injectable({ providedIn: 'root' })
 export class PdfBeneficiariosProyectoService {
@@ -16,7 +12,7 @@ export class PdfBeneficiariosProyectoService {
     const logo = await this.getBase64ImageFromAssets(logoUrl);
 
     if (!data?.length) {
-      await openPdfWithoutBlocking(pdfMake, {
+      await openPdfWithoutBlocking({
         content: [{ text: 'No hay beneficiarios registrados.', italics: true }],
       }, 'beneficiarios-proyecto.pdf');
       return;
@@ -246,7 +242,7 @@ export class PdfBeneficiariosProyectoService {
       }
     };
 
-    await openPdfWithoutBlocking(pdfMake, docDefinition, 'beneficiarios-proyecto.pdf');
+    await openPdfWithoutBlocking(docDefinition, 'beneficiarios-proyecto.pdf');
   }
 
   private limitRows<T>(items: T[] | null | undefined, max: number): { items: T[]; omitted: number } {
@@ -311,13 +307,6 @@ export class PdfBeneficiariosProyectoService {
 
   // ======= Convertir logo a Base64 =======
   private async getBase64ImageFromAssets(imagePath: string): Promise<string> {
-    const response = await fetch(imagePath);
-    const blob = await response.blob();
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+    return getCachedImageBase64(imagePath);
   }
 }

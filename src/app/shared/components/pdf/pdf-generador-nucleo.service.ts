@@ -1,8 +1,5 @@
 import { Injectable } from '@angular/core';
-import * as pdfMake from 'pdfmake/build/pdfmake';
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
-import { openPdfWithoutBlocking } from './pdf-export.utils';
-(pdfMake as any).vfs = (pdfFonts as any).vfs;
+import { getCachedImageBase64, openPdfWithoutBlocking } from './pdf-export.utils';
 
 @Injectable({ providedIn: 'root' })
 export class PdfGeneradorNucleoService {
@@ -164,7 +161,7 @@ export class PdfGeneradorNucleoService {
       }
     };
 
-    await openPdfWithoutBlocking(pdfMake, docDefinition, 'reporte-actor-social.pdf');
+    await openPdfWithoutBlocking(docDefinition, 'reporte-actor-social.pdf');
   }
 
   // =====================================
@@ -582,13 +579,6 @@ export class PdfGeneradorNucleoService {
   // 🔹 Convierte una imagen local a Base64
   // ============================
   private async getBase64ImageFromAssets(imagePath: string): Promise<string> {
-    const response = await fetch(imagePath);
-    const blob = await response.blob();
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+    return getCachedImageBase64(imagePath);
   }
 }

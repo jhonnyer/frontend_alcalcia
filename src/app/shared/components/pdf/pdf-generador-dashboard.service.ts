@@ -1,8 +1,5 @@
 import { Injectable } from '@angular/core';
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
-import { openPdfWithoutBlocking } from './pdf-export.utils';
-pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
+import { getCachedImageBase64, openPdfWithoutBlocking } from './pdf-export.utils';
 
 
 @Injectable({ providedIn: 'root' })
@@ -223,7 +220,7 @@ export class PdfGeneradorDashboardService {
     };
 
     this.normalizarTablas(docDefinition.content);
-    await openPdfWithoutBlocking(pdfMake, docDefinition, 'reporte-dashboard.pdf');
+    await openPdfWithoutBlocking(docDefinition, 'reporte-dashboard.pdf');
   }
 
   private normalizarTablas(node: any): void {
@@ -940,14 +937,7 @@ export class PdfGeneradorDashboardService {
   // 🔹 Convierte una imagen local a Base64
   // ============================
   private async getBase64ImageFromAssets(imagePath: string): Promise<string> {
-    const response = await fetch(imagePath);
-    const blob = await response.blob();
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+    return getCachedImageBase64(imagePath);
   }
 
   // =====================================

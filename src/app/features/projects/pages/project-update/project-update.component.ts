@@ -580,9 +580,15 @@ export class ProjectUpdateComponent implements OnInit {
 
     this.loadingPdf = true;
     this.proyectosService.getProyectoDetallado(this.proyectoId!).subscribe({
-      next: ({ respuesta }) => {
-        this.pdfService.generateProjectReport(respuesta);
-        this.loadingPdf = false;
+      next: async ({ respuesta }) => {
+        try {
+          await this.pdfService.generateProjectReport(respuesta);
+        } catch (error) {
+          console.error('Error al abrir PDF:', error);
+          this.alert.warning('Descarga lenta', 'La generación del PDF tardó más de lo esperado. Inténtalo de nuevo.');
+        } finally {
+          this.loadingPdf = false;
+        }
       },
       error: (err) => {
         console.error('Error al generar PDF:', err);

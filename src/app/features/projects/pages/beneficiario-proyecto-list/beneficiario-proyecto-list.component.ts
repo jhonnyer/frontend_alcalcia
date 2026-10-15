@@ -36,6 +36,7 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
   private pdfService = inject(PdfBeneficiariosProyectoService);
+  isExportingPdf = false;
   data = signal<IBeneficiarioProyecto[]>([]);
   selectedProjectId = signal<number | 'ALL'>('ALL');
   projectSearch = signal('');
@@ -185,11 +186,20 @@ export class BeneficiarioProyectoListComponent implements OnInit {
    return this.sanitizer.bypassSecurityTrustHtml(content);
   }
 
-  exportarBeneficiariosPorProyecto() {
+  async exportarBeneficiariosPorProyecto() {
+    if (this.isExportingPdf) return;
     if (!this.data() || this.data().length === 0) {
       console.warn('No hay datos para exportar');
       return;
     }
-    this.pdfService.generarReporte(this.data());
+
+    this.isExportingPdf = true;
+    try {
+      await this.pdfService.generarReporte(this.data());
+    } catch (error) {
+      console.error('Error al exportar beneficiarios por proyecto:', error);
+    } finally {
+      this.isExportingPdf = false;
+    }
   }
 }

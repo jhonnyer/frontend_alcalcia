@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import { openPdfWithoutBlocking } from './pdf-export.utils';
 (pdfMake as any).vfs = (pdfFonts as any).vfs;
 
 @Injectable({ providedIn: 'root' })
@@ -158,7 +159,7 @@ export class PdfGeneradorNucleoService {
       }
     };
 
-    pdfMake.createPdf(docDefinition).open();
+    await openPdfWithoutBlocking(pdfMake, docDefinition, 'reporte-actor-social.pdf');
   }
 
   // =====================================

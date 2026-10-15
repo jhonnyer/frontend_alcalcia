@@ -397,14 +397,17 @@ export class ReportDashboardComponent implements OnInit {
   trackByCategoria = (_: number, c: any) => c?.idCategoria ?? _;
 
   // ========= Exportar PDF =========
-  exportarPDF() {
+  async exportarPDF() {
     const d = this.dashboard();
     if (!d) return;
     this.isLoadingPDF = true;
-    setTimeout(() => {
-      this.pdfService.generateDashboardReport(d);
+    try {
+      await this.pdfService.generateDashboardReport(d);
+    } catch (error) {
+      console.error('Error al exportar PDF:', error);
+    } finally {
       this.isLoadingPDF = false;
-    }, 200);
+    }
   }
 
   // ======= Productos: chips con “ver más” =======

@@ -39,6 +39,7 @@ export class NucleoDetalleComponent implements OnInit {
 
   detalle?: NucleoDetallado;
   loading = true;
+  loadingPdf = false;
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -96,9 +97,15 @@ export class NucleoDetalleComponent implements OnInit {
     return this.detalle?.actas?.length ?? 0;
   }
 
-  exportarPdf(): void {
-    if (this.detalle) {
-      this.pdfService.generateNucleoReport(this.detalle);
+  async exportarPdf(): Promise<void> {
+    if (!this.detalle || this.loadingPdf) return;
+    this.loadingPdf = true;
+    try {
+      await this.pdfService.generateNucleoReport(this.detalle);
+    } catch (error) {
+      console.error('Error al exportar PDF:', error);
+    } finally {
+      this.loadingPdf = false;
     }
   }
 }

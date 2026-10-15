@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { IBeneficiarioProyecto } from '../../../core/models/beneficiarioProyecto.model';
+import { openPdfWithoutBlocking } from './pdf-export.utils';
 
 pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
 
@@ -13,9 +14,9 @@ export class PdfBeneficiariosProyectoService {
     const logo = await this.getBase64ImageFromAssets(logoUrl);
 
     if (!data?.length) {
-      pdfMake.createPdf({
+      await openPdfWithoutBlocking(pdfMake, {
         content: [{ text: 'No hay beneficiarios registrados.', italics: true }],
-      }).open();
+      }, 'beneficiarios-proyecto.pdf');
       return;
     }
 
@@ -233,7 +234,7 @@ export class PdfBeneficiariosProyectoService {
       }
     };
 
-    pdfMake.createPdf(docDefinition).open();
+    await openPdfWithoutBlocking(pdfMake, docDefinition, 'beneficiarios-proyecto.pdf');
   }
 
   // ======= ENCABEZADO INSTITUCIONAL TRANSVERSAL =======

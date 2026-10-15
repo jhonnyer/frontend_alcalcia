@@ -20,9 +20,9 @@
           <mat-icon class="text-base">arrow_back</mat-icon>
           Volver
         </button>
-        <button class="btn-action-blue" type="button" (click)="exportarPdf()">
+        <button class="btn-action-blue" type="button" (click)="exportarPdf()" [disabled]="loadingPdf">
           <mat-icon class="text-base">picture_as_pdf</mat-icon>
-          Exportar PDF
+          {{ loadingPdf ? 'Generando PDF' : 'Exportar PDF' }}
         </button>
       </div>
     </div>

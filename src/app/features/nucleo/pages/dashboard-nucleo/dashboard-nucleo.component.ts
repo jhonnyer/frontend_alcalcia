@@ -246,6 +246,8 @@ export class DashboardComponent implements OnInit {
   }
 
   async exportarPDF() {
+    if (this.isLoadingPDF) return;
+
     const dashboard = document.querySelector('.dashboard-container') as HTMLElement;
     if (!dashboard) return;
 
@@ -261,7 +263,10 @@ export class DashboardComponent implements OnInit {
       dashboard.style.overflowY = 'visible';
       dashboard.classList.add('export-pdf');
 
-      await new Promise(r => setTimeout(r, 200)); // esperar a que se re-renderice
+      // Permite al navegador pintar el estado del boton antes del trabajo pesado.
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => setTimeout(() => resolve(), 0));
+      });
 
       // 📸 Capturar todo el contenido visible
       const canvas = await html2canvas(dashboard, {

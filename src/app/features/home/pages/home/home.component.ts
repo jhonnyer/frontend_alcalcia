@@ -710,6 +710,10 @@ export class HomeComponent implements OnInit{
     };
     this.reportes.obtenerDashboardFiltrado(filtro).subscribe(d => {
       this.pdfDashboard.generateDashboardReport(d, this.getReportFilterLabel())
+        .catch((err) => {
+          console.error('Error al abrir el PDF:', err);
+          this.alert.warning('Descarga lenta', 'La generación del PDF tardó más de lo esperado. Inténtalo de nuevo.');
+        })
         .finally(() => this.isLoadingPDF = false);
     }, error => {
       this.isLoadingPDF = false;

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
+import { openPdfWithoutBlocking } from './pdf-export.utils';
 pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
 
 
@@ -198,7 +199,7 @@ export class PdfGeneradorDashboardService {
     };
 
     this.normalizarTablas(docDefinition.content);
-    pdfMake.createPdf(docDefinition).open();
+    await openPdfWithoutBlocking(pdfMake, docDefinition, 'reporte-dashboard.pdf');
   }
 
   private normalizarTablas(node: any): void {

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import { openPdfWithoutBlocking } from './pdf-export.utils';
 
 // asignar las fuentes (usa el namespace correcto)
 (pdfMake as any).vfs = (pdfFonts as any).vfs;
@@ -133,7 +134,7 @@ export class PdfGeneradorProyectoService {
       }
     };
 
-    pdfMake.createPdf(docDefinition).open();
+    await openPdfWithoutBlocking(pdfMake, docDefinition, 'reporte-proyecto.pdf');
   }
 
   // === Encabezado institucional transversal ===

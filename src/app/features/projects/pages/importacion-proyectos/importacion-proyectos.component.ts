@@ -180,7 +180,15 @@ const CAMPO_ERROR: Record<CampoEditable, string> = {
 
             <div class="flex items-center justify-between border-t border-slate-100 px-4 py-3 text-sm text-slate-600">
               <span>Página {{ paginaActual() + 1 }} de {{ totalPaginas() }} ({{ filtradas().length }} filas)</span>
-              <div class="flex gap-2">
+              <div class="flex items-center gap-2">
+                <label class="hidden items-center gap-1 text-xs sm:flex">
+                  Filas por página
+                  <select class="cell-input !w-auto !min-w-0" (change)="cambiarTamano($event)">
+                    @for (n of opcionesPagina; track n) {
+                      <option [value]="n" [selected]="n === tamanoPagina()">{{ n }}</option>
+                    }
+                  </select>
+                </label>
                 <button type="button" class="btn-action-gray" (click)="anterior()" [disabled]="paginaActual() === 0">Anterior</button>
                 <button type="button" class="btn-action-gray" (click)="siguiente()" [disabled]="paginaActual() >= totalPaginas() - 1">Siguiente</button>
               </div>
@@ -218,7 +226,8 @@ export class ImportacionProyectosComponent {
   readonly cambiosPendientes = signal(false);
   readonly filtro = signal('');
   readonly paginaActual = signal(0);
-  readonly tamanoPagina = 25;
+  readonly tamanoPagina = signal(10);
+  readonly opcionesPagina = [10, 25, 50, 100];
 
   readonly filtradas = computed(() => {
     const q = this.filtro().trim().toLocaleLowerCase();
@@ -226,8 +235,8 @@ export class ImportacionProyectosComponent {
       [f.proyecto, f.categoria, f.producto].some(v => v?.toLocaleLowerCase().includes(q)));
   });
   readonly pagina = computed(() =>
-    this.filtradas().slice(this.paginaActual() * this.tamanoPagina, (this.paginaActual() + 1) * this.tamanoPagina));
-  readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.filtradas().length / this.tamanoPagina)));
+    this.filtradas().slice(this.paginaActual() * this.tamanoPagina(), (this.paginaActual() + 1) * this.tamanoPagina()));
+  readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.filtradas().length / this.tamanoPagina())));
 
   readonly puedeConfirmar = computed(() =>
     !!this.resultado() && !this.cambiosPendientes() && this.errores().length === 0
@@ -333,6 +342,11 @@ export class ImportacionProyectosComponent {
 
   anterior(): void { this.paginaActual.update(v => Math.max(0, v - 1)); }
   siguiente(): void { this.paginaActual.update(v => Math.min(this.totalPaginas() - 1, v + 1)); }
+
+  cambiarTamano(event: Event): void {
+    this.tamanoPagina.set(Number((event.target as HTMLSelectElement).value));
+    this.paginaActual.set(0);
+  }
 
   descargarPlantilla(): void {
     if (this.descargandoPlantilla()) return;

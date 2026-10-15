@@ -3,7 +3,7 @@ nav {
 }
 
 h6 {
-  @apply truncate;
+  overflow-wrap: anywhere;
 }
 
 /* Asegura que el rol y botones se alineen bien */

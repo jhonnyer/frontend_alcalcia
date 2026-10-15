@@ -8,22 +8,22 @@
     <!-- 🔹 Título -->
     <div class="flex items-center min-w-0 flex-1">
       <h6
-        class="font-sans text-base md:text-lg font-semibold tracking-tight leading-relaxed text-gray-800 truncate cursor-pointer hover:text-blue-700 transition"
+        class="font-sans text-sm md:text-lg font-semibold tracking-tight leading-snug text-gray-800 whitespace-normal break-words line-clamp-3 md:line-clamp-2 cursor-pointer hover:text-blue-700 transition"
         (click)="goHome()"
-        title="Ir a la página principal"
+        [title]="pageTitleService.currentPage()"
       >
         {{ pageTitleService.currentPage() }}
       </h6>
     </div>
 
     <!-- 🔹 Controles de usuario -->
-    <div class="flex items-center gap-2 md:gap-4 flex-shrink-0" cdkMenuBar>
+    <div class="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto md:flex-shrink-0" cdkMenuBar>
 
       <!-- 👤 Rol visible -->
       @if (userRole() !== null) {
         <p
           class="text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200
-                 px-2 py-0.5 rounded-md hidden md:block whitespace-nowrap"
+                 px-2 py-0.5 rounded-md whitespace-nowrap"
         >
           {{ roleNames[userRole() ?? ''] || userRole() }}
         </p>
@@ -31,8 +31,8 @@
 
       @if (activeSecretaryId !== null) {
         <span
-          class="max-w-52 truncate rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700"
-          title="Secretaría activa durante esta sesión"
+          class="min-w-0 max-w-full whitespace-normal break-words rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 md:max-w-52 md:truncate md:whitespace-nowrap"
+          [title]="activeSecretaryName"
         >
           {{ activeSecretaryName }}
         </span>
@@ -51,7 +51,7 @@
       <!-- 🚪 Logout (Móvil) -->
       <button
         (click)="logout()"
-        class="xl:hidden w-9 h-9 flex items-center justify-center 
+        class="xl:hidden ml-auto w-9 h-9 flex items-center justify-center 
                rounded-lg text-gray-600 hover:bg-gray-100 transition"
         type="button"
       >

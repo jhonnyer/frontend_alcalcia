@@ -9,6 +9,11 @@ import { openPdfWithoutBlocking } from './pdf-export.utils';
 @Injectable({ providedIn: 'root' })
 export class PdfGeneradorProyectoService {
 
+  private readonly MAX_PRODUCTOS_POR_CATEGORIA = 120;
+  private readonly MAX_BENEFICIARIOS_POR_ESTADO = 180;
+  private readonly MAX_ACTAS = 80;
+  private readonly MAX_PRODUCTOS_POR_ACTA = 80;
+
   // Diccionario (enum) de estados de acta
   private readonly estadoActaLabels: Record<string, string> = {
     P: 'Pendiente',
@@ -242,9 +247,10 @@ export class PdfGeneradorProyectoService {
     }
 
     categorias.forEach((cat) => {
+      const productosLimitados = this.limitRows(cat.productos || [], this.MAX_PRODUCTOS_POR_CATEGORIA);
       sections.push({ text: `${cat.nombre}`, style: 'subheadertitulo' });
       // Si no tiene productos, mostrar mensaje
-      if (!cat.productos || !cat.productos.length) {
+      if (!productosLimitados.items.length) {
         sections.push({
           text: 'Esta categoría no tiene productos asociados.',
           italics: true,
@@ -264,7 +270,7 @@ export class PdfGeneradorProyectoService {
               { text: 'Stock', style: 'tableHeader' },
               { text: 'Fecha Ingreso', style: 'tableHeader' },
             ],
-            ...cat.productos.map((p: any) => [
+              ...productosLimitados.items.map((p: any) => [
               p.nombreProducto,
               p.descripcion || '—',
               p.stock,
@@ -276,6 +282,15 @@ export class PdfGeneradorProyectoService {
           fillColor: (rowIndex: number) => (rowIndex % 2 === 0 ? '#F9F9F9' : null),
         },
       });
+      if (productosLimitados.omitted > 0) {
+        sections.push({
+          text: `Se muestran ${productosLimitados.items.length} productos. Se omitieron ${productosLimitados.omitted} para agilizar el reporte.`,
+          italics: true,
+          fontSize: 9,
+          color: '#6b7280',
+          margin: [0, 2, 0, 6],
+        });
+      }
       sections.push({ text: '\n' });
     });
 
@@ -300,6 +315,7 @@ export class PdfGeneradorProyectoService {
       .sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto, 'es'));
 
     const buildTable = (lista: any[], titulo: string, color: string) => {
+      const listaLimitada = this.limitRows(lista, this.MAX_BENEFICIARIOS_POR_ESTADO);
       if (!lista.length) {
         return {
           text: `No hay beneficiarios ${titulo.toLowerCase()}.`,
@@ -322,7 +338,7 @@ export class PdfGeneradorProyectoService {
                   { text: 'Estado Beneficiario', style: 'tableHeader' },
                   { text: 'Fecha Inicio', style: 'tableHeader' },
                 ],
-                ...lista.map((b: any) => [
+                ...listaLimitada.items.map((b: any) => [
                   b.nombreCompleto,
                   b.numDocumentoBeneficiario,
                   b.esBeneficiarioActivo ? 'Activo' : 'Inactivo',
@@ -332,6 +348,15 @@ export class PdfGeneradorProyectoService {
             },
             layout: 'lightHorizontalLines',
           },
+          ...(listaLimitada.omitted > 0
+            ? [{
+                text: `Se muestran ${listaLimitada.items.length} registros. Se omitieron ${listaLimitada.omitted} para agilizar el reporte.`,
+                italics: true,
+                fontSize: 9,
+                color: '#6b7280',
+                margin: [0, 3, 0, 5],
+              }]
+            : []),
           {
             text: `Total de beneficiarios ${titulo.toLowerCase()}: ${lista.length}`,
             alignment: 'right',
@@ -368,13 +393,19 @@ export class PdfGeneradorProyectoService {
       return [{ text: 'No hay actas asociadas.', italics: true }];
     }
 
-    return actas.map((acta) => {
+    const actasLimitadas = this.limitRows(actas, this.MAX_ACTAS);
+
+    const bloques = actasLimitadas.items.map((acta) => {
       const estadoLegible = this.estadoActaLabels[acta.estado] || acta.estado;
       const beneficiario = acta.beneficiario
         ? `${acta.beneficiario.primerNombre ?? ''} ${acta.beneficiario.segundoNombre ?? ''} ${acta.beneficiario.primerApellido ?? ''} ${acta.beneficiario.segundoApellido ?? ''}`.trim()
         : '—';
       const documento = acta.beneficiario?.numeroDocumento ?? '—';
       const responsable = `${acta.responsable?.primerNombre ?? ''} ${acta.responsable?.segundoNombre ?? ''} ${acta.responsable?.primerApellido ?? ''} ${acta.responsable?.segundoApellido ?? ''}`.trim();
+      const productosActa = this.limitRows(
+        acta.detallesActaProductos?.flatMap((d: any) => d.productos || []) || [],
+        this.MAX_PRODUCTOS_POR_ACTA
+      );
 
       return {
         margin: [0, 6, 0, 10],
@@ -422,7 +453,7 @@ export class PdfGeneradorProyectoService {
           // =========================================
           // Productos entregados
           // =========================================
-          ...(acta.detallesActaProductos?.length
+          ...(productosActa.items.length
             ? [
                 {
                   margin: [0, 8, 0, 4],
@@ -438,17 +469,24 @@ export class PdfGeneradorProyectoService {
                             { text: 'Descripción', style: 'tableHeader' },
                             { text: 'Cantidad', style: 'tableHeader' },
                           ],
-                          ...acta.detallesActaProductos.flatMap((d: any) =>
-                            d.productos.map((p: any) => [
-                              p.nombreProducto,
-                              p.descripcion || '—',
-                              p.cantidad,
-                            ])
-                          ),
+                          ...productosActa.items.map((p: any) => [
+                            p.nombreProducto,
+                            p.descripcion || '—',
+                            p.cantidad,
+                          ]),
                         ],
                       },
                       layout: 'lightHorizontalLines',
                     },
+                    ...(productosActa.omitted > 0
+                      ? [{
+                          text: `Se muestran ${productosActa.items.length} productos. Se omitieron ${productosActa.omitted} para agilizar el reporte.`,
+                          italics: true,
+                          fontSize: 9,
+                          color: '#6b7280',
+                          margin: [0, 4, 0, 0],
+                        }]
+                      : []),
                   ],
                 },
               ]
@@ -485,6 +523,29 @@ export class PdfGeneradorProyectoService {
         ],
       };
     });
+
+    if (actasLimitadas.omitted > 0) {
+      bloques.push({
+        text: `Se muestran ${actasLimitadas.items.length} actas. Se omitieron ${actasLimitadas.omitted} para agilizar el reporte.`,
+        italics: true,
+        fontSize: 9,
+        color: '#6b7280',
+        margin: [0, 6, 0, 0],
+      });
+    }
+
+    return bloques;
+  }
+
+  private limitRows<T>(items: T[] | null | undefined, max: number): { items: T[]; omitted: number } {
+    const normalized = Array.isArray(items) ? items : [];
+    if (normalized.length <= max) {
+      return { items: normalized, omitted: 0 };
+    }
+    return {
+      items: normalized.slice(0, max),
+      omitted: normalized.length - max,
+    };
   }
 
 

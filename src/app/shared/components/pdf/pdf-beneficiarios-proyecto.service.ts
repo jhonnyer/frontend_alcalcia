@@ -9,6 +9,8 @@ pdfMake.vfs = pdfFonts.pdfMake?.vfs || pdfFonts.vfs;
 @Injectable({ providedIn: 'root' })
 export class PdfBeneficiariosProyectoService {
 
+  private readonly MAX_BENEFICIARIOS_POR_BLOQUE = 220;
+
   async generarReporte(data: IBeneficiarioProyecto[]) {
     const logoUrl = '/img/alcaldiaAlmaguer.png';
     const logo = await this.getBase64ImageFromAssets(logoUrl);
@@ -43,6 +45,7 @@ export class PdfBeneficiariosProyectoService {
       const totalGeneral = beneficiarios.length;
 
       const buildTable = (lista: IBeneficiarioProyecto[], titulo: string, color: string) => {
+        const listaLimitada = this.limitRows(lista, this.MAX_BENEFICIARIOS_POR_BLOQUE);
         if (!lista.length) {
           return {
             text: `No hay beneficiarios ${titulo.toLowerCase()}.`,
@@ -68,7 +71,7 @@ export class PdfBeneficiariosProyectoService {
                     { text: 'Barrio / Vereda', style: 'tableHeader' },
                     { text: 'Observaciones', style: 'tableHeader' },
                   ],
-                  ...lista.map((b, i) => [
+                  ...listaLimitada.items.map((b, i) => [
                     i + 1,
                     b.nombreCompleto || '—',
                     b.edadBeneficiario || '—',
@@ -88,6 +91,15 @@ export class PdfBeneficiariosProyectoService {
               },
               fontSize: 9,
             },
+            ...(listaLimitada.omitted > 0
+              ? [{
+                  text: `Se muestran ${listaLimitada.items.length} registros. Se omitieron ${listaLimitada.omitted} para agilizar el reporte.`,
+                  italics: true,
+                  fontSize: 9,
+                  color: '#6b7280',
+                  margin: [0, 4, 0, 2],
+                }]
+              : []),
             {
               text: `Total de beneficiarios ${titulo.toLowerCase()}: ${lista.length}`,
               alignment: 'right',
@@ -235,6 +247,17 @@ export class PdfBeneficiariosProyectoService {
     };
 
     await openPdfWithoutBlocking(pdfMake, docDefinition, 'beneficiarios-proyecto.pdf');
+  }
+
+  private limitRows<T>(items: T[] | null | undefined, max: number): { items: T[]; omitted: number } {
+    const normalized = Array.isArray(items) ? items : [];
+    if (normalized.length <= max) {
+      return { items: normalized, omitted: 0 };
+    }
+    return {
+      items: normalized.slice(0, max),
+      omitted: normalized.length - max,
+    };
   }
 
   // ======= ENCABEZADO INSTITUCIONAL TRANSVERSAL =======

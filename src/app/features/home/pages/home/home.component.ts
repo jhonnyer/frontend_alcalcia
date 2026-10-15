@@ -26,7 +26,7 @@ import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
 import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
 import { ExcelGeneradorReportesService } from '../../../../shared/components/excel/excel-generador-reportes.service';
-import { firstValueFrom, forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin, timeout } from 'rxjs';
 
 type ReportKeys =
   | 'global'
@@ -708,7 +708,7 @@ export class HomeComponent implements OnInit{
       idResponsable: this.reportResponsibleId ?? undefined,
       incluirActoresSinFecha: true
     };
-    this.reportes.obtenerDashboardFiltrado(filtro).subscribe(d => {
+    this.reportes.obtenerDashboardFiltrado(filtro).pipe(timeout(45000)).subscribe(d => {
       this.pdfDashboard.generateDashboardReport(d, this.getReportFilterLabel(), { lightweight: true })
         .catch((err) => {
           console.error('Error al abrir el PDF:', err);
@@ -718,7 +718,7 @@ export class HomeComponent implements OnInit{
     }, error => {
       this.isLoadingPDF = false;
       console.error('Error al generar el PDF:', error);
-      this.alert.error('Operación fallida', 'No se pudo generar el informe general.');
+      this.alert.error('Operación fallida', 'No se pudo generar el informe general o la consulta tardó demasiado.');
     });
   }
 

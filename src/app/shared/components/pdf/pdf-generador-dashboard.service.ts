@@ -106,7 +106,9 @@ export class PdfGeneradorDashboardService {
         this.linea(),
 
         { text: 'Beneficiarios Activos por Proyecto', style: 'subheader', tocItem: true, id: 'Beneficiarios Activos por Proyecto' },
-        this.tablaBeneficiariosProyecto(data),
+        (lightweight
+          ? this.tablaBeneficiariosProyectoResumida(data)
+          : this.tablaBeneficiariosProyecto(data)),
         this.linea(),
 
         { text: 'Productos Entregados Globalmente', style: 'subheader', tocItem: true, id: 'Productos Entregados Globalmente' },
@@ -126,7 +128,9 @@ export class PdfGeneradorDashboardService {
         this.linea(),
 
         { text: 'Entregas por Proyecto', style: 'subheader', tocItem: true, id: 'Entregas por Proyecto' },
-        this.tablaEntregasPorProyecto(data.entregasPorProyecto),
+        (lightweight
+          ? this.tablaEntregasPorProyectoResumida(data.entregasPorProyecto)
+          : this.tablaEntregasPorProyecto(data.entregasPorProyecto)),
         this.linea(),
 
         ...(lightweight
@@ -608,6 +612,35 @@ export class PdfGeneradorDashboardService {
     };
   }
 
+  private tablaBeneficiariosProyectoResumida(data: any) {
+    const proyectosActivos = data?.resumenEstadoProyeto?.proyectosActivos || [];
+    const proyectosInactivos = data?.resumenEstadoProyeto?.proyectosInactivos || [];
+    const proyectos = [...proyectosActivos, ...proyectosInactivos];
+
+    if (!proyectos.length) {
+      return { text: 'No hay proyectos disponibles.', italics: true };
+    }
+
+    return {
+      table: {
+        widths: ['*', 'auto'],
+        body: [
+          [
+            { text: 'Proyecto', style: 'tableHeader' },
+            { text: 'Total Beneficiarios', style: 'tableHeader' }
+          ],
+          ...proyectos.map((p: any) => [
+            p.nombre || 'Proyecto sin nombre',
+            p.totalBeneficiarios ?? p.beneficiarios?.length ?? 0
+          ])
+        ]
+      },
+      layout: {
+        fillColor: (rowIndex: number) => (rowIndex % 2 === 0 ? '#F9FAFB' : null)
+      }
+    };
+  }
+
   private tablaSolicitudesPorTipo(list: any[]) {
     if (!list?.length) return { text: 'Sin solicitudes registradas.', italics: true };
     return {
@@ -687,6 +720,35 @@ export class PdfGeneradorDashboardService {
 
     return { stack: [...cuerpo.flat()] };
  }
+
+  private tablaEntregasPorProyectoResumida(list: any[]) {
+    if (!list?.length) {
+      return { text: 'Sin registros de entregas por proyecto.', italics: true, color: '#6b7280' };
+    }
+
+    const proyectosOrdenados = [...list].sort((a, b) => (b.totalEntregas || 0) - (a.totalEntregas || 0));
+
+    return {
+      table: {
+        widths: ['*', 'auto', 'auto'],
+        body: [
+          [
+            { text: 'Proyecto', style: 'tableHeader' },
+            { text: 'Total Actas', style: 'tableHeader' },
+            { text: 'Productos Distintos', style: 'tableHeader' }
+          ],
+          ...proyectosOrdenados.map((p: any) => [
+            p.proyecto || '—',
+            p.totalEntregas ?? 0,
+            p.productos?.length ?? 0
+          ])
+        ]
+      },
+      layout: {
+        fillColor: (rowIndex: number) => (rowIndex % 2 === 0 ? '#F9FAFB' : null)
+      }
+    };
+  }
 
 
 

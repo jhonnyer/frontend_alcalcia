@@ -26,6 +26,7 @@ import { ProductoModalComponent } from '../../../inventory/pages/product-modal/p
 import { IProductoFk } from '../../../../core/models/products.model';
 import { PdfGeneradorProyectoService } from '../../../../shared/components/pdf/pdf-proyectos.service';
 import { AlertService } from '../../../../core/services/alert.service';
+import { timeout } from 'rxjs';
 
 interface ICategoriaUI extends ICategorias {
   expanded?: boolean;
@@ -579,7 +580,7 @@ export class ProjectUpdateComponent implements OnInit {
     }
 
     this.loadingPdf = true;
-    this.proyectosService.getProyectoDetallado(this.proyectoId!).subscribe({
+    this.proyectosService.getProyectoDetallado(this.proyectoId!).pipe(timeout(45000)).subscribe({
       next: async ({ respuesta }) => {
         try {
           await this.pdfService.generateProjectReport(respuesta);
@@ -593,7 +594,7 @@ export class ProjectUpdateComponent implements OnInit {
       error: (err) => {
         console.error('Error al generar PDF:', err);
         this.loadingPdf = false;
-        this.alert.error('Error del servicio','❌ Error al generar el PDF del proyecto.');
+        this.alert.error('Error del servicio','❌ Error al generar el PDF del proyecto o la consulta tardó demasiado.');
       }
     });
   }

@@ -7,6 +7,11 @@ import { openPdfWithoutBlocking } from './pdf-export.utils';
 @Injectable({ providedIn: 'root' })
 export class PdfGeneradorNucleoService {
 
+  private readonly MAX_BENEFICIARIOS = 220;
+  private readonly MAX_BENEFICIARIOS_PROYECTO = 220;
+  private readonly MAX_ACTAS = 80;
+  private readonly MAX_PRODUCTOS_POR_ACTA = 80;
+
   private readonly estadoActaLabels: Record<string, string> = {
     P: 'Pendiente',
     RC: 'Rechazado',
@@ -252,32 +257,48 @@ export class PdfGeneradorNucleoService {
     if (!beneficiarios.length) {
       return { text: 'No hay beneficiarios registrados.', italics: true };
     }
+
+    const beneficiariosLimitados = this.limitRows(beneficiarios, this.MAX_BENEFICIARIOS);
+
     return {
-      table: {
-        headerRows: 1,
-        widths: ['20%', '20%', '15%', '15%', '10%','10%', '10%'],
-        body: [
-          [
-            { text: 'Nombre', style: 'tableHeader' },
-            { text: 'Documento', style: 'tableHeader' },
-            { text: 'Edad', style: 'tableHeader' },
-            { text: 'Genero', style: 'tableHeader' },
-            { text: 'Vivo', style: 'tableHeader' },
-            { text: 'Discapacidad', style: 'tableHeader' },
-            { text: 'Victima conflicto', style: 'tableHeader' },
-          ],
-          ...beneficiarios.map(b => [
-            `${b.primerNombre} ${b.primerApellido}`,
-            b.numeroDocumento,
-            b.edad,
-            (b.genero ?? '—').toString().toUpperCase(), 
-            b.esVivo ? 'Sí' : 'No',
-            b.discapacidad ? 'Sí' : 'No',
-            b.victimaConflicto ? 'Sí' : 'No'
-          ])
-        ]
-      },
-      layout: 'lightHorizontalLines'
+      stack: [
+        {
+          table: {
+            headerRows: 1,
+            widths: ['20%', '20%', '15%', '15%', '10%','10%', '10%'],
+            body: [
+              [
+                { text: 'Nombre', style: 'tableHeader' },
+                { text: 'Documento', style: 'tableHeader' },
+                { text: 'Edad', style: 'tableHeader' },
+                { text: 'Genero', style: 'tableHeader' },
+                { text: 'Vivo', style: 'tableHeader' },
+                { text: 'Discapacidad', style: 'tableHeader' },
+                { text: 'Victima conflicto', style: 'tableHeader' },
+              ],
+              ...beneficiariosLimitados.items.map(b => [
+                `${b.primerNombre} ${b.primerApellido}`,
+                b.numeroDocumento,
+                b.edad,
+                (b.genero ?? '—').toString().toUpperCase(),
+                b.esVivo ? 'Sí' : 'No',
+                b.discapacidad ? 'Sí' : 'No',
+                b.victimaConflicto ? 'Sí' : 'No'
+              ])
+            ]
+          },
+          layout: 'lightHorizontalLines'
+        },
+        ...(beneficiariosLimitados.omitted > 0
+          ? [{
+              text: `Se muestran ${beneficiariosLimitados.items.length} beneficiarios. Se omitieron ${beneficiariosLimitados.omitted} para agilizar el reporte.`,
+              italics: true,
+              fontSize: 9,
+              color: '#6b7280',
+              margin: [0, 4, 0, 0],
+            }]
+          : []),
+      ]
     };
   }
 
@@ -289,26 +310,41 @@ export class PdfGeneradorNucleoService {
       return { text: 'No hay beneficiarios con proyectos asociados.', italics: true };
     }
 
+    const beneficiariosProyectoLimitados = this.limitRows(beneficiariosProyecto, this.MAX_BENEFICIARIOS_PROYECTO);
+
     return {
-      table: {
-        headerRows: 1,
-        widths: ['35%', '25%', '20%', '20%'],
-        body: [
-          [
-            { text: 'Beneficiario', style: 'tableHeader' },
-            { text: 'Proyecto', style: 'tableHeader' },
-            { text: 'Estado Proyecto', style: 'tableHeader' },
-            { text: 'Asignación Proyecto', style: 'tableHeader' },
-          ],
-          ...beneficiariosProyecto.map(bp => [
-            bp.nombreCompleto,
-            bp.nombreProyecto,
-            bp.estadoProyecto,
-            bp.esBeneficiarioActivo ? 'Sí' : 'No'
-          ])
-        ]
-      },
-      layout: 'lightHorizontalLines'
+      stack: [
+        {
+          table: {
+            headerRows: 1,
+            widths: ['35%', '25%', '20%', '20%'],
+            body: [
+              [
+                { text: 'Beneficiario', style: 'tableHeader' },
+                { text: 'Proyecto', style: 'tableHeader' },
+                { text: 'Estado Proyecto', style: 'tableHeader' },
+                { text: 'Asignación Proyecto', style: 'tableHeader' },
+              ],
+              ...beneficiariosProyectoLimitados.items.map(bp => [
+                bp.nombreCompleto,
+                bp.nombreProyecto,
+                bp.estadoProyecto,
+                bp.esBeneficiarioActivo ? 'Sí' : 'No'
+              ])
+            ]
+          },
+          layout: 'lightHorizontalLines'
+        },
+        ...(beneficiariosProyectoLimitados.omitted > 0
+          ? [{
+              text: `Se muestran ${beneficiariosProyectoLimitados.items.length} registros. Se omitieron ${beneficiariosProyectoLimitados.omitted} para agilizar el reporte.`,
+              italics: true,
+              fontSize: 9,
+              color: '#6b7280',
+              margin: [0, 4, 0, 0],
+            }]
+          : []),
+      ]
     };
   }
 
@@ -320,7 +356,9 @@ export class PdfGeneradorNucleoService {
       return [{ text: 'No hay actas asociadas.', italics: true }];
     }
 
-    return actas.map((acta) => {
+    const actasLimitadas = this.limitRows(actas, this.MAX_ACTAS);
+
+    const bloques = actasLimitadas.items.map((acta) => {
       const estadoLegible = this.estadoActaLabels[acta.estado] || acta.estado;
 
       const beneficiario = acta.beneficiario
@@ -329,6 +367,10 @@ export class PdfGeneradorNucleoService {
       const documento = acta.beneficiario?.numeroDocumento ?? '—';
       const responsable = `${acta.responsable?.primerNombre ?? ''} ${acta.responsable?.segundoNombre ?? ''} ${acta.responsable?.primerApellido ?? ''} ${acta.responsable?.segundoApellido ?? ''}`.trim();
       const proyecto = acta.proyecto?.nombre ?? '—';
+      const productosActa = this.limitRows(
+        acta.detallesActaProductos?.flatMap((d: any) => (d.productos ?? [])) || [],
+        this.MAX_PRODUCTOS_POR_ACTA
+      );
 
       return {
         margin: [0, 6, 0, 10],
@@ -382,7 +424,7 @@ export class PdfGeneradorNucleoService {
           // =========================================
           // Bloque de productos
           // =========================================
-          ...(acta.detallesActaProductos?.length
+          ...(productosActa.items.length
             ? [
                 {
                   margin: [0, 8, 0, 4],
@@ -402,17 +444,24 @@ export class PdfGeneradorNucleoService {
                             { text: 'Descripción', style: 'tableHeader' },
                             { text: 'Cantidad', style: 'tableHeader' },
                           ],
-                          ...acta.detallesActaProductos.flatMap((d: any) =>
-                            (d.productos ?? []).map((p: any) => [
-                              p.nombreProducto || '—',
-                              p.descripcion || '—',
-                              p.cantidad ?? '—',
-                            ])
-                          ),
+                          ...productosActa.items.map((p: any) => [
+                            p.nombreProducto || '—',
+                            p.descripcion || '—',
+                            p.cantidad ?? '—',
+                          ]),
                         ],
                       },
                       layout: 'lightHorizontalLines',
                     },
+                    ...(productosActa.omitted > 0
+                      ? [{
+                          text: `Se muestran ${productosActa.items.length} productos. Se omitieron ${productosActa.omitted} para agilizar el reporte.`,
+                          italics: true,
+                          fontSize: 9,
+                          color: '#6b7280',
+                          margin: [0, 4, 0, 0],
+                        }]
+                      : []),
                   ],
                 },
               ]
@@ -453,6 +502,29 @@ export class PdfGeneradorNucleoService {
         ],
       };
     });
+
+    if (actasLimitadas.omitted > 0) {
+      bloques.push({
+        text: `Se muestran ${actasLimitadas.items.length} actas. Se omitieron ${actasLimitadas.omitted} para agilizar el reporte.`,
+        italics: true,
+        fontSize: 9,
+        color: '#6b7280',
+        margin: [0, 6, 0, 0],
+      });
+    }
+
+    return bloques;
+  }
+
+  private limitRows<T>(items: T[] | null | undefined, max: number): { items: T[]; omitted: number } {
+    const normalized = Array.isArray(items) ? items : [];
+    if (normalized.length <= max) {
+      return { items: normalized, omitted: 0 };
+    }
+    return {
+      items: normalized.slice(0, max),
+      omitted: normalized.length - max,
+    };
   }
 
 

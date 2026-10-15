@@ -270,7 +270,7 @@ export class DashboardComponent implements OnInit {
 
       // 📸 Capturar todo el contenido visible
       const canvas = await html2canvas(dashboard, {
-        scale: 2,
+        scale: 1.5,
         backgroundColor: '#ffffff',
         useCORS: true,
         scrollY: -window.scrollY,

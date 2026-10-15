@@ -164,6 +164,21 @@
         </div>
       </div>
 
+      <!-- Secretaría -->
+      <div>
+        <label class="label-base">Secretaría</label>
+        <select formControlName="idSecretaria" class="input-base">
+          <option [ngValue]="null" disabled>Selecciona tu secretaría</option>
+          <option *ngFor="let s of secretarias" [ngValue]="s.idSecretaria">{{ s.nombre }}</option>
+        </select>
+        <p
+          *ngIf="formFamilyCore.get('idSecretaria')?.touched && formFamilyCore.get('idSecretaria')?.invalid"
+          class="text-xs text-red-500 mt-1"
+        >
+          ⚠️ Selecciona una secretaría
+        </p>
+      </div>
+
       <!-- Teléfono -->
       <div>
         <label class="label-base">Teléfono</label>

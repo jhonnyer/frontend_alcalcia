@@ -22,6 +22,14 @@ export class AuthService {
     return this.http.post<IResponseLogin>(`${this.URL}/auth/login`, data);
   }
 
+  getPublicSecretarias(): Observable<{ idSecretaria: number; nombre: string }[]> {
+    return this.http.get<{ idSecretaria: number; nombre: string }[]>(`${this.URL}/auth/secretarias`);
+  }
+
+  register(data: unknown): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(`${this.URL}/auth/register`, data);
+  }
+
   changeSecretary(idSecretaria: number): Observable<IResponseLogin> {
     return this.http.post<IResponseLogin>(`${this.URL}/auth/secretaria/${idSecretaria}`, {});
   }

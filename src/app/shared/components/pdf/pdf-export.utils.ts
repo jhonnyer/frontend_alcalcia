@@ -29,6 +29,12 @@ export function getCachedImageBase64(url: string): Promise<string> {
 // ---------- pdfmake en el hilo principal (fallback, carga diferida) ----------
 let pdfMakePromise: Promise<any> | null = null;
 
+// vfs_fonts puede exportar { pdfMake: { vfs } }, { vfs } o el mapa de archivos directamente.
+function resolveVfs(mod: any): any {
+  const candidates = [mod?.pdfMake?.vfs, mod?.vfs, mod?.default?.pdfMake?.vfs, mod?.default?.vfs, mod?.default, mod];
+  return candidates.find((c) => c && typeof c === 'object' && 'Roboto-Medium.ttf' in c);
+}
+
 function loadPdfMake(): Promise<any> {
   if (!pdfMakePromise) {
     pdfMakePromise = Promise.all([
@@ -36,8 +42,7 @@ function loadPdfMake(): Promise<any> {
       import('pdfmake/build/vfs_fonts'),
     ]).then(([pm, fonts]: any[]) => {
       const pdfMake = pm.default ?? pm;
-      const f = fonts.default ?? fonts;
-      pdfMake.vfs = f.pdfMake?.vfs ?? f.vfs ?? fonts.vfs;
+      pdfMake.vfs = resolveVfs(fonts);
       return pdfMake;
     });
     pdfMakePromise.catch(() => (pdfMakePromise = null));

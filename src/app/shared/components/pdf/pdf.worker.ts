@@ -5,6 +5,11 @@ const TOKEN_PAGES = '__PDF_PAGES__';
 
 let pdfMakePromise: Promise<any> | null = null;
 
+function resolveVfs(mod: any): any {
+  const candidates = [mod?.pdfMake?.vfs, mod?.vfs, mod?.default?.pdfMake?.vfs, mod?.default?.vfs, mod?.default, mod];
+  return candidates.find((c) => c && typeof c === 'object' && 'Roboto-Medium.ttf' in c);
+}
+
 function loadPdfMake(): Promise<any> {
   if (!pdfMakePromise) {
     // pdfmake espera `window`; debe existir antes de evaluar el módulo.
@@ -14,8 +19,7 @@ function loadPdfMake(): Promise<any> {
       import('pdfmake/build/vfs_fonts'),
     ]).then(([pm, fonts]: any[]) => {
       const pdfMake = pm.default ?? pm;
-      const f = fonts.default ?? fonts;
-      pdfMake.vfs = f.pdfMake?.vfs ?? f.vfs ?? fonts.vfs;
+      pdfMake.vfs = resolveVfs(fonts);
       return pdfMake;
     });
   }

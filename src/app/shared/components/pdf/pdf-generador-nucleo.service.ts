@@ -358,7 +358,7 @@ export class PdfGeneradorNucleoService {
 
     const actasLimitadas = this.limitRows(actas, this.MAX_ACTAS);
 
-    const bloques = actasLimitadas.items.map((acta) => {
+    const bloques: any[] = actasLimitadas.items.map((acta) => {
       const estadoLegible = this.estadoActaLabels[acta.estado] || acta.estado;
 
       const beneficiario = acta.beneficiario

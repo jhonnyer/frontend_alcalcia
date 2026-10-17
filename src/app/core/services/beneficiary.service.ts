@@ -114,6 +114,20 @@ export class BeneficiaryService {
     );
   }
 
+  getByCedulaAndMunicipio(numeroDocumento: string, idMunicipio: number): Observable<IBeneficiarioUnique> {
+    const params = new HttpParams()
+      .set('cedula', numeroDocumento)
+      .set('idMunicipio', idMunicipio);
+
+    return this.http
+      .get<IBeneficiarioUnique>(`${this.URL}/beneficiarios/buscar-cedula-municipio`, { params, context: checkToken() })
+      .pipe(
+        tap(item => {
+          item.fechaNacimiento = this.formatDate(item.fechaNacimiento);
+        })
+      );
+  }
+
   /**
    * Busqueda de beneficiarios por numero de documento, nombres y apellidos
    */

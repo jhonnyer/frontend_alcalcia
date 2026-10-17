@@ -17,6 +17,14 @@ export const defaultColumns: ColumnDef<INucleoUpdate>[] = [
     meta: { filterVariant: 'text' }
   },
   {
+    id: 'nombreMunicipio',
+    accessorFn: (row) => row.nombreMunicipio,
+    cell: info => info.getValue() || 'Sin municipio',
+    header: 'Municipio',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' }
+  },
+  {
     id: 'nombreZona',
     accessorFn: (row) => row.nombreZona,
     cell: info => info.getValue(),

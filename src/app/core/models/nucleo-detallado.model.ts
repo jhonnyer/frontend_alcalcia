@@ -1,5 +1,7 @@
 export interface NucleoDetallado {
   idNucleo: number;
+  idMunicipioFk?: number;
+  nombreMunicipio?: string;
   nombreNucleo: string;
   direccion: string;
   nombreZona: string;
@@ -13,6 +15,8 @@ export interface NucleoDetallado {
 
 export interface Beneficiario {
   idBeneficiario: number;
+  idMunicipioFk?: number;
+  nombreMunicipio?: string;
   primerNombre: string;
   segundoNombre?: string;
   primerApellido: string;

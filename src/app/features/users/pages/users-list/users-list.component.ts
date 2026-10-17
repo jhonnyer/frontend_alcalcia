@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SecretariaAdminService } from '../../../../core/services/secretaria-admin.service';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
-import { ISecretaria } from '../../../../core/models/secretaria.model';
+import { ICoberturaMunicipio, ISecretaria } from '../../../../core/models/secretaria.model';
 import { IResponsable } from '../../../../core/models/responsable.model';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,6 +15,10 @@ import { IParametroNegocio } from '../../../../core/models/parametro-negocio.mod
 import { SecretaryCreateModalComponent, CreateSecretaryModalPayload } from '../../components/secretary-create-modal/secretary-create-modal.component';
 import { SecretaryParametersModalComponent } from '../../components/secretary-parameters-modal/secretary-parameters-modal.component';
 import { ResponsibleUpdateComponent } from '../../../responsible/pages/responsible-update/responsible-update.component';
+import { MunicipioService } from '../../../../core/services/municipio.service';
+import { IMunicipio } from '../../../../core/models/municipio.model';
+import { DepartamentoService } from '../../../../core/services/departamento.service';
+import { IDepartamento } from '../../../../core/models/departamento.model';
 
 @Component({
   selector: 'app-users-list',
@@ -40,8 +44,12 @@ export class UsersListComponent implements OnInit {
   private readonly tokenService = inject(TokenService);
   private readonly alert = inject(AlertService);
   private readonly parametroNegocioService = inject(ParametroNegocioService);
+  private readonly municipioService = inject(MunicipioService);
+  private readonly departamentoService = inject(DepartamentoService);
 
   secretarias = signal<ISecretaria[]>([]);
+  departamentos = signal<IDepartamento[]>([]);
+  municipios = signal<IMunicipio[]>([]);
   responsables = signal<IResponsable[]>([]);
   loading = signal(true);
   secretariaSearch = signal('');
@@ -56,6 +64,15 @@ export class UsersListComponent implements OnInit {
   secretariaPageIndex = signal(0);
   secretariaPageSize = signal(6);
   selectedSecretaryForParameters = signal<ISecretaria | null>(null);
+  selectedSecretaryForCoverage = signal<ISecretaria | null>(null);
+  coverageModalOpen = signal(false);
+  loadingCoverage = signal(false);
+  savingCoverage = signal(false);
+  coberturaMunicipal = signal<ICoberturaMunicipio[]>([]);
+  municipioToAssign = signal<number | null>(null);
+  coverageDepartamentoFilter = signal<number | null>(null);
+  coverageDepartamentoInput = signal('');
+  coverageMunicipioInput = signal('');
   currentParameters = signal<IParametroNegocio | null>(null);
   activeTab = signal<'secretarias' | 'usuarios'>('secretarias');
   userFormModalOpen = signal(false);
@@ -100,6 +117,16 @@ export class UsersListComponent implements OnInit {
 
   private loadData(): void {
     this.loading.set(true);
+    this.departamentoService.getAll().subscribe({
+      next: departamentos => this.departamentos.set(departamentos),
+      error: error => console.error('Error al cargar departamentos:', error)
+    });
+
+    this.municipioService.getAll().subscribe({
+      next: municipios => this.municipios.set(municipios),
+      error: error => console.error('Error al cargar municipios:', error)
+    });
+
     this.secretariaAdminService.getAll().subscribe({
       next: secretarias => {
         this.secretarias.set(secretarias);
@@ -316,6 +343,130 @@ export class UsersListComponent implements OnInit {
     this.parameterModalOpen.set(false);
     this.selectedSecretaryForParameters.set(null);
     this.currentParameters.set(null);
+  }
+
+  openCoverageModal(secretaria: ISecretaria): void {
+    this.selectedSecretaryForCoverage.set(secretaria);
+    this.coverageModalOpen.set(true);
+    this.municipioToAssign.set(null);
+    this.coverageDepartamentoFilter.set(null);
+    this.coverageDepartamentoInput.set('');
+    this.coverageMunicipioInput.set('');
+    this.loadCoverage(secretaria.idSecretaria);
+  }
+
+  closeCoverageModal(): void {
+    if (this.savingCoverage()) return;
+    this.coverageModalOpen.set(false);
+    this.selectedSecretaryForCoverage.set(null);
+    this.coberturaMunicipal.set([]);
+    this.municipioToAssign.set(null);
+    this.coverageDepartamentoFilter.set(null);
+    this.coverageDepartamentoInput.set('');
+    this.coverageMunicipioInput.set('');
+  }
+
+  updateCoverageDepartamentoInput(event: Event): void {
+    const raw = (event.target as HTMLInputElement).value ?? '';
+    this.coverageDepartamentoInput.set(raw);
+    const exact = this.departamentos().find(dep => this.normalizeSearchText(dep.nombre) === this.normalizeSearchText(raw));
+    this.coverageDepartamentoFilter.set(exact?.idDepartamento ?? null);
+    this.coverageMunicipioInput.set('');
+    this.municipioToAssign.set(null);
+  }
+
+  updateCoverageMunicipioInput(event: Event): void {
+    const raw = (event.target as HTMLInputElement).value ?? '';
+    this.coverageMunicipioInput.set(raw);
+    const exact = this.availableMunicipiosForCoverage().find(m => this.normalizeSearchText(m.nombre) === this.normalizeSearchText(raw));
+    this.municipioToAssign.set(exact?.idMunicipio ?? null);
+  }
+
+  clearCoverageFilters(): void {
+    this.coverageDepartamentoFilter.set(null);
+    this.coverageDepartamentoInput.set('');
+    this.coverageMunicipioInput.set('');
+    this.municipioToAssign.set(null);
+  }
+
+  setMunicipioToAssign(event: Event): void {
+    const value = Number((event.target as HTMLSelectElement).value);
+    this.municipioToAssign.set(Number.isFinite(value) && value > 0 ? value : null);
+  }
+
+  assignCoverageMunicipio(): void {
+    const secretaria = this.selectedSecretaryForCoverage();
+    const idMunicipio = this.municipioToAssign();
+    if (!secretaria || !idMunicipio || this.coverageDepartamentoFilter() == null) return;
+
+    this.savingCoverage.set(true);
+    this.secretariaAdminService.assignCoberturaMunicipal(secretaria.idSecretaria, {
+      idMunicipio,
+      backfillBeneficiarios: true,
+    }).subscribe({
+      next: () => {
+        this.savingCoverage.set(false);
+        this.municipioToAssign.set(null);
+        this.loadCoverage(secretaria.idSecretaria);
+        this.alert.success('Operación exitosa', 'Cobertura municipal actualizada y beneficiarios compartidos.');
+      },
+      error: error => {
+        this.savingCoverage.set(false);
+        console.error('Error al asignar cobertura municipal:', error);
+        this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo asignar la cobertura municipal.');
+      }
+    });
+  }
+
+  removeCoverageMunicipio(idMunicipio: number): void {
+    const secretaria = this.selectedSecretaryForCoverage();
+    if (!secretaria) return;
+
+    this.savingCoverage.set(true);
+    this.secretariaAdminService.removeCoberturaMunicipal(secretaria.idSecretaria, idMunicipio).subscribe({
+      next: () => {
+        this.savingCoverage.set(false);
+        this.loadCoverage(secretaria.idSecretaria);
+      },
+      error: error => {
+        this.savingCoverage.set(false);
+        console.error('Error al desactivar cobertura municipal:', error);
+        this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo desactivar la cobertura municipal.');
+      }
+    });
+  }
+
+  availableMunicipiosForCoverage = computed(() => {
+    const usados = new Set(this.coberturaMunicipal().filter(c => c.estado === 'A').map(c => c.idMunicipio));
+    const query = this.normalizeSearchText(this.coverageMunicipioInput());
+    const dept = this.coverageDepartamentoFilter();
+    return this.municipios().filter(m => {
+      if (usados.has(m.idMunicipio)) return false;
+      const byDept = dept == null || m.idDepartamentoFk === dept;
+      const bySearch = !query || this.normalizeSearchText(m.nombre).includes(query);
+      return byDept && bySearch;
+    });
+  });
+
+  availableDepartamentosForCoverage = computed(() => {
+    const query = this.normalizeSearchText(this.coverageDepartamentoInput());
+    if (!query) return this.departamentos();
+    return this.departamentos().filter(dep => this.normalizeSearchText(dep.nombre).includes(query));
+  });
+
+  private loadCoverage(idSecretaria: number): void {
+    this.loadingCoverage.set(true);
+    this.secretariaAdminService.getCoberturaMunicipal(idSecretaria).subscribe({
+      next: coberturas => {
+        this.coberturaMunicipal.set(coberturas);
+        this.loadingCoverage.set(false);
+      },
+      error: error => {
+        console.error('Error al cargar cobertura municipal:', error);
+        this.loadingCoverage.set(false);
+        this.alert.error('Operación fallida', 'No se pudo cargar la cobertura municipal.');
+      }
+    });
   }
 
   async updateActiveSecretaryName(): Promise<void> {

@@ -425,6 +425,8 @@ export class NucleoUpdateComponent implements OnInit {
 
       const payload: INucleoUpdate = {
         idNucleo: Number(this.nucleoID),
+        idMunicipioFk: this.nucleo()?.idMunicipioFk ?? 0,
+        nombreMunicipio: this.nucleo()?.nombreMunicipio ?? null,
         idZonaFk: zona,
         idBarrioFk: barrio,
         numeroIntegrantes: this.beneficiariosFormArray.length,

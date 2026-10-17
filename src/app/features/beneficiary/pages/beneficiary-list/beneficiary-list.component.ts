@@ -59,12 +59,13 @@ export class BeneficiaryListComponent implements OnInit {
   actorSearchQuery = signal('');
   actorSuggestionsVisible = signal(false);
   actorOptions = computed(() => {
-    const actors = new Map<number, { id: number; nombre: string; barrio: string; direccion: string }>();
+    const actors = new Map<number, { id: number; nombre: string; municipio: string; barrio: string; direccion: string }>();
     this.data().forEach(beneficiario => {
       if (beneficiario.idNucleoFk && !actors.has(beneficiario.idNucleoFk)) {
         actors.set(beneficiario.idNucleoFk, {
           id: beneficiario.idNucleoFk,
           nombre: beneficiario.nombreNucleo || 'Sin nombre',
+          municipio: beneficiario.nombreMunicipio || 'Sin municipio',
           barrio: beneficiario.barrio || 'Sin barrio',
           direccion: beneficiario.direccionNucleo || 'Sin dirección'
         });
@@ -76,7 +77,7 @@ export class BeneficiaryListComponent implements OnInit {
     const query = this.actorSearchQuery().trim().toLocaleLowerCase();
     if (!query) return this.actorOptions();
     return this.actorOptions().filter(actor =>
-      `${actor.id} ${actor.nombre} ${actor.barrio} ${actor.direccion}`
+      `${actor.id} ${actor.nombre} ${actor.municipio} ${actor.barrio} ${actor.direccion}`
         .toLocaleLowerCase()
         .includes(query)
     );

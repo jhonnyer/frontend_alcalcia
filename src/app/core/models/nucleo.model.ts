@@ -20,6 +20,8 @@ export interface INucleo {
 
 export interface INucleoUpdate {
   idNucleo: number;
+  idMunicipioFk: number;
+  nombreMunicipio: string | null;
   idZonaFk: number;
   idBarrioFk: number;
   nombreZona: string | null;

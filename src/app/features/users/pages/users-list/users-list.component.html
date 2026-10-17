@@ -54,8 +54,86 @@
 		</div>
 	</form>
 
-	<app-secretary-create-modal [open]="secretaryModalOpen()" [loading]="creatingSecretary()" (cancel)="closeSecretaryModal()" (create)="createSecretary($event)"></app-secretary-create-modal>
+	<app-secretary-create-modal [open]="secretaryModalOpen()" [loading]="creatingSecretary()" [departamentos]="departamentos()" [municipios]="municipios()" (cancel)="closeSecretaryModal()" (create)="createSecretary($event)"></app-secretary-create-modal>
 	<app-secretary-parameters-modal [open]="parameterModalOpen()" [loading]="loadingParameters()" [saving]="savingParameters()" [secretariaName]="selectedSecretaryForParameters()?.nombre || ''" [parameters]="currentParameters()" (cancel)="closeParameterModal()" (save)="saveSecretaryParameters($event)"></app-secretary-parameters-modal>
+
+	@if (coverageModalOpen()) {
+		<div class="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-4">
+			<div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-5 shadow-xl">
+				<div class="mb-4 flex items-center justify-between gap-3">
+					<div>
+						<h3 class="text-lg font-bold text-slate-800">Cobertura municipal</h3>
+						<p class="text-sm text-slate-500">Secretaría: {{ selectedSecretaryForCoverage()?.nombre }}</p>
+					</div>
+					<button type="button" class="rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="closeCoverageModal()">
+						<mat-icon>close</mat-icon>
+					</button>
+				</div>
+
+				<div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+					<p class="mb-2 text-sm font-semibold text-slate-700">Agregar municipio a cobertura</p>
+					<div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
+						<label class="text-xs font-semibold text-slate-600">Departamento
+							<input class="input-base mt-1" type="text" placeholder="Escribe para buscar departamento" list="coverage-departamentos-list" [value]="coverageDepartamentoInput()" (input)="updateCoverageDepartamentoInput($event)" />
+							<datalist id="coverage-departamentos-list">
+								@for (dep of availableDepartamentosForCoverage(); track dep.idDepartamento) {
+									<option [value]="dep.nombre"></option>
+								}
+							</datalist>
+						</label>
+						<label class="text-xs font-semibold text-slate-600">Municipio
+							<input class="input-base mt-1" type="text" placeholder="Escribe para buscar municipio" list="coverage-municipios-list" [value]="coverageMunicipioInput()" (input)="updateCoverageMunicipioInput($event)" [disabled]="coverageDepartamentoFilter() == null" />
+							<datalist id="coverage-municipios-list">
+								@for (municipio of availableMunicipiosForCoverage(); track municipio.idMunicipio) {
+									<option [value]="municipio.nombre"></option>
+								}
+							</datalist>
+						</label>
+						<button type="button" class="btn-action-gray" (click)="clearCoverageFilters()">Limpiar filtros</button>
+					</div>
+					<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+						<div class="text-xs text-slate-600">{{ coverageDepartamentoFilter() == null ? 'Primero selecciona departamento' : 'Selecciona un municipio desde el campo anterior' }}</div>
+						<button type="button" class="btn-action-green" [disabled]="savingCoverage() || !municipioToAssign()" (click)="assignCoverageMunicipio()">
+							{{ savingCoverage() ? 'Guardando...' : 'Agregar cobertura' }}
+						</button>
+					</div>
+				</div>
+
+				<div class="mt-4 rounded-lg border border-slate-200">
+					<div class="max-h-72 overflow-auto">
+						<table class="table-compact">
+							<thead>
+								<tr>
+									<th class="px-3 py-2 text-left">Municipio</th>
+									<th class="px-3 py-2 text-center">Estado</th>
+									<th class="px-3 py-2 text-center">Acción</th>
+								</tr>
+							</thead>
+							<tbody>
+								@if (loadingCoverage()) {
+									<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Cargando cobertura...</td></tr>
+								} @else if (coberturaMunicipal().length === 0) {
+									<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Sin cobertura registrada</td></tr>
+								} @else {
+									@for (cobertura of coberturaMunicipal(); track cobertura.idMunicipio) {
+										<tr class="border-t border-slate-100">
+											<td class="px-3 py-2">{{ cobertura.nombreMunicipio }}</td>
+											<td class="px-3 py-2 text-center">
+												<span class="status-badge" [ngClass]="cobertura.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ cobertura.estado === 'A' ? 'Activa' : 'Inactiva' }}</span>
+											</td>
+											<td class="px-3 py-2 text-center">
+												<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50" [disabled]="savingCoverage() || cobertura.estado !== 'A'" (click)="removeCoverageMunicipio(cobertura.idMunicipio)">Quitar</button>
+											</td>
+										</tr>
+									}
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	}
 
 	@if (userFormModalOpen()) {
 		<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/45 p-4">
@@ -119,6 +197,7 @@
 							<th class="px-3 py-2 text-left">Nombre</th>
 							<th class="px-3 py-2 text-left">Código</th>
 							<th class="px-3 py-2 text-center">Estado</th>
+							<th class="px-3 py-2 text-center">Cobertura</th>
 							<th class="px-3 py-2 text-center">Parámetros</th>
 						</tr>
 					</thead>
@@ -136,6 +215,11 @@
 										{{ secretaria.estado === 'A' ? 'Activa' : 'Inactiva' }}
 									</span>
 								</td>
+									<td class="px-3 py-2 text-center">
+										<button type="button" class="rounded-md p-1 text-emerald-700 hover:bg-emerald-50" (click)="openCoverageModal(secretaria)" title="Gestionar cobertura municipal" aria-label="Gestionar cobertura municipal">
+											<mat-icon>public</mat-icon>
+										</button>
+									</td>
 								<td class="px-3 py-2 text-center">
 									<button type="button" class="rounded-md p-1" [ngClass]="isActiveSecretary(secretaria) ? 'text-blue-700 hover:bg-blue-50' : 'text-slate-400 cursor-not-allowed'" (click)="openSecretaryParameters(secretaria)" [title]="isActiveSecretary(secretaria) ? 'Editar parámetros institucionales' : 'Solo editable para la secretaría activa'" aria-label="Editar parámetros institucionales" [disabled]="!isActiveSecretary(secretaria)">
 										<mat-icon>edit_note</mat-icon>

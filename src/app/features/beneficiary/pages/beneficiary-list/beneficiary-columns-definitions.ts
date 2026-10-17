@@ -48,10 +48,18 @@ export const defaultColumns: ColumnDef<IBeneficiario>[] = [
     cell: (info) => {
       const row = info.row.original;
       const nombre = row.nombreNucleo || 'Sin actor social';
-      const ubicacion = [row.barrio, row.direccionNucleo].filter(Boolean).join(' · ');
+      const ubicacion = [row.nombreMunicipio, row.barrio, row.direccionNucleo].filter(Boolean).join(' · ');
       return `<span class="font-medium">#${row.idNucleoFk ?? '-'} - ${nombre}</span>${ubicacion ? `<span class="block text-xs text-slate-500">${ubicacion}</span>` : ''}`;
     },
     header: 'Núcleo',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' },
+  },
+  {
+    id: 'nombreMunicipio',
+    accessorFn: (row) => row.nombreMunicipio || 'Sin municipio',
+    cell: (info) => info.getValue(),
+    header: 'Municipio',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' },
   },

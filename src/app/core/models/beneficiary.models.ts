@@ -26,6 +26,8 @@ export interface IBeneficiario {
   ubicacion: string;
   discapacidad: boolean;
   certificadoDiscapacidad: boolean;
+  idMunicipioFk: number | null;
+  nombreMunicipio: string;
 }
 
 export interface IBeneficiarioUnique {
@@ -47,6 +49,8 @@ export interface IBeneficiarioUnique {
   esVivo: boolean;
   discapacidad:boolean;
   certificadoDiscapacidad: boolean;
+  idMunicipioFk?: number | null;
+  nombreMunicipio?: string;
   nucleoFamiliar: INucleoUpdate;
   proyectoAsociado: INucleoUpdate;
 }

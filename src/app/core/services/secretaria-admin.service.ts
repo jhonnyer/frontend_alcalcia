@@ -3,7 +3,13 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
-import { IMembresiaSecretariaRequest, ISecretaria } from '../models/secretaria.model';
+import {
+  ICoberturaMunicipio,
+  ICoberturaMunicipioRequest,
+  ICreateSecretariaRequest,
+  IMembresiaSecretariaRequest,
+  ISecretaria
+} from '../models/secretaria.model';
 
 @Injectable({ providedIn: 'root' })
 export class SecretariaAdminService {
@@ -14,7 +20,7 @@ export class SecretariaAdminService {
     return this.http.get<ISecretaria[]>(`${this.URL}/administracion/secretarias`, { context: checkToken() });
   }
 
-  create(data: Partial<ISecretaria>): Observable<ISecretaria> {
+  create(data: ICreateSecretariaRequest): Observable<ISecretaria> {
     return this.http.post<ISecretaria>(`${this.URL}/administracion/secretarias`, data, { context: checkToken() });
   }
 
@@ -30,6 +36,28 @@ export class SecretariaAdminService {
     return this.http.post(
       `${this.URL}/administracion/secretarias/${idSecretaria}/membresias/${idResponsable}`,
       data,
+      { context: checkToken() }
+    );
+  }
+
+  getCoberturaMunicipal(idSecretaria: number): Observable<ICoberturaMunicipio[]> {
+    return this.http.get<ICoberturaMunicipio[]>(
+      `${this.URL}/administracion/secretarias/${idSecretaria}/cobertura-municipal`,
+      { context: checkToken() }
+    );
+  }
+
+  assignCoberturaMunicipal(idSecretaria: number, data: ICoberturaMunicipioRequest): Observable<void> {
+    return this.http.post<void>(
+      `${this.URL}/administracion/secretarias/${idSecretaria}/cobertura-municipal`,
+      data,
+      { context: checkToken() }
+    );
+  }
+
+  removeCoberturaMunicipal(idSecretaria: number, idMunicipio: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.URL}/administracion/secretarias/${idSecretaria}/cobertura-municipal/${idMunicipio}`,
       { context: checkToken() }
     );
   }

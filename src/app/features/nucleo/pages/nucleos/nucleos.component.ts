@@ -51,7 +51,13 @@ export class NucleosComponent implements OnInit{
   actorSuggestionsVisible = signal(false);
 
   filteredActors = computed(() => {
-    return this.data();
+    const query = this.actorNameFilter().trim().toLocaleLowerCase();
+    if (!query) return this.data();
+    return this.data().filter(actor =>
+      `${actor.idNucleo} ${actor.nombreNucleo} ${actor.nombreMunicipio ?? ''} ${actor.nombreBarrio ?? ''} ${actor.nombreZona ?? ''} ${actor.direccion ?? ''}`
+        .toLocaleLowerCase()
+        .includes(query)
+    );
   });
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);

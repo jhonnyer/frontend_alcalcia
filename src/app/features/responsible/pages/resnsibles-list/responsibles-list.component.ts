@@ -24,6 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AlertService } from '../../../../core/services/alert.service';
+import { ResponsibleUpdateComponent } from '../responsible-update/responsible-update.component';
 
 @Component({
   selector: 'app-responsibles-list',
@@ -33,7 +34,8 @@ import { AlertService } from '../../../../core/services/alert.service';
     CdkTableModule, 
     MatIconModule,
     TableFilterComponent,
-    FlexRenderDirective
+    FlexRenderDirective,
+    ResponsibleUpdateComponent,
   ],
   templateUrl: './responsibles-list.component.html',
   styleUrl: './responsibles-list.component.scss'
@@ -44,10 +46,11 @@ export class ResponsiblesListComponent {
   ) {}
   private responsibleService = inject(ResponsibleService);
   injector = inject(Injector);
-  private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
   private alert = inject(AlertService);
   data = signal<IResponsable[]>([]);
+  formModalOpen = signal(false);
+  editingResponsableId = signal<number | null>(null);
 
   // Estados para la tabla
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -148,11 +151,23 @@ export class ResponsiblesListComponent {
   }
 
   update(item: Row<IResponsable>) {
-    this.router.navigate(["resposibles/update/", item.original.idResponsable]);
+    this.editingResponsableId.set(item.original.idResponsable);
+    this.formModalOpen.set(true);
   }
 
   nuevoResponsable(): void {
-    this.router.navigate(['resposibles/update/nuevo']);
+    this.editingResponsableId.set(null);
+    this.formModalOpen.set(true);
+  }
+
+  closeFormModal(): void {
+    this.formModalOpen.set(false);
+    this.editingResponsableId.set(null);
+  }
+
+  onFormSaved(): void {
+    this.closeFormModal();
+    this.getAll();
   }
 
   sanitizeHtml(content: string): SafeHtml {

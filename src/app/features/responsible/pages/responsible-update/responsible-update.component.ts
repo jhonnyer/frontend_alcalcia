@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, HostListener, Input, Output, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
 import { IResponsable } from '../../../../core/models/responsable.model';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import { AlertService } from '../../../../core/services/alert.service';
 import { MatIconModule } from '@angular/material/icon';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -18,6 +19,11 @@ import { MatDialog } from '@angular/material/dialog';
   styles: ``,
 })
 export class ResponsibleUpdateComponent implements OnInit {
+  @Input() modalMode = false;
+  @Input() responsableIdInput: number | null = null;
+  @Output() closed = new EventEmitter<void>();
+  @Output() saved = new EventEmitter<void>();
+
   responsableId?: number;
   modoCreacion = false;
 
@@ -26,64 +32,76 @@ export class ResponsibleUpdateComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private responsibleService = inject(ResponsibleService);
   private pageTitleService = inject(PageTitleService);
+  private alert = inject(AlertService);
   private dialog = inject(MatDialog);
   private cdRef = inject(ChangeDetectorRef);
 
   public formFamilyCore: FormGroup = new FormGroup({});
   private originalPassword: string = '';
 
-  ngOnInit(): void {
-    // Evita que Angular reutilice el componente al navegar
-    this.router.routeReuseStrategy.shouldReuseRoute = () => false;
+  @HostListener('document:keydown.escape')
+  onDocumentEscape(): void {
+    if (!this.modalMode) return;
+    void this.cancelar();
+  }
 
+  ngOnInit(): void {
     // Inicializa el formulario base
     this.initFormFamilyCore();
+
+    if (this.modalMode) {
+      this.initializeMode(this.responsableIdInput != null ? String(this.responsableIdInput) : 'nuevo');
+      return;
+    }
+
+    // Evita que Angular reutilice el componente al navegar
+    this.router.routeReuseStrategy.shouldReuseRoute = () => false;
 
     // Detecta si estás editando o creando
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
-
-      if (id && id !== 'nuevo') {
-        // MODO EDICIÓN
-        this.modoCreacion = false;
-        this.responsableId = +id;
-        this.cargarResponsable();
-        this.pageTitleService.setCurrentPage('Actualizar responsable');
-      } else {
-        this.modoCreacion = true;
-        this.pageTitleService.setCurrentPage('Registrar responsable');
-
-        // 🔹 Espera un ciclo de render y luego limpia el formulario completamente
-        setTimeout(() => {
-          this.formFamilyCore.reset();
-
-          // 🔹 Reasigna valores por defecto (vacíos)
-          this.formFamilyCore.patchValue({
-            idResponsable: '',
-            primerNombre: '',
-            segundoNombre: '',
-            primerApellido: '',
-            segundoApellido: '',
-            tipoIdentificacion: '',
-            numeroIdentificacion: '',
-            area: '',
-            cargo: '',
-            email: '',
-            usuario: '', // 👈 limpia el usuario
-            telefono: '',
-            estado: 'A',
-            perfilUsuario: 'RESP',
-            password: '' // 👈 limpia la contraseña
-          });
-
-          // 🔹 Limpia referencia de contraseña anterior
-          this.originalPassword = '';
-
-          // 🔹 Fuerza actualización visual
-          this.cdRef.detectChanges();
-        }, 0);
-      } 
+      this.initializeMode(id);
     });
+  }
+
+  private initializeMode(id: string | null): void {
+    if (id && id !== 'nuevo') {
+      // MODO EDICIÓN
+      this.modoCreacion = false;
+      this.responsableId = +id;
+      this.cargarResponsable();
+      this.pageTitleService.setCurrentPage('Actualizar responsable');
+    } else {
+      this.modoCreacion = true;
+      this.responsableId = undefined;
+      this.pageTitleService.setCurrentPage('Registrar responsable');
+
+      // Espera un ciclo de render y luego limpia el formulario completamente
+      setTimeout(() => {
+        this.formFamilyCore.reset();
+
+        this.formFamilyCore.patchValue({
+          idResponsable: '',
+          primerNombre: '',
+          segundoNombre: '',
+          primerApellido: '',
+          segundoApellido: '',
+          tipoIdentificacion: '',
+          numeroIdentificacion: '',
+          area: '',
+          cargo: '',
+          email: '',
+          usuario: '',
+          telefono: '',
+          estado: 'A',
+          perfilUsuario: 'RESP',
+          password: ''
+        });
+
+        this.originalPassword = '';
+        this.cdRef.detectChanges();
+      }, 0);
+    }
   }
 
 
@@ -191,7 +209,11 @@ export class ResponsibleUpdateComponent implements OnInit {
 
       peticion.subscribe({
         next: () => {
-          this.router.navigate(['resposibles'])
+          if (this.modalMode) {
+            this.saved.emit();
+            return;
+          }
+          this.router.navigate(['resposibles']);
         },
         error: (error) => {
           console.error('Error al guardar:', error);
@@ -207,7 +229,20 @@ export class ResponsibleUpdateComponent implements OnInit {
     });
   }
 
-  cancelar(): void {
+  async cancelar(): Promise<void> {
+    if (this.modalMode) {
+      if (this.formFamilyCore.dirty) {
+        const confirmed = await this.alert.confirm(
+          'Descartar cambios',
+          'Tienes cambios sin guardar. ¿Deseas cerrar este formulario?',
+          'Sí, cerrar',
+          'Seguir editando'
+        );
+        if (!confirmed) return;
+      }
+      this.closed.emit();
+      return;
+    }
     this.router.navigate(['resposibles']);
   }
 }

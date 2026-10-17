@@ -10,6 +10,11 @@ import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { MatIconModule } from '@angular/material/icon';
 import { TokenService } from '../../../../core/services/token.service';
 import { AlertService } from '../../../../core/services/alert.service';
+import { ParametroNegocioService } from '../../../../core/services/parametro-negocio.service';
+import { IParametroNegocio } from '../../../../core/models/parametro-negocio.model';
+import { SecretaryCreateModalComponent, CreateSecretaryModalPayload } from '../../components/secretary-create-modal/secretary-create-modal.component';
+import { SecretaryParametersModalComponent } from '../../components/secretary-parameters-modal/secretary-parameters-modal.component';
+import { ResponsibleUpdateComponent } from '../../../responsible/pages/responsible-update/responsible-update.component';
 
 @Component({
   selector: 'app-users-list',
@@ -18,6 +23,9 @@ import { AlertService } from '../../../../core/services/alert.service';
     CommonModule,
     MatIconModule,
     ReactiveFormsModule,
+    SecretaryCreateModalComponent,
+    SecretaryParametersModalComponent,
+    ResponsibleUpdateComponent,
   ],
   templateUrl: `./users-list.component.html`,
   styles: '',
@@ -31,6 +39,7 @@ export class UsersListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly tokenService = inject(TokenService);
   private readonly alert = inject(AlertService);
+  private readonly parametroNegocioService = inject(ParametroNegocioService);
 
   secretarias = signal<ISecretaria[]>([]);
   responsables = signal<IResponsable[]>([]);
@@ -41,13 +50,14 @@ export class UsersListComponent implements OnInit {
   secretaryModalOpen = signal(false);
   activeSecretaryName = signal('');
   editingActiveSecretary = signal(false);
-
-  secretariaForm = this.fb.group({
-    nombre: ['', [Validators.required]],
-    codigo: ['', [Validators.required]],
-    prefijoProducto: ['', [Validators.required]],
-    estado: ['A', [Validators.required]]
-  });
+  parameterModalOpen = signal(false);
+  loadingParameters = signal(false);
+  savingParameters = signal(false);
+  selectedSecretaryForParameters = signal<ISecretaria | null>(null);
+  currentParameters = signal<IParametroNegocio | null>(null);
+  activeTab = signal<'secretarias' | 'usuarios'>('secretarias');
+  userFormModalOpen = signal(false);
+  userFormResponsableId = signal<number | null>(null);
 
   activeSecretaryForm = this.fb.group({
     nombre: ['', [Validators.required]]
@@ -104,41 +114,145 @@ export class UsersListComponent implements OnInit {
     this.router.navigate(['/resposibles']);
   }
 
-  async createSecretary(): Promise<void> {
-    if (this.secretariaForm.invalid) {
-      this.secretariaForm.markAllAsTouched();
-      return;
-    }
+  goToNewUser(): void {
+    this.userFormResponsableId.set(null);
+    this.userFormModalOpen.set(true);
+  }
 
-    const formValue = this.secretariaForm.getRawValue();
-    const payload = {
-      nombre: String(formValue.nombre ?? '').trim(),
-      codigo: String(formValue.codigo ?? '').trim(),
-      prefijoProducto: String(formValue.prefijoProducto ?? '').trim(),
-      estado: 'A'
-    };
+  editUser(idResponsable: number): void {
+    this.userFormResponsableId.set(idResponsable);
+    this.userFormModalOpen.set(true);
+  }
+
+  closeUserFormModal(): void {
+    this.userFormModalOpen.set(false);
+    this.userFormResponsableId.set(null);
+  }
+
+  onUserSaved(): void {
+    this.closeUserFormModal();
+    this.loadData();
+  }
+
+  async createSecretary(payload: CreateSecretaryModalPayload): Promise<void> {
 
     const confirmed = await this.alert.confirm(
       'Crear secretaría',
-      `¿Deseas crear la secretaría "${payload.nombre}"? Se creará activa por defecto.`,
+      `¿Deseas crear la secretaría "${payload.secretaria.nombre}"? Se creará activa por defecto.`,
       'Crear',
       'Cancelar'
     );
     if (!confirmed) return;
 
     this.creatingSecretary.set(true);
-    this.secretariaAdminService.create(payload).subscribe({
+    this.secretariaAdminService.create(payload.secretaria).subscribe({
       next: secretaria => {
         this.secretarias.update(secretarias => [...secretarias, secretaria]);
-        this.secretariaForm.reset({ nombre: '', codigo: '', prefijoProducto: '', estado: 'A' });
-        this.secretaryModalOpen.set(false);
-        this.creatingSecretary.set(false);
-        this.alert.success('Operación exitosa', 'Secretaría creada correctamente');
+
+        const continueWithAdmin = (parametersSaved: boolean) => this.createOptionalAdminForSecretary(secretaria, payload, parametersSaved);
+
+        if (payload.parametros) {
+          this.trySaveParametersForCreatedSecretary(secretaria, payload.parametros, continueWithAdmin);
+          return;
+        }
+
+        continueWithAdmin(false);
       },
       error: error => {
         console.error('Error al crear secretaría:', error);
         this.creatingSecretary.set(false);
         this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo crear la secretaría');
+      }
+    });
+  }
+
+  private trySaveParametersForCreatedSecretary(
+    secretaria: ISecretaria,
+    parametros: IParametroNegocio,
+    onDone: (parametersSaved: boolean) => void,
+  ): void {
+    const activeId = this.tokenService.getActiveSecretaryId();
+
+    if (activeId !== secretaria.idSecretaria) {
+      this.alert.warning(
+        'Parámetros pendientes',
+        'La secretaría fue creada, pero no se pudieron guardar sus parámetros automáticamente porque la API actual solo permite editar parámetros de la secretaría activa.'
+      );
+      onDone(false);
+      return;
+    }
+
+    const payload: IParametroNegocio = {
+      ...parametros,
+      nombreSecretaria: parametros.nombreSecretaria || secretaria.nombre,
+    };
+
+    this.parametroNegocioService.upsertActive(payload).subscribe({
+      next: () => onDone(true),
+      error: error => {
+        console.error('Error al crear parámetros para la nueva secretaría:', error);
+        this.alert.warning('Creación parcial', 'La secretaría fue creada, pero no fue posible guardar sus parámetros institucionales.');
+        onDone(false);
+      }
+    });
+  }
+
+  private createOptionalAdminForSecretary(secretaria: ISecretaria, payload: CreateSecretaryModalPayload, parametersSaved: boolean): void {
+    if (!payload.admin) {
+      this.creatingSecretary.set(false);
+      this.secretaryModalOpen.set(false);
+      this.alert.success('Operación exitosa', 'Secretaría creada correctamente.');
+      return;
+    }
+
+    const adminPayload: Partial<IResponsable> = {
+      primerNombre: payload.admin.primerNombre,
+      segundoNombre: payload.admin.segundoNombre,
+      primerApellido: payload.admin.primerApellido,
+      segundoApellido: payload.admin.segundoApellido,
+      tipoIdentificacion: payload.admin.tipoIdentificacion,
+      numeroIdentificacion: payload.admin.numeroIdentificacion,
+      area: 'Administración',
+      cargo: 'Administrador',
+      email: payload.admin.email,
+      usuario: payload.admin.usuario,
+      telefono: payload.admin.telefono,
+      estado: 'A',
+      perfilUsuario: 'ADMIN',
+      password: payload.admin.password,
+    };
+
+    this.responsibleService.post(adminPayload).subscribe({
+      next: responsable => {
+        this.secretariaAdminService.assignResponsible(secretaria.idSecretaria, responsable.idResponsable, {
+          rol: 'ADMIN',
+          estado: 'A'
+        }).subscribe({
+          next: () => {
+            this.creatingSecretary.set(false);
+            this.secretaryModalOpen.set(false);
+            if (parametersSaved) {
+              this.alert.success('Operación exitosa', 'Secretaría, parámetros institucionales y usuario administrador creados correctamente.');
+            } else {
+              this.alert.warning('Creación parcial', 'La secretaría y el usuario administrador se crearon, pero los parámetros institucionales quedaron pendientes.');
+            }
+            this.loadData();
+          },
+          error: error => {
+            this.creatingSecretary.set(false);
+            this.secretaryModalOpen.set(false);
+            console.error('Error al asignar administrador a la secretaría:', error);
+            this.alert.warning('Creación parcial', 'La secretaría y el usuario administrador se crearon, pero no fue posible asociar la membresía automáticamente.');
+            this.loadData();
+          }
+        });
+      },
+      error: error => {
+        this.creatingSecretary.set(false);
+        this.secretaryModalOpen.set(false);
+        console.error('Error al crear usuario administrador:', error);
+        this.alert.warning('Creación parcial', 'La secretaría se creó, pero el usuario administrador no pudo registrarse.');
+        this.loadData();
       }
     });
   }
@@ -152,7 +266,6 @@ export class UsersListComponent implements OnInit {
   }
 
   openSecretaryModal(): void {
-    this.secretariaForm.reset({ nombre: '', codigo: '', prefijoProducto: '', estado: 'A' });
     this.secretaryModalOpen.set(true);
   }
 
@@ -160,6 +273,13 @@ export class UsersListComponent implements OnInit {
     if (!this.creatingSecretary()) {
       this.secretaryModalOpen.set(false);
     }
+  }
+
+  closeParameterModal(): void {
+    if (this.savingParameters()) return;
+    this.parameterModalOpen.set(false);
+    this.selectedSecretaryForParameters.set(null);
+    this.currentParameters.set(null);
   }
 
   async updateActiveSecretaryName(): Promise<void> {
@@ -194,25 +314,69 @@ export class UsersListComponent implements OnInit {
     });
   }
 
-  async deleteSecretary(secretaria: ISecretaria): Promise<void> {
+  async openSecretaryParameters(secretaria: ISecretaria): Promise<void> {
+    const activeId = this.tokenService.getActiveSecretaryId();
+    if (activeId !== secretaria.idSecretaria) {
+      this.alert.warning('Secretaría no activa', 'Solo puedes editar parámetros de la secretaría activa.');
+      return;
+    }
+
+    this.loadParametersForSecretary(secretaria);
+  }
+
+  private loadParametersForSecretary(secretaria: ISecretaria): void {
+    this.selectedSecretaryForParameters.set(secretaria);
+    this.parameterModalOpen.set(true);
+    this.loadingParameters.set(true);
+    this.currentParameters.set(null);
+
+    this.parametroNegocioService.getActive().subscribe({
+      next: parametros => {
+        this.currentParameters.set(parametros);
+        this.loadingParameters.set(false);
+      },
+      error: error => {
+        this.loadingParameters.set(false);
+        if (error?.status === 404) {
+          this.currentParameters.set(null);
+          return;
+        }
+        console.error('Error al cargar parámetros:', error);
+        this.alert.error('Operación fallida', 'No se pudieron cargar los parámetros de la secretaría activa.');
+      }
+    });
+  }
+
+  async saveSecretaryParameters(payload: IParametroNegocio): Promise<void> {
+    if (this.savingParameters()) return;
+    const secretaria = this.selectedSecretaryForParameters();
+    if (!secretaria) return;
+
     const confirmed = await this.alert.confirm(
-      'Eliminar secretaría',
-      `¿Deseas eliminar la secretaría "${secretaria.nombre}"? Solo se eliminará si no tiene datos asociados.`,
-      'Eliminar',
+      'Guardar parámetros',
+      `¿Deseas guardar los parámetros institucionales de "${secretaria.nombre}"?`,
+      'Guardar',
       'Cancelar'
     );
     if (!confirmed) return;
 
-    this.secretariaAdminService.delete(secretaria.idSecretaria).subscribe({
+    this.savingParameters.set(true);
+    this.parametroNegocioService.upsertActive(payload).subscribe({
       next: () => {
-        this.secretarias.update(secretarias => secretarias.filter(item => item.idSecretaria !== secretaria.idSecretaria));
-        this.alert.success('Operación exitosa', 'Secretaría eliminada correctamente');
+        this.savingParameters.set(false);
+        this.parameterModalOpen.set(false);
+        this.alert.success('Operación exitosa', `Parámetros institucionales de "${secretaria.nombre}" actualizados.`);
       },
       error: error => {
-        console.error('Error al eliminar secretaría:', error);
-        this.alert.error('No se puede eliminar', error?.error?.mensaje || error?.error || 'La secretaría tiene datos asociados o no pudo eliminarse');
+        this.savingParameters.set(false);
+        console.error('Error al guardar parámetros:', error);
+        this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudieron guardar los parámetros institucionales.');
       }
     });
+  }
+
+  isActiveSecretary(secretaria: ISecretaria): boolean {
+    return this.tokenService.getActiveSecretaryId() === secretaria.idSecretaria;
   }
 
   private normalizeSearchText(value: string | number | null | undefined): string {

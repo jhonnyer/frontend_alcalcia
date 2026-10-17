@@ -2,6 +2,7 @@ import { NgClass, NgFor } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink, RouterLinkActive} from '@angular/router';
+import { TokenService } from '../../../../../core/services/token.service';
 
 @Component({
   selector: 'app-list-responsible',
@@ -19,7 +20,8 @@ import { Router, RouterLink, RouterLinkActive} from '@angular/router';
 export class ListResponsibleComponent implements OnInit {
   constructor(
     private sanitizer: DomSanitizer,
-    private router: Router
+    private router: Router,
+    private tokenService: TokenService
   ) {}
 
   activeMenu: boolean = false;
@@ -27,15 +29,35 @@ export class ListResponsibleComponent implements OnInit {
   menuGroups = [
     {
       title: 'Administración',
-      items: [
-        { label: 'Panel administrativo', link: '/users'},
-        { label: 'Usuarios y responsables', link: '/resposibles'}
-      ]
+      items: [] as { label: string; link: string }[]
     }
   ];
 
   ngOnInit(): void {
-    this.activeMenu = this.router.url.startsWith('/users') || this.router.url.startsWith('/resposibles');
+    const role = (this.tokenService.getUserRole() || '').toUpperCase();
+    this.menuGroups = [
+      {
+        title: role === 'SUPERADMIN' ? 'SuperAdmin' : 'Administración',
+        items: role === 'SUPERADMIN'
+          ? [
+              { label: 'Gestión de secretarías', link: '/users' },
+              { label: 'Contactos de responsables', link: '/resposibles' },
+              { label: 'Soporte administrativo', link: '/resposibles/soporte' }
+            ]
+          : role === 'RESP'
+            ? [
+                { label: 'Soporte administrativo', link: '/resposibles/soporte' }
+              ]
+            : [
+                { label: 'Panel administrativo', link: '/users' },
+                { label: 'Usuarios y responsables', link: '/resposibles' },
+                { label: 'Soporte administrativo', link: '/resposibles/soporte' }
+              ]
+      }
+    ];
+
+    this.activeMenu = this.router.url.startsWith('/users')
+      || this.router.url.startsWith('/resposibles');
   }
 
   toggleMenu() {

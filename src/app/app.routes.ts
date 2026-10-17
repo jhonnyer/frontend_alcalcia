@@ -66,7 +66,13 @@ export const routes: Routes = [
       {
         path: 'users',
         canActivate: [hasRoleGuard],
-        data: { allowedRoles: ['ADMIN'] },
+        data: { allowedRoles: ['ADMIN', 'SUPERADMIN'] },
+        loadChildren: () => import('./features/users/users.routes').then(m => m.USERS_ROUTES)
+      },
+      {
+        path: 'secretarias',
+        canActivate: [hasRoleGuard],
+        data: { allowedRoles: ['SUPERADMIN'] },
         loadChildren: () => import('./features/users/users.routes').then(m => m.USERS_ROUTES)
       },
       { path: 'no-autorizado', component: UnauthorizedComponent },

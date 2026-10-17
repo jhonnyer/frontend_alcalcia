@@ -14,7 +14,8 @@ export class HasRoleDirective {
   ) {}
 
   @Input() set hasRole(allowedRoles: string | string[]) {
-    const userRole = this.tokenService.getUserRole();
+    const rawUserRole = this.tokenService.getUserRole();
+    const userRole = String(rawUserRole ?? '').toUpperCase().replace(/^ROLE_/, '').trim();
 
     // Si no hay rol, no mostrar el elemento
     if (!userRole) {
@@ -23,7 +24,8 @@ export class HasRoleDirective {
     }
 
     // Convertir el input a array si es un string
-    const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+    const roles = (Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles])
+      .map(role => String(role).toUpperCase().replace(/^ROLE_/, '').trim());
 
     // Mostrar o esconder basado en el rol
     if (roles.includes(userRole)) {

@@ -1,6 +1,6 @@
 export type TipoIdentificacion = 'CC' | 'PA' | 'NIT' | 'TI' | 'CE';
 export type EstadoResponsable = 'A' | 'I';
-export type PerfilUsuario = 'ADMIN' | 'RESP';
+export type PerfilUsuario = 'ADMIN' | 'RESP' | 'SUPERADMIN';
 
 export interface IResponsable {
   idResponsable: number;
@@ -15,7 +15,20 @@ export interface IResponsable {
   tipoIdentificacion: TipoIdentificacion;
   numeroIdentificacion: string;
   usuario: string;
-  password: string | null;
+  password?: string | null;
   perfilUsuario: PerfilUsuario;
+  estado: EstadoResponsable;
+}
+
+export interface ISoporteSuperAdmin {
+  idResponsable: number;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  usuario: string;
+  email: string;
+  telefono: string;
+  cargo: string;
   estado: EstadoResponsable;
 }

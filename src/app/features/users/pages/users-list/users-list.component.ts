@@ -63,6 +63,8 @@ export class UsersListComponent implements OnInit {
   savingParameters = signal(false);
   secretariaPageIndex = signal(0);
   secretariaPageSize = signal(6);
+  usuarioPageIndex = signal(0);
+  usuarioPageSize = signal(5);
   selectedSecretaryForParameters = signal<ISecretaria | null>(null);
   selectedSecretaryForCoverage = signal<ISecretaria | null>(null);
   coverageModalOpen = signal(false);
@@ -84,6 +86,7 @@ export class UsersListComponent implements OnInit {
   activeTab = signal<'secretarias' | 'usuarios'>('secretarias');
   userFormModalOpen = signal(false);
   userFormResponsableId = signal<number | null>(null);
+  deletingSecretariaId = signal<number | null>(null);
 
   activeSecretaryForm = this.fb.group({
     nombre: ['', [Validators.required]]
@@ -117,6 +120,22 @@ export class UsersListComponent implements OnInit {
     });
   });
 
+  visibleResponsables = computed(() => this.filteredResponsables().filter(responsable => responsable.perfilUsuario !== 'SUPERADMIN'));
+
+  usuarioTotalPages = computed(() => {
+    const total = this.visibleResponsables().length;
+    return Math.max(1, Math.ceil(total / this.usuarioPageSize()));
+  });
+
+  paginatedResponsables = computed(() => {
+    const pageSize = this.usuarioPageSize();
+    const safePageIndex = Math.min(this.usuarioPageIndex(), this.usuarioTotalPages() - 1);
+    const start = safePageIndex * pageSize;
+    return this.visibleResponsables().slice(start, start + pageSize);
+  });
+
+  readonly isSuperAdmin = computed(() => this.normalizeSearchText(this.tokenService.getUserRole()) === 'superadmin');
+
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Gestión administrativa');
     this.loadData();
@@ -131,6 +150,26 @@ export class UsersListComponent implements OnInit {
     if (!target.closest('.coverage-dropdown-municipio')) {
       this.showCoverageMunicipioDropdown = false;
     }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    void this.closeCoverageModalWithConfirm();
+  }
+
+  private async closeCoverageModalWithConfirm(): Promise<void> {
+    if (!this.coverageModalOpen()) return;
+    if (this.savingCoverage()) return;
+
+    const confirmed = await this.alert.confirm(
+      'Cerrar cobertura municipal',
+      'Hay acciones en curso en esta vista. ¿Deseas cerrar el modal de cobertura?',
+      'Cerrar',
+      'Seguir aquí'
+    );
+    if (!confirmed) return;
+
+    this.closeCoverageModal();
   }
 
   private loadData(): void {
@@ -342,8 +381,75 @@ export class UsersListComponent implements OnInit {
     this.secretariaPageIndex.update(v => v + 1);
   }
 
+  async deleteSecretary(secretaria: ISecretaria): Promise<void> {
+    if (!this.isSuperAdmin()) {
+      this.alert.warning('Permiso requerido', 'Solo un usuario SuperAdmin puede eliminar secretarías.');
+      return;
+    }
+
+    if (this.isActiveSecretary(secretaria)) {
+      this.alert.warning('Operación no permitida', 'No puedes eliminar la secretaría activa de tu sesión.');
+      return;
+    }
+
+    const firstConfirm = await this.alert.confirm(
+      'Eliminar secretaría',
+      `Vas a eliminar la secretaría "${secretaria.nombre}". Esta acción es irreversible y solo funciona si está vacía.`,
+      'Continuar',
+      'Cancelar'
+    );
+    if (!firstConfirm) return;
+
+    const secondConfirm = await this.alert.confirm(
+      'Confirmación final',
+      `¿Confirmas eliminar definitivamente "${secretaria.nombre}"?`,
+      'Eliminar definitivamente',
+      'Volver'
+    );
+    if (!secondConfirm) return;
+
+    this.deletingSecretariaId.set(secretaria.idSecretaria);
+    this.secretariaAdminService.delete(secretaria.idSecretaria).subscribe({
+      next: () => {
+        this.deletingSecretariaId.set(null);
+        this.secretarias.update(items => items.filter(item => item.idSecretaria !== secretaria.idSecretaria));
+        this.alert.success('Operación exitosa', 'Secretaría eliminada correctamente.');
+      },
+      error: error => {
+        this.deletingSecretariaId.set(null);
+        console.error('Error al eliminar secretaría:', error);
+        this.alert.error(
+          'Operación fallida',
+          error?.error?.mensaje || error?.error || 'No se pudo eliminar. Verifica que la secretaría no tenga elementos asociados.'
+        );
+      }
+    });
+  }
+
   clearUsuarioSearch(): void {
     this.usuarioSearch.set('');
+    this.usuarioPageIndex.set(0);
+  }
+
+  updateUsuarioSearch(event: Event): void {
+    this.usuarioSearch.set((event.target as HTMLInputElement).value);
+    this.usuarioPageIndex.set(0);
+  }
+
+  onUsuarioPageSizeChange(event: Event): void {
+    const nextSize = Number((event.target as HTMLSelectElement).value);
+    this.usuarioPageSize.set(Number.isFinite(nextSize) && nextSize >= 5 ? nextSize : 5);
+    this.usuarioPageIndex.set(0);
+  }
+
+  previousUsuarioPage(): void {
+    if (this.usuarioPageIndex() <= 0) return;
+    this.usuarioPageIndex.update(v => v - 1);
+  }
+
+  nextUsuarioPage(): void {
+    if (this.usuarioPageIndex() >= this.usuarioTotalPages() - 1) return;
+    this.usuarioPageIndex.update(v => v + 1);
   }
 
   openSecretaryModal(): void {

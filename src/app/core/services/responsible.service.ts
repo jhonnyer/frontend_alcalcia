@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { IResponsable } from '../models/responsable.model';
+import { IResponsable, ISoporteSuperAdmin } from '../models/responsable.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
@@ -15,6 +15,10 @@ export class ResponsibleService {
 
   getAll(): Observable<IResponsable[]> {
     return this.http.get<IResponsable[]>(`${this.URL}/responsables/list`, { context: checkToken() });
+  }
+
+  getSupportSuperAdmin(): Observable<ISoporteSuperAdmin> {
+    return this.http.get<ISoporteSuperAdmin>(`${this.URL}/responsables/soporte-superadmin`, { context: checkToken() });
   }
 
   /**

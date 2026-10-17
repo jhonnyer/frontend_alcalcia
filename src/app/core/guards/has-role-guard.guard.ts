@@ -10,7 +10,9 @@ export const hasRoleGuard: CanActivateFn = (route, state) => {
   const allowedRoles = route.data?.['allowedRoles'] as string[];
 
   // Obtener el rol del usuario
-  const userRole = tokenService.getUserRole();
+  const rawUserRole = tokenService.getUserRole();
+  const userRole = (rawUserRole ?? '').toUpperCase().replace(/^ROLE_/, '').trim();
+  const normalizedAllowed = (allowedRoles ?? []).map(role => String(role).toUpperCase().replace(/^ROLE_/, '').trim());
 
   // console.log('Rol del usuario:', userRole);
   // console.log('Rol del ruta:', allowedRoles);
@@ -21,7 +23,7 @@ export const hasRoleGuard: CanActivateFn = (route, state) => {
   }
 
   // Verificar si el rol del usuario está en los roles permitidos
-  if (allowedRoles.includes(userRole)) {
+  if (normalizedAllowed.includes(userRole)) {
     return true;
   }
 

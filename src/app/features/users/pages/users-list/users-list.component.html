@@ -2,7 +2,7 @@
 	<header class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 		<div>
 			<h1 class="text-xl font-bold text-slate-800">Gestión administrativa</h1>
-			<p class="text-sm text-slate-500">Usuarios, secretarías y parámetros de operación del sistema.</p>
+			<p class="text-sm text-slate-500">Administración de secretarías, cobertura territorial y parámetros institucionales.</p>
 		</div>
 		<div class="flex flex-col gap-2 sm:flex-row">
 			<button type="button" class="btn-action-green" (click)="openSecretaryModal()">
@@ -11,7 +11,7 @@
 			</button>
 			<button type="button" class="btn-action-blue" (click)="goToUsers()">
 				<mat-icon class="text-base">manage_accounts</mat-icon>
-				Gestionar usuarios
+				Ver contactos de responsables
 			</button>
 		</div>
 	</header>
@@ -19,14 +19,8 @@
 	<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 		<article class="rounded-xl border border-slate-200 border-l-4 border-l-blue-500 bg-white p-4 shadow-sm">
 			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Secretarías</p>
-			<p class="mt-2 text-3xl font-bold text-slate-800">{{ secretarias().length }}</p>
+			<p class="mt-2 text-3xl font-bold text-slate-800">{{ filteredSecretarias().length }}</p>
 			<p class="text-sm text-slate-500">Áreas habilitadas para operación multi-secretaría.</p>
-		</article>
-
-		<article class="rounded-xl border border-slate-200 border-l-4 border-l-emerald-500 bg-white p-4 shadow-sm">
-			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Usuarios</p>
-			<p class="mt-2 text-3xl font-bold text-slate-800">{{ responsables().length }}</p>
-			<p class="text-sm text-slate-500">Responsables y administradores registrados.</p>
 		</article>
 
 		<article class="rounded-xl border border-slate-200 border-l-4 border-l-amber-500 bg-white p-4 shadow-sm">
@@ -141,30 +135,38 @@
 					<div class="text-xs text-slate-600">{{ coverageDepartamentoFilter() == null ? 'Primero selecciona departamento' : 'Selecciona un municipio desde el campo anterior' }}</div>
 				</div>
 
-				<div class="mt-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-					<div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-						<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Cobertura configurada</p>
-						<div class="flex items-center gap-2 text-xs text-slate-500">
-							<span class="rounded-full bg-slate-100 px-2 py-0.5">Departamentos: {{ coberturaDepartamental().length }}</span>
-							<span class="rounded-full bg-slate-100 px-2 py-0.5">Municipios: {{ coberturaMunicipal().length }}</span>
+				<div class="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+					<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+						<p class="text-sm font-bold uppercase tracking-wide text-slate-700">Cobertura configurada</p>
+						<div class="flex flex-wrap items-center gap-2 text-sm">
+							<span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 font-semibold text-blue-800">
+								<mat-icon class="text-[16px]">apartment</mat-icon>
+								Departamentos: {{ coberturaDepartamental().length }}
+							</span>
+							<span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-800">
+								<mat-icon class="text-[16px]">location_city</mat-icon>
+								Municipios: {{ coberturaMunicipal().length }}
+							</span>
 						</div>
 					</div>
 
-					<div class="mb-3 grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1">
+					<div class="mb-3 grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1.5">
 						<button
 							type="button"
-							class="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
-							[ngClass]="coverageSelectedTab() === 'departamentos' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-white/70'"
+							class="rounded-md px-3 py-2 text-sm font-semibold transition-colors"
+							[ngClass]="coverageSelectedTab() === 'departamentos' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200' : 'text-slate-600 hover:bg-white/70'"
 							(click)="setCoverageTab('departamentos')"
 						>
+							<mat-icon class="mr-1 text-[16px] align-middle">apartment</mat-icon>
 							Departamentos
 						</button>
 						<button
 							type="button"
-							class="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
-							[ngClass]="coverageSelectedTab() === 'municipios' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-white/70'"
+							class="rounded-md px-3 py-2 text-sm font-semibold transition-colors"
+							[ngClass]="coverageSelectedTab() === 'municipios' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200' : 'text-slate-600 hover:bg-white/70'"
 							(click)="setCoverageTab('municipios')"
 						>
+							<mat-icon class="mr-1 text-[16px] align-middle">location_city</mat-icon>
 							Municipios
 						</button>
 					</div>
@@ -172,11 +174,11 @@
 					<div class="max-h-72 overflow-auto rounded-lg border border-slate-100">
 						@if (coverageSelectedTab() === 'departamentos') {
 							<table class="table-compact">
-								<thead class="sticky top-0 bg-slate-50">
+								<thead class="sticky top-0 bg-slate-100">
 									<tr>
-										<th class="px-3 py-2 text-left">Departamento</th>
-										<th class="px-3 py-2 text-center">Estado</th>
-										<th class="px-3 py-2 text-center">Acción</th>
+										<th class="px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wide text-slate-700">Departamento</th>
+										<th class="px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-slate-700">Estado</th>
+										<th class="px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-slate-700">Acción</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -205,11 +207,11 @@
 							</table>
 						} @else {
 							<table class="table-compact">
-								<thead class="sticky top-0 bg-slate-50">
+								<thead class="sticky top-0 bg-slate-100">
 									<tr>
-										<th class="px-3 py-2 text-left">Municipio</th>
-										<th class="px-3 py-2 text-center">Estado</th>
-										<th class="px-3 py-2 text-center">Acción</th>
+										<th class="px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wide text-slate-700">Municipio</th>
+										<th class="px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-slate-700">Estado</th>
+										<th class="px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-slate-700">Acción</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -243,41 +245,34 @@
 		</div>
 	}
 
-	@if (userFormModalOpen()) {
-		<div class="fixed inset-0 z-[120] flex items-center justify-center bg-black/45 p-4">
-			<div class="w-full max-w-6xl max-h-[92vh] overflow-auto">
-				<app-responsible-update [modalMode]="true" [responsableIdInput]="userFormResponsableId()" (closed)="closeUserFormModal()" (saved)="onUserSaved()"></app-responsible-update>
+	<div class="mt-6">
+		<div class="mb-4 rounded-2xl border border-slate-200 bg-white/90 p-2 shadow-sm backdrop-blur">
+			<div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+				<button
+					type="button"
+					class="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all"
+					[ngClass]="activeTab() === 'secretarias' ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-sm' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
+					(click)="activeTab.set('secretarias')"
+				>
+					<mat-icon class="text-base">apartment</mat-icon>
+					Secretarías
+				</button>
+				<button
+					type="button"
+					class="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all"
+					[ngClass]="activeTab() === 'usuarios' ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-sm' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'"
+					(click)="activeTab.set('usuarios')"
+				>
+					<mat-icon class="text-base">groups</mat-icon>
+					Usuarios
+				</button>
 			</div>
 		</div>
-	}
 
-	<div class="mt-6 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-		<div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-			<button
-				type="button"
-				class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
-				[ngClass]="activeTab() === 'secretarias' ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
-				(click)="activeTab.set('secretarias')"
-			>
-				Secretarías configuradas
-			</button>
-			<button
-				type="button"
-				class="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
-				[ngClass]="activeTab() === 'usuarios' ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
-				(click)="activeTab.set('usuarios')"
-			>
-				Usuarios de la secretaría activa
-			</button>
-		</div>
-	</div>
-
-	<div class="mt-4">
-	@if (activeTab() === 'secretarias') {
+		@if (activeTab() === 'secretarias') {
 		<section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 			<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<h2 class="text-base font-semibold text-slate-800">Secretarías configuradas</h2>
-				<p class="text-xs text-slate-500 sm:mr-2">La edición de parámetros está habilitada solo para la secretaría activa.</p>
 				<div class="relative w-full sm:w-72">
 					<label for="secretaria-search" class="sr-only">Buscar secretaría</label>
 					<input id="secretaria-search" class="input-base pr-10" type="text" placeholder="Buscar secretaría" [value]="secretariaSearch()" (input)="updateSecretariaSearch($event)" />
@@ -286,6 +281,7 @@
 					}
 				</div>
 			</div>
+
 			@if (loading()) {
 				<div class="flex items-center justify-center rounded-lg border border-dashed border-slate-200 px-4 py-10 text-sm text-slate-500">
 					<mat-icon class="mr-2 animate-spin text-base">progress_activity</mat-icon>
@@ -296,121 +292,185 @@
 					No se encontraron secretarías.
 				</div>
 			} @else {
-			<div class="table-shell">
-				<div class="table-scroll max-h-80">
-				<table class="table-compact">
-					<thead>
-						<tr>
-							<th class="px-3 py-2 text-left">ID</th>
-							<th class="px-3 py-2 text-left">Nombre</th>
-							<th class="px-3 py-2 text-left">Código</th>
-							<th class="px-3 py-2 text-center">Estado</th>
-							<th class="px-3 py-2 text-center">Cobertura</th>
-							<th class="px-3 py-2 text-center">Parámetros</th>
-						</tr>
-					</thead>
-					<tbody>
-						@for (secretaria of paginatedSecretarias(); track secretaria.idSecretaria) {
-							<tr class="border-t border-slate-100 hover:bg-blue-50/40">
-								<td class="px-3 py-2 font-semibold text-slate-700">#{{ secretaria.idSecretaria }}</td>
-								<td class="px-3 py-2">{{ secretaria.nombre }}</td>
-								<td class="px-3 py-2">{{ secretaria.codigo }}</td>
-								<td class="px-3 py-2 text-center">
-									<span
-										class="status-badge"
-										[ngClass]="secretaria.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'"
-									>
-										{{ secretaria.estado === 'A' ? 'Activa' : 'Inactiva' }}
-									</span>
-								</td>
-									<td class="px-3 py-2 text-center">
-										<button type="button" class="rounded-md p-1 text-emerald-700 hover:bg-emerald-50" (click)="openCoverageModal(secretaria)" title="Gestionar cobertura municipal" aria-label="Gestionar cobertura municipal">
-											<mat-icon>public</mat-icon>
-										</button>
-									</td>
-								<td class="px-3 py-2 text-center">
-									<button type="button" class="rounded-md p-1" [ngClass]="isActiveSecretary(secretaria) ? 'text-blue-700 hover:bg-blue-50' : 'text-slate-400 cursor-not-allowed'" (click)="openSecretaryParameters(secretaria)" [title]="isActiveSecretary(secretaria) ? 'Editar parámetros institucionales' : 'Solo editable para la secretaría activa'" aria-label="Editar parámetros institucionales" [disabled]="!isActiveSecretary(secretaria)">
-										<mat-icon>edit_note</mat-icon>
-									</button>
-								</td>
-							</tr>
-						}
-					</tbody>
-				</table>
-				</div>
-				<div class="flex flex-col gap-2 border-t border-slate-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-					<div class="text-xs text-slate-500">
-						Mostrando {{ paginatedSecretarias().length }} de {{ filteredSecretarias().length }} secretarías
+				<div class="table-shell">
+					<div class="table-scroll max-h-80">
+						<table class="table-compact">
+							<thead>
+								<tr>
+									<th class="px-3 py-2 text-left">ID</th>
+									<th class="px-3 py-2 text-left">Nombre</th>
+									<th class="px-3 py-2 text-left">Código</th>
+									<th class="px-3 py-2 text-center">Estado</th>
+									<th class="px-3 py-2 text-center">Cobertura</th>
+									<th class="px-3 py-2 text-center">Parámetros</th>
+									@if (isSuperAdmin()) {
+										<th class="px-3 py-2 text-center">Acciones</th>
+									}
+								</tr>
+							</thead>
+							<tbody>
+								@for (secretaria of paginatedSecretarias(); track secretaria.idSecretaria) {
+									<tr class="border-t border-slate-100 hover:bg-blue-50/40">
+										<td class="px-3 py-2 font-semibold text-slate-700">#{{ secretaria.idSecretaria }}</td>
+										<td class="px-3 py-2">{{ secretaria.nombre }}</td>
+										<td class="px-3 py-2">{{ secretaria.codigo }}</td>
+										<td class="px-3 py-2 text-center">
+											<span class="status-badge" [ngClass]="secretaria.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">
+												{{ secretaria.estado === 'A' ? 'Activa' : 'Inactiva' }}
+											</span>
+										</td>
+										<td class="px-3 py-2 text-center">
+											<button type="button" class="rounded-md p-1 text-emerald-700 hover:bg-emerald-50" (click)="openCoverageModal(secretaria)" title="Gestionar cobertura municipal" aria-label="Gestionar cobertura municipal">
+												<mat-icon>public</mat-icon>
+											</button>
+										</td>
+										<td class="px-3 py-2 text-center">
+											<button type="button" class="rounded-md p-1" [ngClass]="isActiveSecretary(secretaria) ? 'text-blue-700 hover:bg-blue-50' : 'text-slate-400 cursor-not-allowed'" (click)="openSecretaryParameters(secretaria)" [title]="isActiveSecretary(secretaria) ? 'Editar parámetros institucionales' : 'Solo editable para la secretaría activa'" aria-label="Editar parámetros institucionales" [disabled]="!isActiveSecretary(secretaria)">
+												<mat-icon>edit_note</mat-icon>
+											</button>
+										</td>
+										@if (isSuperAdmin()) {
+											<td class="px-3 py-2 text-center">
+												<button
+													type="button"
+													class="rounded-md p-1 text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-400"
+													[disabled]="deletingSecretariaId() === secretaria.idSecretaria || isActiveSecretary(secretaria)"
+													(click)="deleteSecretary(secretaria)"
+													[title]="isActiveSecretary(secretaria) ? 'No puedes eliminar la secretaría activa' : 'Eliminar secretaría (solo vacía)'"
+													aria-label="Eliminar secretaría"
+												>
+													<mat-icon>{{ deletingSecretariaId() === secretaria.idSecretaria ? 'hourglass_top' : 'delete' }}</mat-icon>
+												</button>
+											</td>
+										}
+									</tr>
+								}
+							</tbody>
+						</table>
 					</div>
-					<div class="flex flex-wrap items-center gap-2">
-						<label for="secretaria-page-size" class="sr-only">Filas por página de secretarías</label>
-						<select id="secretaria-page-size" class="select-base" (change)="onSecretariaPageSizeChange($event)">
-							<option [value]="6" [selected]="secretariaPageSize() === 6">6</option>
-							<option [value]="10" [selected]="secretariaPageSize() === 10">10</option>
-							<option [value]="15" [selected]="secretariaPageSize() === 15">15</option>
-						</select>
-						<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() === 0" (click)="previousSecretariaPage()">Anterior</button>
-						<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() >= secretariaTotalPages() - 1" (click)="nextSecretariaPage()">Siguiente</button>
-						<span class="text-xs text-slate-600">Página {{ secretariaPageIndex() + 1 }} de {{ secretariaTotalPages() }}</span>
+					<div class="flex flex-col gap-2 border-t border-slate-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+						<div class="text-xs text-slate-500">
+							Mostrando {{ paginatedSecretarias().length }} de {{ filteredSecretarias().length }} secretarías
+						</div>
+						<div class="flex flex-wrap items-center gap-2">
+							<label for="secretaria-page-size" class="sr-only">Filas por página de secretarías</label>
+							<select id="secretaria-page-size" class="select-base" (change)="onSecretariaPageSizeChange($event)">
+								<option [value]="6" [selected]="secretariaPageSize() === 6">6</option>
+								<option [value]="10" [selected]="secretariaPageSize() === 10">10</option>
+								<option [value]="15" [selected]="secretariaPageSize() === 15">15</option>
+							</select>
+							<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() === 0" (click)="previousSecretariaPage()">Anterior</button>
+							<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() >= secretariaTotalPages() - 1" (click)="nextSecretariaPage()">Siguiente</button>
+							<span class="text-xs text-slate-600">Página {{ secretariaPageIndex() + 1 }} de {{ secretariaTotalPages() }}</span>
+						</div>
 					</div>
 				</div>
-			</div>
 			}
 		</section>
-	}
+		} @else {
 
-	@if (activeTab() === 'usuarios') {
 		<section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 			<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h2 class="text-base font-semibold text-slate-800">Usuarios de la secretaría activa</h2>
-					<p class="text-xs text-slate-500">Puedes crear o editar usuarios desde esta misma vista.</p>
+					<p class="text-sm text-slate-500">La lista corresponde al contexto de secretaría con el que se inició sesión.</p>
 				</div>
-				<button type="button" class="btn-action-blue" (click)="goToNewUser()">
-					<mat-icon class="text-base">person_add</mat-icon>
-					Nuevo usuario
-				</button>
-				<div class="relative w-full sm:w-72">
-					<label for="usuario-search" class="sr-only">Buscar usuario</label>
-					<input id="usuario-search" class="input-base pr-10" type="text" placeholder="Buscar usuario" [value]="usuarioSearch()" (input)="usuarioSearch.set($any($event.target).value)" />
-					@if (usuarioSearch()) {
-						<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearUsuarioSearch()" aria-label="Limpiar filtro de usuarios"><mat-icon>close</mat-icon></button>
-					}
+				<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+					<div class="relative w-full sm:w-72">
+						<label for="usuario-search" class="sr-only">Buscar responsable</label>
+						<input id="usuario-search" class="input-base pr-10" type="text" placeholder="Buscar responsable" [value]="usuarioSearch()" (input)="updateUsuarioSearch($event)" />
+						@if (usuarioSearch()) {
+							<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearUsuarioSearch()" aria-label="Limpiar búsqueda de responsables"><mat-icon>close</mat-icon></button>
+						}
+					</div>
+					<button type="button" class="btn-action-blue" (click)="goToNewUser()">
+						<mat-icon class="text-base">person_add</mat-icon>
+						Nuevo Usuario
+					</button>
 				</div>
 			</div>
+
 			@if (loading()) {
 				<div class="flex items-center justify-center rounded-lg border border-dashed border-slate-200 px-4 py-10 text-sm text-slate-500">
 					<mat-icon class="mr-2 animate-spin text-base">progress_activity</mat-icon>
-					Cargando usuarios...
+					Cargando responsables...
 				</div>
-			} @else if (filteredResponsables().length === 0) {
+			} @else if (visibleResponsables().length === 0) {
 				<div class="rounded-lg border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
-					No se encontraron usuarios.
+					No se encontraron responsables.
 				</div>
 			} @else {
-			<div class="max-h-80 space-y-2 overflow-auto pr-1">
-				@for (responsable of filteredResponsables(); track responsable.idResponsable) {
-					<div class="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2.5 text-sm transition-colors hover:border-blue-100 hover:bg-blue-50/40">
-						<div class="flex flex-wrap items-center justify-between gap-2">
-							<p class="font-semibold text-slate-800">#{{ responsable.idResponsable }} - {{ responsable.primerNombre }} {{ responsable.primerApellido }}</p>
-							<div class="flex items-center gap-2">
-								<span
-									class="status-badge"
-									[ngClass]="responsable.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'"
-								>
-									{{ responsable.estado === 'A' ? 'Activo' : 'Inactivo' }}
-								</span>
-								<button type="button" class="rounded-md p-1 text-blue-700 hover:bg-blue-100" (click)="editUser(responsable.idResponsable)" title="Editar usuario" aria-label="Editar usuario">
-									<mat-icon>edit</mat-icon>
-								</button>
-							</div>
-						</div>
-						<p class="mt-1 text-xs text-slate-500">{{ responsable.tipoIdentificacion }} {{ responsable.numeroIdentificacion }} · {{ responsable.usuario }} · {{ responsable.perfilUsuario }}</p>
+				<div class="table-shell">
+					<div class="table-scroll max-h-80">
+						<table class="table-compact min-w-[980px]">
+							<thead>
+								<tr>
+									<th class="px-3 py-2 text-left">ID</th>
+									<th class="px-3 py-2 text-left">Nombre</th>
+									<th class="px-3 py-2 text-left">Usuario</th>
+									<th class="px-3 py-2 text-left">Correo</th>
+									<th class="px-3 py-2 text-left">Teléfono</th>
+									<th class="px-3 py-2 text-center">Perfil</th>
+									<th class="px-3 py-2 text-center">Estado</th>
+									<th class="px-3 py-2 text-center">Acciones</th>
+								</tr>
+							</thead>
+							<tbody>
+								@for (responsable of paginatedResponsables(); track responsable.idResponsable) {
+									<tr class="border-t border-slate-100 hover:bg-blue-50/40">
+										<td class="px-3 py-2 font-semibold text-slate-700">#{{ responsable.idResponsable }}</td>
+										<td class="px-3 py-2">{{ responsable.primerNombre }} {{ responsable.primerApellido }}</td>
+										<td class="px-3 py-2">{{ responsable.usuario }}</td>
+										<td class="px-3 py-2">{{ responsable.email }}</td>
+										<td class="px-3 py-2">{{ responsable.telefono }}</td>
+										<td class="px-3 py-2 text-center">{{ responsable.perfilUsuario }}</td>
+										<td class="px-3 py-2 text-center">
+											<span class="status-badge" [ngClass]="responsable.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">
+												{{ responsable.estado === 'A' ? 'Activo' : 'Inactivo' }}
+											</span>
+										</td>
+										<td class="px-3 py-2 text-center">
+											<button type="button" class="rounded-md p-1 text-blue-700 hover:bg-blue-50" (click)="editUser(responsable.idResponsable)" title="Editar responsable" aria-label="Editar responsable">
+												<mat-icon>edit</mat-icon>
+											</button>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
 					</div>
-				}
-			</div>
+					<div class="flex flex-col gap-2 border-t border-slate-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+						<div class="text-xs text-slate-500">
+							Mostrando {{ paginatedResponsables().length }} de {{ visibleResponsables().length }} usuarios
+						</div>
+						<div class="flex flex-wrap items-center gap-2">
+							<label for="usuario-page-size" class="sr-only">Filas por página de usuarios</label>
+							<select id="usuario-page-size" class="select-base" (change)="onUsuarioPageSizeChange($event)">
+								<option [value]="5" [selected]="usuarioPageSize() === 5">5</option>
+								<option [value]="10" [selected]="usuarioPageSize() === 10">10</option>
+								<option [value]="15" [selected]="usuarioPageSize() === 15">15</option>
+							</select>
+							<button type="button" class="btn-navigate-black" [disabled]="usuarioPageIndex() === 0" (click)="previousUsuarioPage()">Anterior</button>
+							<button type="button" class="btn-navigate-black" [disabled]="usuarioPageIndex() >= usuarioTotalPages() - 1" (click)="nextUsuarioPage()">Siguiente</button>
+							<span class="text-xs text-slate-600">Página {{ usuarioPageIndex() + 1 }} de {{ usuarioTotalPages() }}</span>
+						</div>
+					</div>
+				</div>
 			}
 		</section>
-	}
+		}
+
+		@if (userFormModalOpen()) {
+			<div class="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-4">
+				<div class="w-full max-w-4xl">
+					<app-responsible-update
+						[modalMode]="true"
+						[responsableIdInput]="userFormResponsableId()"
+						(closed)="closeUserFormModal()"
+						(saved)="onUserSaved()"
+					></app-responsible-update>
+				</div>
+			</div>
+		}
 	</div>
 </section>

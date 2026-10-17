@@ -73,7 +73,7 @@ export class ResponsiblesListComponent {
   getAll() {
     this.responsibleService.getAll().subscribe({
       next: response => {
-        this.data.set(response);
+        this.data.set(response.filter(item => (item.perfilUsuario || '').toUpperCase() !== 'SUPERADMIN'));
       },
       error: error => {
         console.error("Error getAll responsables:", error);

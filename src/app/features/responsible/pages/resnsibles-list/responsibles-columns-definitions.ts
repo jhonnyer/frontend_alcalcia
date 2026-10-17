@@ -24,7 +24,8 @@ const estadoLabel: Record<EstadoResponsable, string> = {
 
 const perfilUsuarioLabel: Record<PerfilUsuario, string> = {
   'ADMIN': 'Administrador',
-  'RESP': 'Responsable'
+  'RESP': 'Responsable',
+  'SUPERADMIN': 'Super Administrador'
 };
 
 export const defaultColumns: ColumnDef<IResponsable>[] = [

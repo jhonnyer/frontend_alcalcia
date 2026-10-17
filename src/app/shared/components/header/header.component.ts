@@ -41,6 +41,7 @@ export class HeaderComponent implements OnInit {
 
   roleNames: Record<string, string> = {
     ADMIN: 'Administrador',
+    SUPERADMIN: 'Super Administrador',
     RESP: 'Responsable',
     USER: 'Usuario',
     BENEF: 'Beneficiario'

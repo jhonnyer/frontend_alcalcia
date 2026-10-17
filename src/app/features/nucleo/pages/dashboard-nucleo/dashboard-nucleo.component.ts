@@ -65,6 +65,7 @@ export class DashboardComponent implements OnInit {
   };
   readonly estadoOrden = ['P', 'R', 'A', 'E', 'RC'];
   readonly rangoEdadOptions = ['TODOS', '0-12', '13-17', '18-29', '30-59', '60+'];
+  readonly rangoEdadLabels = ['0-12', '13-17', '18-29', '30-59', '60+'];
 
   // Gráfica: Actas por estado
   chartActasType: ChartType = 'pie';
@@ -214,6 +215,40 @@ export class DashboardComponent implements OnInit {
     this.recalcularDashboard();
   }
 
+  clearEstadoFilter(): void {
+    this.filtroEstadoRapido = 'TODOS';
+    this.recalcularDashboard();
+  }
+
+  clearEdadFilter(): void {
+    this.filtroEdadRapido = 'TODOS';
+    this.recalcularDashboard();
+  }
+
+  onActasChartClick(event: any): void {
+    const points = event?.active ?? [];
+    if (!points.length) return;
+
+    const index = points[0]?.index;
+    if (index === undefined || index === null) return;
+
+    const estado = this.estadoOrden[index] ?? 'TODOS';
+    this.filtroEstadoRapido = this.filtroEstadoRapido === estado ? 'TODOS' : estado;
+    this.recalcularDashboard();
+  }
+
+  onBenefChartClick(event: any): void {
+    const points = event?.active ?? [];
+    if (!points.length) return;
+
+    const index = points[0]?.index;
+    if (index === undefined || index === null) return;
+
+    const rango = this.rangoEdadLabels[index] ?? 'TODOS';
+    this.filtroEdadRapido = this.filtroEdadRapido === rango ? 'TODOS' : rango;
+    this.recalcularDashboard();
+  }
+
   onKpiCardClick(target: 'overview' | 'beneficiarios' | 'actas' | 'actasEntregadas'): void {
     if (target === 'overview') {
       this.clearQuickFilters();
@@ -251,6 +286,24 @@ export class DashboardComponent implements OnInit {
     }
 
     return this.filtroEstadoRapido === 'E';
+  }
+
+  get coberturaActasEntregadas(): number {
+    if (!this.totalActas) return 0;
+    return Math.round((this.actasEntregadas / this.totalActas) * 100);
+  }
+
+  get hasEstadoFilter(): boolean {
+    return this.filtroEstadoRapido !== 'TODOS';
+  }
+
+  get hasEdadFilter(): boolean {
+    return this.filtroEdadRapido !== 'TODOS';
+  }
+
+  get estadoFiltroLabel(): string {
+    if (!this.hasEstadoFilter) return 'Todas';
+    return this.estadoLabels[this.filtroEstadoRapido] ?? this.filtroEstadoRapido;
   }
 
   private recalcularDashboard() {

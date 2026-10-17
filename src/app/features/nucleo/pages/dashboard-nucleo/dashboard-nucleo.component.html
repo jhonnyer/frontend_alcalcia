@@ -1,5 +1,5 @@
 <div #dashboardContainer 
-     class="dashboard-container bg-gray-50 py-6 scrollbar-custom overflow-y-auto max-h-[80vh] rounded-lg border border-gray-200 shadow-sm p-6">
+  class="dashboard-container bg-gray-50 py-6 scrollbar-custom rounded-lg border border-gray-200 shadow-sm p-6">
 
   <div *ngIf="loading" class="flex h-[55vh] items-center justify-center">
     <mat-spinner diameter="52"></mat-spinner>
@@ -59,6 +59,28 @@
       </button>
     </div>
 
+    <div class="mb-3 flex flex-wrap items-center gap-2" *ngIf="hasEstadoFilter || hasEdadFilter">
+      <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Filtros activos:</span>
+      <button
+        *ngIf="hasEstadoFilter"
+        type="button"
+        class="filter-badge"
+        (click)="clearEstadoFilter()"
+      >
+        Estado: {{ estadoFiltroLabel }}
+        <mat-icon class="!text-sm">close</mat-icon>
+      </button>
+      <button
+        *ngIf="hasEdadFilter"
+        type="button"
+        class="filter-badge"
+        (click)="clearEdadFilter()"
+      >
+        Edad: {{ filtroEdadRapido }}
+        <mat-icon class="!text-sm">close</mat-icon>
+      </button>
+    </div>
+
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <div>
         <p class="mb-2 text-xs font-medium text-slate-500">Estado de acta</p>
@@ -97,7 +119,7 @@
     </div>
   </section>
 
-  <div class="kpi-container grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  <div class="kpi-container grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
     <button
       type="button"
       class="kpi-card-btn"
@@ -149,6 +171,14 @@
         <div class="text-3xl font-bold text-orange-600">{{ actasEntregadas }}</div>
       </mat-card>
     </button>
+
+    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
+      <div class="text-sm text-gray-500">Cobertura entrega</div>
+      <div class="text-3xl font-bold text-sky-700">{{ coberturaActasEntregadas }}%</div>
+      <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
+        <div class="h-full rounded-full bg-sky-600" [style.width.%]="coberturaActasEntregadas"></div>
+      </div>
+    </mat-card>
   </div>
 
   <!-- 🔍 Controles de zoom -->
@@ -175,7 +205,8 @@
         <canvas #chartActas baseChart 
                 [type]="chartActasType" 
                 [data]="chartActasData" 
-                [options]="chartActasOptions">
+          [options]="chartActasOptions"
+          (chartClick)="onActasChartClick($event)">
         </canvas>
       </ng-container>
 
@@ -195,7 +226,8 @@
       <canvas #chartBenef baseChart 
               [type]="chartBenefType" 
               [data]="chartBenefData" 
-              [options]="chartBenefOptions">
+              [options]="chartBenefOptions"
+              (chartClick)="onBenefChartClick($event)">
       </canvas>
     </mat-card>
 

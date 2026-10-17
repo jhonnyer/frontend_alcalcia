@@ -22,6 +22,8 @@ import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/
 
 Chart.register(...registerables, ChartDataLabels);
 
+type ProjectDetailSection = 'categorias' | 'productos' | 'actas' | 'beneficiarios';
+
 @Component({
   selector: 'app-report-dashboard',
   standalone: true,
@@ -50,8 +52,10 @@ export class ReportDashboardComponent implements OnInit {
   selMes = signal<'ALL' | number>('ALL');
   private proyectoAplicado = signal<'ALL' | number>('ALL');
   aplicandoFiltros = signal(false);
-  expandedBens = signal<Record<number, boolean>>({});
-  readonly MAX_BENS = 15;
+  detailSectionByProject = signal<Record<number, ProjectDetailSection>>({});
+  beneficiaryPageIndexByProject = signal<Record<number, number>>({});
+  beneficiaryPageSize = signal(5);
+  readonly beneficiaryPageSizeOptions = [5, 10, 20, 50];
 
   proyectosOpciones = computed(() =>
     (this.baseDashboard()?.proyectosResumen ?? [])
@@ -83,16 +87,25 @@ export class ReportDashboardComponent implements OnInit {
   dashboard = signal<DashboardReport | null>(null);
   productFiltersByProject = signal<Record<number, string>>({});
   productFiltersByCategory = signal<Record<number, string>>({});
+  beneficiaryFiltersByProject = signal<Record<number, string>>({});
+  collapsedBeneficiariosByProject = signal<Record<number, boolean>>({});
 
   // Filtros
   filtroTexto = signal<string>('');
   filtroEstado = signal<'ALL'|'A'|'I'>('ALL');
   filtroCategoria = signal<string>('ALL');
+  filtroProyectoLista = signal<'ALL' | number>('ALL');
   filtroFechaInicio = signal<string | null>(null); // YYYY-MM-DD
   filtroFechaFin = signal<string | null>(null);    // YYYY-MM-DD
   aniosDisponibles: number[] = [];
   filtroAnio = signal<'ALL' | number>('ALL');
   filtroMes = signal<'ALL' | number>('ALL');
+  projectPageIndex = signal(0);
+  projectPageSize = signal(6);
+  readonly projectPageSizeOptions = [6, 10, 15];
+  showProjectList = signal(true);
+  projectPaginationEnabled = signal(true);
+  selectedProjectId = signal<number | null>(null);
 
   mesesDisponibles = [
     { nombre: 'Enero', numero: 1 },
@@ -142,6 +155,22 @@ export class ReportDashboardComponent implements OnInit {
   pageIndexByCat = signal<Record<number, number>>({});
 
   categoriasDisponibles: string[] = [];
+  categoriasDisponiblesFiltradas = computed<string[]>(() => {
+    const dashboard = this.dashboard();
+    if (!dashboard) return [];
+
+    const selectedProject = this.filtroProyectoLista();
+    if (selectedProject !== 'ALL') {
+      const project = (dashboard.proyectosResumen ?? []).find(item => item.idProyecto === selectedProject);
+      const categories = new Set<string>();
+      (project?.categorias ?? []).forEach(category => {
+        if (category.nombreCategoria) categories.add(category.nombreCategoria);
+      });
+      return Array.from(categories).sort((a, b) => a.localeCompare(b));
+    }
+
+    return [...this.categoriasDisponibles];
+  });
   isLoadingPDF = false;
 
   // ========= Gráficas =========
@@ -385,6 +414,11 @@ export class ReportDashboardComponent implements OnInit {
     if (!d) return [];
     let list = [...(d.proyectosResumen ?? [])];
 
+    const selectedProject = this.filtroProyectoLista();
+    if (selectedProject !== 'ALL') {
+      list = list.filter(project => project.idProyecto === selectedProject);
+    }
+
     const txt = this.filtroTexto().trim().toLowerCase();
     if (txt) {
       list = list.filter(p =>
@@ -434,8 +468,108 @@ export class ReportDashboardComponent implements OnInit {
     return list.sort((a,b)=>a.nombre.localeCompare(b.nombre));
   });
 
+  totalProjectPages = computed(() => {
+    if (!this.projectPaginationEnabled()) return 1;
+    return Math.max(1, Math.ceil(this.proyectosFiltrados().length / this.projectPageSize()));
+  });
+
+  currentProjectPage = computed(() =>
+    Math.min(this.projectPageIndex(), this.totalProjectPages() - 1)
+  );
+
+  proyectosPaginados = computed<ResumenProyecto[]>(() => {
+    if (!this.projectPaginationEnabled()) return this.proyectosFiltrados();
+    const size = this.projectPageSize();
+    const index = this.currentProjectPage();
+    const start = index * size;
+    return this.proyectosFiltrados().slice(start, start + size);
+  });
+
+  selectedProject = computed<ResumenProyecto | null>(() => {
+    const pageProjects = this.proyectosPaginados();
+    if (!pageProjects.length) return null;
+    const selected = pageProjects.find(project => project.idProyecto === this.selectedProjectId());
+    return selected ?? pageProjects[0];
+  });
+
+  pageStartProject = computed(() => {
+    const total = this.proyectosFiltrados().length;
+    if (!total) return 0;
+    if (!this.projectPaginationEnabled()) return 1;
+    return this.currentProjectPage() * this.projectPageSize() + 1;
+  });
+
+  pageEndProject = computed(() => {
+    const total = this.proyectosFiltrados().length;
+    if (!this.projectPaginationEnabled()) return total;
+    return Math.min(total, this.pageStartProject() + this.projectPageSize() - 1);
+  });
+
   trackByProyecto = (_: number, p: ResumenProyecto) => p.idProyecto;
+  
+  onFiltroProyectoListaChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    const parsedValue: 'ALL' | number = value === 'ALL' ? 'ALL' : Number(value);
+    this.filtroProyectoLista.set(parsedValue);
+
+    const currentCategory = this.filtroCategoria();
+    if (currentCategory !== 'ALL' && !this.categoriasDisponiblesFiltradas().includes(currentCategory)) {
+      this.filtroCategoria.set('ALL');
+    }
+
+    this.projectPageIndex.set(0);
+    this.selectedProjectId.set(null);
+  }
+
+  clearProjectListFilters(): void {
+    this.filtroTexto.set('');
+    this.filtroProyectoLista.set('ALL');
+    this.filtroEstado.set('ALL');
+    this.filtroCategoria.set('ALL');
+    this.projectPageIndex.set(0);
+    this.selectedProjectId.set(null);
+  }
+
+  categoriasFiltradasProyecto(p: ResumenProyecto) {
+    const categorias = p.categorias ?? [];
+    const categoriaSeleccionada = this.filtroCategoria();
+    if (categoriaSeleccionada === 'ALL') return categorias;
+    return categorias.filter(categoria => categoria.nombreCategoria === categoriaSeleccionada);
+  }
   trackByCategoria = (_: number, c: any) => c?.idCategoria ?? _;
+
+  onProjectPageSizeChange(event: Event): void {
+    const value = Number((event.target as HTMLSelectElement).value);
+    this.projectPageSize.set(Number.isFinite(value) && value > 0 ? value : 6);
+    this.projectPageIndex.set(0);
+    this.selectedProjectId.set(null);
+  }
+
+  toggleProjectList(): void {
+    this.showProjectList.update(value => !value);
+  }
+
+  toggleProjectPagination(): void {
+    this.projectPaginationEnabled.update(value => !value);
+    this.projectPageIndex.set(0);
+    this.selectedProjectId.set(null);
+  }
+
+  previousProjectPage(): void {
+    if (!this.projectPaginationEnabled()) return;
+    this.projectPageIndex.update(page => Math.max(0, page - 1));
+    this.selectedProjectId.set(null);
+  }
+
+  nextProjectPage(): void {
+    if (!this.projectPaginationEnabled()) return;
+    this.projectPageIndex.update(page => Math.min(this.totalProjectPages() - 1, page + 1));
+    this.selectedProjectId.set(null);
+  }
+
+  selectProject(projectId: number): void {
+    this.selectedProjectId.set(projectId);
+  }
 
   // ========= Filtros del reporte (se aplican en el backend) =========
   onSelAnio(anio: 'ALL' | number) {
@@ -518,13 +652,96 @@ export class ReportDashboardComponent implements OnInit {
     return Math.max(0, Math.min(100, Math.round(((Date.now() - ini) / (fin - ini)) * 100)));
   }
 
-  beneficiariosVisibles(p: ResumenProyecto) {
-    const lista = p.beneficiarios ?? [];
-    return this.expandedBens()[p.idProyecto] ? lista : lista.slice(0, this.MAX_BENS);
+  getBeneficiaryFilter(projectId: number): string {
+    return this.beneficiaryFiltersByProject()[projectId] ?? '';
   }
 
-  toggleBens(idProyecto: number) {
-    this.expandedBens.update(s => ({ ...s, [idProyecto]: !s[idProyecto] }));
+  getProjectDetailSection(projectId: number): ProjectDetailSection {
+    return this.detailSectionByProject()[projectId] ?? 'categorias';
+  }
+
+  setProjectDetailSection(projectId: number, section: ProjectDetailSection): void {
+    this.detailSectionByProject.update(state => ({ ...state, [projectId]: section }));
+  }
+
+  setBeneficiaryFilter(projectId: number, text: string): void {
+    const query = (text ?? '').toString();
+    this.beneficiaryFiltersByProject.update(state => ({ ...state, [projectId]: query }));
+    this.beneficiaryPageIndexByProject.update(state => ({ ...state, [projectId]: 0 }));
+  }
+
+  clearBeneficiaryFilter(projectId: number): void {
+    this.setBeneficiaryFilter(projectId, '');
+  }
+
+  isBeneficiariosCollapsed(projectId: number): boolean {
+    return this.collapsedBeneficiariosByProject()[projectId] ?? false;
+  }
+
+  toggleBeneficiarios(projectId: number): void {
+    this.collapsedBeneficiariosByProject.update(state => ({
+      ...state,
+      [projectId]: !(state[projectId] ?? false)
+    }));
+  }
+
+  filteredBeneficiarios(p: ResumenProyecto) {
+    const list = p.beneficiarios ?? [];
+    const query = this.getBeneficiaryFilter(p.idProyecto).trim().toLowerCase();
+    if (!query) return list;
+
+    return list.filter(beneficiario =>
+      `${beneficiario.nombreCompleto ?? ''} ${beneficiario.tipoDocumento ?? ''} ${beneficiario.documento ?? ''} ${beneficiario.barrio ?? ''} ${beneficiario.nombreNucleo ?? ''}`
+        .toLowerCase()
+        .includes(query)
+    );
+  }
+
+  getBeneficiaryPageIndex(projectId: number): number {
+    return this.beneficiaryPageIndexByProject()[projectId] ?? 0;
+  }
+
+  getBeneficiaryTotalPages(p: ResumenProyecto): number {
+    const total = this.filteredBeneficiarios(p).length;
+    return Math.max(1, Math.ceil(total / this.beneficiaryPageSize()));
+  }
+
+  getBeneficiaryPageStart(p: ResumenProyecto): number {
+    const total = this.filteredBeneficiarios(p).length;
+    if (!total) return 0;
+    return this.getBeneficiaryPageIndex(p.idProyecto) * this.beneficiaryPageSize() + 1;
+  }
+
+  getBeneficiaryPageEnd(p: ResumenProyecto): number {
+    return Math.min(
+      this.filteredBeneficiarios(p).length,
+      this.getBeneficiaryPageStart(p) + this.beneficiaryPageSize() - 1
+    );
+  }
+
+  onBeneficiaryPageSizeChange(event: Event, projectId: number): void {
+    const value = Number((event.target as HTMLSelectElement).value);
+    this.beneficiaryPageSize.set(Number.isFinite(value) && value > 0 ? value : 5);
+    this.beneficiaryPageIndexByProject.update(state => ({ ...state, [projectId]: 0 }));
+  }
+
+  previousBeneficiaryPage(projectId: number): void {
+    const current = this.getBeneficiaryPageIndex(projectId);
+    this.beneficiaryPageIndexByProject.update(state => ({ ...state, [projectId]: Math.max(0, current - 1) }));
+  }
+
+  nextBeneficiaryPage(p: ResumenProyecto): void {
+    const current = this.getBeneficiaryPageIndex(p.idProyecto);
+    const last = this.getBeneficiaryTotalPages(p) - 1;
+    this.beneficiaryPageIndexByProject.update(state => ({ ...state, [p.idProyecto]: Math.min(last, current + 1) }));
+  }
+
+  beneficiariosVisibles(p: ResumenProyecto) {
+    const lista = this.filteredBeneficiarios(p);
+    const pageIndex = this.getBeneficiaryPageIndex(p.idProyecto);
+    const pageSize = this.beneficiaryPageSize();
+    const start = pageIndex * pageSize;
+    return lista.slice(start, start + pageSize);
   }
 
   // ========= Exportar PDF =========
@@ -544,6 +761,24 @@ export class ReportDashboardComponent implements OnInit {
 
   // ======= Productos: chips con “ver más” =======
   expandedCats = signal<Record<number, boolean>>({});
+  collapsedCategories = signal<Record<string, boolean>>({});
+
+  private categoryKey(projectId: number, categoryId: number): string {
+    return `${projectId}-${categoryId}`;
+  }
+
+  isCategoryCollapsed(projectId: number, categoryId: number): boolean {
+    const key = this.categoryKey(projectId, categoryId);
+    return this.collapsedCategories()[key] ?? true;
+  }
+
+  toggleCategory(projectId: number, categoryId: number): void {
+    const key = this.categoryKey(projectId, categoryId);
+    this.collapsedCategories.update(state => ({
+      ...state,
+      [key]: !(state[key] ?? true)
+    }));
+  }
 
   toggleCat(idCat: number) {
     this.expandedCats.update(s => ({ ...s, [idCat]: !s[idCat] }));

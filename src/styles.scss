@@ -134,19 +134,19 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 /* 🚀 Scroll global + corrección Angular Material Layout */
 /* ===================================================== */
 
-/* Scroll vertical siempre disponible */
+/* El scroll principal lo maneja el contenedor de layout */
 html, body {
-  height: auto !important;
+  height: 100% !important;
   min-height: 100%;
   overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow-y: hidden !important;
   scroll-behavior: smooth;
 }
 
 /* 🔧 Corrige el mat-drawer-content (contenedor principal del layout) */
 .mat-drawer-content {
   min-height: 100vh !important;
-  overflow-y: auto !important; /* 👈 habilita scroll vertical aquí */
+  overflow-y: hidden !important;
   overflow-x: hidden !important;
   display: flex !important;
   flex-direction: column !important;

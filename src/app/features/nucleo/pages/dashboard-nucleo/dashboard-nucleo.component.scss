@@ -87,3 +87,48 @@
 .scrollbar-custom::-webkit-scrollbar-thumb:hover {
   background-color: #94a3b8;
 }
+
+.quick-chip {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.quick-chip:hover {
+  background: #f1f5f9;
+}
+
+.quick-chip-active {
+  border-color: #2563eb;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.kpi-card-btn {
+  text-align: inherit;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 0.75rem;
+  transition: transform 0.18s ease;
+}
+
+.kpi-card-btn:hover {
+  transform: translateY(-2px);
+}
+
+.kpi-card-btn:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.kpi-card-btn-active mat-card {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 1px #2563eb inset;
+  background: #eff6ff;
+}

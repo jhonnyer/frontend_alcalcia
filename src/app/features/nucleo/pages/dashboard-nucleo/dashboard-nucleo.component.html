@@ -1,6 +1,12 @@
 <div #dashboardContainer 
      class="dashboard-container bg-gray-50 py-6 scrollbar-custom overflow-y-auto max-h-[80vh] rounded-lg border border-gray-200 shadow-sm p-6">
 
+  <div *ngIf="loading" class="flex h-[55vh] items-center justify-center">
+    <mat-spinner diameter="52"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loading">
+
   <!-- === ENCABEZADO === -->
   <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
     <h1 class="text-2xl font-bold text-gray-700 flex items-center gap-2">
@@ -45,21 +51,104 @@
   </div>
 
   <!-- === BLOQUE DE KPIs === -->
+  <section class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div class="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-600">Filtros rápidos</h3>
+      <button type="button" class="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50" (click)="clearQuickFilters()">
+        Limpiar filtros
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div>
+        <p class="mb-2 text-xs font-medium text-slate-500">Estado de acta</p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="quick-chip"
+            [class.quick-chip-active]="filtroEstadoRapido === 'TODOS'"
+            (click)="onEstadoRapidoChange('TODOS')"
+          >
+            Todas
+          </button>
+          <button
+            *ngFor="let estado of estadoOrden"
+            type="button"
+            class="quick-chip"
+            [class.quick-chip-active]="filtroEstadoRapido === estado"
+            (click)="onEstadoRapidoChange(estado)"
+          >
+            {{ estadoLabels[estado] }}
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label for="filtro-edad-dashboard" class="mb-2 block text-xs font-medium text-slate-500">Rango de edad (beneficiarios)</label>
+        <select
+          id="filtro-edad-dashboard"
+          class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700"
+          [(ngModel)]="filtroEdadRapido"
+          (ngModelChange)="onEdadRapidoChange()"
+        >
+          <option *ngFor="let rango of rangoEdadOptions" [ngValue]="rango">{{ rango === 'TODOS' ? 'Todos los rangos' : rango }}</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
   <div class="kpi-container grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
-      <div class="text-sm text-gray-500">Proyectos activos</div>
-      <div class="text-3xl font-bold text-blue-700">{{ proyectosActivos }}</div>
-    </mat-card>
+    <button
+      type="button"
+      class="kpi-card-btn"
+      [class.kpi-card-btn-active]="isKpiActive('overview')"
+      (click)="onKpiCardClick('overview')"
+      matTooltip="Restablecer vista general"
+    >
+      <mat-card class="p-4 text-center shadow-sm border border-gray-200">
+        <div class="text-sm text-gray-500">Proyectos activos</div>
+        <div class="text-3xl font-bold text-blue-700">{{ proyectosActivos }}</div>
+      </mat-card>
+    </button>
 
-    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
-      <div class="text-sm text-gray-500">Beneficiarios</div>
-      <div class="text-3xl font-bold text-emerald-700">{{ totalBeneficiarios }}</div>
-    </mat-card>
+    <button
+      type="button"
+      class="kpi-card-btn"
+      [class.kpi-card-btn-active]="isKpiActive('beneficiarios')"
+      (click)="onKpiCardClick('beneficiarios')"
+      matTooltip="Ver beneficiarios con filtros actuales"
+    >
+      <mat-card class="p-4 text-center shadow-sm border border-gray-200">
+        <div class="text-sm text-gray-500">Beneficiarios</div>
+        <div class="text-3xl font-bold text-emerald-700">{{ totalBeneficiarios }}</div>
+      </mat-card>
+    </button>
 
-    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
-      <div class="text-sm text-gray-500">Actas generadas</div>
-      <div class="text-3xl font-bold text-orange-600">{{ actasEntregadas }}</div>
-    </mat-card>
+    <button
+      type="button"
+      class="kpi-card-btn"
+      [class.kpi-card-btn-active]="isKpiActive('actas')"
+      (click)="onKpiCardClick('actas')"
+      matTooltip="Mostrar todas las actas"
+    >
+      <mat-card class="p-4 text-center shadow-sm border border-gray-200">
+        <div class="text-sm text-gray-500">Actas generadas</div>
+        <div class="text-3xl font-bold text-violet-700">{{ totalActas }}</div>
+      </mat-card>
+    </button>
+
+    <button
+      type="button"
+      class="kpi-card-btn"
+      [class.kpi-card-btn-active]="isKpiActive('actasEntregadas')"
+      (click)="onKpiCardClick('actasEntregadas')"
+      matTooltip="Filtrar por estado Entregado"
+    >
+      <mat-card class="p-4 text-center shadow-sm border border-gray-200">
+        <div class="text-sm text-gray-500">Actas entregadas</div>
+        <div class="text-3xl font-bold text-orange-600">{{ actasEntregadas }}</div>
+      </mat-card>
+    </button>
   </div>
 
   <!-- 🔍 Controles de zoom -->
@@ -82,7 +171,7 @@
       <h3 class="text-lg font-semibold mb-3 text-gray-700">Actas por estado</h3>
 
       <!-- Si hay actas -->
-      <ng-container *ngIf="actasEntregadas && actasEntregadas > 0; else noActas">
+            <ng-container *ngIf="totalActas > 0; else noActas">
         <canvas #chartActas baseChart 
                 [type]="chartActasType" 
                 [data]="chartActasData" 
@@ -94,8 +183,8 @@
       <ng-template #noActas>
         <div class="flex flex-col items-center justify-center py-8 px-4 text-gray-500">
           <mat-icon color="warn" class="!text-5xl mb-2">inventory_2</mat-icon>
-          <p class="text-lg font-semibold text-gray-700">Sin actas entregadas</p>
-          <p class="text-sm text-gray-500">Este actor social no tiene actas con productos asignados.</p>
+          <p class="text-lg font-semibold text-gray-700">Sin actas registradas</p>
+          <p class="text-sm text-gray-500">Este actor social no tiene actas asociadas actualmente.</p>
         </div>
       </ng-template>
     </mat-card>
@@ -113,3 +202,5 @@
   </div>
 
 </div>
+
+  </div>

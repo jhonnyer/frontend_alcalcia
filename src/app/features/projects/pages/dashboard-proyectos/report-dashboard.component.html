@@ -1,4 +1,4 @@
-<section id="contenedor-reporte" class="h-[calc(100vh-6rem)] overflow-y-auto p-4 bg-gray-50 rounded-xl shadow-sm space-y-4">
+<section id="contenedor-reporte" class="min-h-[calc(100vh-6rem)] p-4 bg-gray-50 rounded-xl shadow-sm space-y-4">
     <!-- Header -->
     <header class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex min-w-0 items-center gap-3">
@@ -189,12 +189,20 @@
 
     <!-- Filtros de la lista de proyectos -->
     <mat-card class="p-3 border border-gray-200">
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <label class="block">
                 <span class="label-base">Buscar proyecto</span>
                 <input class="input-base" placeholder="Nombre o descripción" [value]="filtroTexto()"
                        (input)="filtroTexto.set($any($event.target).value)" />
             </label>
+
+        <label class="block">
+          <span class="label-base">Proyecto</span>
+          <select class="input-base" (change)="onFiltroProyectoListaChange($event)">
+            <option value="ALL" [selected]="filtroProyectoLista() === 'ALL'">Todos</option>
+            <option *ngFor="let p of proyectosOpciones()" [value]="p.id" [selected]="filtroProyectoLista() === p.id">{{ p.nombre }}</option>
+          </select>
+        </label>
 
             <label class="block">
                 <span class="label-base">Estado</span>
@@ -209,194 +217,261 @@
                 <span class="label-base">Categoría</span>
                 <select class="input-base" (change)="filtroCategoria.set($any($event.target).value)">
                     <option value="ALL" [selected]="filtroCategoria() === 'ALL'">Todas</option>
-                    <option *ngFor="let c of categoriasDisponibles" [value]="c" [selected]="filtroCategoria() === c">{{ c }}</option>
+                <option *ngFor="let c of categoriasDisponiblesFiltradas()" [value]="c" [selected]="filtroCategoria() === c">{{ c }}</option>
                 </select>
             </label>
         </div>
+        <div class="mt-3 flex justify-end">
+          <button type="button" class="btn-action-gray" (click)="clearProjectListFilters()">
+            <mat-icon class="text-base">filter_alt_off</mat-icon>
+            Limpiar filtros
+          </button>
+        </div>
     </mat-card>
 
-    <!-- Proyectos (paneles) -->
+    <!-- Proyectos (master-detail) -->
     <mat-card class="p-4 border border-gray-200">
-    <div class="mb-3 flex items-center gap-2 text-base font-semibold text-gray-800">
-        <mat-icon class="text-indigo-600">folder_open</mat-icon>
-        Proyectos <span class="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">{{ proyectosFiltrados().length }}</span>
-    </div>
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2 text-base font-semibold text-gray-800">
+          <mat-icon class="text-indigo-600">folder_open</mat-icon>
+          Proyectos <span class="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">{{ proyectosFiltrados().length }}</span>
+        </div>
+        <div class="project-header-actions">
+          <button type="button" class="btn-action-gray" (click)="toggleProjectList()">
+            <mat-icon class="text-base">{{ showProjectList() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            {{ showProjectList() ? 'Ocultar lista' : 'Mostrar lista' }}
+          </button>
+          <button type="button" class="btn-action-gray" (click)="toggleProjectPagination()">
+            <mat-icon class="text-base">{{ projectPaginationEnabled() ? 'view_agenda' : 'splitscreen' }}</mat-icon>
+            {{ projectPaginationEnabled() ? 'Ver todos' : 'Paginación' }}
+          </button>
+        </div>
+      </div>
 
-    <mat-accordion multi class="proj-accordion">
-        <div class="proj-card" *ngFor="let p of proyectosFiltrados(); trackBy: trackByProyecto">
-        <mat-expansion-panel class="proj-panel">
-            <mat-expansion-panel-header class="proj-header" collapsedHeight="auto" expandedHeight="auto">
-            <div class="flex w-full flex-col gap-2 py-2.5 pr-2 md:flex-row md:items-center md:justify-between">
-                <div class="min-w-0 flex-1">
-                <div class="font-medium text-[15px] leading-5 break-words">{{ p.nombre }}</div>
-                <div class="text-xs text-gray-500 line-clamp-1">{{ p.descripcion || '—' }}</div>
-                <div class="text-[11px] text-gray-400 mt-1">
-                    {{ p.fechaInicio ? (p.fechaInicio | date:'dd/MM/yyyy') : '—' }} → {{ p.fechaFin ? (p.fechaFin | date:'dd/MM/yyyy') : '—' }} • {{ p.duracionDias }} días
+      @if (proyectosFiltrados().length === 0) {
+        <div class="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+          No hay proyectos para los filtros seleccionados.
+        </div>
+      } @else {
+        <div class="project-layout-grid" [class.project-layout-grid-single]="!showProjectList()">
+          <aside class="project-list-pane" *ngIf="showProjectList()">
+            <div class="projects-footer projects-footer-inline" *ngIf="proyectosFiltrados().length > 0">
+              <div class="projects-range">Mostrando {{ pageStartProject() }} - {{ pageEndProject() }} de {{ proyectosFiltrados().length }} proyectos</div>
+              <div class="projects-pager" *ngIf="projectPaginationEnabled(); else allProjectsLabelInPanel">
+                <div class="projects-pager-row">
+                  <label for="project-page-size" class="sr-only">Proyectos por página</label>
+                  <select id="project-page-size" class="select-base" (change)="onProjectPageSizeChange($event)">
+                    <option *ngFor="let size of projectPageSizeOptions" [value]="size" [selected]="projectPageSize() === size">{{ size }} / página</option>
+                  </select>
+                  <button type="button" class="pager-btn" [disabled]="currentProjectPage() === 0" (click)="previousProjectPage()">
+                    <span class="hidden sm:inline">Anterior</span>
+                    <mat-icon class="sm:hidden">chevron_left</mat-icon>
+                  </button>
+                  <button type="button" class="pager-btn" [disabled]="currentProjectPage() >= totalProjectPages() - 1" (click)="nextProjectPage()">
+                    <span class="hidden sm:inline">Siguiente</span>
+                    <mat-icon class="sm:hidden">chevron_right</mat-icon>
+                  </button>
                 </div>
-                <div class="mt-1.5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-gray-100" [title]="'Avance del tiempo: ' + progreso(p) + '%'">
-                    <div class="h-full rounded-full bg-indigo-500" [style.width.%]="progreso(p)"></div>
-                </div>
-                </div>
-                <div class="flex shrink-0 flex-wrap items-center gap-1.5 md:flex-nowrap md:justify-end">
-                    <span class="stat-pill" title="Categorías"><mat-icon>category</mat-icon>{{ p.totalCategorias }}</span>
-                    <span class="stat-pill" title="Productos"><mat-icon>inventory</mat-icon>{{ p.totalProductosAsociados }}</span>
-                    <span class="stat-pill" title="Actas"><mat-icon>checklist_rtl</mat-icon>{{ p.totalActas }}</span>
-                    <span class="stat-pill" title="Beneficiarios"><mat-icon>groups</mat-icon>{{ p.totalBeneficiarios }}</span>
-                    <span class="chip" [ngClass]="p.estado === 'A' ? 'chip-a' : 'chip-i'">
-                    {{ p.estado === 'A' ? 'Activo' : 'Inactivo' }}
-                    </span>
-                </div>
+                <span class="projects-page-indicator">Página {{ currentProjectPage() + 1 }} de {{ totalProjectPages() }}</span>
+              </div>
+              <ng-template #allProjectsLabelInPanel>
+                <span class="projects-page-indicator">Modo completo: lista sin paginación</span>
+              </ng-template>
             </div>
-            </mat-expansion-panel-header>
 
-            <!-- Resumen -->
+            @for (project of proyectosPaginados(); track project.idProyecto) {
+              <button
+                type="button"
+                class="project-list-card"
+                [class.is-active]="selectedProject()?.idProyecto === project.idProyecto"
+                (click)="selectProject(project.idProyecto)"
+              >
+                <div class="project-list-head">
+                  <span class="project-name">{{ project.nombre }}</span>
+                  <span class="chip" [ngClass]="project.estado === 'A' ? 'chip-a' : 'chip-i'">
+                    {{ project.estado === 'A' ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
+                <p class="project-desc">{{ project.descripcion || 'Sin descripción' }}</p>
+                <div class="project-metrics">
+                  <span><mat-icon>category</mat-icon>{{ project.totalCategorias }}</span>
+                  <span><mat-icon>inventory</mat-icon>{{ project.totalProductosAsociados }}</span>
+                  <span><mat-icon>groups</mat-icon>{{ project.totalBeneficiarios }}</span>
+                </div>
+                <div class="project-list-progress" [title]="'Avance del tiempo: ' + progreso(project) + '%'">
+                  <div class="project-list-progress-bar" [style.width.%]="progreso(project)"></div>
+                </div>
+              </button>
+            }
+          </aside>
+
+          <section class="project-detail-pane" *ngIf="selectedProject() as p">
+            <header class="project-detail-header">
+              <div>
+                <h3>{{ p.nombre }}</h3>
+                <p>{{ p.descripcion || 'Sin descripción disponible.' }}</p>
+              </div>
+              <div class="project-dates">
+                {{ p.fechaInicio ? (p.fechaInicio | date:'dd/MM/yyyy') : '—' }}
+                <span>→</span>
+                {{ p.fechaFin ? (p.fechaFin | date:'dd/MM/yyyy') : '—' }}
+              </div>
+            </header>
+
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2 mt-1">
-            <div class="kpi kpi-compact">
-                <mat-icon>category</mat-icon>
-                <div>
-                <div class="label">Categorías</div>
-                <div class="value">{{ p.totalCategorias }}</div>
-                </div>
+              <button type="button" class="kpi kpi-compact kpi-tab" [class.kpi-active]="getProjectDetailSection(p.idProyecto) === 'categorias'" (click)="setProjectDetailSection(p.idProyecto, 'categorias')"><mat-icon>category</mat-icon><div><div class="label">Categorías</div><div class="value">{{ p.totalCategorias }}</div></div></button>
+              <button type="button" class="kpi kpi-compact kpi-tab" [class.kpi-active]="getProjectDetailSection(p.idProyecto) === 'productos'" (click)="setProjectDetailSection(p.idProyecto, 'productos')"><mat-icon>inventory</mat-icon><div><div class="label">Productos</div><div class="value">{{ p.totalProductosAsociados }}</div></div></button>
+              <button type="button" class="kpi kpi-compact kpi-tab" [class.kpi-active]="getProjectDetailSection(p.idProyecto) === 'actas'" (click)="setProjectDetailSection(p.idProyecto, 'actas')"><mat-icon>checklist_rtl</mat-icon><div><div class="label">Actas</div><div class="value">{{ p.totalActas }}</div></div></button>
+              <button type="button" class="kpi kpi-compact kpi-tab" [class.kpi-active]="getProjectDetailSection(p.idProyecto) === 'beneficiarios'" (click)="setProjectDetailSection(p.idProyecto, 'beneficiarios')"><mat-icon>groups</mat-icon><div><div class="label">Beneficiarios</div><div class="value">{{ p.totalBeneficiarios }}</div></div></button>
             </div>
 
-            <div class="kpi kpi-compact">
-                <mat-icon>inventory</mat-icon>
-                <div>
-                <div class="label">Productos</div>
-                <div class="value">{{ p.totalProductosAsociados }}</div>
-                </div>
-            </div>
-
-            <div class="kpi kpi-compact">
-                <mat-icon>checklist_rtl</mat-icon>
-                <div>
-                <div class="label">Actas</div>
-                <div class="value">{{ p.totalActas }}</div>
-                </div>
-            </div>
-
-            <div class="kpi kpi-compact">
-                <mat-icon>groups</mat-icon>
-                <div>
-                <div class="label">Beneficiarios</div>
-                <div class="value">{{ p.totalBeneficiarios }}</div>
-                </div>
-            </div>
-            </div>
-
-            <!-- Separador visual -->
             <div class="section-sep"></div>
 
-            <!-- Categorías y productos -->
-            <div class="mb-2">
-            <div class="section-title">Categorías y productos</div>
-
-            <ng-container *ngIf="(p.categorias?.length ?? 0) > 0; else noCats">
+            <div class="mb-2" *ngIf="getProjectDetailSection(p.idProyecto) === 'categorias' || getProjectDetailSection(p.idProyecto) === 'productos'">
+              <div class="section-title">Categorías y productos</div>
+              <ng-container *ngIf="categoriasFiltradasProyecto(p).length > 0; else noCats">
                 <div class="cats-grid">
-                <div class="cat-card"
-                    *ngFor="let c of p.categorias; trackBy: trackByCategoria">
-
+                  <div class="cat-card" *ngFor="let c of categoriasFiltradasProyecto(p); trackBy: trackByCategoria">
                     <div class="cat-header">
-                    <div class="left">
+                      <div class="left">
                         <div class="cat-name">{{ c.nombreCategoria }}</div>
                         <div class="cat-sub">ID: {{ c.idCategoria }}</div>
-                    </div>
-                    <span class="badge">{{ getTotalProductos(c) }} productos</span>
+                      </div>
+                      <div class="cat-actions">
+                        <span class="badge">{{ getTotalProductos(c) }} productos</span>
+                        <button type="button" class="cat-toggle" (click)="toggleCategory(p.idProyecto, c.idCategoria)">
+                          {{ isCategoryCollapsed(p.idProyecto, c.idCategoria) ? 'Ver' : 'Ocultar' }}
+                        </button>
+                      </div>
                     </div>
 
-                    <!-- Buscador por categoría (si hay productos) -->
-                    <ng-container *ngIf="(c.productos?.length ?? 0) > 0">
-                    <mat-form-field appearance="outline"
-                                    class="w-full mb-2 search-field"
-                                    floatLabel="auto">
-                        <mat-icon matPrefix>search</mat-icon>
-                        <mat-label>Filtrar productos por nombre</mat-label>
-                        <input matInput
-                          [id]="'cat-filter-' + c.idCategoria"
-                            [value]="getCategoryFilter(c.idCategoria)"
-                            (input)="setCategoryFilter(c.idCategoria, $any($event.target).value)"
-                            placeholder="Buscar producto"
-                            autocomplete="off" />
-                        <button matSuffix mat-icon-button
-                                *ngIf="getCategoryFilter(c.idCategoria)"
-                                (click)="setCategoryFilter(c.idCategoria, '')"
-                                aria-label="Limpiar búsqueda">
-                        <mat-icon>close</mat-icon>
-                        </button>
-                    </mat-form-field>
+                    <ng-container *ngIf="isCategoryCollapsed(p.idProyecto, c.idCategoria)">
+                      <div class="cat-collapsed-hint">Contenido oculto para simplificar la vista.</div>
                     </ng-container>
 
-                    <!-- Lista de productos -->
-                    <div class="space-y-2" *ngIf="(c.productos?.length ?? 0) > 0; else emptyCat">
-                    <div class="pill" *ngFor="let pr of visibleProductos(c)">
-                        <span class="truncate pr-2">{{ pr.nombreProducto }}</span>
-                        <span class="pill-meta" *ngIf="pr.stock != null">Stock: {{ pr.stock }}</span>
-                    </div>
+                    <ng-container *ngIf="!isCategoryCollapsed(p.idProyecto, c.idCategoria)">
+                      <ng-container *ngIf="(c.productos?.length ?? 0) > 0">
+                        <mat-form-field appearance="outline" class="w-full mb-2 search-field" floatLabel="auto">
+                          <mat-icon matPrefix>search</mat-icon>
+                          <mat-label>Filtrar productos por nombre</mat-label>
+                          <input matInput [id]="'cat-filter-' + c.idCategoria" [value]="getCategoryFilter(c.idCategoria)" (input)="setCategoryFilter(c.idCategoria, $any($event.target).value)" placeholder="Buscar producto" autocomplete="off" />
+                          <button matSuffix mat-icon-button *ngIf="getCategoryFilter(c.idCategoria)" (click)="setCategoryFilter(c.idCategoria, '')" aria-label="Limpiar búsqueda"><mat-icon>close</mat-icon></button>
+                        </mat-form-field>
+                      </ng-container>
 
-                    <button *ngIf="hiddenCount(c) > 0 || isExpanded(c.idCategoria)"
-                            class="btn-more"
-                            type="button"
-                            (click)="toggleCat(c.idCategoria)">
-                        {{ isExpanded(c.idCategoria) ? 'Ver menos' : ('+' + hiddenCount(c) + ' más') }}
+                      <div class="space-y-2" *ngIf="(c.productos?.length ?? 0) > 0; else emptyCat">
+                        <div class="pill" *ngFor="let pr of visibleProductos(c)">
+                          <span class="truncate pr-2">{{ pr.nombreProducto }}</span>
+                          <span class="pill-meta" *ngIf="pr.stock != null">Stock: {{ pr.stock }}</span>
+                        </div>
+                        <button *ngIf="hiddenCount(c) > 0 || isExpanded(c.idCategoria)" class="btn-more" type="button" (click)="toggleCat(c.idCategoria)">
+                          {{ isExpanded(c.idCategoria) ? 'Ver menos' : ('+' + hiddenCount(c) + ' más') }}
+                        </button>
+                      </div>
+                      <ng-template #emptyCat>
+                        <div class="text-xs text-gray-500 italic">Sin productos registrados en esta categoría.</div>
+                      </ng-template>
+                    </ng-container>
+                  </div>
+                </div>
+              </ng-container>
+              <ng-template #noCats>
+                <div class="text-xs text-gray-500">No hay categorías para el filtro seleccionado.</div>
+              </ng-template>
+            </div>
+
+            <div class="mb-2" *ngIf="getProjectDetailSection(p.idProyecto) === 'actas'">
+              <div class="section-title">Relación de actas del proyecto</div>
+              <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                <p>Este proyecto registra <strong>{{ p.totalActas }}</strong> actas asociadas.</p>
+                <p class="mt-1 text-xs text-slate-500">Para ver el detalle operativo de cada acta puedes usar el módulo de Asignaciones/Actas y filtrar por este proyecto.</p>
+              </div>
+            </div>
+
+            <div class="section-sep" *ngIf="getProjectDetailSection(p.idProyecto) === 'beneficiarios'"></div>
+
+            <div class="mb-1" *ngIf="getProjectDetailSection(p.idProyecto) === 'beneficiarios'">
+              <div class="beneficiary-header">
+                <div class="text-xs font-semibold text-gray-600">Beneficiarios</div>
+                <div class="beneficiary-actions">
+                  <span class="beneficiary-count">{{ filteredBeneficiarios(p).length }} resultados</span>
+                  <button type="button" class="cat-toggle" (click)="toggleBeneficiarios(p.idProyecto)">
+                    {{ isBeneficiariosCollapsed(p.idProyecto) ? 'Ver' : 'Ocultar' }}
+                  </button>
+                </div>
+              </div>
+
+              <ng-container *ngIf="!isBeneficiariosCollapsed(p.idProyecto)">
+                <div class="beneficiary-filter-wrap">
+                  <label [for]="'beneficiary-filter-' + p.idProyecto" class="sr-only">Filtrar beneficiarios del proyecto</label>
+                  <input
+                    [id]="'beneficiary-filter-' + p.idProyecto"
+                    class="input-base"
+                    placeholder="Filtrar por nombre, documento, barrio o actor social"
+                    [value]="getBeneficiaryFilter(p.idProyecto)"
+                    (input)="setBeneficiaryFilter(p.idProyecto, $any($event.target).value)"
+                  />
+                  @if (getBeneficiaryFilter(p.idProyecto)) {
+                    <button type="button" class="beneficiary-clear" (click)="clearBeneficiaryFilter(p.idProyecto)" aria-label="Limpiar filtro de beneficiarios">
+                      <mat-icon>close</mat-icon>
                     </button>
+                  }
+                </div>
+
+                <div class="table-shell" *ngIf="filteredBeneficiarios(p).length > 0; else noFilteredBens">
+                  <div class="table-scroll">
+                    <table class="table-compact min-w-[700px]">
+                      <thead>
+                        <tr>
+                          <th>Nombre</th>
+                          <th>Doc.</th>
+                          <th>Sexo</th>
+                          <th>Barrio</th>
+                          <th>Víctima</th>
+                          <th>Discapacidad</th>
+                          <th>Actor Social</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let b of beneficiariosVisibles(p)">
+                          <td>{{ b.nombreCompleto }}</td>
+                          <td>{{ b.tipoDocumento }} {{ b.documento }}</td>
+                          <td>{{ b.sexo }}</td>
+                          <td>{{ b.barrio || '—' }}</td>
+                          <td>{{ b.victimaConflicto ? 'Sí' : 'No' }}</td>
+                          <td>{{ b.discapacidad ? 'Sí' : 'No' }}</td>
+                          <td>{{ b.nombreNucleo || '—' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="beneficiary-pager" *ngIf="filteredBeneficiarios(p).length > 0">
+                    <span class="beneficiary-count">Mostrando {{ getBeneficiaryPageStart(p) }} - {{ getBeneficiaryPageEnd(p) }} de {{ filteredBeneficiarios(p).length }}</span>
+                    <div class="beneficiary-pager-actions">
+                      <label [for]="'beneficiary-page-size-' + p.idProyecto" class="sr-only">Beneficiarios por pagina</label>
+                      <select [id]="'beneficiary-page-size-' + p.idProyecto" class="select-base" (change)="onBeneficiaryPageSizeChange($event, p.idProyecto)">
+                        <option *ngFor="let size of beneficiaryPageSizeOptions" [value]="size" [selected]="beneficiaryPageSize() === size">{{ size }} / pág.</option>
+                      </select>
+                      <button type="button" class="pager-btn" [disabled]="getBeneficiaryPageIndex(p.idProyecto) === 0" (click)="previousBeneficiaryPage(p.idProyecto)">Anterior</button>
+                      <span class="projects-page-indicator">Página {{ getBeneficiaryPageIndex(p.idProyecto) + 1 }} de {{ getBeneficiaryTotalPages(p) }}</span>
+                      <button type="button" class="pager-btn" [disabled]="getBeneficiaryPageIndex(p.idProyecto) >= getBeneficiaryTotalPages(p) - 1" (click)="nextBeneficiaryPage(p)">Siguiente</button>
                     </div>
-
-                    <ng-template #emptyCat>
-                    <div class="text-xs text-gray-500 italic">Sin productos registrados en esta categoría.</div>
-                    </ng-template>
+                  </div>
                 </div>
-                </div>
-            </ng-container>
+              </ng-container>
 
-            <ng-template #noCats>
-                <div class="text-xs text-gray-500">Sin categorías para este proyecto.</div>
-            </ng-template>
-            </div>
-
-            <!-- Separador visual -->
-            <div class="section-sep"></div>
-
-            <!-- Beneficiarios -->
-            <div class="mb-1">
-            <div class="text-xs font-semibold text-gray-600 mb-1">Beneficiarios</div>
-            <div class="table-shell" *ngIf="p.beneficiarios?.length; else noBens">
-            <div class="table-scroll">
-            <table class="table-compact min-w-[700px]">
-                <thead>
-                <tr>
-                <th>Nombre</th>
-                <th>Doc.</th>
-                <th>Sexo</th>
-                <th>Barrio</th>
-                <th>Víctima</th>
-                <th>Discapacidad</th>
-                <th>Actor Social</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr *ngFor="let b of beneficiariosVisibles(p)">
-                <td>{{ b.nombreCompleto }}</td>
-                <td>{{ b.tipoDocumento }} {{ b.documento }}</td>
-                <td>{{ b.sexo }}</td>
-                <td>{{ b.barrio || '—' }}</td>
-                <td>{{ b.victimaConflicto ? 'Sí' : 'No' }}</td>
-                <td>{{ b.discapacidad ? 'Sí' : 'No' }}</td>
-                <td>{{ b.nombreNucleo || '—' }}</td>
-                </tr>
-                </tbody>
-            </table>
-            </div>
-            <button *ngIf="(p.beneficiarios?.length ?? 0) > MAX_BENS" type="button" class="btn-more" (click)="toggleBens(p.idProyecto)">
-                {{ expandedBens()[p.idProyecto] ? 'Ver menos' : ('Ver todos (' + p.beneficiarios!.length + ')') }}
-            </button>
-            </div>
-            <ng-template #noBens>
+              <ng-template #noBens>
                 <div class="text-xs text-gray-500">Sin beneficiarios listados.</div>
-            </ng-template>
+              </ng-template>
+
+              <ng-template #noFilteredBens>
+                <div class="text-xs text-gray-500">No hay beneficiarios que coincidan con el filtro.</div>
+              </ng-template>
             </div>
-        </mat-expansion-panel>
+          </section>
         </div>
-    </mat-accordion>
+
+      }
     </mat-card>
 
   </ng-container>

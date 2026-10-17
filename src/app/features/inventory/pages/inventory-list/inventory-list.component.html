@@ -1,4 +1,4 @@
-<section class="h-[calc(100vh-6rem)] overflow-y-auto scrollbar-custom bg-gray-50 p-6 rounded-xl shadow-inner">
+<section class="min-h-[calc(100vh-6rem)] scrollbar-custom bg-gray-50 p-6 rounded-xl shadow-inner">
 
   <!-- 🧭 HEADER -->
   <header class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -163,7 +163,10 @@
     <div class="flex flex-wrap items-center gap-3">
       <span>Página {{ dataTable.getState().pagination.pageIndex + 1 }} de {{ dataTable.getPageCount() }}</span>
 
+      <label for="inventory-page-size" class="sr-only">Filas por pagina de inventario</label>
       <select
+        id="inventory-page-size"
+        aria-label="Filas por pagina de inventario"
         (change)="onChangeValueSizePageSelect($event)"
         class="select-base"
       >

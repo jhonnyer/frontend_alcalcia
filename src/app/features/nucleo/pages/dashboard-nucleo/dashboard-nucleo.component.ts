@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, registerables, ChartConfiguration, ChartType } from 'chart.js';
 import { NucleoService } from '../../../../core/services/nucleo.service';
@@ -23,6 +25,8 @@ Chart.register(...registerables, ChartDataLabels);
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
+    FormsModule,
     BaseChartDirective
   ],
   templateUrl: './dashboard-nucleo.component.html',
@@ -34,6 +38,7 @@ export class DashboardComponent implements OnInit {
   private nucleoService = inject(NucleoService);
   private router = inject(Router);
   nucleo?: NucleoDetallado; 
+  allData?: NucleoDetallado;
   isLoadingPDF = false;
 
   @ViewChild('chartActas', { static: false }) chartActas!: ElementRef<HTMLCanvasElement>;
@@ -45,7 +50,10 @@ export class DashboardComponent implements OnInit {
   proyectosActivos = 0;
   totalBeneficiarios = 0;
   totalNucleos = 0;
+  totalActas = 0;
   actasEntregadas = 0;
+  filtroEstadoRapido = 'TODOS';
+  filtroEdadRapido = 'TODOS';
 
   // Mapeo de estados
   readonly estadoLabels: Record<string, string> = {
@@ -55,6 +63,8 @@ export class DashboardComponent implements OnInit {
     E: 'Entregado',
     RC: 'Rechazado'
   };
+  readonly estadoOrden = ['P', 'R', 'A', 'E', 'RC'];
+  readonly rangoEdadOptions = ['TODOS', '0-12', '13-17', '18-29', '30-59', '60+'];
 
   // Gráfica: Actas por estado
   chartActasType: ChartType = 'pie';
@@ -111,6 +121,7 @@ export class DashboardComponent implements OnInit {
             (a, b) => a + b,
             0
             );
+          if (!total) return '0%';
             const porcentaje = ((value / total) * 100).toFixed(1);
             return `${porcentaje}%`;
         }
@@ -151,11 +162,14 @@ export class DashboardComponent implements OnInit {
     const nav = this.router.getCurrentNavigation();
     this.nucleo = nav?.extras.state?.['nucleo'] ?? history.state['nucleo'];
 
-    // Si no vino el núcleo (recarga o acceso directo)
-    if (!this.nucleo) {
+    // Si vino por navegación, usamos esa data y evitamos request duplicado.
+    if (this.nucleo) {
+      this.aplicarDatosDashboard(this.nucleo);
+      this.loading = false;
+    } else {
       this.nucleoService.obtenerDetalleNucleo(id).subscribe({
         next: ({ respuesta }) => {
-          this.nucleo = respuesta || {
+          const fallback = respuesta || {
             idNucleo: id,
             nombreNucleo: 'Sin nombre',
             direccion: '—',
@@ -166,42 +180,98 @@ export class DashboardComponent implements OnInit {
             beneficiariosProyecto: [],
             actas: []
           };
+          this.aplicarDatosDashboard(fallback);
+          this.loading = false;
         },
-        error: (err) => console.error('Error cargando actor social', err)
+        error: (err) => {
+          console.error('Error cargando actor social', err);
+          this.loading = false;
+        }
       });
     }
 
     this.pageTitleService.setCurrentPage('Dashboard');
-    this.cargarDatos(id);
   }
 
-
-  // === Cargar datos reales del servicio ===
-  private cargarDatos(id: number) {
-    const idNucleo = id; // puedes hacerlo dinámico según el usuario
-    this.nucleoService.obtenerDetalleNucleo(idNucleo).subscribe({
-      next: ({ respuesta }) => this.procesarDatos(respuesta),
-      error: (err) => {
-        console.error('Error cargando datos del núcleo:', err);
-        this.loading = false;
-      }
-    });
+  private aplicarDatosDashboard(data: NucleoDetallado) {
+    this.nucleo = data;
+    this.allData = data;
+    this.recalcularDashboard();
   }
 
-  private procesarDatos(data: NucleoDetallado) {
+  onEstadoRapidoChange(estado: string): void {
+    this.filtroEstadoRapido = estado;
+    this.recalcularDashboard();
+  }
+
+  onEdadRapidoChange(): void {
+    this.recalcularDashboard();
+  }
+
+  clearQuickFilters(): void {
+    this.filtroEstadoRapido = 'TODOS';
+    this.filtroEdadRapido = 'TODOS';
+    this.recalcularDashboard();
+  }
+
+  onKpiCardClick(target: 'overview' | 'beneficiarios' | 'actas' | 'actasEntregadas'): void {
+    if (target === 'overview') {
+      this.clearQuickFilters();
+      return;
+    }
+
+    if (target === 'beneficiarios') {
+      this.filtroEdadRapido = 'TODOS';
+      this.recalcularDashboard();
+      return;
+    }
+
+    if (target === 'actas') {
+      this.filtroEstadoRapido = 'TODOS';
+      this.recalcularDashboard();
+      return;
+    }
+
+    // Toggle rápido entre "solo entregadas" y "todas"
+    this.filtroEstadoRapido = this.filtroEstadoRapido === 'E' ? 'TODOS' : 'E';
+    this.recalcularDashboard();
+  }
+
+  isKpiActive(target: 'overview' | 'beneficiarios' | 'actas' | 'actasEntregadas'): boolean {
+    if (target === 'overview') {
+      return this.filtroEstadoRapido === 'TODOS' && this.filtroEdadRapido === 'TODOS';
+    }
+
+    if (target === 'beneficiarios') {
+      return this.filtroEdadRapido !== 'TODOS';
+    }
+
+    if (target === 'actas') {
+      return this.filtroEstadoRapido === 'TODOS';
+    }
+
+    return this.filtroEstadoRapido === 'E';
+  }
+
+  private recalcularDashboard() {
+    if (!this.allData) return;
+
+    const actasFiltradas = this.getActasFiltradas(this.allData.actas);
+    const beneficiariosFiltrados = this.getBeneficiariosFiltrados(this.allData.beneficiariosNucleo);
+
     // KPIs
     this.totalNucleos = 1;
-    this.totalBeneficiarios = data.beneficiariosNucleo.length;
-    this.proyectosActivos = data.beneficiariosProyecto.filter(p => p.esBeneficiarioActivo).length;
-    this.actasEntregadas = data.actas.filter(a => a.estado === 'E').length;
+    this.totalBeneficiarios = beneficiariosFiltrados.length;
+    this.proyectosActivos = this.allData.beneficiariosProyecto.filter(p => p.esBeneficiarioActivo).length;
+    this.totalActas = actasFiltradas.length;
+    this.actasEntregadas = actasFiltradas.filter(a => a.estado === 'E').length;
 
     // === Gráfica: Actas por estado ===
-    const conteo = this.contarEstados(data.actas.map(a => a.estado));
-    const orden = ['P', 'R', 'A', 'E', 'RC'];
+    const conteo = this.contarEstados(actasFiltradas.map(a => a.estado));
     this.chartActasData = {
-      labels: orden.map(k => this.estadoLabels[k]),
+      labels: this.estadoOrden.map(k => this.estadoLabels[k]),
       datasets: [{
-        data: orden.map(k => conteo[k] ?? 0),
+        data: this.estadoOrden.map(k => conteo[k] ?? 0),
         backgroundColor: ['#fbbf24', '#3b82f6', '#8b5cf6', '#10b981', '#ef4444'],
         borderWidth: 1,
         hoverOffset: 8
@@ -209,7 +279,7 @@ export class DashboardComponent implements OnInit {
     };
 
     // === Gráfica: Beneficiarios por rango de edad ===
-    const edades = data.beneficiariosNucleo.map(b => b.edad ?? 0);
+    const edades = beneficiariosFiltrados.map(b => b.edad ?? 0);
     this.chartBenefData = {
       labels: ['0-12', '13-17', '18-29', '30-59', '60+'],
       datasets: [{
@@ -218,8 +288,28 @@ export class DashboardComponent implements OnInit {
         backgroundColor: '#3b82f6'
       }]
     };
+  }
 
-    this.loading = false;
+  private getActasFiltradas(actas: NucleoDetallado['actas']) {
+    if (this.filtroEstadoRapido === 'TODOS') return actas;
+    return actas.filter((acta) => acta.estado === this.filtroEstadoRapido);
+  }
+
+  private getBeneficiariosFiltrados(beneficiarios: NucleoDetallado['beneficiariosNucleo']) {
+    switch (this.filtroEdadRapido) {
+      case '0-12':
+        return beneficiarios.filter((b) => (b.edad ?? 0) <= 12);
+      case '13-17':
+        return beneficiarios.filter((b) => (b.edad ?? 0) >= 13 && (b.edad ?? 0) <= 17);
+      case '18-29':
+        return beneficiarios.filter((b) => (b.edad ?? 0) >= 18 && (b.edad ?? 0) <= 29);
+      case '30-59':
+        return beneficiarios.filter((b) => (b.edad ?? 0) >= 30 && (b.edad ?? 0) <= 59);
+      case '60+':
+        return beneficiarios.filter((b) => (b.edad ?? 0) >= 60);
+      default:
+        return beneficiarios;
+    }
   }
 
   private contarEstados(estados: string[]) {

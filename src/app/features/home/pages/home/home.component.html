@@ -10,7 +10,7 @@
       </ng-template>
 
       <!-- 📊 Dashboard con scroll horizontal y vertical -->
-      <div class="w-full min-w-[750px] overflow-x-auto overflow-y-visible pb-10">
+      <div class="w-full overflow-visible pb-10">
         <app-dashboard></app-dashboard>
       </div>
     </mat-tab>
@@ -98,7 +98,7 @@
               @if (reportPeriod !== 'ALL') {
                 <label class="report-period-field">
                   <span>Año</span>
-                  <select [(ngModel)]="reportYear" class="select-base" aria-label="Año del reporte">
+                  <select [(ngModel)]="reportYear" class="select-base">
                     @for (year of reportYears; track year) {
                       <option [ngValue]="year">{{ year }}</option>
                     }
@@ -108,7 +108,7 @@
               @if (reportPeriod === 'MONTH') {
                 <label class="report-period-field">
                   <span>Mes</span>
-                  <select [(ngModel)]="reportMonth" class="select-base" aria-label="Mes del reporte">
+                  <select [(ngModel)]="reportMonth" class="select-base">
                     @for (month of reportMonths; track month.value) {
                       <option [ngValue]="month.value">{{ month.label }}</option>
                     }
@@ -165,8 +165,9 @@
             }
           </section>
           <!-- Proyectos -->
-          <div (click)="!isLoadingReport.proyectos && downloadProyectos()"
-              class="report-card report-card-filtered"
+            <button type="button" (click)="downloadProyectos()"
+              class="report-card report-card-filtered text-left"
+              [disabled]="isLoadingReport.proyectos"
               [class.opacity-60]="isLoadingReport.proyectos">
             <div class="report-icon-box bg-gradient-to-tr from-blue-600 to-blue-400 shadow-blue-500/40">
               <div *ngIf="isLoadingReport.proyectos; else iconProyectos" class="loading-icon">
@@ -179,11 +180,12 @@
                 @if(isLoadingReport.proyectos){ Generando... }@else{ Proyectos }
               </p>
             </div>
-          </div>
+          </button>
 
           <!-- Productos Proyectos -->
-          <div (click)="!isLoadingReport.productProject && downloadProductProjectReport()"
-              class="report-card report-card-filtered"
+            <button type="button" (click)="downloadProductProjectReport()"
+              class="report-card report-card-filtered text-left"
+              [disabled]="isLoadingReport.productProject"
               [class.opacity-60]="isLoadingReport.productProject">
             <div class="report-icon-box bg-gradient-to-tr from-sky-600 to-blue-400 shadow-blue-500/40">
               <div *ngIf="isLoadingReport.productProject; else iconProyectos" class="loading-icon">
@@ -194,7 +196,7 @@
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">@if(isLoadingReport.productProject){ Generando... }@else{ Productos por Proyecto }</p>
             </div>
-          </div>
+          </button>
 
           <!-- Núcleos -->
           <button type="button" class="report-group-title report-group-title-general report-group-toggle" (click)="reportGeneralReportsOpen = !reportGeneralReportsOpen" [attr.aria-expanded]="reportGeneralReportsOpen">
@@ -205,8 +207,9 @@
             </div>
             <mat-icon>{{ reportGeneralReportsOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
           </button>
-          <div (click)="!isLoadingReport.nucleos && downloadNucleos()"
-              class="report-card report-card-general"
+            <button type="button" (click)="downloadNucleos()"
+              class="report-card report-card-general text-left"
+              [disabled]="isLoadingReport.nucleos"
               [class.opacity-60]="isLoadingReport.nucleos">
             <div class="report-icon-box bg-gradient-to-tr from-violet-600 to-violet-400 shadow-violet-500/40">
               <div *ngIf="isLoadingReport.nucleos; else iconNucleos" class="loading-icon">
@@ -217,11 +220,12 @@
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">@if(isLoadingReport.nucleos){ Generando... }@else{ Actores Sociales}</p>
             </div>
-          </div>
+          </button>
 
           <!-- Productos -->
-          <div (click)="!isLoadingReport.productos && downloadProductos()"
-              class="report-card report-card-filtered"
+            <button type="button" (click)="downloadProductos()"
+              class="report-card report-card-filtered text-left"
+              [disabled]="isLoadingReport.productos"
               [class.opacity-60]="isLoadingReport.productos">
             <div class="report-icon-box bg-gradient-to-tr from-green-600 to-green-400 shadow-green-500/40">
               <div *ngIf="isLoadingReport.productos; else iconProd" class="loading-icon">
@@ -232,11 +236,12 @@
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">@if(isLoadingReport.productos){ Generando... }@else{ Productos }</p>
             </div>
-          </div>
+          </button>
 
           <!-- Actas -->
-          <div (click)="!isLoadingReport.actas && downloadActas()"
-              class="report-card report-card-filtered"
+            <button type="button" (click)="downloadActas()"
+              class="report-card report-card-filtered text-left"
+              [disabled]="isLoadingReport.actas"
               [class.opacity-60]="isLoadingReport.actas">
             <div class="report-icon-box bg-gradient-to-tr from-indigo-600 to-blue-400 shadow-blue-500/40">
               <div *ngIf="isLoadingReport.actas; else iconActas" class="loading-icon">
@@ -247,11 +252,12 @@
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">@if(isLoadingReport.actas){ Generando... }@else{ Actas }</p>
             </div>
-          </div>
+          </button>
 
           <!-- 🌐 Reporte Global -->
-          <div (click)="!isLoadingReport.global && downloadGlobalReport()"
-              class="report-card report-card-filtered"
+            <button type="button" (click)="downloadGlobalReport()"
+              class="report-card report-card-filtered text-left"
+              [disabled]="isLoadingReport.global"
               [class.opacity-60]="isLoadingReport.global">
             <div class="report-icon-box bg-gradient-to-tr from-blue-600 to-blue-400 shadow-blue-500/40">
               <div *ngIf="isLoadingReport.global; else iconGlobal" class="loading-icon">
@@ -262,11 +268,12 @@
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">@if(isLoadingReport.global){ Generando... }@else{ Actas por Proyecto }</p>
             </div>
-          </div>
+          </button>
 
                     <!-- Beneficiarios por Proyecto -->
-          <div (click)="!isLoadingReport.beneficiariosProyecto && downloadBeneficiariosPorProyecto()"
-              class="report-card report-card-filtered"
+            <button type="button" (click)="downloadBeneficiariosPorProyecto()"
+              class="report-card report-card-filtered text-left"
+              [disabled]="isLoadingReport.beneficiariosProyecto"
               [class.opacity-60]="isLoadingReport.beneficiariosProyecto">
             <div class="report-icon-box bg-gradient-to-tr from-orange-600 to-orange-400 shadow-orange-500/40">
               <div *ngIf="isLoadingReport.beneficiariosProyecto; else iconBP" class="loading-icon">
@@ -279,11 +286,12 @@
                 @if(isLoadingReport.beneficiariosProyecto){ Generando... }@else{ Beneficiarios por Proyecto }
               </p>
             </div>
-          </div>
+          </button>
           
           <!-- Beneficiarios -->
-          <div (click)="!isLoadingReport.beneficiarios && downloadBeneficiarios()"
-              class="report-card report-card-general"
+            <button type="button" (click)="downloadBeneficiarios()"
+              class="report-card report-card-general text-left"
+              [disabled]="isLoadingReport.beneficiarios"
               [class.opacity-60]="isLoadingReport.beneficiarios">
             <div class="report-icon-box bg-gradient-to-tr from-pink-600 to-pink-400 shadow-pink-500/40">
               <div *ngIf="isLoadingReport.beneficiarios; else iconBenef" class="loading-icon">
@@ -294,11 +302,12 @@
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">@if(isLoadingReport.beneficiarios){ Generando... }@else{Beneficiarios }</p>
             </div>
-          </div>
+          </button>
 
           <!-- Categorías -->
-          <div (click)="!isLoadingReport.categorias && downloadCategorias()"
-              class="report-card report-card-general"
+            <button type="button" (click)="downloadCategorias()"
+              class="report-card report-card-general text-left"
+              [disabled]="isLoadingReport.categorias"
               [class.opacity-60]="isLoadingReport.categorias">
             <div class="report-icon-box bg-gradient-to-tr from-cyan-600 to-cyan-400 shadow-cyan-500/40">
               <div *ngIf="isLoadingReport.categorias; else iconCategorias" class="loading-icon">
@@ -309,12 +318,13 @@
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">@if(isLoadingReport.categorias){ Generando... }@else{ Categorías }</p>
             </div>
-          </div>
+          </button>
 
           <!-- Reporte global -->
-          <div 
-            (click)="!isLoadingReport.reportGeneral && downloadReporteExcelCompleto()"
-            class="report-card report-card-filtered"
+          <button type="button"
+            (click)="downloadReporteExcelCompleto()"
+            class="report-card report-card-filtered text-left"
+            [disabled]="isLoadingReport.reportGeneral"
             [class.opacity-60]="isLoadingReport.reportGeneral">
 
             <div class="report-icon-box bg-gradient-to-tr from-cyan-600 to-cyan-400 shadow-cyan-500/40">
@@ -331,11 +341,12 @@
                 @if(isLoadingReport.reportGeneral){ Generando... }@else{ Reporte Global (mixto) }
               </p>
             </div>
-          </div>
+          </button>
 
           <!-- Usuarios -->
-          <div (click)="!isLoadingReport.responsables && downloadResponsables()"
-              class="report-card report-card-general"
+            <button type="button" (click)="downloadResponsables()"
+              class="report-card report-card-general text-left"
+              [disabled]="isLoadingReport.responsables"
               [class.opacity-60]="isLoadingReport.responsables"
               *hasRole="['ADMIN']">
             <div class="report-icon-box bg-gradient-to-tr from-orange-600 to-orange-400 shadow-orange-500/40">
@@ -347,7 +358,7 @@
             <div class="p-4 text-right">
               <p class="text-sm text-blue-gray-600">@if(isLoadingReport.responsables){ Generando... }@else{ Usuarios del sistema }</p>
             </div>
-          </div>
+          </button>
 
         </div> 
       </div>

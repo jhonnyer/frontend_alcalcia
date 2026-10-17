@@ -1,11 +1,11 @@
-<section class="min-h-[calc(100vh-6rem)] overflow-y-auto bg-gray-50 p-3 sm:p-4 rounded-xl shadow-sm">
+<section class="min-h-[calc(100vh-6rem)] bg-gray-50 p-3 sm:p-4 rounded-xl shadow-sm">
   <!-- HEADER -->
   <header class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <h1 class="text-sm font-semibold text-gray-700">📁 Proyectos</h1>
     <div class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-80">
-      <span class="font-semibold">Filtrar por proyecto</span>
+      <label for="projects-search" class="font-semibold">Filtrar por proyecto</label>
       <div class="relative">
-        <input class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
+        <input id="projects-search" class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
         @if (projectSearch() || selectedProjectId() !== 'ALL') {
           <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearProjectFilter()" aria-label="Limpiar proyecto" title="Limpiar proyecto"><mat-icon>close</mat-icon></button>
         }

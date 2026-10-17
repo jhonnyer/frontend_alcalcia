@@ -12,7 +12,9 @@
     <label class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-80">
       <span class="font-semibold">Filtrar por actor social</span>
       <div class="relative">
+        <label for="nucleos-search" class="sr-only">Buscar actor social</label>
         <input
+          id="nucleos-search"
           type="text"
           class="input-base pr-10"
           placeholder="Buscar nombre, ID o dirección"
@@ -55,13 +57,14 @@
   </header>
 
   <!-- TABLA -->
-  <mat-card class="overflow-x-auto shadow-md rounded-lg border border-gray-200">
-    <table class="w-full text-sm">
+  <mat-card class="table-shell">
+    <div class="table-scroll">
+    <table class="table-compact min-w-[900px]">
       <thead>
         @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id){
-          <tr class="bg-gray-100 text-gray-700 text-xs uppercase">
+          <tr>
             @for(headerItem of headerGroup.headers; track headerItem.id){
-              <th scope="col" class="px-3 py-2 border-b">
+              <th scope="col">
                 <div class="flex flex-col gap-1">
                   <!-- Botón de ordenamiento -->
                   <ng-container
@@ -92,9 +95,9 @@
 
       <tbody>
         @for(row of dataTable.getRowModel().rows; track row.id){
-          <tr class="hover:bg-gray-50 border-b text-gray-700">
+          <tr>
             @for(cell of row.getVisibleCells(); track cell.id){
-              <td class="px-3 py-2">
+              <td>
                 @if(cell.column.id === 'acciones'){
                   <div class="flex gap-2">
                     <button type="button" (click)="verDashboard(row)" class="text-blue-600 hover:text-blue-800" title="Ver detalle del actor social">
@@ -127,31 +130,33 @@
         }
       </tbody>
     </table>
+    </div>
   </mat-card>
 
   <!-- PAGINACIÓN -->
-  <div class="flex justify-between items-center mt-4 text-sm text-gray-600">
+  <div class="mt-4 flex flex-col gap-3 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between">
     <!-- Info de registros -->
     <span>
       Mostrando 
-      <b>{{ dataTable.getState().pagination.pageIndex * dataTable.getState().pagination.pageSize + 1 }}</b>
+      <b>{{ serverPageIndex() * serverPageSize() + 1 }}</b>
       -
-      <b>{{ Math.min((dataTable.getState().pagination.pageIndex + 1) * dataTable.getState().pagination.pageSize, dataTable.getRowCount()) }}</b>
+      <b>{{ Math.min((serverPageIndex() + 1) * serverPageSize(), totalElements()) }}</b>
       de 
-      <b>{{ dataTable.getRowCount() }}</b> registros
+      <b>{{ totalElements() }}</b> registros
     </span>
 
     <!-- Controles -->
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3">
       <!-- Select tamaño de página -->
-      <label class="flex items-center gap-1">
+      <label for="nucleos-page-size" class="flex items-center gap-1">
         <span>Filas por página:</span>
         <select 
-          class="border border-gray-300 rounded px-2 py-1 text-sm"
+          id="nucleos-page-size"
+          class="select-base"
           (change)="onChangeValueSizePageSelect($event)"
         >
           @for(size of sizePage(); track size){
-            <option [value]="size" [selected]="size === dataTable.getState().pagination.pageSize">
+            <option [value]="size" [selected]="size === serverPageSize()">
               {{size}}
             </option>
           }
@@ -160,20 +165,20 @@
 
       <!-- Botones -->
       <button 
-        [disabled]="!dataTable.getCanPreviousPage()" 
-        (click)="dataTable.previousPage()" 
+        [disabled]="serverPageIndex() === 0" 
+        (click)="previousServerPage()" 
         class="btn-navigate-black"
         type="button"
       >
-        ⬅ Anterior
+        Anterior
       </button>
       <button 
-        [disabled]="!dataTable.getCanNextPage()" 
-        (click)="dataTable.nextPage()" 
+        [disabled]="serverPageIndex() >= totalPages() - 1" 
+        (click)="nextServerPage()" 
         class="btn-navigate-black"
         type="button"
       >
-        Siguiente ➡
+        Siguiente
       </button>
     </div>
   </div>

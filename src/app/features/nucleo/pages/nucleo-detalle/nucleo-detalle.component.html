@@ -54,7 +54,8 @@
 
         <!-- Campo de búsqueda -->
         <div class="relative w-full sm:w-80">
-          <input type="text" placeholder="Nombre o documento" class="input-base pr-10" [(ngModel)]="filtroBeneficiario" />
+          <label for="nucleo-beneficiario-search" class="sr-only">Buscar beneficiario</label>
+          <input id="nucleo-beneficiario-search" type="text" placeholder="Nombre o documento" class="input-base pr-10" [(ngModel)]="filtroBeneficiario" />
           @if (filtroBeneficiario) {
             <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearBeneficiarioFilter()" aria-label="Limpiar filtro de beneficiarios" title="Limpiar filtro">
               <mat-icon>close</mat-icon>
@@ -62,9 +63,10 @@
           }
         </div>
       </div>
-      <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table class="min-w-[760px] w-full text-sm">
-          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+      <div class="table-shell">
+        <div class="table-scroll">
+        <table class="table-compact min-w-[760px]">
+          <thead>
             <tr>
               <th class="px-3 py-2 text-left font-semibold">Nombre</th>
               <th class="px-3 py-2 text-left font-semibold">Documento</th>
@@ -87,15 +89,17 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </section>
 
     <!-- Beneficiarios con proyecto -->
     <section class="mb-4 rounded-xl border border-slate-200 bg-slate-50/70 p-3">
       <h3 class="mb-3 text-base font-semibold text-slate-700">Beneficiarios con proyectos</h3>
-      <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table class="min-w-[680px] w-full text-sm">
-          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+      <div class="table-shell">
+        <div class="table-scroll">
+        <table class="table-compact min-w-[680px]">
+          <thead>
             <tr>
               <th class="px-3 py-2 text-left font-semibold">Beneficiario</th>
               <th class="px-3 py-2 text-left font-semibold">Proyecto</th>
@@ -116,6 +120,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
     </section>
 
@@ -126,7 +131,8 @@
 
         <!-- Campo de búsqueda -->
         <div class="relative w-full sm:w-80">
-          <input type="text" placeholder="Buscar por estado" class="input-base pr-10" [(ngModel)]="filtroEstado" />
+          <label for="nucleo-actas-search" class="sr-only">Buscar actas por estado</label>
+          <input id="nucleo-actas-search" type="text" placeholder="Buscar por estado" class="input-base pr-10" [(ngModel)]="filtroEstado" />
           @if (filtroEstado) {
             <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearEstadoFilter()" aria-label="Limpiar filtro de actas" title="Limpiar filtro">
               <mat-icon>close</mat-icon>
@@ -156,9 +162,10 @@
 
             <!-- Productos -->
             <h4 class="text-gray-700 mt-3 mb-1 font-medium">📦 Productos entregados</h4>
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm border-collapse">
-                <thead class="bg-gray-100">
+            <div class="table-shell">
+              <div class="table-scroll">
+              <table class="table-compact min-w-[620px]">
+                <thead>
                   <tr>
                     <th class="text-left px-2 py-1">Producto</th>
                     <th class="text-left px-2 py-1">Cantidad</th>
@@ -173,6 +180,7 @@
                   </tr>
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </mat-expansion-panel>

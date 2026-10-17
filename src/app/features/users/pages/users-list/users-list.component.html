@@ -94,7 +94,7 @@
 				<p class="text-xs text-slate-500 sm:mr-2">La edición de parámetros está habilitada solo para la secretaría activa.</p>
 				<div class="relative w-full sm:w-72">
 					<label for="secretaria-search" class="sr-only">Buscar secretaría</label>
-					<input id="secretaria-search" class="input-base pr-10" type="text" placeholder="Buscar secretaría" [value]="secretariaSearch()" (input)="secretariaSearch.set($any($event.target).value)" />
+					<input id="secretaria-search" class="input-base pr-10" type="text" placeholder="Buscar secretaría" [value]="secretariaSearch()" (input)="updateSecretariaSearch($event)" />
 					@if (secretariaSearch()) {
 						<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearSecretariaSearch()" aria-label="Limpiar filtro de secretarías"><mat-icon>close</mat-icon></button>
 					}
@@ -110,9 +110,10 @@
 					No se encontraron secretarías.
 				</div>
 			} @else {
-			<div class="max-h-80 overflow-auto rounded-lg border border-slate-100">
-				<table class="min-w-full text-sm">
-					<thead class="bg-slate-50 text-xs uppercase text-slate-600">
+			<div class="table-shell">
+				<div class="table-scroll max-h-80">
+				<table class="table-compact">
+					<thead>
 						<tr>
 							<th class="px-3 py-2 text-left">ID</th>
 							<th class="px-3 py-2 text-left">Nombre</th>
@@ -122,7 +123,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						@for (secretaria of filteredSecretarias(); track secretaria.idSecretaria) {
+						@for (secretaria of paginatedSecretarias(); track secretaria.idSecretaria) {
 							<tr class="border-t border-slate-100 hover:bg-blue-50/40">
 								<td class="px-3 py-2 font-semibold text-slate-700">#{{ secretaria.idSecretaria }}</td>
 								<td class="px-3 py-2">{{ secretaria.nombre }}</td>
@@ -144,6 +145,23 @@
 						}
 					</tbody>
 				</table>
+				</div>
+				<div class="flex flex-col gap-2 border-t border-slate-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+					<div class="text-xs text-slate-500">
+						Mostrando {{ paginatedSecretarias().length }} de {{ filteredSecretarias().length }} secretarías
+					</div>
+					<div class="flex flex-wrap items-center gap-2">
+						<label for="secretaria-page-size" class="sr-only">Filas por página de secretarías</label>
+						<select id="secretaria-page-size" class="select-base" (change)="onSecretariaPageSizeChange($event)">
+							<option [value]="6" [selected]="secretariaPageSize() === 6">6</option>
+							<option [value]="10" [selected]="secretariaPageSize() === 10">10</option>
+							<option [value]="15" [selected]="secretariaPageSize() === 15">15</option>
+						</select>
+						<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() === 0" (click)="previousSecretariaPage()">Anterior</button>
+						<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() >= secretariaTotalPages() - 1" (click)="nextSecretariaPage()">Siguiente</button>
+						<span class="text-xs text-slate-600">Página {{ secretariaPageIndex() + 1 }} de {{ secretariaTotalPages() }}</span>
+					</div>
+				</div>
 			</div>
 			}
 		</section>

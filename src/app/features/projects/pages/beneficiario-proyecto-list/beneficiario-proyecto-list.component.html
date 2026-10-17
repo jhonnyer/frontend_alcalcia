@@ -6,7 +6,7 @@
     <div class="flex w-full flex-col gap-1 text-sm text-slate-600 lg:w-96">
       <span class="font-semibold">Filtrar por proyecto</span>
       <div class="relative">
-        <input class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
+        <input id="benef-proyecto-search" aria-label="Buscar proyecto para filtrar beneficiarios" class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
         @if (projectSearch() || selectedProjectId() !== 'ALL') {
           <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearProjectFilter()" aria-label="Limpiar proyecto" title="Limpiar proyecto"><mat-icon>close</mat-icon></button>
         }
@@ -33,13 +33,14 @@
   </header>
 
   <!-- 🔹 TABLA -->
-  <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
-    <table class="min-w-full text-sm text-left text-gray-800">
-      <thead class="bg-gray-100 uppercase text-xs border-b border-gray-300">
+  <div class="table-shell">
+    <div class="table-scroll">
+    <table class="table-compact min-w-[900px]">
+      <thead>
         @for (headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
           <tr>
             @for (headerItem of headerGroup.headers; track headerItem.id) {
-              <th class="py-2 px-3 font-semibold text-gray-700 border-r border-gray-200 align-top">
+              <th class="align-top">
                 <div class="flex flex-col gap-1 justify-between h-full">
                   <ng-container
                     *flexRender="
@@ -74,9 +75,9 @@
 
       <tbody>
         @for (row of dataTable.getRowModel().rows; track row.id) {
-          <tr class="hover:bg-gray-50 border-b border-gray-200 transition">
+          <tr>
             @for (cell of row.getVisibleCells(); track cell.id) {
-              <td class="py-2 px-3">
+              <td>
                 @if (cell.column.id === 'acciones') {
                   <!-- Botones de acción -->
                   <button
@@ -112,24 +113,27 @@
         }
       </tbody>
     </table>
+    </div>
   </div>
 
   <!-- 🔹 PAGINACIÓN -->
-  <div class="flex justify-between items-center mt-4 text-sm text-gray-700">
+  <div class="mt-4 flex flex-col gap-3 text-sm text-gray-700 sm:flex-row sm:items-center sm:justify-between">
     <div>
       Mostrando <b>{{ dataTable.getRowModel().rows.length }}</b> de
-      <b>{{ dataTable.getRowCount() }}</b> registros
+      <b>{{ totalElements() }}</b> registros
     </div>
 
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3">
+      <label for="benef-proy-size" class="sr-only">Filas por página</label>
       <select
+        id="benef-proy-size"
         (change)="onChangeValueSizePageSelect($event)"
-        class="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        class="select-base"
       >
         @for (size of sizePage(); track size) {
           <option
             [value]="size"
-            [selected]="size === dataTable.getState().pagination.pageSize"
+            [selected]="size === serverPageSize()"
           >
             {{ size }}
           </option>
@@ -138,8 +142,8 @@
 
       <div class="flex gap-2">
         <button
-          [disabled]="!dataTable.getCanPreviousPage()"
-          (click)="dataTable.previousPage()"
+          [disabled]="serverPageIndex() === 0 || loading()"
+          (click)="previousServerPage()"
           class="btn-navigate-black"
         >
           <mat-icon>chevron_left</mat-icon>
@@ -147,8 +151,8 @@
         </button>
 
         <button
-          [disabled]="!dataTable.getCanNextPage()"
-          (click)="dataTable.nextPage()"
+          [disabled]="serverPageIndex() >= totalPages() - 1 || loading()"
+          (click)="nextServerPage()"
           class="btn-navigate-black"
         >
           Siguiente
@@ -157,8 +161,8 @@
       </div>
 
       <span>
-        Página <b>{{ dataTable.getState().pagination.pageIndex + 1 }}</b> de
-        <b>{{ dataTable.getPageCount() }}</b>
+        Página <b>{{ serverPageIndex() + 1 }}</b> de
+        <b>{{ totalPages() }}</b>
       </span>
     </div>
   </div>

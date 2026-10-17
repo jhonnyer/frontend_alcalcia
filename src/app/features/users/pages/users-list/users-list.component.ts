@@ -53,6 +53,8 @@ export class UsersListComponent implements OnInit {
   parameterModalOpen = signal(false);
   loadingParameters = signal(false);
   savingParameters = signal(false);
+  secretariaPageIndex = signal(0);
+  secretariaPageSize = signal(6);
   selectedSecretaryForParameters = signal<ISecretaria | null>(null);
   currentParameters = signal<IParametroNegocio | null>(null);
   activeTab = signal<'secretarias' | 'usuarios'>('secretarias');
@@ -69,6 +71,18 @@ export class UsersListComponent implements OnInit {
       const text = this.normalizeSearchText(`${secretaria.idSecretaria} ${secretaria.nombre} ${secretaria.codigo} ${secretaria.estado}`);
       return !query || text.includes(query);
     });
+  });
+
+  secretariaTotalPages = computed(() => {
+    const total = this.filteredSecretarias().length;
+    return Math.max(1, Math.ceil(total / this.secretariaPageSize()));
+  });
+
+  paginatedSecretarias = computed(() => {
+    const pageSize = this.secretariaPageSize();
+    const safePageIndex = Math.min(this.secretariaPageIndex(), this.secretariaTotalPages() - 1);
+    const start = safePageIndex * pageSize;
+    return this.filteredSecretarias().slice(start, start + pageSize);
   });
 
   filteredResponsables = computed(() => {
@@ -259,6 +273,28 @@ export class UsersListComponent implements OnInit {
 
   clearSecretariaSearch(): void {
     this.secretariaSearch.set('');
+    this.secretariaPageIndex.set(0);
+  }
+
+  updateSecretariaSearch(event: Event): void {
+    this.secretariaSearch.set((event.target as HTMLInputElement).value);
+    this.secretariaPageIndex.set(0);
+  }
+
+  onSecretariaPageSizeChange(event: Event): void {
+    const nextSize = Number((event.target as HTMLSelectElement).value);
+    this.secretariaPageSize.set(Number.isFinite(nextSize) && nextSize > 0 ? nextSize : 6);
+    this.secretariaPageIndex.set(0);
+  }
+
+  previousSecretariaPage(): void {
+    if (this.secretariaPageIndex() <= 0) return;
+    this.secretariaPageIndex.update(v => v - 1);
+  }
+
+  nextSecretariaPage(): void {
+    if (this.secretariaPageIndex() >= this.secretariaTotalPages() - 1) return;
+    this.secretariaPageIndex.update(v => v + 1);
   }
 
   clearUsuarioSearch(): void {

@@ -99,8 +99,11 @@
 
         <!-- 🔹 Selector de proyectos -->
         <div class="mb-2">
-          <label class="text-sm text-gray-700 mb-1 block">Seleccionar proyecto:</label>
+          <label for="proyecto-activo-select" class="text-sm text-gray-700 mb-1 block">Seleccionar proyecto:</label>
           <select
+            id="proyecto-activo-select"
+            aria-label="Seleccionar proyecto activo"
+            name="proyectoActivo"
             class="input-base w-full"
             [(ngModel)]="proyectoSeleccionadoId"
             [ngModelOptions]="{ standalone: true }"
@@ -158,10 +161,11 @@
 
           <div
             *ngIf="proyectosActivosVisible()"
-            class="mt-2 overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm"
+            class="mt-2 table-shell"
           >
-          <table class="min-w-[620px] w-full text-sm text-gray-700">
-            <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+          <div class="table-scroll">
+          <table class="table-compact min-w-[620px]">
+            <thead>
               <tr>
                 <th class="px-3 py-2 text-left">Proyecto</th>
                 <th class="px-3 py-2 text-center">Estado Proyecto</th>
@@ -171,18 +175,14 @@
             </thead>
             <tbody>
               <tr *ngFor="let p of getProyectosActivos()"
-                  (click)="onProyectoSeleccionado(p.idProyecto)"
-                  (keydown.enter)="onProyectoSeleccionado(p.idProyecto)"
-                  (keydown.space)="$event.preventDefault(); onProyectoSeleccionado(p.idProyecto)"
-                  tabindex="0"
-                  role="button"
-                  [attr.aria-label]="'Seleccionar proyecto ' + p.nombreProyecto"
                   [ngClass]="{
                     'bg-blue-50 border-l-4 border-blue-400': beneficiarioProyecto()?.idProyecto === p.idProyecto,
                     'hover:bg-blue-50 cursor-pointer': true
                   }"
                   class="transition">
-                <td class="px-3 py-2 font-medium">{{ p.nombreProyecto }}</td>
+                <td class="px-3 py-2 font-medium">
+                  <button type="button" class="text-left text-blue-700 hover:underline" (click)="onProyectoSeleccionado(p.idProyecto)">{{ p.nombreProyecto }}</button>
+                </td>
                 <td class="px-3 py-2 text-center"><span class="status-badge status-badge-active">Activo</span></td>
                 <td class="px-3 py-2 text-center">
                   <span class="status-badge" [ngClass]="p.esBeneficiarioActivo ? 'status-badge-active' : 'status-badge-inactive'">
@@ -193,6 +193,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
           </div>
         </div>
 
@@ -321,9 +322,10 @@
               <p class="text-gray-500 text-sm">🛒 No hay productos seleccionados</p>
             </div>
           } @else {
-            <div class="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-              <table class="min-w-[720px] w-full text-left text-sm text-gray-700">
-                <thead class="bg-slate-50 text-xs uppercase text-slate-600">
+            <div class="table-shell">
+              <div class="table-scroll">
+              <table class="table-compact min-w-[720px]">
+                <thead>
                   <tr>
                     <th class="w-[24%] px-4 py-3">Producto</th>
                     <th class="w-[34%] px-4 py-3">Descripción</th>
@@ -339,8 +341,11 @@
                       <td class="px-4 py-3 text-gray-600">{{ product.descripcion || 'Sin descripción' }}</td>
                       <td class="px-4 py-3 text-center font-medium">{{ product.stock }}</td>
                       <td class="px-4 py-3 text-center">
+                        <label class="sr-only" [attr.for]="'reg-cantidad-' + product.idProducto">Cantidad para {{ product.nombre }}</label>
                         <input
+                          [id]="'reg-cantidad-' + product.idProducto"
                           type="number"
+                          [attr.aria-label]="'Cantidad para ' + product.nombre"
                           [value]="product.cantidad"
                           min="1"
                           [max]="product.stock"
@@ -362,6 +367,7 @@
                   }
                 </tbody>
               </table>
+              </div>
             </div>
           }
         </div>

@@ -12,7 +12,8 @@
     <div class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-96">
       <span class="font-semibold">Filtrar por proyecto</span>
       <div class="relative">
-        <input class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
+        <label for="actas-project-search" class="sr-only">Buscar proyecto para filtrar actas</label>
+        <input id="actas-project-search" class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
         @if (projectSearch() || selectedProjectId() !== 'ALL') {
           <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearProjectFilter()" aria-label="Limpiar proyecto" title="Limpiar proyecto"><mat-icon>close</mat-icon></button>
         }
@@ -135,21 +136,23 @@
       <div class="flex items-center mb-2 sm:mb-0">
         Mostrando
         <b class="mx-1">{{ dataTable.getRowModel().rows.length }}</b> de
-        <b class="mx-1">{{ dataTable.getRowCount() }}</b> registros
+        <b class="mx-1">{{ totalElements() }}</b> registros
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
         <span>
-          Página {{ dataTable.getState().pagination.pageIndex + 1 }}
-          de {{ dataTable.getPageCount() }}
+          Página {{ serverPageIndex() + 1 }}
+          de {{ totalPages() }}
         </span>
 
+        <label for="actas-page-size" class="sr-only">Filas por página de actas</label>
         <select
+          id="actas-page-size"
           (change)="onChangeValueSizePageSelect($event)"
           class="select-base"
         >
           @for (size of sizePage(); track size) {
-            <option [value]="size" [selected]="size === dataTable.getState().pagination.pageSize">
+            <option [value]="size" [selected]="size === serverPageSize()">
               {{ size }} / pág.
             </option>
           }
@@ -157,8 +160,8 @@
 
         <div class="flex items-center gap-2">
           <button
-            [disabled]="!dataTable.getCanPreviousPage()"
-            (click)="dataTable.previousPage()"
+            [disabled]="serverPageIndex() === 0 || loading()"
+            (click)="previousServerPage()"
             class="btn-navigate-black"
             type="button"
           >
@@ -167,8 +170,8 @@
           </button>
 
           <button
-            [disabled]="!dataTable.getCanNextPage()"
-            (click)="dataTable.nextPage()"
+            [disabled]="serverPageIndex() >= totalPages() - 1 || loading()"
+            (click)="nextServerPage()"
             class="btn-navigate-black"
             type="button"
           >

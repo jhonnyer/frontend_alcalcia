@@ -41,22 +41,17 @@ export class NucleosComponent implements OnInit{
   private pageTitleService = inject(PageTitleService);
   private readonly actasService = inject(ActasService);
   private readonly beneficiaryService=inject(BeneficiaryService);
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   data = signal<INucleoUpdate[]>([]);
+  totalElements = signal(0);
+  totalPages = signal(1);
+  serverPageIndex = signal(0);
+  serverPageSize = signal(5);
   actorNameFilter = signal('');
   actorSuggestionsVisible = signal(false);
 
   filteredActors = computed(() => {
-    const query = this.actorNameFilter().trim().toLocaleLowerCase();
-    return this.data().filter(actor => {
-      const searchableText = [
-        actor.idNucleo,
-        actor.nombreNucleo,
-        actor.direccion,
-        actor.nombreBarrio,
-        actor.nombreZona
-      ].filter(Boolean).join(' ').toLocaleLowerCase();
-      return !query || searchableText.includes(query);
-    });
+    return this.data();
   });
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -66,7 +61,7 @@ export class NucleosComponent implements OnInit{
 
   public readonly paginationState = signal<PaginationState>({
     pageIndex: 0,
-    pageSize: 5
+    pageSize: 1000
   })
 
   public readonly sortingState = signal<SortingState>([]);
@@ -77,9 +72,11 @@ export class NucleosComponent implements OnInit{
   }
 
   getAll() {
-    this.nucleoService.getSimpleAll().subscribe({
+    this.nucleoService.getAll(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).subscribe({
       next: response => {
-        this.data.set(response)
+        this.data.set(response.content ?? []);
+        this.totalElements.set(response.totalElements ?? response.content?.length ?? 0);
+        this.totalPages.set(Math.max(1, response.totalPages ?? 1));
       },
       error: error => {
         console.log("Error getAll nucleos: ", error)
@@ -141,7 +138,21 @@ export class NucleosComponent implements OnInit{
   // Cambio de numero de elementos por pagina
   onChangeValueSizePageSelect(e: Event){
     const element = (e.target as HTMLSelectElement);
-    this.dataTable.setPageSize(+element.value);
+    this.serverPageSize.set(+element.value);
+    this.serverPageIndex.set(0);
+    this.getAll();
+  }
+
+  previousServerPage(): void {
+    if (this.serverPageIndex() <= 0) return;
+    this.serverPageIndex.update(v => v - 1);
+    this.getAll();
+  }
+
+  nextServerPage(): void {
+    if (this.serverPageIndex() >= this.totalPages() - 1) return;
+    this.serverPageIndex.update(v => v + 1);
+    this.getAll();
   }
 
   //Ordenar filas de la tabla
@@ -169,11 +180,8 @@ export class NucleosComponent implements OnInit{
     const value = (event.target as HTMLInputElement).value;
     this.actorNameFilter.set(value);
     this.actorSuggestionsVisible.set(true);
-    this.dataTable.setColumnFilters([
-      ...this.columnFilters().filter(filter => filter.id !== 'nombreNucleo' && filter.id !== 'idNucleo'),
-      ...(value ? [{ id: 'nombreNucleo', value }] : [])
-    ]);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.runDebouncedSearch();
   }
 
   showActorSuggestions(): void {
@@ -185,22 +193,35 @@ export class NucleosComponent implements OnInit{
   }
 
   selectActorSuggestion(actor: INucleoUpdate): void {
-    this.actorNameFilter.set(`#${actor.idNucleo} - ${actor.nombreNucleo}`);
+    this.actorNameFilter.set(actor.nombreNucleo || String(actor.idNucleo));
     this.actorSuggestionsVisible.set(false);
-    this.dataTable.setColumnFilters([
-      ...this.columnFilters().filter(filter => filter.id !== 'nombreNucleo' && filter.id !== 'idNucleo'),
-      { id: 'idNucleo', value: String(actor.idNucleo) }
-    ]);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.getAll();
   }
 
   clearActorNameFilter(): void {
     this.actorNameFilter.set('');
     this.actorSuggestionsVisible.set(false);
-    this.dataTable.setColumnFilters(
-      this.columnFilters().filter(filter => filter.id !== 'nombreNucleo' && filter.id !== 'idNucleo')
-    );
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.getAll();
+  }
+
+  private buildPagedFilters(): { busqueda?: string } {
+    const busqueda = this.actorNameFilter().trim();
+    return {
+      busqueda: busqueda || undefined,
+    };
+  }
+
+  private runDebouncedSearch(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.getAll();
+      this.searchDebounceTimer = null;
+    }, 250);
   }
 
   async delete(row: Row<INucleoUpdate>) {

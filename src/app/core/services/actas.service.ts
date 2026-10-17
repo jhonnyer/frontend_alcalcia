@@ -1,12 +1,31 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { IActa, IActaById, ICreateActa, ICreateActaResponse } from '../models/acta.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpHeaders, HttpParams  } from '@angular/common/http';
 import { TokenService } from './token.service';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import { ResponseStandar, ResponseStandarUnique } from '../models/response.model';
-// import { PaginatedResponse } from '../models/pagination.model';
+import { PaginatedResponse } from '../models/pagination.model';
+
+interface SpringPageDto<T> {
+  content: T[];
+  page: {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+export interface ActasPagedFilters {
+  estado?: string;
+  prioridad?: string;
+  idProyecto?: number;
+  busqueda?: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +43,30 @@ export class ActasService {
         });
       })
     );
+  }
+
+  getPaged(page: number, size: number, filters: ActasPagedFilters = {}): Observable<PaginatedResponse<IActa>> {
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
+    if (filters.estado) params = params.set('estado', filters.estado);
+    if (filters.prioridad) params = params.set('prioridad', filters.prioridad);
+    if (filters.idProyecto !== undefined) params = params.set('idProyecto', filters.idProyecto);
+    if (filters.busqueda) params = params.set('busqueda', filters.busqueda);
+    if (filters.fechaInicio) params = params.set('fechaInicio', filters.fechaInicio);
+    if (filters.fechaFin) params = params.set('fechaFin', filters.fechaFin);
+
+    return this.http
+      .get<PaginatedResponse<IActa> | SpringPageDto<IActa> | IActa[]>(`${this.URL}/actas/list`, { params, context: checkToken() })
+      .pipe(
+        map(payload => this.normalizePagedActas(payload, page, size)),
+        tap(response => {
+          response.content.forEach(acta => {
+            acta.beneficiario.fechaNacimiento = this.formatDate(acta.beneficiario.fechaNacimiento);
+          });
+        })
+      );
   }
 
   getCountActas(idBeneficiario: string): Observable<number> {
@@ -132,6 +175,68 @@ export class ActasService {
       responseType: 'blob',
       context: checkToken()
     });
+  }
+
+  private normalizePagedActas(
+    payload: PaginatedResponse<IActa> | SpringPageDto<IActa> | IActa[],
+    page: number,
+    size: number,
+  ): PaginatedResponse<IActa> {
+    if (Array.isArray(payload)) {
+      const total = payload.length;
+      return {
+        content: payload,
+        pageable: {
+          pageNumber: page,
+          pageSize: size,
+          offset: page * size,
+          paged: false,
+          unpaged: true,
+          sort: { empty: true, sorted: false, unsorted: true }
+        },
+        last: true,
+        totalElements: total,
+        totalPages: 1,
+        size,
+        number: page,
+        sort: { empty: true, sorted: false, unsorted: true },
+        first: true,
+        numberOfElements: total,
+        empty: total === 0,
+      };
+    }
+
+    if ('page' in payload && payload.page) {
+      const dto = payload as SpringPageDto<IActa>;
+      const content = dto.content ?? [];
+      const totalElements = dto.page.totalElements ?? content.length;
+      const totalPages = dto.page.totalPages ?? 1;
+      const pageSize = dto.page.size ?? size;
+      const pageNumber = dto.page.number ?? page;
+
+      return {
+        content,
+        pageable: {
+          pageNumber,
+          pageSize,
+          offset: pageNumber * pageSize,
+          paged: true,
+          unpaged: false,
+          sort: { empty: true, sorted: false, unsorted: true },
+        },
+        last: pageNumber >= totalPages - 1,
+        totalElements,
+        totalPages,
+        size: pageSize,
+        number: pageNumber,
+        sort: { empty: true, sorted: false, unsorted: true },
+        first: pageNumber === 0,
+        numberOfElements: content.length,
+        empty: content.length === 0,
+      };
+    }
+
+    return payload as PaginatedResponse<IActa>;
   }
 
 }

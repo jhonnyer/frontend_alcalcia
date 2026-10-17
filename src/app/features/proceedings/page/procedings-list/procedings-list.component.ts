@@ -23,7 +23,6 @@ import { defaultColumns } from './procedings-columns-definitions';
 import { IActa } from '../../../../core/models/acta.model';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { delay } from 'rxjs/operators';
 import { AlertService } from '../../../../core/services/alert.service';
 
 @Component({
@@ -44,6 +43,7 @@ export class ProcedingsListComponent implements OnInit {
 
   constructor(private sanitizer: DomSanitizer) {}
   private alert = inject(AlertService);
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   // 🔹 Inyecciones
   private actasService = inject(ActasService);
@@ -54,6 +54,10 @@ export class ProcedingsListComponent implements OnInit {
   // 🔹 Estados reactivos
   loading = signal(true);
   data = signal<IActa[]>([]);
+  totalElements = signal(0);
+  totalPages = signal(1);
+  serverPageIndex = signal(0);
+  serverPageSize = signal(5);
   selectedProjectId = signal<number | 'ALL'>('ALL');
   projectSearch = signal('');
   projectSuggestionsVisible = signal(false);
@@ -76,14 +80,7 @@ export class ProcedingsListComponent implements OnInit {
     });
   });
   filteredData = computed(() => {
-    const selectedProjectId = this.selectedProjectId();
-    const query = this.normalizeSearchText(this.projectSearch());
-    return this.data().filter(acta => {
-      const matchesSelected = selectedProjectId === 'ALL' || acta.proyecto?.idProyecto === selectedProjectId;
-      const text = this.normalizeSearchText(`${acta.proyecto?.idProyecto ?? ''} ${acta.proyecto?.nombre ?? ''}`);
-      const matchesSearch = selectedProjectId !== 'ALL' || !query || text.includes(query);
-      return matchesSelected && matchesSearch;
-    });
+    return this.data();
   });
   dataTable?: ReturnType<() => ReturnType<typeof createAngularTable<IActa>>>;
 
@@ -95,7 +92,7 @@ export class ProcedingsListComponent implements OnInit {
 
   readonly paginationState = signal<PaginationState>({
     pageIndex: 0,
-    pageSize: 5
+    pageSize: 1000
   });
 
   readonly sortingState = signal<SortingState>([]);
@@ -113,11 +110,10 @@ export class ProcedingsListComponent implements OnInit {
   // ============================================================
   getAll(): void {
     this.loading.set(true);
-    this.actasService.getAll()
-      .pipe(delay(150)) // pequeña pausa visual
+    this.actasService.getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters())
       .subscribe({
         next: (response) => {
-          const orderedResponse = [...response].sort((first, second) => {
+          const orderedResponse = [...response.content].sort((first, second) => {
             const firstReceived = first.estado === 'R' ? 0 : 1;
             const secondReceived = second.estado === 'R' ? 0 : 1;
 
@@ -131,6 +127,8 @@ export class ProcedingsListComponent implements OnInit {
           });
 
           this.data.set(orderedResponse);
+          this.totalElements.set(response.totalElements ?? orderedResponse.length);
+          this.totalPages.set(Math.max(1, response.totalPages ?? 1));
 
           // Crear tabla si no existe
           if (!this.dataTable) {
@@ -196,7 +194,21 @@ export class ProcedingsListComponent implements OnInit {
   // ============================================================
   onChangeValueSizePageSelect(e: Event): void {
     const element = e.target as HTMLSelectElement;
-    this.dataTable?.setPageSize(+element.value);
+    this.serverPageSize.set(+element.value);
+    this.serverPageIndex.set(0);
+    this.getAll();
+  }
+
+  previousServerPage(): void {
+    if (this.serverPageIndex() <= 0 || this.loading()) return;
+    this.serverPageIndex.update(v => v - 1);
+    this.getAll();
+  }
+
+  nextServerPage(): void {
+    if (this.serverPageIndex() >= this.totalPages() - 1 || this.loading()) return;
+    this.serverPageIndex.update(v => v + 1);
+    this.getAll();
   }
 
   onSortingColumn(column: Column<IActa>): void {
@@ -216,24 +228,24 @@ export class ProcedingsListComponent implements OnInit {
     this.projectSearch.set((event.target as HTMLInputElement).value);
     this.selectedProjectId.set('ALL');
     this.projectSuggestionsVisible.set(true);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
-    this.refreshTableData();
+    this.serverPageIndex.set(0);
+    this.runDebouncedSearch();
   }
 
   selectProjectOption(project: { idProyecto: number; nombreProyecto: string }): void {
     this.selectedProjectId.set(project.idProyecto);
     this.projectSearch.set(`#${project.idProyecto} - ${project.nombreProyecto}`);
     this.projectSuggestionsVisible.set(false);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
-    this.refreshTableData();
+    this.serverPageIndex.set(0);
+    this.getAll();
   }
 
   clearProjectFilter(): void {
     this.selectedProjectId.set('ALL');
     this.projectSearch.set('');
     this.projectSuggestionsVisible.set(false);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
-    this.refreshTableData();
+    this.serverPageIndex.set(0);
+    this.getAll();
   }
 
   showProjectSuggestions(): void {
@@ -244,11 +256,14 @@ export class ProcedingsListComponent implements OnInit {
     setTimeout(() => this.projectSuggestionsVisible.set(false), 150);
   }
 
-  private refreshTableData(): void {
-    this.dataTable?.setOptions(prev => ({
-      ...prev,
-      data: this.filteredData()
-    }));
+  private buildPagedFilters(): { idProyecto?: number; busqueda?: string } {
+    const selectedProject = this.selectedProjectId();
+    const search = this.projectSearch().trim();
+
+    return {
+      idProyecto: selectedProject === 'ALL' ? undefined : selectedProject,
+      busqueda: selectedProject === 'ALL' && search ? search : undefined,
+    };
   }
 
   private normalizeSearchText(value: string | number | null | undefined): string {
@@ -257,6 +272,17 @@ export class ProcedingsListComponent implements OnInit {
       .replace(/[\u0300-\u036f]/g, '')
       .toLocaleLowerCase()
       .trim();
+  }
+
+  private runDebouncedSearch(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.getAll();
+      this.searchDebounceTimer = null;
+    }, 250);
   }
 
   delete(item: Row<IActa>): void {

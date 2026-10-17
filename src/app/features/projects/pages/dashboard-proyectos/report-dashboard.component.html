@@ -310,7 +310,9 @@
                                     class="w-full mb-2 search-field"
                                     floatLabel="auto">
                         <mat-icon matPrefix>search</mat-icon>
+                        <mat-label>Filtrar productos por nombre</mat-label>
                         <input matInput
+                          [id]="'cat-filter-' + c.idCategoria"
                             [value]="getCategoryFilter(c.idCategoria)"
                             (input)="setCategoryFilter(c.idCategoria, $any($event.target).value)"
                             placeholder="Buscar producto"
@@ -357,31 +359,33 @@
             <!-- Beneficiarios -->
             <div class="mb-1">
             <div class="text-xs font-semibold text-gray-600 mb-1">Beneficiarios</div>
-            <div class="overflow-x-auto" *ngIf="p.beneficiarios?.length; else noBens">
-            <table class="table min-w-[700px]">
+            <div class="table-shell" *ngIf="p.beneficiarios?.length; else noBens">
+            <div class="table-scroll">
+            <table class="table-compact min-w-[700px]">
                 <thead>
                 <tr>
-                    <th class="th">Nombre</th>
-                    <th class="th">Doc.</th>
-                    <th class="th">Sexo</th>
-                    <th class="th">Barrio</th>
-                    <th class="th">Víctima</th>
-                    <th class="th">Discapacidad</th>
-                    <th class="th">Actor Social</th>
+                <th>Nombre</th>
+                <th>Doc.</th>
+                <th>Sexo</th>
+                <th>Barrio</th>
+                <th>Víctima</th>
+                <th>Discapacidad</th>
+                <th>Actor Social</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr *ngFor="let b of beneficiariosVisibles(p)">
-                    <td class="td">{{ b.nombreCompleto }}</td>
-                    <td class="td">{{ b.tipoDocumento }} {{ b.documento }}</td>
-                    <td class="td">{{ b.sexo }}</td>
-                    <td class="td">{{ b.barrio || '—' }}</td>
-                    <td class="td">{{ b.victimaConflicto ? 'Sí' : 'No' }}</td>
-                    <td class="td">{{ b.discapacidad ? 'Sí' : 'No' }}</td>
-                    <td class="td">{{ b.nombreNucleo || '—' }}</td>
+                <td>{{ b.nombreCompleto }}</td>
+                <td>{{ b.tipoDocumento }} {{ b.documento }}</td>
+                <td>{{ b.sexo }}</td>
+                <td>{{ b.barrio || '—' }}</td>
+                <td>{{ b.victimaConflicto ? 'Sí' : 'No' }}</td>
+                <td>{{ b.discapacidad ? 'Sí' : 'No' }}</td>
+                <td>{{ b.nombreNucleo || '—' }}</td>
                 </tr>
                 </tbody>
             </table>
+            </div>
             <button *ngIf="(p.beneficiarios?.length ?? 0) > MAX_BENS" type="button" class="btn-more" (click)="toggleBens(p.idProyecto)">
                 {{ expandedBens()[p.idProyecto] ? 'Ver menos' : ('Ver todos (' + p.beneficiarios!.length + ')') }}
             </button>

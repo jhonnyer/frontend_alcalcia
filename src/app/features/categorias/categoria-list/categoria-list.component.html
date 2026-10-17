@@ -9,7 +9,8 @@
       <div class="flex w-full flex-col gap-1 text-sm text-slate-600 lg:w-96">
         <span class="font-semibold">Filtrar por proyecto</span>
         <div class="relative">
-          <input class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
+          <label for="categoria-project-search" class="sr-only">Buscar proyecto para filtrar categorías</label>
+          <input id="categoria-project-search" class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
           @if (projectSearch() || selectedProjectId() !== 'ALL') {
             <button
               type="button"
@@ -36,16 +37,14 @@
     </div>
 
     <!-- TABLA -->
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm border rounded">
+    <div class="table-shell">
+      <div class="table-scroll">
+      <table class="table-compact">
         <thead>
           @for(headerGroup of dataTable.getHeaderGroups(); track headerGroup.id) {
             <tr>
               @for(headerItem of headerGroup.headers; track headerItem.id) {
-                <th
-                  scope="col"
-                  class="bg-gray-100 text-gray-800 font-medium h-10 px-2 border-b"
-                >
+                <th scope="col">
                   <div class="flex flex-col h-full justify-between">
                     <ng-container
                       *flexRender="
@@ -82,7 +81,7 @@
           @for(row of dataTable.getRowModel().rows; track row.id) {
             <tr class="hover:bg-gray-50 transition">
               @for(cell of row.getVisibleCells(); track cell.id) {
-                <td class="px-2 py-2 border-b">
+                <td>
                   @if(cell.column.id === 'acciones') {
                     <div class="flex gap-2 justify-center">
                       <!-- Botón editar -->
@@ -145,23 +144,26 @@
           }
         </tbody>
       </table>
+      </div>
     </div>
 
     <!-- PAGINACIÓN -->
-    <div class="flex justify-between items-center p-4 border-t border-gray-200 bg-gray-50">
+    <div class="flex flex-col gap-3 p-4 border-t border-gray-200 bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
       <div class="text-sm text-gray-600">
         Mostrando {{ dataTable.getRowModel().rows.length }} de
         {{ dataTable.getRowCount() }} categorías
       </div>
 
-      <div class="flex gap-4 items-center">
+      <div class="flex flex-wrap gap-3 items-center">
         <span class="text-sm">
           Página {{ dataTable.getState().pagination.pageIndex + 1 }} de
           {{ dataTable.getPageCount() }}
         </span>
 
+        <label for="categoria-page-size" class="sr-only">Filas por página de categorías</label>
         <select
-          class="border rounded px-2 py-1 text-sm"
+          id="categoria-page-size"
+          class="select-base"
           (change)="onChangeValueSizePageSelect($event)"
         >
           @for(size of sizePage(); track size) {
@@ -177,7 +179,7 @@
         <button
           [disabled]="!dataTable.getCanPreviousPage()"
           (click)="dataTable.previousPage()"
-          class="text-sm border px-3 py-1 rounded bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+          class="btn-navigate-black"
           type="button"
         >
           Anterior
@@ -186,7 +188,7 @@
         <button
           [disabled]="!dataTable.getCanNextPage()"
           (click)="dataTable.nextPage()"
-          class="text-sm border px-3 py-1 rounded bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+          class="btn-navigate-black"
           type="button"
         >
           Siguiente

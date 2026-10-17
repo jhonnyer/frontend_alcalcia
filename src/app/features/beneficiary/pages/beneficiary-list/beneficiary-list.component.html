@@ -166,23 +166,25 @@
     <div class="flex flex-col gap-2 border-t border-slate-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
       <div class="text-xs text-slate-500">
         Mostrando {{ dataTable.getRowModel().rows.length }} de
-        {{ dataTable.getRowCount() }} beneficiarios
+        {{ totalElements() }} beneficiarios
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
         <span class="text-xs text-slate-600">
-          Página {{ dataTable.getState().pagination.pageIndex + 1 }} de
-          {{ dataTable.getPageCount() }}
+          Página {{ serverPageIndex() + 1 }} de
+          {{ totalPages() }}
         </span>
 
+        <label for="beneficiary-page-size" class="sr-only">Filas por página de beneficiarios</label>
         <select
+          id="beneficiary-page-size"
           class="min-h-9 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
           (change)="onChangeValueSizePageSelect($event)"
         >
           @for(size of sizePage(); track size) {
             <option
               [value]="size"
-              [selected]="size === dataTable.getState().pagination.pageSize"
+              [selected]="size === serverPageSize()"
             >
               {{ size }}
             </option>
@@ -190,16 +192,16 @@
         </select>
 
         <button
-          [disabled]="!dataTable.getCanPreviousPage()"
-          (click)="dataTable.previousPage()"
+          [disabled]="serverPageIndex() === 0"
+          (click)="previousServerPage()"
           class="btn-navigate-black"
           type="button"
         >
           Anterior
         </button>
         <button
-          [disabled]="!dataTable.getCanNextPage()"
-          (click)="dataTable.nextPage()"
+          [disabled]="serverPageIndex() >= totalPages() - 1"
+          (click)="nextServerPage()"
           class="btn-navigate-black"
           type="button"
         >

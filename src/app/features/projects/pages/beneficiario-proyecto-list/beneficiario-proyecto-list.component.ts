@@ -36,8 +36,14 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
   private pdfService = inject(PdfBeneficiariosProyectoService);
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   isExportingPdf = false;
+  loading = signal(true);
   data = signal<IBeneficiarioProyecto[]>([]);
+  totalElements = signal(0);
+  totalPages = signal(1);
+  serverPageIndex = signal(0);
+  serverPageSize = signal(5);
   selectedProjectId = signal<number | 'ALL'>('ALL');
   projectSearch = signal('');
   projectSuggestionsVisible = signal(false);
@@ -54,14 +60,7 @@ export class BeneficiarioProyectoListComponent implements OnInit {
     return this.projectOptions().filter(project => !query || this.normalizeSearchText(`${project.idProyecto} ${project.nombreProyecto}`).includes(query));
   });
   filteredData = computed(() => {
-    const selectedProjectId = this.selectedProjectId();
-    const query = this.normalizeSearchText(this.projectSearch());
-    return this.data().filter(item => {
-      const matchesSelected = selectedProjectId === 'ALL' || item.idProyecto === selectedProjectId;
-      const text = this.normalizeSearchText(`${item.idProyecto} ${item.nombreProyecto}`);
-      const matchesSearch = selectedProjectId !== 'ALL' || !query || text.includes(query);
-      return matchesSelected && matchesSearch;
-    });
+    return this.data();
   });
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -69,10 +68,7 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   public copyOnClipboard = signal<number | null>(null);
   public readonly columnFilters = signal<ColumnFiltersState>([]);
 
-  public readonly paginationState = signal<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10
-  });
+  public readonly paginationState = signal<PaginationState>({ pageIndex: 0, pageSize: 1000 });
 
   public readonly sortingState = signal<SortingState>([]);
 
@@ -82,9 +78,20 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   }
 
   getAll() {
-    this.beneficiarioProyectoService.getAll().subscribe({
-      next: data => this.data.set(data),
-      error: error => console.error("Error getAll beneficiarios-proyecto: ", error)
+    this.loading.set(true);
+    this.beneficiarioProyectoService
+      .getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters())
+      .subscribe({
+      next: response => {
+        this.data.set(response.content ?? []);
+        this.totalElements.set(response.totalElements ?? response.content?.length ?? 0);
+        this.totalPages.set(Math.max(1, response.totalPages ?? 1));
+        this.loading.set(false);
+      },
+      error: error => {
+        console.error("Error getAll beneficiarios-proyecto: ", error);
+        this.loading.set(false);
+      }
     });
   }
 
@@ -125,7 +132,21 @@ export class BeneficiarioProyectoListComponent implements OnInit {
 
   onChangeValueSizePageSelect(e: Event) {
     const element = (e.target as HTMLSelectElement);
-    this.dataTable.setPageSize(+element.value);
+    this.serverPageSize.set(+element.value);
+    this.serverPageIndex.set(0);
+    this.getAll();
+  }
+
+  previousServerPage(): void {
+    if (this.serverPageIndex() <= 0 || this.loading()) return;
+    this.serverPageIndex.update(v => v - 1);
+    this.getAll();
+  }
+
+  nextServerPage(): void {
+    if (this.serverPageIndex() >= this.totalPages() - 1 || this.loading()) return;
+    this.serverPageIndex.update(v => v + 1);
+    this.getAll();
   }
 
   onSortingColumn(column: Column<IBeneficiarioProyecto>) {
@@ -150,21 +171,24 @@ export class BeneficiarioProyectoListComponent implements OnInit {
     this.projectSearch.set((event.target as HTMLInputElement).value);
     this.selectedProjectId.set('ALL');
     this.projectSuggestionsVisible.set(true);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.runDebouncedSearch();
   }
 
   selectProjectOption(project: { idProyecto: number; nombreProyecto: string }): void {
     this.selectedProjectId.set(project.idProyecto);
     this.projectSearch.set(`#${project.idProyecto} - ${project.nombreProyecto}`);
     this.projectSuggestionsVisible.set(false);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.getAll();
   }
 
   clearProjectFilter(): void {
     this.selectedProjectId.set('ALL');
     this.projectSearch.set('');
     this.projectSuggestionsVisible.set(false);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.getAll();
   }
 
   showProjectSuggestions(): void { this.projectSuggestionsVisible.set(true); }
@@ -172,6 +196,27 @@ export class BeneficiarioProyectoListComponent implements OnInit {
 
   private normalizeSearchText(value: string | number | null | undefined): string {
     return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
+  }
+
+  private runDebouncedSearch(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.getAll();
+      this.searchDebounceTimer = null;
+    }, 250);
+  }
+
+  private buildPagedFilters(): { idProyecto?: number; busqueda?: string } {
+    const selectedProject = this.selectedProjectId();
+    const search = this.projectSearch().trim();
+
+    return {
+      idProyecto: selectedProject === 'ALL' ? undefined : selectedProject,
+      busqueda: selectedProject === 'ALL' && search ? search : undefined,
+    };
   }
 
   delete(item: Row<IBeneficiarioProyecto>) {

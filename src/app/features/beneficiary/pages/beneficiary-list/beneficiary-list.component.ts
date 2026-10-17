@@ -48,7 +48,12 @@ export class BeneficiaryListComponent implements OnInit {
   private pageTitleService = inject(PageTitleService);
   private router = inject(Router);
   private alert = inject(AlertService);
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   data = signal<IBeneficiario[]>([]);
+  totalElements = signal(0);
+  totalPages = signal(1);
+  serverPageIndex = signal(0);
+  serverPageSize = signal(5);
   actorFilter = signal<number | 'ALL'>('ALL');
   actorSearch = signal('');
   actorSearchQuery = signal('');
@@ -77,22 +82,7 @@ export class BeneficiaryListComponent implements OnInit {
     );
   });
   filteredData = computed(() => {
-    const selectedActor = this.actorFilter();
-    const query = this.actorSearchQuery().trim().toLocaleLowerCase();
-
-    return this.data().filter(beneficiario => {
-      const matchesSelectedActor = selectedActor === 'ALL'
-        || beneficiario.idNucleoFk === selectedActor;
-      const actorText = [
-        beneficiario.idNucleoFk,
-        beneficiario.nombreNucleo,
-        beneficiario.barrio,
-        beneficiario.direccionNucleo
-      ].filter(Boolean).join(' ').toLocaleLowerCase();
-      const matchesSearch = !query || actorText.includes(query);
-
-      return matchesSelectedActor && matchesSearch;
-    });
+    return this.data();
   });
 
   public readonly sizePage = signal<number[]>([5, 10, 25, 50, 100]);
@@ -102,7 +92,7 @@ export class BeneficiaryListComponent implements OnInit {
 
   public readonly paginationState = signal<PaginationState>({
     pageIndex: 0,
-    pageSize: 5
+    pageSize: 1000
   });
 
   public readonly sortingState = signal<SortingState>([]);
@@ -114,9 +104,11 @@ export class BeneficiaryListComponent implements OnInit {
   
 
   getAll() {
-    this.beneficiaryService.getAll().subscribe({
+    this.beneficiaryService.getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).subscribe({
       next: (response) => {
-        this.data.set(response);
+        this.data.set(response.content);
+        this.totalElements.set(response.totalElements ?? response.content.length);
+        this.totalPages.set(Math.max(1, response.totalPages ?? 1));
       },
       error: error => {
         console.error("Error getAll Beneficiarios:", error);
@@ -168,13 +160,28 @@ export class BeneficiaryListComponent implements OnInit {
 
   onChangeValueSizePageSelect(e: Event) {
     const element = (e.target as HTMLSelectElement);
-    this.dataTable.setPageSize(+element.value);
+    this.serverPageSize.set(+element.value);
+    this.serverPageIndex.set(0);
+    this.getAll();
+  }
+
+  previousServerPage(): void {
+    if (this.serverPageIndex() <= 0) return;
+    this.serverPageIndex.update(v => v - 1);
+    this.getAll();
+  }
+
+  nextServerPage(): void {
+    if (this.serverPageIndex() >= this.totalPages() - 1) return;
+    this.serverPageIndex.update(v => v + 1);
+    this.getAll();
   }
 
   onActorFilterChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.actorFilter.set(value === 'ALL' ? 'ALL' : Number(value));
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.getAll();
   }
 
   onActorSearch(event: Event): void {
@@ -183,7 +190,8 @@ export class BeneficiaryListComponent implements OnInit {
     this.actorSearchQuery.set(value);
     this.actorFilter.set('ALL');
     this.actorSuggestionsVisible.set(true);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.runDebouncedSearch();
   }
 
   showActorSuggestions(): void {
@@ -199,7 +207,8 @@ export class BeneficiaryListComponent implements OnInit {
     this.actorSearchQuery.set('');
     this.actorFilter.set(actor.id);
     this.actorSuggestionsVisible.set(false);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.getAll();
   }
 
   clearActorFilter(): void {
@@ -207,7 +216,29 @@ export class BeneficiaryListComponent implements OnInit {
     this.actorSearchQuery.set('');
     this.actorFilter.set('ALL');
     this.actorSuggestionsVisible.set(true);
-    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    this.serverPageIndex.set(0);
+    this.getAll();
+  }
+
+  private buildPagedFilters(): { idNucleoFk?: number; busqueda?: string } {
+    const actor = this.actorFilter();
+    const busqueda = this.actorSearchQuery().trim();
+
+    return {
+      idNucleoFk: actor === 'ALL' ? undefined : actor,
+      busqueda: actor === 'ALL' && busqueda ? busqueda : undefined,
+    };
+  }
+
+  private runDebouncedSearch(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.getAll();
+      this.searchDebounceTimer = null;
+    }, 250);
   }
 
   onSortingColumn(column: Column<IBeneficiario>) {

@@ -1,10 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SecretariaAdminService } from '../../../../core/services/secretaria-admin.service';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
-import { ICoberturaMunicipio, ISecretaria } from '../../../../core/models/secretaria.model';
+import { ICoberturaDepartamento, ICoberturaMunicipio, ISecretaria } from '../../../../core/models/secretaria.model';
 import { IResponsable } from '../../../../core/models/responsable.model';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { MatIconModule } from '@angular/material/icon';
@@ -68,11 +68,18 @@ export class UsersListComponent implements OnInit {
   coverageModalOpen = signal(false);
   loadingCoverage = signal(false);
   savingCoverage = signal(false);
+  coberturaDepartamental = signal<ICoberturaDepartamento[]>([]);
   coberturaMunicipal = signal<ICoberturaMunicipio[]>([]);
+  departamentoToAssign = signal<number | null>(null);
   municipioToAssign = signal<number | null>(null);
   coverageDepartamentoFilter = signal<number | null>(null);
   coverageDepartamentoInput = signal('');
   coverageMunicipioInput = signal('');
+  showCoverageDepartamentoDropdown = false;
+  showCoverageMunicipioDropdown = false;
+  coverageDepartamentoHighlightIndex = signal(0);
+  coverageMunicipioHighlightIndex = signal(0);
+  coverageSelectedTab = signal<'departamentos' | 'municipios'>('departamentos');
   currentParameters = signal<IParametroNegocio | null>(null);
   activeTab = signal<'secretarias' | 'usuarios'>('secretarias');
   userFormModalOpen = signal(false);
@@ -113,6 +120,17 @@ export class UsersListComponent implements OnInit {
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Gestión administrativa');
     this.loadData();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.coverage-dropdown-departamento')) {
+      this.showCoverageDepartamentoDropdown = false;
+    }
+    if (!target.closest('.coverage-dropdown-municipio')) {
+      this.showCoverageMunicipioDropdown = false;
+    }
   }
 
   private loadData(): void {
@@ -348,10 +366,14 @@ export class UsersListComponent implements OnInit {
   openCoverageModal(secretaria: ISecretaria): void {
     this.selectedSecretaryForCoverage.set(secretaria);
     this.coverageModalOpen.set(true);
+    this.departamentoToAssign.set(null);
     this.municipioToAssign.set(null);
     this.coverageDepartamentoFilter.set(null);
     this.coverageDepartamentoInput.set('');
     this.coverageMunicipioInput.set('');
+    this.showCoverageDepartamentoDropdown = false;
+    this.showCoverageMunicipioDropdown = false;
+    this.coverageSelectedTab.set('departamentos');
     this.loadCoverage(secretaria.idSecretaria);
   }
 
@@ -359,11 +381,169 @@ export class UsersListComponent implements OnInit {
     if (this.savingCoverage()) return;
     this.coverageModalOpen.set(false);
     this.selectedSecretaryForCoverage.set(null);
+    this.coberturaDepartamental.set([]);
     this.coberturaMunicipal.set([]);
+    this.departamentoToAssign.set(null);
     this.municipioToAssign.set(null);
     this.coverageDepartamentoFilter.set(null);
     this.coverageDepartamentoInput.set('');
     this.coverageMunicipioInput.set('');
+    this.showCoverageDepartamentoDropdown = false;
+    this.showCoverageMunicipioDropdown = false;
+    this.coverageSelectedTab.set('departamentos');
+  }
+
+  toggleCoverageDepartamentoDropdown(): void {
+    this.showCoverageDepartamentoDropdown = !this.showCoverageDepartamentoDropdown;
+    if (this.showCoverageDepartamentoDropdown) {
+      this.showCoverageMunicipioDropdown = false;
+      this.coverageDepartamentoHighlightIndex.set(0);
+    }
+  }
+
+  toggleCoverageMunicipioDropdown(): void {
+    if (this.coverageDepartamentoFilter() == null) return;
+    this.showCoverageMunicipioDropdown = !this.showCoverageMunicipioDropdown;
+    if (this.showCoverageMunicipioDropdown) {
+      this.showCoverageDepartamentoDropdown = false;
+      this.coverageMunicipioHighlightIndex.set(0);
+    }
+  }
+
+  selectCoverageDepartamento(idDepartamento: number, nombre: string): void {
+    this.coverageDepartamentoFilter.set(idDepartamento);
+    this.departamentoToAssign.set(idDepartamento);
+    this.coverageDepartamentoInput.set(nombre);
+    this.coverageMunicipioInput.set('');
+    this.municipioToAssign.set(null);
+    this.showCoverageDepartamentoDropdown = false;
+    this.showCoverageMunicipioDropdown = false;
+    this.coverageDepartamentoHighlightIndex.set(0);
+    this.coverageMunicipioHighlightIndex.set(0);
+  }
+
+  selectCoverageMunicipio(idMunicipio: number, nombre: string): void {
+    this.municipioToAssign.set(idMunicipio);
+    this.coverageMunicipioInput.set(nombre);
+    this.showCoverageMunicipioDropdown = false;
+    this.coverageMunicipioHighlightIndex.set(0);
+  }
+
+  onCoverageDepartamentoKeydown(event: KeyboardEvent): void {
+    const items = this.availableDepartamentosForCoverage();
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (!this.showCoverageDepartamentoDropdown) {
+        this.showCoverageDepartamentoDropdown = true;
+      }
+      if (!items.length) return;
+      const next = (this.coverageDepartamentoHighlightIndex() + 1) % items.length;
+      this.coverageDepartamentoHighlightIndex.set(next);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (!this.showCoverageDepartamentoDropdown) {
+        this.showCoverageDepartamentoDropdown = true;
+      }
+      if (!items.length) return;
+      const prev = (this.coverageDepartamentoHighlightIndex() - 1 + items.length) % items.length;
+      this.coverageDepartamentoHighlightIndex.set(prev);
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (!this.showCoverageDepartamentoDropdown) {
+        this.showCoverageDepartamentoDropdown = true;
+        return;
+      }
+      const selected = items[this.coverageDepartamentoHighlightIndex()];
+      if (selected) {
+        this.selectCoverageDepartamento(selected.idDepartamento, selected.nombre);
+      }
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      this.showCoverageDepartamentoDropdown = false;
+    }
+  }
+
+  onCoverageMunicipioKeydown(event: KeyboardEvent): void {
+    if (this.coverageDepartamentoFilter() == null) return;
+    const items = this.availableMunicipiosForCoverage();
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (!this.showCoverageMunicipioDropdown) {
+        this.showCoverageMunicipioDropdown = true;
+      }
+      if (!items.length) return;
+      const next = (this.coverageMunicipioHighlightIndex() + 1) % items.length;
+      this.coverageMunicipioHighlightIndex.set(next);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (!this.showCoverageMunicipioDropdown) {
+        this.showCoverageMunicipioDropdown = true;
+      }
+      if (!items.length) return;
+      const prev = (this.coverageMunicipioHighlightIndex() - 1 + items.length) % items.length;
+      this.coverageMunicipioHighlightIndex.set(prev);
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (!this.showCoverageMunicipioDropdown) {
+        this.showCoverageMunicipioDropdown = true;
+        return;
+      }
+      const selected = items[this.coverageMunicipioHighlightIndex()];
+      if (selected) {
+        this.selectCoverageMunicipio(selected.idMunicipio, selected.nombre);
+      }
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      this.showCoverageMunicipioDropdown = false;
+    }
+  }
+
+  setCoverageTab(tab: 'departamentos' | 'municipios'): void {
+    this.coverageSelectedTab.set(tab);
+  }
+
+  private syncCoverageSelectedTab(preferred?: 'departamentos' | 'municipios'): void {
+    const depCount = this.coberturaDepartamental().filter(c => c.estado === 'A').length;
+    const munCount = this.coberturaMunicipal().filter(c => c.estado === 'A').length;
+
+    if (preferred === 'municipios' && munCount > 0) {
+      this.coverageSelectedTab.set('municipios');
+      return;
+    }
+    if (preferred === 'departamentos' && depCount > 0) {
+      this.coverageSelectedTab.set('departamentos');
+      return;
+    }
+
+    if (depCount === 0 && munCount > 0) {
+      this.coverageSelectedTab.set('municipios');
+      return;
+    }
+
+    if (munCount === 0 && depCount > 0) {
+      this.coverageSelectedTab.set('departamentos');
+      return;
+    }
+
+    if (depCount === 0 && munCount === 0) {
+      this.coverageSelectedTab.set('departamentos');
+    }
   }
 
   updateCoverageDepartamentoInput(event: Event): void {
@@ -371,6 +551,7 @@ export class UsersListComponent implements OnInit {
     this.coverageDepartamentoInput.set(raw);
     const exact = this.departamentos().find(dep => this.normalizeSearchText(dep.nombre) === this.normalizeSearchText(raw));
     this.coverageDepartamentoFilter.set(exact?.idDepartamento ?? null);
+    this.departamentoToAssign.set(exact?.idDepartamento ?? null);
     this.coverageMunicipioInput.set('');
     this.municipioToAssign.set(null);
   }
@@ -384,9 +565,36 @@ export class UsersListComponent implements OnInit {
 
   clearCoverageFilters(): void {
     this.coverageDepartamentoFilter.set(null);
+    this.departamentoToAssign.set(null);
     this.coverageDepartamentoInput.set('');
     this.coverageMunicipioInput.set('');
     this.municipioToAssign.set(null);
+    this.showCoverageDepartamentoDropdown = false;
+    this.showCoverageMunicipioDropdown = false;
+  }
+
+  assignCoverageDepartamento(): void {
+    const secretaria = this.selectedSecretaryForCoverage();
+    const idDepartamento = this.departamentoToAssign();
+    if (!secretaria || !idDepartamento) return;
+
+    this.savingCoverage.set(true);
+    this.secretariaAdminService.assignCoberturaDepartamental(secretaria.idSecretaria, {
+      idDepartamento,
+      backfillBeneficiarios: true,
+    }).subscribe({
+      next: () => {
+        this.savingCoverage.set(false);
+        this.coverageSelectedTab.set('departamentos');
+        this.loadCoverage(secretaria.idSecretaria);
+        this.alert.success('Operación exitosa', 'Cobertura departamental actualizada con expansión a municipios.');
+      },
+      error: error => {
+        this.savingCoverage.set(false);
+        console.error('Error al asignar cobertura departamental:', error);
+        this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo asignar la cobertura departamental.');
+      }
+    });
   }
 
   setMunicipioToAssign(event: Event): void {
@@ -407,6 +615,7 @@ export class UsersListComponent implements OnInit {
       next: () => {
         this.savingCoverage.set(false);
         this.municipioToAssign.set(null);
+        this.coverageSelectedTab.set('municipios');
         this.loadCoverage(secretaria.idSecretaria);
         this.alert.success('Operación exitosa', 'Cobertura municipal actualizada y beneficiarios compartidos.');
       },
@@ -418,9 +627,17 @@ export class UsersListComponent implements OnInit {
     });
   }
 
-  removeCoverageMunicipio(idMunicipio: number): void {
+  async removeCoverageMunicipio(idMunicipio: number): Promise<void> {
     const secretaria = this.selectedSecretaryForCoverage();
     if (!secretaria) return;
+
+    const confirmed = await this.alert.confirm(
+      'Quitar cobertura municipal',
+      '¿Deseas desactivar esta cobertura municipal?',
+      'Quitar',
+      'Cancelar'
+    );
+    if (!confirmed) return;
 
     this.savingCoverage.set(true);
     this.secretariaAdminService.removeCoberturaMunicipal(secretaria.idSecretaria, idMunicipio).subscribe({
@@ -432,6 +649,92 @@ export class UsersListComponent implements OnInit {
         this.savingCoverage.set(false);
         console.error('Error al desactivar cobertura municipal:', error);
         this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo desactivar la cobertura municipal.');
+      }
+    });
+  }
+
+  async removeCoverageDepartamento(idDepartamento: number): Promise<void> {
+    const secretaria = this.selectedSecretaryForCoverage();
+    if (!secretaria) return;
+
+    const confirmed = await this.alert.confirm(
+      'Quitar cobertura departamental',
+      '¿Deseas desactivar esta cobertura departamental?',
+      'Quitar',
+      'Cancelar'
+    );
+    if (!confirmed) return;
+
+    this.savingCoverage.set(true);
+    this.secretariaAdminService.removeCoberturaDepartamental(secretaria.idSecretaria, idDepartamento).subscribe({
+      next: () => {
+        this.savingCoverage.set(false);
+        this.loadCoverage(secretaria.idSecretaria);
+      },
+      error: error => {
+        this.savingCoverage.set(false);
+        console.error('Error al desactivar cobertura departamental:', error);
+        this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo desactivar la cobertura departamental.');
+      }
+    });
+  }
+
+  async activateCoverageDepartamento(idDepartamento: number): Promise<void> {
+    const secretaria = this.selectedSecretaryForCoverage();
+    if (!secretaria) return;
+
+    const confirmed = await this.alert.confirm(
+      'Activar cobertura departamental',
+      '¿Deseas activar esta cobertura departamental? También se sincronizarán sus municipios.',
+      'Activar',
+      'Cancelar'
+    );
+    if (!confirmed) return;
+
+    this.savingCoverage.set(true);
+    this.secretariaAdminService.assignCoberturaDepartamental(secretaria.idSecretaria, {
+      idDepartamento,
+      backfillBeneficiarios: true,
+    }).subscribe({
+      next: () => {
+        this.savingCoverage.set(false);
+        this.coverageSelectedTab.set('departamentos');
+        this.loadCoverage(secretaria.idSecretaria);
+      },
+      error: error => {
+        this.savingCoverage.set(false);
+        console.error('Error al activar cobertura departamental:', error);
+        this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo activar la cobertura departamental.');
+      }
+    });
+  }
+
+  async activateCoverageMunicipio(idMunicipio: number): Promise<void> {
+    const secretaria = this.selectedSecretaryForCoverage();
+    if (!secretaria) return;
+
+    const confirmed = await this.alert.confirm(
+      'Activar cobertura municipal',
+      '¿Deseas activar esta cobertura municipal?',
+      'Activar',
+      'Cancelar'
+    );
+    if (!confirmed) return;
+
+    this.savingCoverage.set(true);
+    this.secretariaAdminService.assignCoberturaMunicipal(secretaria.idSecretaria, {
+      idMunicipio,
+      backfillBeneficiarios: true,
+    }).subscribe({
+      next: () => {
+        this.savingCoverage.set(false);
+        this.coverageSelectedTab.set('municipios');
+        this.loadCoverage(secretaria.idSecretaria);
+      },
+      error: error => {
+        this.savingCoverage.set(false);
+        console.error('Error al activar cobertura municipal:', error);
+        this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo activar la cobertura municipal.');
       }
     });
   }
@@ -454,11 +757,40 @@ export class UsersListComponent implements OnInit {
     return this.departamentos().filter(dep => this.normalizeSearchText(dep.nombre).includes(query));
   });
 
+  getMatchParts(text: string, query: string): { before: string; match: string; after: string } {
+    const source = text ?? '';
+    const q = (query ?? '').trim();
+    if (!q) {
+      return { before: source, match: '', after: '' };
+    }
+
+    const sourceLower = source.toLocaleLowerCase();
+    const queryLower = q.toLocaleLowerCase();
+    const index = sourceLower.indexOf(queryLower);
+    if (index < 0) {
+      return { before: source, match: '', after: '' };
+    }
+
+    return {
+      before: source.slice(0, index),
+      match: source.slice(index, index + q.length),
+      after: source.slice(index + q.length),
+    };
+  }
+
   private loadCoverage(idSecretaria: number): void {
     this.loadingCoverage.set(true);
+    this.secretariaAdminService.getCoberturaDepartamental(idSecretaria).subscribe({
+      next: coberturas => {
+        this.coberturaDepartamental.set(coberturas);
+        this.syncCoverageSelectedTab();
+      },
+      error: error => console.error('Error al cargar cobertura departamental:', error)
+    });
     this.secretariaAdminService.getCoberturaMunicipal(idSecretaria).subscribe({
       next: coberturas => {
         this.coberturaMunicipal.set(coberturas);
+        this.syncCoverageSelectedTab();
         this.loadingCoverage.set(false);
       },
       error: error => {

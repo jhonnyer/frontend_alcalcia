@@ -27,6 +27,7 @@ export interface CreateSecretaryModalPayload {
     prefijoProducto: string;
     estado: 'A';
     idsMunicipio?: number[];
+    idsDepartamento?: number[];
   };
   admin: CreateSecretaryAdminInput;
   parametros: IParametroNegocio;
@@ -57,12 +58,14 @@ export class SecretaryCreateModalComponent implements OnChanges {
   municipioSeleccionadoNombre = '';
   showDepartamentoDropdown = false;
   showMunicipioDropdown = false;
+  selectedCoverageTab: 'departamentos' | 'municipios' = 'departamentos';
 
   readonly form = this.fb.group({
     nombre: ['', [Validators.required]],
     codigo: ['', [Validators.required]],
     prefijoProducto: ['', [Validators.required]],
     idsMunicipio: this.fb.nonNullable.control<number[]>([], Validators.required),
+    idsDepartamento: this.fb.nonNullable.control<number[]>([]),
     adminPrimerNombre: ['', [Validators.required]],
     adminSegundoNombre: [''],
     adminPrimerApellido: ['', [Validators.required]],
@@ -138,6 +141,7 @@ export class SecretaryCreateModalComponent implements OnChanges {
         codigo: '',
         prefijoProducto: '',
         idsMunicipio: [],
+        idsDepartamento: [],
         adminPrimerNombre: '',
         adminSegundoNombre: '',
         adminPrimerApellido: '',
@@ -165,6 +169,39 @@ export class SecretaryCreateModalComponent implements OnChanges {
       this.municipioSeleccionadoNombre = '';
       this.showDepartamentoDropdown = false;
       this.showMunicipioDropdown = false;
+      this.selectedCoverageTab = 'departamentos';
+    }
+  }
+
+  setCoverageTab(tab: 'departamentos' | 'municipios'): void {
+    this.selectedCoverageTab = tab;
+  }
+
+  private syncCoverageTab(preferred?: 'departamentos' | 'municipios'): void {
+    const depCount = this.departamentosSeleccionados().length;
+    const munCount = this.municipiosSeleccionados().length;
+
+    if (preferred === 'municipios' && munCount > 0) {
+      this.selectedCoverageTab = 'municipios';
+      return;
+    }
+    if (preferred === 'departamentos' && depCount > 0) {
+      this.selectedCoverageTab = 'departamentos';
+      return;
+    }
+
+    if (depCount === 0 && munCount > 0) {
+      this.selectedCoverageTab = 'municipios';
+      return;
+    }
+
+    if (munCount === 0 && depCount > 0) {
+      this.selectedCoverageTab = 'departamentos';
+      return;
+    }
+
+    if (depCount === 0 && munCount === 0) {
+      this.selectedCoverageTab = 'departamentos';
     }
   }
 
@@ -187,6 +224,18 @@ export class SecretaryCreateModalComponent implements OnChanges {
 
   updateDepartamentoBusqueda(event: Event): void {
     this.departamentoBusqueda = (event.target as HTMLInputElement).value ?? '';
+  }
+
+  addDepartamentoSeleccionado(): void {
+    if (this.departamentoFiltro == null) return;
+    const ids = this.form.get('idsDepartamento')?.value ?? [];
+    if (!ids.includes(this.departamentoFiltro)) {
+      this.form.patchValue({ idsDepartamento: [...ids, this.departamentoFiltro] });
+      this.form.get('idsDepartamento')?.markAsTouched();
+      this.form.get('idsDepartamento')?.updateValueAndValidity();
+      this.form.get('idsMunicipio')?.updateValueAndValidity();
+      this.syncCoverageTab('departamentos');
+    }
   }
 
   selectDepartamento(idDepartamento: number, nombre: string): void {
@@ -221,6 +270,29 @@ export class SecretaryCreateModalComponent implements OnChanges {
     this.showMunicipioDropdown = false;
   }
 
+  departamentosSeleccionados(): IDepartamento[] {
+    const ids = this.form.get('idsDepartamento')?.value ?? [];
+    return this.departamentos.filter(dep => ids.includes(dep.idDepartamento));
+  }
+
+  async removeDepartamento(idDepartamento: number): Promise<void> {
+    const confirmed = await this.alert.confirm(
+      'Quitar departamento',
+      '¿Deseas quitar este departamento de la cobertura seleccionada?',
+      'Quitar',
+      'Cancelar'
+    );
+    if (!confirmed) return;
+
+    const ids = this.form.get('idsDepartamento')?.value ?? [];
+    const filtered = ids.filter(id => id !== idDepartamento);
+    this.form.patchValue({ idsDepartamento: filtered });
+    this.form.get('idsDepartamento')?.markAsTouched();
+    this.form.get('idsDepartamento')?.updateValueAndValidity();
+    this.form.get('idsMunicipio')?.updateValueAndValidity();
+    this.syncCoverageTab();
+  }
+
   addMunicipio(): void {
     if (this.departamentoFiltro == null || this.municipioToAdd == null) return;
     const ids = this.normalizeMunicipioIds(this.form.get('idsMunicipio')?.value) ?? [];
@@ -228,6 +300,8 @@ export class SecretaryCreateModalComponent implements OnChanges {
       this.form.patchValue({ idsMunicipio: [...ids, this.municipioToAdd] });
       this.form.get('idsMunicipio')?.markAsTouched();
       this.form.get('idsMunicipio')?.updateValueAndValidity();
+      this.form.get('idsDepartamento')?.updateValueAndValidity();
+      this.syncCoverageTab('municipios');
     }
     this.municipioToAdd = null;
     this.municipioBusqueda = '';
@@ -260,7 +334,6 @@ export class SecretaryCreateModalComponent implements OnChanges {
       'nombre',
       'codigo',
       'prefijoProducto',
-      'idsMunicipio',
       'adminPrimerNombre',
       'adminPrimerApellido',
       'adminTipoIdentificacion',
@@ -275,6 +348,8 @@ export class SecretaryCreateModalComponent implements OnChanges {
     ];
 
     requiredControls.forEach(name => this.form.get(name)?.markAsTouched());
+    this.form.get('idsMunicipio')?.markAsTouched();
+    this.form.get('idsDepartamento')?.markAsTouched();
     if (!this.canSubmit()) return;
 
     const v = this.form.getRawValue();
@@ -284,7 +359,8 @@ export class SecretaryCreateModalComponent implements OnChanges {
         codigo: String(v.codigo ?? '').trim(),
         prefijoProducto: String(v.prefijoProducto ?? '').trim(),
         estado: 'A',
-        idsMunicipio: this.normalizeMunicipioIds(v.idsMunicipio)
+        idsMunicipio: this.normalizeMunicipioIds(v.idsMunicipio),
+        idsDepartamento: this.normalizeDepartamentoIds(v.idsDepartamento)
       },
       admin: {
         primerNombre: String(v.adminPrimerNombre ?? '').trim(),
@@ -324,6 +400,17 @@ export class SecretaryCreateModalComponent implements OnChanges {
     return unique.size ? Array.from(unique) : undefined;
   }
 
+  private normalizeDepartamentoIds(rawValue: unknown): number[] | undefined {
+    const values = Array.isArray(rawValue) ? rawValue : [];
+    const unique = new Set<number>();
+    for (const token of values) {
+      const value = Number(token);
+      if (!Number.isInteger(value) || value <= 0) continue;
+      unique.add(value);
+    }
+    return unique.size ? Array.from(unique) : undefined;
+  }
+
   private normalizeText(value: string | null | undefined): string {
     return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
   }
@@ -349,12 +436,22 @@ export class SecretaryCreateModalComponent implements OnChanges {
     };
   }
 
-  removeMunicipio(idMunicipio: number): void {
+  async removeMunicipio(idMunicipio: number): Promise<void> {
+    const confirmed = await this.alert.confirm(
+      'Quitar municipio',
+      '¿Deseas quitar este municipio de la cobertura seleccionada?',
+      'Quitar',
+      'Cancelar'
+    );
+    if (!confirmed) return;
+
     const ids = this.normalizeMunicipioIds(this.form.get('idsMunicipio')?.value) ?? [];
     const filtered = ids.filter(id => id !== idMunicipio);
     this.form.patchValue({ idsMunicipio: filtered as number[] });
     this.form.get('idsMunicipio')?.markAsTouched();
     this.form.get('idsMunicipio')?.updateValueAndValidity();
+    this.form.get('idsDepartamento')?.updateValueAndValidity();
+    this.syncCoverageTab();
   }
 
   canSubmit(): boolean {
@@ -362,7 +459,6 @@ export class SecretaryCreateModalComponent implements OnChanges {
       'nombre',
       'codigo',
       'prefijoProducto',
-      'idsMunicipio',
       'adminPrimerNombre',
       'adminPrimerApellido',
       'adminTipoIdentificacion',
@@ -377,6 +473,8 @@ export class SecretaryCreateModalComponent implements OnChanges {
       'parametroCorreoAlcaldia',
     ];
 
-    return required.every(name => this.form.get(name)?.valid === true);
+    const hasCoverage = (this.normalizeMunicipioIds(this.form.get('idsMunicipio')?.value)?.length ?? 0) > 0
+      || (this.normalizeDepartamentoIds(this.form.get('idsDepartamento')?.value)?.length ?? 0) > 0;
+    return required.every(name => this.form.get(name)?.valid === true) && hasCoverage;
   }
 }

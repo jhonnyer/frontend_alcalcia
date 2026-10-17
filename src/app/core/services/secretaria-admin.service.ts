@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import {
+  ICoberturaDepartamento,
+  ICoberturaDepartamentoRequest,
   ICoberturaMunicipio,
   ICoberturaMunicipioRequest,
   ICreateSecretariaRequest,
@@ -43,6 +45,28 @@ export class SecretariaAdminService {
   getCoberturaMunicipal(idSecretaria: number): Observable<ICoberturaMunicipio[]> {
     return this.http.get<ICoberturaMunicipio[]>(
       `${this.URL}/administracion/secretarias/${idSecretaria}/cobertura-municipal`,
+      { context: checkToken() }
+    );
+  }
+
+  getCoberturaDepartamental(idSecretaria: number): Observable<ICoberturaDepartamento[]> {
+    return this.http.get<ICoberturaDepartamento[]>(
+      `${this.URL}/administracion/secretarias/${idSecretaria}/cobertura-departamental`,
+      { context: checkToken() }
+    );
+  }
+
+  assignCoberturaDepartamental(idSecretaria: number, data: ICoberturaDepartamentoRequest): Observable<void> {
+    return this.http.post<void>(
+      `${this.URL}/administracion/secretarias/${idSecretaria}/cobertura-departamental`,
+      data,
+      { context: checkToken() }
+    );
+  }
+
+  removeCoberturaDepartamental(idSecretaria: number, idDepartamento: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.URL}/administracion/secretarias/${idSecretaria}/cobertura-departamental/${idDepartamento}`,
       { context: checkToken() }
     );
   }

@@ -12,6 +12,18 @@ export interface ICreateSecretariaRequest {
   prefijoProducto: string;
   estado: 'A';
   idsMunicipio?: number[];
+  idsDepartamento?: number[];
+}
+
+export interface ICoberturaDepartamento {
+  idDepartamento: number;
+  nombreDepartamento: string;
+  estado: string;
+}
+
+export interface ICoberturaDepartamentoRequest {
+  idDepartamento: number;
+  backfillBeneficiarios: boolean;
 }
 
 export interface ICoberturaMunicipio {

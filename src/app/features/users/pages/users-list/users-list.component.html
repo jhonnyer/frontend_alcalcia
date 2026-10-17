@@ -71,64 +71,172 @@
 				</div>
 
 				<div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-					<p class="mb-2 text-sm font-semibold text-slate-700">Agregar municipio a cobertura</p>
-					<div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[1fr_1fr_auto]">
-						<label class="text-xs font-semibold text-slate-600">Departamento
-							<input class="input-base mt-1" type="text" placeholder="Escribe para buscar departamento" list="coverage-departamentos-list" [value]="coverageDepartamentoInput()" (input)="updateCoverageDepartamentoInput($event)" />
-							<datalist id="coverage-departamentos-list">
-								@for (dep of availableDepartamentosForCoverage(); track dep.idDepartamento) {
-									<option [value]="dep.nombre"></option>
-								}
-							</datalist>
-						</label>
-						<label class="text-xs font-semibold text-slate-600">Municipio
-							<input class="input-base mt-1" type="text" placeholder="Escribe para buscar municipio" list="coverage-municipios-list" [value]="coverageMunicipioInput()" (input)="updateCoverageMunicipioInput($event)" [disabled]="coverageDepartamentoFilter() == null" />
-							<datalist id="coverage-municipios-list">
-								@for (municipio of availableMunicipiosForCoverage(); track municipio.idMunicipio) {
-									<option [value]="municipio.nombre"></option>
-								}
-							</datalist>
-						</label>
-						<button type="button" class="btn-action-gray" (click)="clearCoverageFilters()">Limpiar filtros</button>
+					<p class="mb-2 text-sm font-semibold text-slate-700">Agregar cobertura departamental y municipal</p>
+					<div class="mb-2 flex items-center justify-between gap-2">
+						<div class="text-xs font-medium text-slate-500">Selecciona departamento y agrega cobertura territorial.</div>
+						<button type="button" class="btn-action-gray whitespace-nowrap" (click)="clearCoverageFilters()">Limpiar filtros</button>
 					</div>
-					<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-						<div class="text-xs text-slate-600">{{ coverageDepartamentoFilter() == null ? 'Primero selecciona departamento' : 'Selecciona un municipio desde el campo anterior' }}</div>
-						<button type="button" class="btn-action-green" [disabled]="savingCoverage() || !municipioToAssign()" (click)="assignCoverageMunicipio()">
+					<div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+						<div class="coverage-dropdown-departamento relative">
+							<label for="coverage-departamento-search" class="text-xs font-semibold text-slate-600">Departamento</label>
+							<button type="button" class="input-base mt-1 flex w-full items-center justify-between font-normal" (click)="toggleCoverageDepartamentoDropdown()" (keydown)="onCoverageDepartamentoKeydown($event)">
+								<span>{{ coverageDepartamentoInput() || 'Selecciona departamento' }}</span>
+								<mat-icon class="text-base">expand_more</mat-icon>
+							</button>
+							@if (showCoverageDepartamentoDropdown) {
+								<div class="absolute z-30 mt-1 w-full rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+									<input id="coverage-departamento-search" class="input-base mb-2 font-normal" type="text" placeholder="Buscar departamento" aria-label="Buscar departamento" [value]="coverageDepartamentoInput()" (input)="updateCoverageDepartamentoInput($event)" (keydown)="onCoverageDepartamentoKeydown($event)" />
+									<p class="mb-1 px-1 text-xs font-semibold text-slate-500">{{ availableDepartamentosForCoverage().length }} coincidencia(s)</p>
+									<div class="max-h-56 overflow-y-auto overscroll-contain">
+										@if (availableDepartamentosForCoverage().length === 0) {
+											<p class="px-2 py-1 text-xs text-slate-500">Sin coincidencias</p>
+										} @else {
+											@for (dep of availableDepartamentosForCoverage(); track dep.idDepartamento; let i = $index) {
+												<button type="button" class="block w-full rounded px-2 py-1 text-left text-sm hover:bg-blue-50" [ngClass]="i === coverageDepartamentoHighlightIndex() ? 'bg-blue-50' : ''" (mouseenter)="coverageDepartamentoHighlightIndex.set(i)" (click)="selectCoverageDepartamento(dep.idDepartamento, dep.nombre)">
+													@if (getMatchParts(dep.nombre, coverageDepartamentoInput()); as parts) {
+														<span>{{ parts.before }}</span><span class="font-bold text-blue-700">{{ parts.match }}</span><span>{{ parts.after }}</span>
+													}
+												</button>
+											}
+										}
+									</div>
+								</div>
+							}
+						</div>
+						<button type="button" class="btn-action-green w-full md:min-w-[180px] whitespace-nowrap" [disabled]="savingCoverage() || !departamentoToAssign()" (click)="assignCoverageDepartamento()">
+							{{ savingCoverage() ? 'Guardando...' : 'Agregar departamento' }}
+						</button>
+					</div>
+					<div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+						<div class="coverage-dropdown-municipio relative">
+							<label for="coverage-municipio-search" class="text-xs font-semibold text-slate-600">Municipio</label>
+							<button type="button" class="input-base mt-1 flex w-full items-center justify-between font-normal" [disabled]="coverageDepartamentoFilter() == null" (click)="toggleCoverageMunicipioDropdown()" (keydown)="onCoverageMunicipioKeydown($event)">
+								<span>{{ coverageMunicipioInput() || (coverageDepartamentoFilter() == null ? 'Primero selecciona departamento' : 'Selecciona municipio') }}</span>
+								<mat-icon class="text-base">expand_more</mat-icon>
+							</button>
+							@if (showCoverageMunicipioDropdown && coverageDepartamentoFilter() != null) {
+								<div class="absolute z-30 mt-1 w-full rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
+									<input id="coverage-municipio-search" class="input-base mb-2 font-normal" type="text" placeholder="Buscar municipio" aria-label="Buscar municipio" [value]="coverageMunicipioInput()" (input)="updateCoverageMunicipioInput($event)" (keydown)="onCoverageMunicipioKeydown($event)" />
+									<p class="mb-1 px-1 text-xs font-semibold text-slate-500">{{ availableMunicipiosForCoverage().length }} coincidencia(s)</p>
+									<div class="max-h-56 overflow-y-auto overscroll-contain">
+										@if (availableMunicipiosForCoverage().length === 0) {
+											<p class="px-2 py-1 text-xs text-slate-500">Sin coincidencias</p>
+										} @else {
+											@for (municipio of availableMunicipiosForCoverage(); track municipio.idMunicipio; let i = $index) {
+												<button type="button" class="block w-full rounded px-2 py-1 text-left text-sm hover:bg-blue-50" [ngClass]="i === coverageMunicipioHighlightIndex() ? 'bg-blue-50' : ''" (mouseenter)="coverageMunicipioHighlightIndex.set(i)" (click)="selectCoverageMunicipio(municipio.idMunicipio, municipio.nombre)">
+													@if (getMatchParts(municipio.nombre, coverageMunicipioInput()); as parts) {
+														<span>{{ parts.before }}</span><span class="font-bold text-blue-700">{{ parts.match }}</span><span>{{ parts.after }}</span>
+													}
+												</button>
+											}
+										}
+									</div>
+								</div>
+							}
+						</div>
+						<button type="button" class="btn-action-green w-full md:min-w-[180px] whitespace-nowrap" [disabled]="savingCoverage() || !municipioToAssign()" (click)="assignCoverageMunicipio()">
 							{{ savingCoverage() ? 'Guardando...' : 'Agregar cobertura' }}
 						</button>
 					</div>
+					<div class="text-xs text-slate-600">{{ coverageDepartamentoFilter() == null ? 'Primero selecciona departamento' : 'Selecciona un municipio desde el campo anterior' }}</div>
 				</div>
 
-				<div class="mt-4 rounded-lg border border-slate-200">
-					<div class="max-h-72 overflow-auto">
-						<table class="table-compact">
-							<thead>
-								<tr>
-									<th class="px-3 py-2 text-left">Municipio</th>
-									<th class="px-3 py-2 text-center">Estado</th>
-									<th class="px-3 py-2 text-center">Acción</th>
-								</tr>
-							</thead>
-							<tbody>
-								@if (loadingCoverage()) {
-									<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Cargando cobertura...</td></tr>
-								} @else if (coberturaMunicipal().length === 0) {
-									<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Sin cobertura registrada</td></tr>
-								} @else {
-									@for (cobertura of coberturaMunicipal(); track cobertura.idMunicipio) {
-										<tr class="border-t border-slate-100">
-											<td class="px-3 py-2">{{ cobertura.nombreMunicipio }}</td>
-											<td class="px-3 py-2 text-center">
-												<span class="status-badge" [ngClass]="cobertura.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ cobertura.estado === 'A' ? 'Activa' : 'Inactiva' }}</span>
-											</td>
-											<td class="px-3 py-2 text-center">
-												<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50" [disabled]="savingCoverage() || cobertura.estado !== 'A'" (click)="removeCoverageMunicipio(cobertura.idMunicipio)">Quitar</button>
-											</td>
-										</tr>
+				<div class="mt-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+					<div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+						<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Cobertura configurada</p>
+						<div class="flex items-center gap-2 text-xs text-slate-500">
+							<span class="rounded-full bg-slate-100 px-2 py-0.5">Departamentos: {{ coberturaDepartamental().length }}</span>
+							<span class="rounded-full bg-slate-100 px-2 py-0.5">Municipios: {{ coberturaMunicipal().length }}</span>
+						</div>
+					</div>
+
+					<div class="mb-3 grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1">
+						<button
+							type="button"
+							class="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
+							[ngClass]="coverageSelectedTab() === 'departamentos' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-white/70'"
+							(click)="setCoverageTab('departamentos')"
+						>
+							Departamentos
+						</button>
+						<button
+							type="button"
+							class="rounded-md px-3 py-1.5 text-xs font-semibold transition-colors"
+							[ngClass]="coverageSelectedTab() === 'municipios' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-600 hover:bg-white/70'"
+							(click)="setCoverageTab('municipios')"
+						>
+							Municipios
+						</button>
+					</div>
+
+					<div class="max-h-72 overflow-auto rounded-lg border border-slate-100">
+						@if (coverageSelectedTab() === 'departamentos') {
+							<table class="table-compact">
+								<thead class="sticky top-0 bg-slate-50">
+									<tr>
+										<th class="px-3 py-2 text-left">Departamento</th>
+										<th class="px-3 py-2 text-center">Estado</th>
+										<th class="px-3 py-2 text-center">Acción</th>
+									</tr>
+								</thead>
+								<tbody>
+									@if (loadingCoverage()) {
+										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Cargando cobertura departamental...</td></tr>
+									} @else if (coberturaDepartamental().length === 0) {
+										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Sin cobertura departamental registrada</td></tr>
+									} @else {
+										@for (cobertura of coberturaDepartamental(); track cobertura.idDepartamento) {
+											<tr class="border-t border-slate-100">
+												<td class="px-3 py-2">{{ cobertura.nombreDepartamento }}</td>
+												<td class="px-3 py-2 text-center">
+													<span class="status-badge" [ngClass]="cobertura.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ cobertura.estado === 'A' ? 'Activa' : 'Inactiva' }}</span>
+												</td>
+												<td class="px-3 py-2 text-center">
+													@if (cobertura.estado === 'A') {
+														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50" [disabled]="savingCoverage()" (click)="removeCoverageDepartamento(cobertura.idDepartamento)">Quitar</button>
+													} @else {
+														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50" [disabled]="savingCoverage()" (click)="activateCoverageDepartamento(cobertura.idDepartamento)">Activar</button>
+													}
+												</td>
+											</tr>
+										}
 									}
-								}
-							</tbody>
-						</table>
+								</tbody>
+							</table>
+						} @else {
+							<table class="table-compact">
+								<thead class="sticky top-0 bg-slate-50">
+									<tr>
+										<th class="px-3 py-2 text-left">Municipio</th>
+										<th class="px-3 py-2 text-center">Estado</th>
+										<th class="px-3 py-2 text-center">Acción</th>
+									</tr>
+								</thead>
+								<tbody>
+									@if (loadingCoverage()) {
+										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Cargando cobertura municipal...</td></tr>
+									} @else if (coberturaMunicipal().length === 0) {
+										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Sin cobertura municipal registrada</td></tr>
+									} @else {
+										@for (cobertura of coberturaMunicipal(); track cobertura.idMunicipio) {
+											<tr class="border-t border-slate-100">
+												<td class="px-3 py-2">{{ cobertura.nombreMunicipio }}</td>
+												<td class="px-3 py-2 text-center">
+													<span class="status-badge" [ngClass]="cobertura.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ cobertura.estado === 'A' ? 'Activa' : 'Inactiva' }}</span>
+												</td>
+												<td class="px-3 py-2 text-center">
+													@if (cobertura.estado === 'A') {
+														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50" [disabled]="savingCoverage()" (click)="removeCoverageMunicipio(cobertura.idMunicipio)">Quitar</button>
+													} @else {
+														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50" [disabled]="savingCoverage()" (click)="activateCoverageMunicipio(cobertura.idMunicipio)">Activar</button>
+													}
+												</td>
+											</tr>
+										}
+									}
+								</tbody>
+							</table>
+						}
 					</div>
 				</div>
 			</div>

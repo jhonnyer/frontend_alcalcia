@@ -1,25 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { IParametroNegocio } from '../../../../core/models/parametro-negocio.model';
 import { AlertService } from '../../../../core/services/alert.service';
 import { IMunicipio } from '../../../../core/models/municipio.model';
 import { IDepartamento } from '../../../../core/models/departamento.model';
-import { TipoSecretaria } from '../../../../core/models/secretaria.model';
-
-export interface CreateSecretaryAdminInput {
-  primerNombre: string;
-  segundoNombre: string;
-  primerApellido: string;
-  segundoApellido: string;
-  tipoIdentificacion: 'CC' | 'PA' | 'NIT' | 'TI' | 'CE';
-  numeroIdentificacion: string;
-  email: string;
-  telefono: string;
-  usuario: string;
-  password: string;
-}
+import { ICreateSecretariaAdmin, TipoSecretaria } from '../../../../core/models/secretaria.model';
+import { leerLogoInstitucional } from '../logo-institucional';
+import { LogoPreviewComponent } from '../logo-preview.component';
 
 export interface CreateSecretaryModalPayload {
   secretaria: {
@@ -31,14 +20,14 @@ export interface CreateSecretaryModalPayload {
     idsMunicipio?: number[];
     idsDepartamento?: number[];
   };
-  admin: CreateSecretaryAdminInput;
+  admin: ICreateSecretariaAdmin;
   parametros: IParametroNegocio;
 }
 
 @Component({
   selector: 'app-secretary-create-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, LogoPreviewComponent],
   templateUrl: './secretary-create-modal.component.html',
 })
 export class SecretaryCreateModalComponent implements OnChanges {
@@ -52,7 +41,10 @@ export class SecretaryCreateModalComponent implements OnChanges {
 
   private readonly fb = inject(FormBuilder);
   private readonly alert = inject(AlertService);
+  private readonly cdr = inject(ChangeDetectorRef);
   departamentoFiltro: number | null = null;
+  readingLogo = false;
+  private logoReadId = 0;
 
   readonly form = this.fb.group({
     nombre: ['', [Validators.required]],
@@ -79,6 +71,7 @@ export class SecretaryCreateModalComponent implements OnChanges {
     parametroCodigoPostal: [''],
     parametroContactoAlcaldia: [''],
     parametroFirmaActa: [''],
+    logoInstitucional: [''],
   });
 
   @HostListener('document:keydown.escape')
@@ -89,6 +82,8 @@ export class SecretaryCreateModalComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['open']?.currentValue) {
+      this.logoReadId++;
+      this.readingLogo = false;
       this.form.reset({
         nombre: '',
         codigo: '',
@@ -114,6 +109,7 @@ export class SecretaryCreateModalComponent implements OnChanges {
         parametroCodigoPostal: '',
         parametroContactoAlcaldia: '',
         parametroFirmaActa: '',
+        logoInstitucional: '',
       });
       this.departamentoFiltro = null;
     }
@@ -177,11 +173,43 @@ export class SecretaryCreateModalComponent implements OnChanges {
       if (!confirmed) return;
     }
 
+    this.logoReadId++;
+    this.readingLogo = false;
     this.cancel.emit();
   }
 
+  async selectLogo(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || this.loading || this.readingLogo) return;
+    const readId = ++this.logoReadId;
+    this.readingLogo = true;
+    try {
+      const dataUrl = await leerLogoInstitucional(file);
+      if (readId !== this.logoReadId || !this.open) return;
+      this.form.controls.logoInstitucional.setValue(dataUrl);
+      this.form.controls.logoInstitucional.markAsDirty();
+    } catch (error) {
+      if (readId === this.logoReadId && this.open) {
+        this.alert.error('No se pudo cargar el logo', error instanceof Error ? error.message : 'Verifica que la imagen sea válida.');
+      }
+    } finally {
+      if (readId === this.logoReadId) {
+        this.readingLogo = false;
+        this.cdr.markForCheck();
+      }
+    }
+  }
+
+  useDefaultLogo(): void {
+    if (this.loading || this.readingLogo) return;
+    this.form.controls.logoInstitucional.setValue('');
+    this.form.controls.logoInstitucional.markAsDirty();
+  }
+
   onSubmit(): void {
-    if (this.loading) return;
+    if (this.loading || this.readingLogo) return;
     const requiredControls = [
       'nombre',
       'codigo',
@@ -222,7 +250,7 @@ export class SecretaryCreateModalComponent implements OnChanges {
         segundoNombre: String(v.adminSegundoNombre ?? '').trim(),
         primerApellido: String(v.adminPrimerApellido ?? '').trim(),
         segundoApellido: String(v.adminSegundoApellido ?? '').trim(),
-        tipoIdentificacion: (v.adminTipoIdentificacion ?? 'CC') as CreateSecretaryAdminInput['tipoIdentificacion'],
+        tipoIdentificacion: (v.adminTipoIdentificacion ?? 'CC') as ICreateSecretariaAdmin['tipoIdentificacion'],
         numeroIdentificacion: String(v.adminNumeroIdentificacion ?? '').trim(),
         email: String(v.adminEmail ?? '').trim(),
         telefono: String(v.adminTelefono ?? '').trim(),
@@ -238,6 +266,7 @@ export class SecretaryCreateModalComponent implements OnChanges {
         codigoPostal: String(v.parametroCodigoPostal ?? '').trim(),
         contactoAlcaldia: String(v.parametroContactoAlcaldia ?? '').trim(),
         firmaActa: String(v.parametroFirmaActa ?? '').trim(),
+        logoInstitucional: v.logoInstitucional ?? '',
       }
     };
 
@@ -285,7 +314,7 @@ export class SecretaryCreateModalComponent implements OnChanges {
       'parametroCorreoAlcaldia',
     ];
 
-    return required.every(name => this.form.get(name)?.valid === true) && this.coverageIsValid();
+    return !this.readingLogo && required.every(name => this.form.get(name)?.valid === true) && this.coverageIsValid();
   }
 
   coverageIsValid(): boolean {

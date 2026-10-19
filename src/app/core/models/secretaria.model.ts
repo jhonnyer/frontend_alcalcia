@@ -1,4 +1,19 @@
+import { IParametroNegocio } from './parametro-negocio.model';
+
 export type TipoSecretaria = 'M' | 'D';
+
+export interface ICreateSecretariaAdmin {
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  tipoIdentificacion: 'CC' | 'PA' | 'NIT' | 'TI' | 'CE';
+  numeroIdentificacion: string;
+  email: string;
+  telefono: string;
+  usuario: string;
+  password: string;
+}
 
 export interface ISecretaria {
   idSecretaria: number;
@@ -17,6 +32,8 @@ export interface ICreateSecretariaRequest {
   estado: 'A';
   idsMunicipio?: number[];
   idsDepartamento?: number[];
+  parametros: IParametroNegocio;
+  admin: ICreateSecretariaAdmin;
 }
 
 export interface ICoberturaDepartamento {

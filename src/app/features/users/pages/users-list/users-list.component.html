@@ -72,7 +72,7 @@
 	</form>
 
 	<app-secretary-create-modal [open]="secretaryModalOpen()" [loading]="creatingSecretary()" [departamentos]="departamentos()" [municipios]="municipios()" (cancel)="closeSecretaryModal()" (create)="createSecretary($event)"></app-secretary-create-modal>
-	<app-secretary-parameters-modal [open]="parameterModalOpen()" [loading]="loadingParameters()" [saving]="savingParameters()" [secretariaName]="selectedSecretaryForParameters()?.nombre || ''" [parameters]="currentParameters()" (cancel)="closeParameterModal()" (save)="saveSecretaryParameters($event)"></app-secretary-parameters-modal>
+	<app-secretary-parameters-modal [open]="parameterModalOpen()" [loading]="loadingParameters()" [saving]="savingParameters()" [secretariaName]="selectedSecretaryForParameters()?.nombre || ''" [tipoSecretaria]="selectedSecretaryForParameters()?.tipo" [parameters]="currentParameters()" (cancel)="closeParameterModal()" (save)="saveSecretaryParameters($event)"></app-secretary-parameters-modal>
 
 	@if (coverageModalOpen()) {
 		<div class="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-3 sm:p-4">

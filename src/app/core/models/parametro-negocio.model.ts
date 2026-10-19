@@ -9,4 +9,5 @@ export interface IParametroNegocio {
   codigoPostal: string;
   contactoAlcaldia: string;
   firmaActa: string;
+  logoInstitucional?: string;
 }

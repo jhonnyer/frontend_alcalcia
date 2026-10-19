@@ -285,6 +285,7 @@ export class UsersListComponent implements OnInit {
   }
 
   async createSecretary(payload: CreateSecretaryModalPayload): Promise<void> {
+    if (this.creatingSecretary()) return;
     if (!this.isSuperAdmin()) {
       this.alert.warning('Permiso requerido', 'Solo un usuario SuperAdmin puede crear secretarías.');
       return;
@@ -296,117 +297,25 @@ export class UsersListComponent implements OnInit {
       'Crear',
       'Cancelar'
     );
-    if (!confirmed) return;
+    if (!confirmed || this.creatingSecretary()) return;
 
     this.creatingSecretary.set(true);
-    this.secretariaAdminService.create(payload.secretaria).subscribe({
+    this.secretariaAdminService.create({
+      ...payload.secretaria,
+      parametros: payload.parametros,
+      admin: payload.admin,
+    }).subscribe({
       next: secretaria => {
         this.secretarias.update(secretarias => [...secretarias, secretaria]);
-
-        const continueWithAdmin = (parametersSaved: boolean) => this.createOptionalAdminForSecretary(secretaria, payload, parametersSaved);
-
-        if (payload.parametros) {
-          this.trySaveParametersForCreatedSecretary(secretaria, payload.parametros, continueWithAdmin);
-          return;
-        }
-
-        continueWithAdmin(false);
+        this.creatingSecretary.set(false);
+        this.secretaryModalOpen.set(false);
+        this.alert.success('Operación exitosa', 'Secretaría, asignaciones territoriales, parámetros institucionales y administrador creados correctamente.');
+        this.loadData();
       },
       error: error => {
         console.error('Error al crear secretaría:', error);
         this.creatingSecretary.set(false);
         this.alert.error('Operación fallida', error?.error?.mensaje || error?.error || 'No se pudo crear la secretaría');
-      }
-    });
-  }
-
-  private trySaveParametersForCreatedSecretary(
-    secretaria: ISecretaria,
-    parametros: IParametroNegocio,
-    onDone: (parametersSaved: boolean) => void,
-  ): void {
-    const activeId = this.tokenService.getActiveSecretaryId();
-
-    if (activeId !== secretaria.idSecretaria) {
-      this.alert.warning(
-        'Parámetros pendientes',
-        'La secretaría fue creada, pero no se pudieron guardar sus parámetros automáticamente porque la API actual solo permite editar parámetros de la secretaría activa.'
-      );
-      onDone(false);
-      return;
-    }
-
-    const payload: IParametroNegocio = {
-      ...parametros,
-      nombreSecretaria: parametros.nombreSecretaria || secretaria.nombre,
-    };
-
-    this.parametroNegocioService.upsertActive(payload).subscribe({
-      next: () => onDone(true),
-      error: error => {
-        console.error('Error al crear parámetros para la nueva secretaría:', error);
-        this.alert.warning('Creación parcial', 'La secretaría fue creada, pero no fue posible guardar sus parámetros institucionales.');
-        onDone(false);
-      }
-    });
-  }
-
-  private createOptionalAdminForSecretary(secretaria: ISecretaria, payload: CreateSecretaryModalPayload, parametersSaved: boolean): void {
-    if (!payload.admin) {
-      this.creatingSecretary.set(false);
-      this.secretaryModalOpen.set(false);
-      this.alert.success('Operación exitosa', 'Secretaría creada correctamente.');
-      return;
-    }
-
-    const adminPayload: Partial<IResponsable> = {
-      primerNombre: payload.admin.primerNombre,
-      segundoNombre: payload.admin.segundoNombre,
-      primerApellido: payload.admin.primerApellido,
-      segundoApellido: payload.admin.segundoApellido,
-      tipoIdentificacion: payload.admin.tipoIdentificacion,
-      numeroIdentificacion: payload.admin.numeroIdentificacion,
-      area: 'Administración',
-      cargo: 'Administrador',
-      email: payload.admin.email,
-      usuario: payload.admin.usuario,
-      telefono: payload.admin.telefono,
-      estado: 'A',
-      perfilUsuario: 'ADMIN',
-      password: payload.admin.password,
-    };
-
-    this.responsibleService.post(adminPayload).subscribe({
-      next: responsable => {
-        this.secretariaAdminService.assignResponsible(secretaria.idSecretaria, responsable.idResponsable, {
-          rol: 'ADMIN',
-          estado: 'A'
-        }).subscribe({
-          next: () => {
-            this.creatingSecretary.set(false);
-            this.secretaryModalOpen.set(false);
-            if (parametersSaved) {
-              this.alert.success('Operación exitosa', 'Secretaría, parámetros institucionales y usuario administrador creados correctamente.');
-            } else {
-              this.alert.warning('Creación parcial', 'La secretaría y el usuario administrador se crearon, pero los parámetros institucionales quedaron pendientes.');
-            }
-            this.loadData();
-          },
-          error: error => {
-            this.creatingSecretary.set(false);
-            this.secretaryModalOpen.set(false);
-            console.error('Error al asignar administrador a la secretaría:', error);
-            this.alert.warning('Creación parcial', 'La secretaría y el usuario administrador se crearon, pero no fue posible asociar la membresía automáticamente.');
-            this.loadData();
-          }
-        });
-      },
-      error: error => {
-        this.creatingSecretary.set(false);
-        this.secretaryModalOpen.set(false);
-        console.error('Error al crear usuario administrador:', error);
-        this.alert.warning('Creación parcial', 'La secretaría se creó, pero el usuario administrador no pudo registrarse.');
-        this.loadData();
       }
     });
   }

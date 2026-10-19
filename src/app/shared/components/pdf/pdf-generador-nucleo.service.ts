@@ -1,8 +1,10 @@
-import { Injectable } from '@angular/core';
-import { getCachedImageBase64, openPdfWithoutBlocking } from './pdf-export.utils';
+import { Injectable, inject } from '@angular/core';
+import { openPdfWithoutBlocking } from './pdf-export.utils';
+import { InstitucionPdf, PdfInstitucionalService, sectorPdf, sexoPdf, textoPdf } from './pdf-institucional.service';
 
 @Injectable({ providedIn: 'root' })
 export class PdfGeneradorNucleoService {
+  private readonly institucional = inject(PdfInstitucionalService);
 
   private readonly MAX_BENEFICIARIOS = 220;
   private readonly MAX_BENEFICIARIOS_PROYECTO = 220;
@@ -18,8 +20,7 @@ export class PdfGeneradorNucleoService {
   };
 
   async generateNucleoReport(detalle: any) {
-    const logoUrl = '/img/alcaldiaAlmaguer.png';
-    const logo = await this.getBase64ImageFromAssets(logoUrl);
+    const institucion = await this.institucional.cargar();
 
     const fecha = new Date().toLocaleDateString('es-CO', {
       day: '2-digit', month: 'long', year: 'numeric'
@@ -27,13 +28,13 @@ export class PdfGeneradorNucleoService {
 
     const docDefinition: any = {
       pageSize: 'A4',
-      pageMargins: [40, 100, 40, 60], // 🔹 margen superior mayor para el header institucional
-      header: this.encabezado(logo, true),
+      pageMargins: [40, 130, 40, 60],
+      header: this.encabezado(institucion, true),
       footer: (currentPage: number, pageCount: number) => ({
         margin: [40, 10, 40, 0],
         columns: [
           {
-            text: '© Alcaldía Municipal de Almaguer - Departamento del Cauca',
+            text: institucion.pie,
             alignment: 'left',
             fontSize: 8,
             color: '#6b7280'
@@ -83,7 +84,7 @@ export class PdfGeneradorNucleoService {
         this.section('actasAsociadas', 'Actas Asociadas', this.generateActasTables(detalle.actas || [])),
 
         // ===== Sección 5 =====
-        this.section('infoInstitucional', 'Información Institucional', this.generateParametrosTable(detalle.parametros)),
+        this.section('infoInstitucional', 'Información Institucional', this.generateParametrosTable(institucion)),
       ],
 
       styles: {
@@ -179,7 +180,7 @@ export class PdfGeneradorNucleoService {
 
 
   // ======= ENCABEZADO TRANSVERSAL =======
-  private encabezado(logo: string, esHeader: boolean = false) {
+  private encabezado(institucion: InstitucionPdf, esHeader: boolean = false) {
     const fecha = new Date();
     const fechaCompleta = fecha.toLocaleDateString('es-CO', {
       day: '2-digit', month: 'long', year: 'numeric'
@@ -205,8 +206,8 @@ export class PdfGeneradorNucleoService {
               {
                 width: '70%',
                 stack: [
-                  { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
-                  { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
+                  { text: institucion.nombre, bold: true, fontSize: 14, color: '#1E3A8A' },
+                  { text: institucion.subtitulo, fontSize: 10, color: '#374151' },
                   { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
                 ],
                 alignment: 'left'
@@ -214,7 +215,7 @@ export class PdfGeneradorNucleoService {
               {
                 width: '30%',
                 stack: [
-                  { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
+                  { image: institucion.logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
                 ]
               }
             ],
@@ -236,10 +237,10 @@ export class PdfGeneradorNucleoService {
       table: {
         widths: ['30%', '70%'],
         body: [
-          ['Nombre del Actor Social:', detalle.nombreNucleo || '—'],
-          ['Dirección:', detalle.direccion || '—'],
-          ['Zona:', detalle.nombreZona || '—'],
-          ['Barrio / Vereda:', detalle.nombreBarrio || '—'],
+          ['Nombre del Actor Social:', textoPdf(detalle.nombreNucleo)],
+          ['Dirección:', textoPdf(detalle.direccion)],
+          ['Zona:', textoPdf(detalle.nombreZona)],
+          [`${sectorPdf(detalle.ubicacion)}:`, textoPdf(detalle.nombreBarrio)],
           ['Número de Integrantes:', detalle.numeroIntegrantes ?? '—'],
         ]
       },
@@ -268,16 +269,16 @@ export class PdfGeneradorNucleoService {
                 { text: 'Nombre', style: 'tableHeader' },
                 { text: 'Documento', style: 'tableHeader' },
                 { text: 'Edad', style: 'tableHeader' },
-                { text: 'Genero', style: 'tableHeader' },
+                { text: 'Sexo', style: 'tableHeader' },
                 { text: 'Vivo', style: 'tableHeader' },
                 { text: 'Discapacidad', style: 'tableHeader' },
-                { text: 'Victima conflicto', style: 'tableHeader' },
+                { text: 'Víctima del conflicto', style: 'tableHeader' },
               ],
               ...beneficiariosLimitados.items.map(b => [
-                `${b.primerNombre} ${b.primerApellido}`,
+                textoPdf([b.primerNombre, b.segundoNombre, b.primerApellido, b.segundoApellido].filter(Boolean).join(' ')),
                 b.numeroDocumento,
                 b.edad,
-                (b.genero ?? '—').toString().toUpperCase(),
+                sexoPdf(b.sexo),
                 b.esVivo ? 'Sí' : 'No',
                 b.discapacidad ? 'Sí' : 'No',
                 b.victimaConflicto ? 'Sí' : 'No'
@@ -323,7 +324,7 @@ export class PdfGeneradorNucleoService {
                 { text: 'Asignación Proyecto', style: 'tableHeader' },
               ],
               ...beneficiariosProyectoLimitados.items.map(bp => [
-                bp.nombreCompleto,
+                textoPdf(bp.nombreCompleto),
                 bp.nombreProyecto,
                 bp.estadoProyecto,
                 bp.esBeneficiarioActivo ? 'Sí' : 'No'
@@ -528,7 +529,8 @@ export class PdfGeneradorNucleoService {
   // =====================================
   // SECCIÓN: Parámetros institucionales
   // =====================================
-  private generateParametrosTable(parametros: any) {
+  private generateParametrosTable(institucion: InstitucionPdf) {
+    const parametros = institucion.parametros;
     if (!parametros) {
       return { text: 'Sin información institucional.', italics: true };
     }
@@ -538,32 +540,32 @@ export class PdfGeneradorNucleoService {
         widths: ['35%', '65%'],
         body: [
           [
-            { text: 'Nombre de la Alcaldía:', style: 'tableHeader' },
-            parametros.nombreAlcaldia || '—'
+            { text: `Nombre de la ${institucion.entidad}:`, style: 'tableHeader' },
+            textoPdf(parametros.nombreAlcaldia)
           ],
           [
-            { text: 'Nombre del Alcalde:', style: 'tableHeader' },
-            parametros.nombreAlcalde || '—'
+            { text: `Nombre del ${institucion.autoridad}:`, style: 'tableHeader' },
+            textoPdf(parametros.nombreAlcalde)
           ],
           [
             { text: 'Nombre de la Secretaría:', style: 'tableHeader' },
-            parametros.nombreSecretaria || '—'
+            textoPdf(parametros.nombreSecretaria)
           ],
           [
             { text: 'Correo institucional:', style: 'tableHeader' },
-            parametros.correoAlcaldia || '—'
+            textoPdf(parametros.correoAlcaldia)
           ],
           [
-            { text: 'Dirección de la Alcaldía:', style: 'tableHeader' },
-            parametros.direccionAlcaldia || '—'
+            { text: `Dirección de la ${institucion.entidad}:`, style: 'tableHeader' },
+            textoPdf(parametros.direccionAlcaldia)
           ],
           [
             { text: 'Teléfono de contacto:', style: 'tableHeader' },
-            parametros.contactoAlcaldia || '—'
+            textoPdf(parametros.contactoAlcaldia)
           ],
           [
             { text: 'Código Postal:', style: 'tableHeader' },
-            parametros.codigoPostal || '—'
+            textoPdf(parametros.codigoPostal)
           ]
         ],
       },
@@ -574,11 +576,5 @@ export class PdfGeneradorNucleoService {
         hLineColor: () => '#E0E0E0',
       },
     };
-  }
-   // ============================
-  // 🔹 Convierte una imagen local a Base64
-  // ============================
-  private async getBase64ImageFromAssets(imagePath: string): Promise<string> {
-    return getCachedImageBase64(imagePath);
   }
 }

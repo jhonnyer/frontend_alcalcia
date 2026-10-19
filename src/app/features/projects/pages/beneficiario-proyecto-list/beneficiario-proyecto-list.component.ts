@@ -15,6 +15,8 @@ import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProye
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PdfBeneficiariosProyectoService } from '../../../../shared/components/pdf/pdf-beneficiarios-proyecto.service';
+import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
+import { AlertService } from '../../../../core/services/alert.service';
 import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 
 
@@ -43,6 +45,7 @@ export class BeneficiarioProyectoListComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
   private pdfService = inject(PdfBeneficiariosProyectoService);
+  private alert = inject(AlertService);
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private pageRequest?: Subscription;
   ngOnDestroy(): void {
@@ -285,6 +288,7 @@ export class BeneficiarioProyectoListComponent implements OnInit, OnDestroy {
       await this.pdfService.generarReporte(datosExportar);
     } catch (error) {
       console.error('Error al exportar beneficiarios por proyecto:', error);
+      this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
     } finally {
       this.isExportingPdf = false;
     }

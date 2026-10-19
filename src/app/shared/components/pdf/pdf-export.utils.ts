@@ -1,30 +1,22 @@
+import { HttpErrorResponse } from '@angular/common/http';
+
+export function pdfErrorMessage(error: unknown): string {
+  if (error instanceof HttpErrorResponse) {
+    const body: unknown = error.error;
+    if (body && typeof body === 'object') {
+      if ('mensaje' in body && typeof body.mensaje === 'string') return body.mensaje;
+      if ('detail' in body && typeof body.detail === 'string') return body.detail;
+      if ('message' in body && typeof body.message === 'string') return body.message;
+    }
+    return 'No se pudo consultar la información institucional. Revisa la conexión y la configuración de la secretaría.';
+  }
+  return error instanceof Error ? error.message : 'No se pudo generar el PDF. Inténtalo nuevamente.';
+}
+
 const DEFAULT_TIMEOUT_MS = 120000;
 const BLOB_URL_TTL_MS = 120000;
 const TOKEN_PAGE = '__PDF_PAGE__';
 const TOKEN_PAGES = '__PDF_PAGES__';
-
-// ---------- Logo / imágenes en caché ----------
-const imageCache = new Map<string, Promise<string>>();
-
-export function getCachedImageBase64(url: string): Promise<string> {
-  let cached = imageCache.get(url);
-  if (!cached) {
-    cached = fetch(url)
-      .then((r) => r.blob())
-      .then(
-        (blob) =>
-          new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          })
-      );
-    cached.catch(() => imageCache.delete(url));
-    imageCache.set(url, cached);
-  }
-  return cached;
-}
 
 // ---------- pdfmake en el hilo principal (fallback, carga diferida) ----------
 let pdfMakePromise: Promise<any> | null = null;

@@ -1,15 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { IBeneficiarioProyecto } from '../../../core/models/beneficiarioProyecto.model';
-import { getCachedImageBase64, openPdfWithoutBlocking } from './pdf-export.utils';
+import { openPdfWithoutBlocking } from './pdf-export.utils';
+import { InstitucionPdf, PdfInstitucionalService, textoPdf } from './pdf-institucional.service';
 
 @Injectable({ providedIn: 'root' })
 export class PdfBeneficiariosProyectoService {
+  private readonly institucional = inject(PdfInstitucionalService);
 
   private readonly MAX_BENEFICIARIOS_POR_BLOQUE = 220;
 
   async generarReporte(data: IBeneficiarioProyecto[]) {
-    const logoUrl = '/img/alcaldiaAlmaguer.png';
-    const logo = await this.getBase64ImageFromAssets(logoUrl);
+    const institucion = await this.institucional.cargar();
 
     if (!data?.length) {
       await openPdfWithoutBlocking({
@@ -69,9 +70,9 @@ export class PdfBeneficiariosProyectoService {
                   ],
                   ...listaLimitada.items.map((b, i) => [
                     i + 1,
-                    b.nombreCompleto || '—',
-                    b.edadBeneficiario || '—',
-                    b.numDocumentoBeneficiario || '—',
+                    textoPdf(b.nombreCompleto),
+                    b.edadBeneficiario ?? '—',
+                    textoPdf(b.numDocumentoBeneficiario),
                     b.esBeneficiarioActivo ? 'Activo' : 'Inactivo',
                     b.nombreNucleo || '—',
                     b.nombreBarrio || '—',
@@ -142,13 +143,13 @@ export class PdfBeneficiariosProyectoService {
 
     const docDefinition: any = {
       pageSize: 'A4',
-      pageMargins: [40, 100, 40, 60],
-      header: this.encabezado(logo, true), // 👈 encabezado transversal
+      pageMargins: [40, 130, 40, 60],
+      header: this.encabezado(institucion, true),
       footer: (currentPage: number, pageCount: number) => ({
         margin: [40, 10, 40, 0],
         columns: [
           {
-            text: '© Alcaldía Municipal de Almaguer - Departamento del Cauca',
+            text: institucion.pie,
             alignment: 'left',
             fontSize: 8,
             color: '#6b7280'
@@ -257,7 +258,7 @@ export class PdfBeneficiariosProyectoService {
   }
 
   // ======= ENCABEZADO INSTITUCIONAL TRANSVERSAL =======
-  private encabezado(logo: string, esHeader: boolean = false) {
+  private encabezado(institucion: InstitucionPdf, esHeader: boolean = false) {
     const fecha = new Date();
     const fechaCompleta = fecha.toLocaleDateString('es-CO', {
       day: '2-digit', month: 'long', year: 'numeric'
@@ -281,8 +282,8 @@ export class PdfBeneficiariosProyectoService {
               {
                 width: '70%',
                 stack: [
-                  { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
-                  { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
+                  { text: institucion.nombre, bold: true, fontSize: 14, color: '#1E3A8A' },
+                  { text: institucion.subtitulo, fontSize: 10, color: '#374151' },
                   { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
                 ],
                 alignment: 'left'
@@ -290,7 +291,7 @@ export class PdfBeneficiariosProyectoService {
               {
                 width: '30%',
                 stack: [
-                  { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
+                  { image: institucion.logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
                 ]
               }
             ],
@@ -305,8 +306,4 @@ export class PdfBeneficiariosProyectoService {
   }
 
 
-  // ======= Convertir logo a Base64 =======
-  private async getBase64ImageFromAssets(imagePath: string): Promise<string> {
-    return getCachedImageBase64(imagePath);
-  }
 }

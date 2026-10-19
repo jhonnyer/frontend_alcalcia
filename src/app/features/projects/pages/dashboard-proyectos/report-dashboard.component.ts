@@ -21,6 +21,7 @@ import { hasChartData, hasDashboardData } from '../../../../core/models/reporte-
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
+import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -774,6 +775,7 @@ export class ReportDashboardComponent implements OnInit {
       await this.pdfService.generateDashboardReport(d, periodo, { lightweight: true });
     } catch (error) {
       console.error('Error al exportar PDF:', error);
+      this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
     } finally {
       this.isLoadingPDF = false;
     }

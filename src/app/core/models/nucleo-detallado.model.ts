@@ -5,6 +5,7 @@ export interface NucleoDetallado {
   nombreNucleo: string;
   direccion: string;
   nombreZona: string;
+  ubicacion?: string | null;
   nombreBarrio: string;
   numeroIntegrantes: number;
   beneficiariosNucleo: Beneficiario[];

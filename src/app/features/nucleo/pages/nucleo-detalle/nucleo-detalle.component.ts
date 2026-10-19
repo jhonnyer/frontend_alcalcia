@@ -12,6 +12,8 @@ import { FilterBeneficiarioPipe } from '../../../../shared/components/pipe/filte
 import { FilterActaEstadoPipe } from '../../../../shared/components/pipe/filterActaEstado.pipe';
 import { FormsModule } from '@angular/forms';
 import { PdfGeneradorNucleoService } from '../../../../shared/components/pdf/pdf-generador-nucleo.service';
+import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
+import { AlertService } from '../../../../core/services/alert.service';
 
 type NucleoDetalleTab = 'resumen' | 'beneficiarios' | 'proyectos' | 'actas';
 
@@ -36,6 +38,7 @@ export class NucleoDetalleComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private nucleoService = inject(NucleoService);
   private pdfService = inject(PdfGeneradorNucleoService);
+  private alert = inject(AlertService);
   private router = inject(Router);
   filtroBeneficiario = '';
   filtroEstado = '';
@@ -282,6 +285,7 @@ export class NucleoDetalleComponent implements OnInit {
       await this.pdfService.generateNucleoReport(this.detalle);
     } catch (error) {
       console.error('Error al exportar PDF:', error);
+      this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
     } finally {
       this.loadingPdf = false;
     }

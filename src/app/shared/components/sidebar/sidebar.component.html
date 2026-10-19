@@ -19,15 +19,35 @@
   <div
     class="sticky top-0 z-10 border-b border-white/20 
           flex items-center justify-between 
-          px-4 py-3 bg-gradient-to-br from-gray-800 to-gray-900"
+          px-14 xl:px-4 py-3 bg-gradient-to-br from-gray-800 to-gray-900"
   >
-    <h6 class="text-white font-semibold text-sm tracking-wide truncate">
-      Alcaldía de Almaguer
-    </h6>
+    <div class="min-w-0 flex-1 text-center">
+      <a [routerLink]="isSuperAdmin ? '/users' : '/home'"
+         class="block rounded-md text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+         [attr.title]="institutionName() + ' — Ir al inicio'"
+         [attr.aria-label]="institutionName() + ' — Ir al inicio'">
+        @if (collapsed) {
+          <mat-icon class="block mx-auto" aria-hidden="true">home</mat-icon>
+        } @else {
+          <span class="block text-xs font-semibold leading-relaxed [overflow-wrap:anywhere]">{{ institutionName() }}</span>
+        }
+      </a>
+      @if (institutionError()) {
+        <button type="button" (click)="retryInstitution()"
+                class="mt-1 text-xs text-amber-200 underline"
+                [attr.title]="institutionError()" [attr.aria-label]="institutionError() + ' Reintentar'">
+          @if (collapsed) {
+            <mat-icon aria-hidden="true">refresh</mat-icon>
+          } @else {
+            {{ institutionError() }} Reintentar
+          }
+        </button>
+      }
+    </div>
 
     <!-- Cerrar en móvil -->
     <button
-      class="xl:hidden p-2 text-white/90 hover:bg-white/10 rounded-lg"
+      class="absolute right-4 top-1/2 -translate-y-1/2 xl:hidden p-2 text-white/90 hover:bg-white/10 rounded-lg"
       type="button"
       (click)="close()"
       aria-label="Cerrar menú"

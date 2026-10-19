@@ -1,9 +1,11 @@
-import { Injectable } from '@angular/core';
-import { getCachedImageBase64, openPdfWithoutBlocking } from './pdf-export.utils';
+import { Injectable, inject } from '@angular/core';
+import { openPdfWithoutBlocking } from './pdf-export.utils';
+import { InstitucionPdf, PdfInstitucionalService, sexoPdf, textoPdf } from './pdf-institucional.service';
 
 
 @Injectable({ providedIn: 'root' })
 export class PdfGeneradorDashboardService {
+  private readonly institucional = inject(PdfInstitucionalService);
 
   private readonly estadoActaLabels: Record<string, string> = {
     P: 'Pendiente',
@@ -19,17 +21,16 @@ export class PdfGeneradorDashboardService {
     options?: { lightweight?: boolean }
   ) {
     const lightweight = options?.lightweight ?? false;
-    const logoUrl = '/img/alcaldiaAlmaguer.png';
-    const logo = await this.getBase64ImageFromAssets(logoUrl);
+    const institucion = await this.institucional.cargar();
 
     const docDefinition: any = {
       // 🟦 Encabezado institucional transversal
-      header: this.encabezado(logo, true),
+      header: this.encabezado(institucion, true),
 
       footer: (currentPage: number, pageCount: number) => ({
         columns: [
           {
-            text: '© Alcaldía de Almaguer',
+            text: institucion.pie,
             alignment: 'left',
             fontSize: 8,
             margin: [40, 0, 0, 0],
@@ -155,7 +156,7 @@ export class PdfGeneradorDashboardService {
             ]),
 
         { text: 'Información Institucional', style: 'subheader', tocItem: true, id: 'Información Institucional' },
-        this.generateParametrosTable(data.parametros),
+        this.generateParametrosTable(institucion),
       ],
 
       styles: {
@@ -216,7 +217,7 @@ export class PdfGeneradorDashboardService {
         },
       },
       defaultStyle: { fontSize: 10 },
-      pageMargins: [40, 100, 40, 60],
+      pageMargins: [40, 130, 40, 60],
     };
 
     this.normalizarTablas(docDefinition.content);
@@ -258,7 +259,7 @@ export class PdfGeneradorDashboardService {
   }
 
   // ======= ENCABEZADO CENTRADO INSTITUCIONAL (repetible) =======
-  private encabezado(logo: string, esHeader: boolean = false) {
+  private encabezado(institucion: InstitucionPdf, esHeader: boolean = false) {
     const fecha = new Date();
     const fechaCompleta = fecha.toLocaleDateString('es-CO', {
       day: '2-digit', month: 'long', year: 'numeric'
@@ -286,8 +287,8 @@ export class PdfGeneradorDashboardService {
               {
                 width: '70%',
                 stack: [
-                  { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
-                  { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
+                  { text: institucion.nombre, bold: true, fontSize: 14, color: '#1E3A8A' },
+                  { text: institucion.subtitulo, fontSize: 10, color: '#374151' },
                   { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
                 ],
                 alignment: 'left'
@@ -295,7 +296,7 @@ export class PdfGeneradorDashboardService {
               {
                 width: '30%',
                 stack: [
-                  { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
+                  { image: institucion.logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
                 ]
               }
             ],
@@ -320,8 +321,8 @@ export class PdfGeneradorDashboardService {
             {
               width: '70%',
               stack: [
-                { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
-                { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
+                { text: institucion.nombre, bold: true, fontSize: 14, color: '#1E3A8A' },
+                { text: institucion.subtitulo, fontSize: 10, color: '#374151' },
                 { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
               ],
               alignment: 'left'
@@ -329,7 +330,7 @@ export class PdfGeneradorDashboardService {
             {
               width: '30%',
               stack: [
-                { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
+                { image: institucion.logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
               ]
             }
           ],
@@ -504,9 +505,9 @@ export class PdfGeneradorDashboardService {
                 { text: 'Víctima', style: 'tableHeader' },
               ],
               ...p.beneficiarios.map((b: any) => [
-                b.nombreCompleto,
-                `${b.tipoDocumento ?? ''} ${b.documento ?? ''}`,
-                b.sexo ?? '—',
+                textoPdf(b.nombreCompleto),
+                textoPdf(`${b.tipoDocumento ?? ''} ${b.documento ?? ''}`),
+                sexoPdf(b.sexo),
                 b.zona ?? '—',
                 b.barrio ?? '—',
                 b.nombreNucleo ?? '—',
@@ -917,9 +918,9 @@ export class PdfGeneradorDashboardService {
             { text: 'Víctima', style: 'tableHeader' },
           ],
           ...list.map(b => [
-            b.nombreCompleto,
-            `${b.tipoDocumento} ${b.documento}`,
-            b.sexo,
+            textoPdf(b.nombreCompleto),
+            textoPdf(`${b.tipoDocumento ?? ''} ${b.documento ?? ''}`),
+            sexoPdf(b.sexo),
             b.barrio || '—',
             b.nombreNucleo || '—',
             b.discapacidad ? 'Sí' : 'No',
@@ -933,17 +934,11 @@ export class PdfGeneradorDashboardService {
     };
   }
 
-    // ============================
-  // 🔹 Convierte una imagen local a Base64
-  // ============================
-  private async getBase64ImageFromAssets(imagePath: string): Promise<string> {
-    return getCachedImageBase64(imagePath);
-  }
-
   // =====================================
   // SECCIÓN: Parámetros institucionales
   // =====================================
-  private generateParametrosTable(parametros: any) {
+  private generateParametrosTable(institucion: InstitucionPdf) {
+    const parametros = institucion.parametros;
     if (!parametros) {
       return { text: 'Sin información institucional.', italics: true };
     }
@@ -953,32 +948,32 @@ export class PdfGeneradorDashboardService {
         widths: ['35%', '65%'],
         body: [
           [
-            { text: 'Nombre de la Alcaldía:', style: 'tableHeader' },
-            parametros.nombreAlcaldia || '—'
+            { text: `Nombre de la ${institucion.entidad}:`, style: 'tableHeader' },
+            textoPdf(parametros.nombreAlcaldia)
           ],
           [
-            { text: 'Nombre del Alcalde:', style: 'tableHeader' },
-            parametros.nombreAlcalde || '—'
+            { text: `Nombre del ${institucion.autoridad}:`, style: 'tableHeader' },
+            textoPdf(parametros.nombreAlcalde)
           ],
           [
             { text: 'Nombre de la Secretaría:', style: 'tableHeader' },
-            parametros.nombreSecretaria || '—'
+            textoPdf(parametros.nombreSecretaria)
           ],
           [
             { text: 'Correo institucional:', style: 'tableHeader' },
-            parametros.correoAlcaldia || '—'
+            textoPdf(parametros.correoAlcaldia)
           ],
           [
-            { text: 'Dirección de la Alcaldía:', style: 'tableHeader' },
-            parametros.direccionAlcaldia || '—'
+            { text: `Dirección de la ${institucion.entidad}:`, style: 'tableHeader' },
+            textoPdf(parametros.direccionAlcaldia)
           ],
           [
             { text: 'Teléfono de contacto:', style: 'tableHeader' },
-            parametros.contactoAlcaldia || '—'
+            textoPdf(parametros.contactoAlcaldia)
           ],
           [
             { text: 'Código Postal:', style: 'tableHeader' },
-            parametros.codigoPostal || '—'
+            textoPdf(parametros.codigoPostal)
           ]
         ],
       },

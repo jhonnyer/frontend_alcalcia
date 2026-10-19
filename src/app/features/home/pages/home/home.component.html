@@ -84,10 +84,10 @@
         >
           <div class="report-group-title report-group-title-filtered">
             <mat-icon class="report-group-icon report-group-icon-filtered">date_range</mat-icon>
-            <div class="report-group-heading">
+            <button type="button" class="report-group-heading report-group-toggle" (click)="reportPeriodOpen = !reportPeriodOpen" [attr.aria-expanded]="reportPeriodOpen">
               <h3>Reportes por período</h3>
               <p>El período filtra actas, proyectos, productos y relaciones con fecha operativa.</p>
-            </div>
+            </button>
             @if (reportPeriodOpen) {
             <div class="report-period-controls">
               <label class="report-period-field">

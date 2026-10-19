@@ -13,6 +13,7 @@ import * as XLSX from 'xlsx';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { ReportesService, ReporteFiltroRequest } from '../../../../core/services/reportes.service';
 import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
+import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -727,7 +728,7 @@ export class HomeComponent implements OnInit{
       this.pdfDashboard.generateDashboardReport(d, this.getReportFilterLabel(), { lightweight: true })
         .catch((err) => {
           console.error('Error al abrir el PDF:', err);
-          this.alert.warning('Descarga lenta', 'La generación del PDF tardó más de lo esperado. Inténtalo de nuevo.');
+          this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(err));
         })
         .finally(() => this.isLoadingPDF = false);
     }, error => {

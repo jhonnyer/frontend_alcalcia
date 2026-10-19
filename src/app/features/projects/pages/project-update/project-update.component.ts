@@ -25,6 +25,7 @@ import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-
 import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
 import { IProductoFk } from '../../../../core/models/products.model';
 import { PdfGeneradorProyectoService } from '../../../../shared/components/pdf/pdf-proyectos.service';
+import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 import { AlertService } from '../../../../core/services/alert.service';
 import { timeout } from 'rxjs';
 
@@ -586,7 +587,7 @@ export class ProjectUpdateComponent implements OnInit {
           await this.pdfService.generateProjectReport(respuesta);
         } catch (error) {
           console.error('Error al abrir PDF:', error);
-          this.alert.warning('Descarga lenta', 'La generación del PDF tardó más de lo esperado. Inténtalo de nuevo.');
+          this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
         } finally {
           this.loadingPdf = false;
         }

@@ -1,25 +1,14 @@
-import { ChangeDetectorRef, Component, Injectable, Input, OnChanges, OnDestroy, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, inject } from '@angular/core';
 import { AlertService } from '../../../core/services/alert.service';
-import { HttpClient } from '@angular/common/http';
-import { Observable, Subscription, shareReplay, timeout } from 'rxjs';
-import { environment } from '../../../../environments/environment';
-import { checkToken } from '../../../core/interceptors/token-interceptor.interceptor';
-
-@Injectable({ providedIn: 'root' })
-class DefaultLogoCache {
-  private readonly http = inject(HttpClient);
-  readonly image$: Observable<Blob> = this.http.get(
-    `${environment.URL_API}/parametros-negocio/logo-predeterminado`,
-    { context: checkToken(), responseType: 'blob' },
-  ).pipe(timeout(45000), shareReplay({ bufferSize: 1, refCount: false }));
-}
+import { Subscription } from 'rxjs';
+import { DefaultLogoCache } from '../../../core/services/default-logo.service';
 
 @Component({
   selector: 'app-logo-preview',
   standalone: true,
   template: `
     @if (!logo) {
-      <p class="mt-2 text-xs text-slate-500">Logo predeterminado del acta PDF</p>
+      <p class="mt-2 text-xs text-slate-500">Logo institucional predeterminado</p>
     }
     @if (loading) {
       <p class="my-3 text-xs text-slate-500" role="status">Cargando logo predeterminado...</p>
@@ -32,7 +21,7 @@ class DefaultLogoCache {
     }
     @if (downloadUrl) {
       <div class="my-3 rounded-lg border border-slate-200 bg-white p-3">
-        <img class="h-24 max-w-full object-contain" [src]="downloadUrl" alt="Logo seleccionado para el acta PDF" (error)="onImageError()" />
+        <img class="h-24 max-w-full object-contain" [src]="downloadUrl" alt="Logo institucional seleccionado" (error)="onImageError()" />
         <div class="mt-2 flex flex-wrap items-start gap-3">
           <a class="rounded-md text-xs font-semibold text-blue-700 underline hover:text-blue-900"
              [href]="downloadUrl" [download]="fileName">Descargar logo</a>

@@ -1,8 +1,10 @@
-import { Injectable } from '@angular/core';
-import { getCachedImageBase64, openPdfWithoutBlocking } from './pdf-export.utils';
+import { Injectable, inject } from '@angular/core';
+import { openPdfWithoutBlocking } from './pdf-export.utils';
+import { InstitucionPdf, PdfInstitucionalService, textoPdf } from './pdf-institucional.service';
 
 @Injectable({ providedIn: 'root' })
 export class PdfGeneradorProyectoService {
+  private readonly institucional = inject(PdfInstitucionalService);
 
   private readonly MAX_PRODUCTOS_POR_CATEGORIA = 120;
   private readonly MAX_BENEFICIARIOS_POR_ESTADO = 180;
@@ -23,9 +25,7 @@ export class PdfGeneradorProyectoService {
     const categorias = data.categorias || [];
     const beneficiarios = data.beneficiarios || [];
     const actas = data.actas || [];
-    const parametros = data.parametros || {};
-    const logoUrl = '/img/alcaldiaAlmaguer.png';
-    const logo = await this.getBase64ImageFromAssets(logoUrl);
+    const institucion = await this.institucional.cargar();
 
     // === IDs para navegación TOC ===
     const idProyecto = (proyecto?.nombre || 'Proyecto')
@@ -36,13 +36,13 @@ export class PdfGeneradorProyectoService {
 
     const docDefinition: any = {
       pageSize: 'A4',
-      pageMargins: [40, 100, 40, 60],
-      header: this.encabezado(logo, true),
+      pageMargins: [40, 130, 40, 60],
+      header: this.encabezado(institucion, true),
       footer: (currentPage: number, pageCount: number) => ({
         margin: [40, 10, 40, 0],
         columns: [
           {
-            text: '© Alcaldía Municipal de Almaguer - Departamento del Cauca',
+            text: institucion.pie,
             alignment: 'left',
             fontSize: 8,
             color: '#6b7280'
@@ -89,7 +89,7 @@ export class PdfGeneradorProyectoService {
         { text: '', margin: [0, 5, 0, 5] },
 
         { text: '🏛️ Información Institucional', style: 'subheader', tocItem: true, id: `${idProyecto}_institucional` },
-        this.generateParametrosTable(parametros),
+        this.generateParametrosTable(institucion),
       ],
 
       styles: {
@@ -138,7 +138,7 @@ export class PdfGeneradorProyectoService {
   }
 
   // === Encabezado institucional transversal ===
-  private encabezado(logo: string, esHeader: boolean = false) {
+  private encabezado(institucion: InstitucionPdf, esHeader: boolean = false) {
     const fecha = new Date();
     const fechaCompleta = fecha.toLocaleDateString('es-CO', {
       day: '2-digit', month: 'long', year: 'numeric'
@@ -162,8 +162,8 @@ export class PdfGeneradorProyectoService {
               {
                 width: '70%',
                 stack: [
-                  { text: 'ALCALDÍA MUNICIPAL DE ALMAGUER', bold: true, fontSize: 14, color: '#1E3A8A' },
-                  { text: 'Departamento del Cauca - República de Colombia', fontSize: 10, color: '#374151' },
+                  { text: institucion.nombre, bold: true, fontSize: 14, color: '#1E3A8A' },
+                  { text: institucion.subtitulo, fontSize: 10, color: '#374151' },
                   { text: `Generado el ${fechaCompleta}, ${hora}`, fontSize: 9, italics: true, color: '#6b7280', margin: [0, 3, 0, 0] }
                 ],
                 alignment: 'left'
@@ -171,7 +171,7 @@ export class PdfGeneradorProyectoService {
               {
                 width: '30%',
                 stack: [
-                  { image: logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
+                  { image: institucion.logo, fit: [70, 70], alignment: 'right', margin: [0, -5, 0, 0] }
                 ]
               }
             ],
@@ -202,7 +202,7 @@ export class PdfGeneradorProyectoService {
           ],
           [
             { text: 'Tipo de Proyecto:', bold: true, fillColor: '#f3f4f6' },
-            { text: proyecto.tipoProyecto === 'M' ? 'Municipal' : 'Departamental' },
+            { text: proyecto.tipoProyecto === 'M' ? 'Municipal' : proyecto.tipoProyecto === 'D' ? 'Departamental' : '—' },
           ],
           [
             { text: 'Estado:', bold: true, fillColor: '#ffffff' },
@@ -334,7 +334,7 @@ export class PdfGeneradorProyectoService {
                   { text: 'Fecha Inicio', style: 'tableHeader' },
                 ],
                 ...listaLimitada.items.map((b: any) => [
-                  b.nombreCompleto,
+                  textoPdf(b.nombreCompleto),
                   b.numDocumentoBeneficiario,
                   b.esBeneficiarioActivo ? 'Activo' : 'Inactivo',
                   b.fechaInicio || '-',
@@ -547,7 +547,8 @@ export class PdfGeneradorProyectoService {
   // =====================================
   // SECCIÓN: Parámetros institucionales
   // =====================================
-  private generateParametrosTable(parametros: any) {
+  private generateParametrosTable(institucion: InstitucionPdf) {
+    const parametros = institucion.parametros;
     if (!parametros) {
       return { text: 'Sin información institucional.', italics: true };
     }
@@ -557,32 +558,32 @@ export class PdfGeneradorProyectoService {
         widths: ['35%', '65%'],
         body: [
           [
-            { text: 'Nombre de la Alcaldía:', style: 'tableHeader' },
-            parametros.nombreAlcaldia || '—'
+            { text: `Nombre de la ${institucion.entidad}:`, style: 'tableHeader' },
+            textoPdf(parametros.nombreAlcaldia)
           ],
           [
-            { text: 'Nombre del Alcalde:', style: 'tableHeader' },
-            parametros.nombreAlcalde || '—'
+            { text: `Nombre del ${institucion.autoridad}:`, style: 'tableHeader' },
+            textoPdf(parametros.nombreAlcalde)
           ],
           [
             { text: 'Nombre de la Secretaría:', style: 'tableHeader' },
-            parametros.nombreSecretaria || '—'
+            textoPdf(parametros.nombreSecretaria)
           ],
           [
             { text: 'Correo institucional:', style: 'tableHeader' },
-            parametros.correoAlcaldia || '—'
+            textoPdf(parametros.correoAlcaldia)
           ],
           [
-            { text: 'Dirección de la Alcaldía:', style: 'tableHeader' },
-            parametros.direccionAlcaldia || '—'
+            { text: `Dirección de la ${institucion.entidad}:`, style: 'tableHeader' },
+            textoPdf(parametros.direccionAlcaldia)
           ],
           [
             { text: 'Teléfono de contacto:', style: 'tableHeader' },
-            parametros.contactoAlcaldia || '—'
+            textoPdf(parametros.contactoAlcaldia)
           ],
           [
             { text: 'Código Postal:', style: 'tableHeader' },
-            parametros.codigoPostal || '—'
+            textoPdf(parametros.codigoPostal)
           ]
         ],
       },
@@ -595,10 +596,4 @@ export class PdfGeneradorProyectoService {
     };
   }
 
-   // ============================
-  // 🔹 Convierte una imagen local a Base64
-  // ============================
-  private async getBase64ImageFromAssets(imagePath: string): Promise<string> {
-    return getCachedImageBase64(imagePath);
-  }
 }

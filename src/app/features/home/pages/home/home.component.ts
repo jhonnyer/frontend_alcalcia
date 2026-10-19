@@ -28,6 +28,7 @@ import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
 import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
 import { ExcelGeneradorReportesService } from '../../../../shared/components/excel/excel-generador-reportes.service';
+import { ExcelInstitucionalService, excelErrorMessage, nombreCompletoExcel } from '../../../../shared/components/excel/excel-institucional.service';
 import { firstValueFrom, forkJoin, timeout } from 'rxjs';
 
 type ReportKeys =
@@ -77,6 +78,7 @@ export class HomeComponent implements OnInit{
   private proyectosService= inject(ProyectosService);
   private beneficiarioProyectoService= inject(BeneficiarioProyectoService);
   private excelReportes = inject(ExcelGeneradorReportesService);
+  private excelInstitucional = inject(ExcelInstitucionalService);
   private destroyRef = inject(DestroyRef);
   reportOptionsError = '';
 
@@ -324,6 +326,17 @@ export class HomeComponent implements OnInit{
     });
   }
 
+  private async guardarExcel(workbook: XLSX.WorkBook, fileName: string, report: ReportKeys): Promise<void> {
+    try {
+      await this.excelInstitucional.guardar(workbook, fileName);
+    } catch (error) {
+      console.error('Error al generar el Excel institucional:', error);
+      this.alert.error('No se pudo exportar el Excel', excelErrorMessage(error));
+    } finally {
+      this.isLoadingReport[report] = false;
+    }
+  }
+
   downloadProductProjectReport() {
     const { fechaInicio, fechaFin } = this.getReportDateRange();
     this.isLoadingReport.productProject = true;
@@ -385,8 +398,7 @@ export class HomeComponent implements OnInit{
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Beneficiarios');
 
         // Generar el archivo
-        XLSX.writeFile(workbook, `Beneficiarios ${this.getFormattedDate()}.xlsx`);
-        this.isLoadingReport.beneficiarios = false;
+        void this.guardarExcel(workbook, `Beneficiarios ${this.getFormattedDate()}.xlsx`, 'beneficiarios');
       },
       error: (error) => {
         this.isLoadingReport.beneficiarios = false;
@@ -421,8 +433,7 @@ export class HomeComponent implements OnInit{
         worksheet['!cols'] = wscols;
 
         // Generar el archivo
-        XLSX.writeFile(workbook, `Categorias ${this.getFormattedDate()}.xlsx`);
-        this.isLoadingReport.categorias = false;
+        void this.guardarExcel(workbook, `Categorias ${this.getFormattedDate()}.xlsx`, 'categorias');
       },
       error: (error) => {
         this.isLoadingReport.categorias = false;
@@ -571,8 +582,7 @@ export class HomeComponent implements OnInit{
         worksheet['!cols'] = wscols;
 
         // Generar el archivo
-        XLSX.writeFile(workbook, `Usuarios del sistema ${this.getFormattedDate()}.xlsx`);
-        this.isLoadingReport.responsables = false;
+        void this.guardarExcel(workbook, `Usuarios del sistema ${this.getFormattedDate()}.xlsx`, 'responsables');
       },
       error: (error) => {
         this.isLoadingReport.responsables = false;
@@ -614,8 +624,7 @@ export class HomeComponent implements OnInit{
         worksheet['!cols'] = wscols;
 
         // Generar el archivo
-        XLSX.writeFile(workbook, `Productos ${this.getFormattedDate()}.xlsx`);
-        this.isLoadingReport.productos = false;
+        void this.guardarExcel(workbook, `Productos ${this.getFormattedDate()}.xlsx`, 'productos');
       },
       error: (error) => {
         this.isLoadingReport.productos = false;
@@ -641,8 +650,8 @@ export class HomeComponent implements OnInit{
                 'Dirección': nucleo.direccion,
                 'Número de Integrantes': nucleo.numeroIntegrantes,
                 'Zona': nucleo.nombreZona || '—',
-                'Barrio': nucleo.nombreBarrio || '—',
-                'Beneficiario': `${b.primerNombre ?? ''} ${b.segundoNombre ?? ''} ${b.primerApellido ?? ''} ${b.segundoApellido ?? ''}`.trim(),
+                'Barrio / Vereda': nucleo.nombreBarrio || '—',
+                'Beneficiario': nombreCompletoExcel(b),
                 'Tipo Documento': b.tipoDocumento || '—',
                 'Número Documento': b.numeroDocumento || '—',
                 'Edad': b.edad ?? '—',
@@ -659,7 +668,7 @@ export class HomeComponent implements OnInit{
               'Dirección': nucleo.direccion,
               'Número de Integrantes': nucleo.numeroIntegrantes,
               'Zona': nucleo.nombreZona || '—',
-              'Barrio': nucleo.nombreBarrio || '—',
+              'Barrio / Vereda': nucleo.nombreBarrio || '—',
               'Beneficiario': 'Sin beneficiarios registrados',
               'Tipo Documento': '—',
               'Número Documento': '—',
@@ -695,8 +704,7 @@ export class HomeComponent implements OnInit{
 
         // 📅 Generar archivo
         const fecha = new Date().toISOString().split('T')[0];
-        XLSX.writeFile(workbook, `Reporte_Actores_Sociales_${fecha}.xlsx`);
-        this.isLoadingReport.nucleos = false;
+        void this.guardarExcel(workbook, `Reporte_Actores_Sociales_${fecha}.xlsx`, 'nucleos');
       },
       error: (error) => {
         this.isLoadingReport.nucleos = false;
@@ -752,7 +760,7 @@ export class HomeComponent implements OnInit{
           'Nombre': p.nombre,
           'Descripción': p.descripcion || '—',
           'Estado': p.estado === 'A' ? 'Activo' : 'Inactivo',
-          'Tipo Proyecto': p.tipoProyecto || '—',
+          'Tipo Proyecto': p.tipoProyecto === 'M' ? 'Municipal' : p.tipoProyecto === 'D' ? 'Departamental' : p.tipoProyecto || '—',
           'Fecha Inicio': p.fechaInicio,
           'Fecha Fin': p.fechaFin || '—'
         }));
@@ -771,8 +779,7 @@ export class HomeComponent implements OnInit{
           { wch: 15 }
         ];
 
-        XLSX.writeFile(workbook, `Proyectos_${this.getFormattedDate()}.xlsx`);
-        this.isLoadingReport.proyectos = false;
+        void this.guardarExcel(workbook, `Proyectos_${this.getFormattedDate()}.xlsx`, 'proyectos');
       },
       error: (error) => {
         this.isLoadingReport.proyectos = false;
@@ -805,7 +812,7 @@ export class HomeComponent implements OnInit{
           'Edad': bp.edadBeneficiario,
           'Documento': bp.numDocumentoBeneficiario,
           'Actor Social': bp.nombreNucleo || '—',
-          'Barrio': bp.nombreBarrio || '—',
+          'Barrio / Vereda': bp.nombreBarrio || '—',
           'Beneficiario Activo': bp.esBeneficiarioActivo ? 'Sí' : 'No',
           'Fecha Inicio': bp.fechaInicio || '—',
           'Fecha Fin': bp.fechaFin || '—',
@@ -821,6 +828,7 @@ export class HomeComponent implements OnInit{
           { wch: 25 }, // Proyecto
           { wch: 15 }, // Estado Proyecto
           { wch: 30 }, // Beneficiario
+          { wch: 8 },  // Edad
           { wch: 20 }, // Documento
           { wch: 20 }, // Actor Social
           { wch: 20 }, // Barrio
@@ -831,8 +839,7 @@ export class HomeComponent implements OnInit{
         ];
 
         // generar archivo
-        XLSX.writeFile(workbook, `Beneficiarios_por_Proyecto_${this.getFormattedDate()}.xlsx`);
-        this.isLoadingReport.beneficiariosProyecto = false;
+        void this.guardarExcel(workbook, `Beneficiarios_por_Proyecto_${this.getFormattedDate()}.xlsx`, 'beneficiariosProyecto');
       },
       error: (error) => {
         this.isLoadingReport.beneficiariosProyecto = false;
@@ -853,7 +860,7 @@ export class HomeComponent implements OnInit{
       nucleos: this.nucleoService.getSimpleAll(),
       productos: this.productosService.getAll()
     }).subscribe({
-      next: ({ proyectosResp, dashboard, actas, nucleos, productos }) => {
+      next: async ({ proyectosResp, dashboard, actas, nucleos, productos }) => {
         // Adaptación de estructuras
         const proyectosData = (proyectosResp?.respuesta ?? []).filter(item =>
           this.overlapsRange(item.proyecto.fechaInicio, item.proyecto.fechaFin, fechaInicio, fechaFin));
@@ -866,15 +873,20 @@ export class HomeComponent implements OnInit{
           this.isDateInRange(producto.fechaIngreso, fechaInicio, fechaFin));
 
         // Generar Excel integral
-        this.excelReportes.generarExcelIntegral(
-          beneficiariosProyecto,
-          actasData,
-          nucleosData,
-          productosData, 
-          proyectosData 
-        );
-
-        this.isLoadingReport.reportGeneral = false;
+        try {
+          await this.excelReportes.generarExcelIntegral(
+            beneficiariosProyecto,
+            actasData,
+            nucleosData,
+            productosData,
+            proyectosData
+          );
+        } catch (error) {
+          console.error('Error al generar el Excel integral:', error);
+          this.alert.error('No se pudo exportar el Excel', excelErrorMessage(error));
+        } finally {
+          this.isLoadingReport.reportGeneral = false;
+        }
       },
       error: (error) => {
         console.error('Error al generar reporte global:', error);

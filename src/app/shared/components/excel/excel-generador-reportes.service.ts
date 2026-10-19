@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import * as XLSX from 'xlsx';
+import { ExcelInstitucionalService, nombreCompletoExcel } from './excel-institucional.service';
 
 interface ResumenProyecto {
   Proyecto: string;
@@ -11,17 +12,18 @@ interface ResumenProyecto {
 
 @Injectable({ providedIn: 'root' })
 export class ExcelGeneradorReportesService {
+  private readonly institucional = inject(ExcelInstitucionalService);
     
   /**
    * Genera el Excel completo con todas las hojas institucionales
    */
-  generarExcelIntegral(
+  async generarExcelIntegral(
     dashboardData: any[],
     actasData: any[],
     nucleosData: any[],
     productosData: any[],
     proyectosData: any[]
-  ): void {
+  ): Promise<void> {
     const wb = XLSX.utils.book_new();
 
     this.hojaResumenGeneral(wb, dashboardData, actasData);
@@ -34,7 +36,7 @@ export class ExcelGeneradorReportesService {
     this.hojaCatalogoProductos(wb, productosData, proyectosData);
 
     const fecha = new Date().toISOString().split('T')[0];
-    XLSX.writeFile(wb, `Reporte_Integral_Municipal_${fecha}.xlsx`);
+    await this.institucional.guardar(wb, `Reporte_Integral_Institucional_${fecha}.xlsx`);
   }
 
     // ==========================================================
@@ -103,7 +105,7 @@ export class ExcelGeneradorReportesService {
         Edad: b.edadBeneficiario,
         ActorSocial: b.nombreNucleo,
         Zona: nucleo?.nombreZona || '—',
-        Barrio: b.nombreBarrio,
+        'Barrio / Vereda': b.nombreBarrio,
         Integrantes: nucleo?.numeroIntegrantes || '—',
         Activo: b.esBeneficiarioActivo ? 'Sí' : 'No',
         FechaInicio: b.fechaInicio,
@@ -136,14 +138,14 @@ export class ExcelGeneradorReportesService {
             if (d.productos) {
             data.push({
                 'Proyecto': a.proyecto?.nombre || '—',
-                'Beneficiario': `${a.beneficiario?.primerNombre ?? ''} ${a.beneficiario?.primerApellido ?? ''}`.trim(),
+                'Beneficiario': nombreCompletoExcel(a.beneficiario),
                 'Documento': a.beneficiario?.numeroDocumento || '—',
                 'Tipo Entrega': 'Producto',
                 'Nombre Entrega': d.productos.nombreProducto || '—',
                 'Descripción': d.productos.descripcion || '—',
                 'Cantidad Entregada': d.productos.cantidad ?? d.cantidad ?? 0,
                 'Fecha Entrega': a.fechaEntrega || a.fechaCreacion || '—',
-                'Responsable': `${a.responsable?.primerNombre ?? ''} ${a.responsable?.primerApellido ?? ''}`.trim(),
+                'Responsable': nombreCompletoExcel(a.responsable),
                 'Observaciones': a.observaciones || '—'
             });
             }
@@ -152,14 +154,14 @@ export class ExcelGeneradorReportesService {
             if (d.paquetes) {
             data.push({
                 'Proyecto': a.proyecto?.nombre || '—',
-                'Beneficiario': `${a.beneficiario?.primerNombre ?? ''} ${a.beneficiario?.primerApellido ?? ''}`.trim(),
+                'Beneficiario': nombreCompletoExcel(a.beneficiario),
                 'Documento': a.beneficiario?.numeroDocumento || '—',
                 'Tipo Entrega': 'Paquete',
                 'Nombre Entrega': d.paquetes.nombrePaquete || '—',
                 'Descripción': d.paquetes.descripcion || '—',
                 'Cantidad Entregada': d.paquetes.cantidad ?? d.cantidad ?? 0,
                 'Fecha Entrega': a.fechaEntrega || a.fechaCreacion || '—',
-                'Responsable': `${a.responsable?.primerNombre ?? ''} ${a.responsable?.primerApellido ?? ''}`.trim(),
+                'Responsable': nombreCompletoExcel(a.responsable),
                 'Observaciones': a.observaciones || '—'
             });
             }
@@ -216,7 +218,7 @@ export class ExcelGeneradorReportesService {
             if (!acc[key]) {
                 acc[key] = {
                 'Zona': zona,
-                'Barrio': barrio,
+                'Barrio / Vereda': barrio,
                 'Total Beneficiarios': 0,
                 'Benef. Activos': 0,
                 'Benef. Inactivos': 0
@@ -252,7 +254,7 @@ export class ExcelGeneradorReportesService {
         const resumen = Object.values(
             dashboard.reduce((acc: any, b: any) => {
             const documento = b.numDocumentoBeneficiario || b.beneficiario?.numeroDocumento;
-            const nombre = b.nombreCompleto || `${b.beneficiario?.primerNombre ?? ''} ${b.beneficiario?.primerApellido ?? ''}`.trim();
+            const nombre = b.nombreCompleto || nombreCompletoExcel(b.beneficiario);
 
             if (!documento) return acc;
 
@@ -336,10 +338,10 @@ export class ExcelGeneradorReportesService {
         const data = actas.map(a => ({
             'ID Acta': a.idActa,
             'Proyecto': a.proyecto?.nombre || '—',
-            'Beneficiario': `${a.beneficiario?.primerNombre ?? ''} ${a.beneficiario?.primerApellido ?? ''}`.trim(),
+            'Beneficiario': nombreCompletoExcel(a.beneficiario),
             'Fecha Entrega': a.fechaEntrega || '—',
             'Estado': estadosMap[a.estado] || a.estado || '—',
-            'Responsable': `${a.responsable?.primerNombre ?? ''} ${a.responsable?.primerApellido ?? ''}`.trim(),
+            'Responsable': nombreCompletoExcel(a.responsable),
             'Área Responsable': a.responsable?.area || '—',
             'Ubicación': a.ubicacionEntrega || '—',
             'Observaciones': a.observaciones || '—'
@@ -402,12 +404,12 @@ export class ExcelGeneradorReportesService {
                 'Fecha Entrega': a.fechaEntrega || a.fechaCreacion || '—',
                 'Proyecto': a.proyecto?.nombre || '—',
                 'Estado Acta': estadosMap[a.estado] || a.estado || '—',
-                'Beneficiario': `${a.beneficiario?.primerNombre ?? ''} ${a.beneficiario?.primerApellido ?? ''}`.trim(),
+                'Beneficiario': nombreCompletoExcel(a.beneficiario),
                 'Documento Beneficiario': a.beneficiario?.numeroDocumento || '—',
                 'Producto / Paquete': productoNombre,
                 'Descripción': descripcion,
                 'Cantidad Entregada': cantidad,
-                'Responsable de Entrega': `${a.responsable?.primerNombre ?? ''} ${a.responsable?.primerApellido ?? ''}`.trim(),
+                'Responsable de Entrega': nombreCompletoExcel(a.responsable),
                 'Área / Secretaría': a.responsable?.area || '—',
                 'Ubicación Entrega': a.ubicacionEntrega || '—',
                 'Observaciones': a.observaciones || '—'

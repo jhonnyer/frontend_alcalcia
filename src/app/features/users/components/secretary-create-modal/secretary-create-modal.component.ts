@@ -53,14 +53,6 @@ export class SecretaryCreateModalComponent implements OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly alert = inject(AlertService);
   departamentoFiltro: number | null = null;
-  departamentoBusqueda = '';
-  municipioBusqueda = '';
-  municipioToAdd: number | null = null;
-  departamentoSeleccionadoNombre = '';
-  municipioSeleccionadoNombre = '';
-  showDepartamentoDropdown = false;
-  showMunicipioDropdown = false;
-  selectedCoverageTab: 'departamentos' | 'municipios' = 'departamentos';
 
   readonly form = this.fb.group({
     nombre: ['', [Validators.required]],
@@ -92,49 +84,7 @@ export class SecretaryCreateModalComponent implements OnChanges {
   @HostListener('document:keydown.escape')
   onDocumentEscape(): void {
     if (!this.open) return;
-    this.showDepartamentoDropdown = false;
-    this.showMunicipioDropdown = false;
     void this.onCancel();
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.dropdown-departamento')) {
-      this.showDepartamentoDropdown = false;
-    }
-    if (!target.closest('.dropdown-municipio')) {
-      this.showMunicipioDropdown = false;
-    }
-  }
-
-  municipiosSeleccionados(): IMunicipio[] {
-    const ids = this.normalizeMunicipioIds(this.form.get('idsMunicipio')?.value) ?? [];
-    return this.municipios.filter(m => ids.includes(m.idMunicipio));
-  }
-
-  departamentosDisponibles(): IDepartamento[] {
-    return this.departamentos;
-  }
-
-  departamentosFiltrados(): IDepartamento[] {
-    const query = this.normalizeText(this.departamentoBusqueda);
-    if (!query) return this.departamentosDisponibles();
-    return this.departamentosDisponibles().filter(dep => this.normalizeText(dep.nombre).includes(query));
-  }
-
-  municipiosFiltrados(): IMunicipio[] {
-    const query = this.normalizeText(this.municipioBusqueda);
-    return this.municipios.filter(m => {
-      const byDept = this.departamentoFiltro == null || m.idDepartamentoFk === this.departamentoFiltro;
-      const bySearch = !query || this.normalizeText(m.nombre).includes(query);
-      return byDept && bySearch;
-    });
-  }
-
-  municipiosDisponiblesParaAgregar(): IMunicipio[] {
-    const seleccionados = new Set((this.normalizeMunicipioIds(this.form.get('idsMunicipio')?.value) ?? []));
-    return this.municipiosFiltrados().filter(m => !seleccionados.has(m.idMunicipio));
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -166,14 +116,6 @@ export class SecretaryCreateModalComponent implements OnChanges {
         parametroFirmaActa: '',
       });
       this.departamentoFiltro = null;
-      this.departamentoBusqueda = '';
-      this.municipioBusqueda = '';
-      this.municipioToAdd = null;
-      this.departamentoSeleccionadoNombre = '';
-      this.municipioSeleccionadoNombre = '';
-      this.showDepartamentoDropdown = false;
-      this.showMunicipioDropdown = false;
-      this.selectedCoverageTab = 'departamentos';
     }
   }
 
@@ -182,183 +124,44 @@ export class SecretaryCreateModalComponent implements OnChanges {
   }
 
   setTipo(tipo: TipoSecretaria): void {
+    if (this.loading) return;
     if (this.tipoSeleccionado() === tipo) return;
     this.form.patchValue({ tipo, idsMunicipio: [], idsDepartamento: [] });
     this.form.get('tipo')?.markAsDirty();
-    this.clearMunicipioFilters();
-    this.selectedCoverageTab = tipo === 'M' ? 'municipios' : 'departamentos';
-  }
-
-  /** En secretarías departamentales solo se agregan municipios de departamentos ya seleccionados. */
-  municipioRequiereDepartamento(): boolean {
-    return this.tipoSeleccionado() === 'D'
-      && this.departamentoFiltro != null
-      && !(this.form.get('idsDepartamento')?.value ?? []).includes(this.departamentoFiltro);
-  }
-
-  canAddMunicipio(): boolean {
-    return this.tipoSeleccionado() != null
-      && this.departamentoFiltro != null
-      && this.municipioToAdd != null
-      && !this.municipioRequiereDepartamento();
-  }
-
-  coverageRuleMessage(): string {
-    if (this.tipoSeleccionado() === 'M') {
-      return 'Secretaría municipal: selecciona su único municipio. No admite departamentos ni otros municipios.';
-    }
-    if (this.tipoSeleccionado() === 'D') {
-      return 'Secretaría departamental: asigna su único departamento (incluye todos sus municipios). Solo puedes agregar municipios de ese departamento.';
-    }
-    return 'Primero elige el tipo de secretaría.';
-  }
-
-  setCoverageTab(tab: 'departamentos' | 'municipios'): void {
-    this.selectedCoverageTab = tab;
-  }
-
-  private syncCoverageTab(preferred?: 'departamentos' | 'municipios'): void {
-    const depCount = this.departamentosSeleccionados().length;
-    const munCount = this.municipiosSeleccionados().length;
-
-    if (preferred === 'municipios' && munCount > 0) {
-      this.selectedCoverageTab = 'municipios';
-      return;
-    }
-    if (preferred === 'departamentos' && depCount > 0) {
-      this.selectedCoverageTab = 'departamentos';
-      return;
-    }
-
-    if (depCount === 0 && munCount > 0) {
-      this.selectedCoverageTab = 'municipios';
-      return;
-    }
-
-    if (munCount === 0 && depCount > 0) {
-      this.selectedCoverageTab = 'departamentos';
-      return;
-    }
-
-    if (depCount === 0 && munCount === 0) {
-      this.selectedCoverageTab = 'departamentos';
-    }
-  }
-
-  toggleDepartamentoDropdown(): void {
-    this.showDepartamentoDropdown = !this.showDepartamentoDropdown;
-    if (this.showDepartamentoDropdown) {
-      this.showMunicipioDropdown = false;
-      this.departamentoBusqueda = this.departamentoSeleccionadoNombre;
-    }
-  }
-
-  toggleMunicipioDropdown(): void {
-    if (this.departamentoFiltro == null) return;
-    this.showMunicipioDropdown = !this.showMunicipioDropdown;
-    if (this.showMunicipioDropdown) {
-      this.showDepartamentoDropdown = false;
-      this.municipioBusqueda = this.municipioSeleccionadoNombre;
-    }
-  }
-
-  updateDepartamentoBusqueda(event: Event): void {
-    this.departamentoBusqueda = (event.target as HTMLInputElement).value ?? '';
-  }
-
-  addDepartamentoSeleccionado(): void {
-    if (this.departamentoFiltro == null || this.tipoSeleccionado() !== 'D') return;
-    const ids: number[] = this.form.get('idsDepartamento')?.value ?? [];
-    if (ids.length === 1 && ids[0] === this.departamentoFiltro) return;
-    // Una secretaría departamental solo tiene un departamento: elegir otro lo reemplaza junto con sus municipios.
-    this.form.patchValue({ idsDepartamento: [this.departamentoFiltro], idsMunicipio: [] });
-    this.form.get('idsDepartamento')?.markAsTouched();
-    this.form.get('idsDepartamento')?.updateValueAndValidity();
-    this.form.get('idsMunicipio')?.updateValueAndValidity();
-    this.syncCoverageTab('departamentos');
-  }
-
-  departamentoAsignadoId(): number | null {
-    const ids: number[] = this.form.get('idsDepartamento')?.value ?? [];
-    return ids[0] ?? null;
-  }
-
-  selectDepartamento(idDepartamento: number, nombre: string): void {
-    this.departamentoFiltro = idDepartamento;
-    this.departamentoSeleccionadoNombre = nombre;
-    this.departamentoBusqueda = nombre;
-    this.showDepartamentoDropdown = false;
-    this.municipioBusqueda = '';
-    this.municipioSeleccionadoNombre = '';
-    this.municipioToAdd = null;
-  }
-
-  updateMunicipioBusqueda(event: Event): void {
-    this.municipioBusqueda = (event.target as HTMLInputElement).value ?? '';
-  }
-
-  selectMunicipio(idMunicipio: number, nombre: string): void {
-    this.municipioToAdd = idMunicipio;
-    this.municipioSeleccionadoNombre = nombre;
-    this.municipioBusqueda = nombre;
-    this.showMunicipioDropdown = false;
-  }
-
-  clearMunicipioFilters(): void {
     this.departamentoFiltro = null;
-    this.departamentoBusqueda = '';
-    this.departamentoSeleccionadoNombre = '';
-    this.municipioBusqueda = '';
-    this.municipioSeleccionadoNombre = '';
-    this.municipioToAdd = null;
-    this.showDepartamentoDropdown = false;
-    this.showMunicipioDropdown = false;
   }
 
-  departamentosSeleccionados(): IDepartamento[] {
-    const ids = this.form.get('idsDepartamento')?.value ?? [];
-    return this.departamentos.filter(dep => ids.includes(dep.idDepartamento));
+  municipiosDelDepartamento(): IMunicipio[] {
+    return this.municipios.filter(m => m.idDepartamentoFk === this.departamentoFiltro);
   }
 
-  async removeDepartamento(idDepartamento: number): Promise<void> {
-    const confirmed = await this.alert.confirm(
-      'Quitar departamento',
-      '¿Deseas quitar este departamento de la cobertura seleccionada?',
-      'Quitar',
-      'Cancelar'
-    );
-    if (!confirmed) return;
-
-    const ids = this.form.get('idsDepartamento')?.value ?? [];
-    const filtered = ids.filter(id => id !== idDepartamento);
-    const municipiosRestantes = (this.normalizeMunicipioIds(this.form.get('idsMunicipio')?.value) ?? [])
-      .filter(id => this.municipios.find(m => m.idMunicipio === id)?.idDepartamentoFk !== idDepartamento);
-    this.form.patchValue({ idsDepartamento: filtered, idsMunicipio: municipiosRestantes });
-    this.form.get('idsDepartamento')?.markAsTouched();
-    this.form.get('idsDepartamento')?.updateValueAndValidity();
-    this.form.get('idsMunicipio')?.updateValueAndValidity();
-    this.syncCoverageTab();
-  }
-
-  addMunicipio(): void {
-    if (!this.canAddMunicipio() || this.municipioToAdd == null) return;
-    const ids = this.normalizeMunicipioIds(this.form.get('idsMunicipio')?.value) ?? [];
-    if (!ids.includes(this.municipioToAdd)) {
-      const nextIds = this.tipoSeleccionado() === 'M' ? [this.municipioToAdd] : [...ids, this.municipioToAdd];
-      this.form.patchValue({ idsMunicipio: nextIds });
-      this.form.get('idsMunicipio')?.markAsTouched();
-      this.form.get('idsMunicipio')?.updateValueAndValidity();
-      this.form.get('idsDepartamento')?.updateValueAndValidity();
-      this.syncCoverageTab('municipios');
+  changeDepartamento(event: Event): void {
+    if (this.loading) return;
+    const id = Number((event.target as HTMLSelectElement).value);
+    const departamento = this.departamentos.find(d => d.idDepartamento === id);
+    if (!departamento) {
+      this.alert.warning('Departamento no válido', 'Selecciona un departamento de la lista.');
+      return;
     }
-    this.municipioToAdd = null;
-    this.municipioBusqueda = '';
-    this.municipioSeleccionadoNombre = '';
+    this.departamentoFiltro = id;
+    this.form.patchValue({
+      idsDepartamento: this.tipoSeleccionado() === 'D' ? [id] : [],
+      idsMunicipio: [],
+    });
+    this.form.markAsDirty();
+    this.form.controls.idsDepartamento.markAsTouched();
   }
 
-  getDepartamentoNombre(idDepartamento: number): string {
-    const departamento = this.departamentos.find(d => d.idDepartamento === idDepartamento);
-    return departamento?.nombre ?? `Departamento ${idDepartamento}`;
+  changeMunicipio(event: Event): void {
+    if (this.loading) return;
+    const id = Number((event.target as HTMLSelectElement).value);
+    if (this.tipoSeleccionado() !== 'M' || !this.municipiosDelDepartamento().some(m => m.idMunicipio === id)) {
+      this.alert.warning('Municipio no válido', 'Selecciona un municipio del departamento indicado.');
+      return;
+    }
+    this.form.controls.idsMunicipio.setValue([id]);
+    this.form.controls.idsMunicipio.markAsDirty();
+    this.form.controls.idsMunicipio.markAsTouched();
   }
 
   async onCancel(): Promise<void> {
@@ -378,6 +181,7 @@ export class SecretaryCreateModalComponent implements OnChanges {
   }
 
   onSubmit(): void {
+    if (this.loading) return;
     const requiredControls = [
       'nombre',
       'codigo',
@@ -402,12 +206,13 @@ export class SecretaryCreateModalComponent implements OnChanges {
     if (!this.canSubmit()) return;
 
     const v = this.form.getRawValue();
+    if (!v.tipo) return;
     const payload: CreateSecretaryModalPayload = {
       secretaria: {
         nombre: String(v.nombre ?? '').trim(),
         codigo: String(v.codigo ?? '').trim(),
         prefijoProducto: String(v.prefijoProducto ?? '').trim(),
-        tipo: v.tipo as TipoSecretaria,
+        tipo: v.tipo,
         estado: 'A',
         idsMunicipio: this.normalizeMunicipioIds(v.idsMunicipio),
         idsDepartamento: this.normalizeDepartamentoIds(v.idsDepartamento)
@@ -461,49 +266,6 @@ export class SecretaryCreateModalComponent implements OnChanges {
     return unique.size ? Array.from(unique) : undefined;
   }
 
-  private normalizeText(value: string | null | undefined): string {
-    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
-  }
-
-  getMatchParts(text: string, query: string): { before: string; match: string; after: string } {
-    const source = text ?? '';
-    const q = (query ?? '').trim();
-    if (!q) {
-      return { before: source, match: '', after: '' };
-    }
-
-    const sourceLower = source.toLocaleLowerCase();
-    const queryLower = q.toLocaleLowerCase();
-    const index = sourceLower.indexOf(queryLower);
-    if (index < 0) {
-      return { before: source, match: '', after: '' };
-    }
-
-    return {
-      before: source.slice(0, index),
-      match: source.slice(index, index + q.length),
-      after: source.slice(index + q.length),
-    };
-  }
-
-  async removeMunicipio(idMunicipio: number): Promise<void> {
-    const confirmed = await this.alert.confirm(
-      'Quitar municipio',
-      '¿Deseas quitar este municipio de la cobertura seleccionada?',
-      'Quitar',
-      'Cancelar'
-    );
-    if (!confirmed) return;
-
-    const ids = this.normalizeMunicipioIds(this.form.get('idsMunicipio')?.value) ?? [];
-    const filtered = ids.filter(id => id !== idMunicipio);
-    this.form.patchValue({ idsMunicipio: filtered as number[] });
-    this.form.get('idsMunicipio')?.markAsTouched();
-    this.form.get('idsMunicipio')?.updateValueAndValidity();
-    this.form.get('idsDepartamento')?.updateValueAndValidity();
-    this.syncCoverageTab();
-  }
-
   canSubmit(): boolean {
     const required = [
       'nombre',
@@ -530,10 +292,13 @@ export class SecretaryCreateModalComponent implements OnChanges {
     const municipios = this.normalizeMunicipioIds(this.form.get('idsMunicipio')?.value) ?? [];
     const departamentos = this.normalizeDepartamentoIds(this.form.get('idsDepartamento')?.value) ?? [];
     if (this.tipoSeleccionado() === 'M') {
-      return municipios.length === 1 && departamentos.length === 0;
+      return municipios.length === 1 && departamentos.length === 0
+        && this.municipiosDelDepartamento().some(m => m.idMunicipio === municipios[0]);
     }
     if (this.tipoSeleccionado() === 'D') {
-      return departamentos.length === 1 && municipios.every(id =>
+      return departamentos.length === 1
+        && this.departamentos.some(d => d.idDepartamento === departamentos[0])
+        && municipios.every(id =>
         departamentos.includes(this.municipios.find(m => m.idMunicipio === id)?.idDepartamentoFk ?? -1));
     }
     return false;

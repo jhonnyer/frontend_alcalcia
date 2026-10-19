@@ -75,11 +75,11 @@
 	<app-secretary-parameters-modal [open]="parameterModalOpen()" [loading]="loadingParameters()" [saving]="savingParameters()" [secretariaName]="selectedSecretaryForParameters()?.nombre || ''" [parameters]="currentParameters()" (cancel)="closeParameterModal()" (save)="saveSecretaryParameters($event)"></app-secretary-parameters-modal>
 
 	@if (coverageModalOpen()) {
-		<div class="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-4">
-			<div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-5 shadow-xl">
-				<div class="mb-4 flex items-center justify-between gap-3">
-					<div>
-						<h3 class="text-lg font-bold text-slate-800">Cobertura territorial</h3>
+		<div class="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-3 sm:p-4">
+			<div role="dialog" aria-modal="true" aria-labelledby="coverage-modal-title" aria-describedby="coverage-modal-description" class="flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+				<div class="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5">
+					<div class="min-w-0 break-words">
+						<h3 id="coverage-modal-title" class="text-lg font-bold text-slate-800">Municipios de atención</h3>
 						<p class="flex flex-wrap items-center gap-2 text-sm text-slate-500">
 							Secretaría: {{ selectedSecretaryForCoverage()?.nombre }}
 							@if (coverageTipo()) {
@@ -89,72 +89,58 @@
 							}
 						</p>
 					</div>
-					<button type="button" class="rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="closeCoverageModal()">
+					<button type="button" class="shrink-0 rounded-md p-1 text-slate-500 hover:bg-slate-100" [disabled]="savingCoverage()" (click)="closeCoverageModal()" aria-label="Cerrar municipios de atención">
 						<mat-icon>close</mat-icon>
 					</button>
 				</div>
 
-				@if (coverageRuleMessage()) {
-					<div class="mb-3 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-900">
-						<mat-icon class="!h-4 !w-4 shrink-0 text-[16px]" aria-hidden="true">info</mat-icon>
-						<span>{{ coverageRuleMessage() }}</span>
-					</div>
-				}
+				<div class="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5">
+				<p id="coverage-modal-description" class="mb-4 text-sm text-slate-600">Indica en qué municipios puede atender beneficiarios esta secretaría. Desactivar un municipio no elimina los registros existentes.</p>
 
-				@if (!coverageMunicipalLocked()) {
-				<div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-					<p class="mb-2 text-sm font-semibold text-slate-700">{{ coverageTipo() === 'M' ? 'Asignar municipio' : 'Agregar cobertura departamental y municipal' }}</p>
-					<div class="mb-2 flex items-center justify-between gap-2">
-						<div class="text-xs font-medium text-slate-500">Selecciona departamento y agrega cobertura territorial.</div>
-						<button type="button" class="btn-action-gray whitespace-nowrap" (click)="clearCoverageFilters()">Limpiar filtros</button>
-					</div>
-					<div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-						<div class="coverage-dropdown-departamento relative">
-							<label for="coverage-departamento-search" class="text-xs font-semibold text-slate-600">Departamento</label>
-							<button type="button" class="input-base mt-1 flex w-full items-center justify-between font-normal" (click)="toggleCoverageDepartamentoDropdown()" (keydown)="onCoverageDepartamentoKeydown($event)">
-								<span>{{ coverageDepartamentoInput() || 'Selecciona departamento' }}</span>
-								<mat-icon class="text-base">expand_more</mat-icon>
-							</button>
-							@if (showCoverageDepartamentoDropdown) {
-								<div class="absolute z-30 mt-1 w-full rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
-									<input id="coverage-departamento-search" class="input-base mb-2 font-normal" type="text" placeholder="Buscar departamento" aria-label="Buscar departamento" [value]="coverageDepartamentoInput()" (input)="updateCoverageDepartamentoInput($event)" (keydown)="onCoverageDepartamentoKeydown($event)" />
-									<p class="mb-1 px-1 text-xs font-semibold text-slate-500">{{ availableDepartamentosForCoverage().length }} coincidencia(s)</p>
-									<div class="max-h-56 overflow-y-auto overscroll-contain">
-										@if (availableDepartamentosForCoverage().length === 0) {
-											<p class="px-2 py-1 text-xs text-slate-500">Sin coincidencias</p>
-										} @else {
-											@for (dep of availableDepartamentosForCoverage(); track dep.idDepartamento; let i = $index) {
-												<button type="button" class="block w-full rounded px-2 py-1 text-left text-sm hover:bg-blue-50" [ngClass]="i === coverageDepartamentoHighlightIndex() ? 'bg-blue-50' : ''" (mouseenter)="coverageDepartamentoHighlightIndex.set(i)" (click)="selectCoverageDepartamento(dep.idDepartamento, dep.nombre)">
-													@if (getMatchParts(dep.nombre, coverageDepartamentoInput()); as parts) {
-														<span>{{ parts.before }}</span><span class="font-bold text-blue-700">{{ parts.match }}</span><span>{{ parts.after }}</span>
-													}
-												</button>
-											}
-										}
-									</div>
-								</div>
-							}
-						</div>
-						@if (coverageTipo() !== 'M') {
-							<button type="button" class="btn-action-green w-full md:min-w-[180px] whitespace-nowrap" [disabled]="savingCoverage() || !departamentoToAssign()" (click)="assignCoverageDepartamento()">
-								{{ savingCoverage() ? 'Guardando...' : 'Agregar departamento' }}
+				<div class="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+					<p class="text-xs font-semibold text-slate-500">Departamento</p>
+					@if (loadingCoverage()) {
+						<p class="mt-1 text-sm text-slate-500">Cargando departamento...</p>
+					} @else if (coverageDepartamento()) {
+						<p class="mt-1 text-sm font-semibold text-slate-800">{{ coverageDepartamento()?.nombre }}</p>
+						@if (!coverageDepartamentoActivo()) {
+							<p class="mt-1 text-xs text-amber-700" role="status">La asignación de esta secretaría a {{ coverageDepartamento()?.nombre }} está desactivada. Reactívala para habilitar sus municipios.</p>
+							<button type="button" class="btn-action-gray mt-2" [disabled]="savingCoverage() || loadingCoverage()" (click)="activateCoverageDepartamento(coverageDepartamento()!.idDepartamento)">
+								{{ savingCoverage() ? 'Reactivando...' : 'Reactivar asignación' }}
 							</button>
 						}
+					} @else {
+						<p class="mt-1 text-xs text-amber-700" role="status">No se pudo identificar el departamento. Solicita al administrador revisar los municipios y el departamento asignados.</p>
+					}
+				</div>
+
+				@if (coverageRuleMessage()) {
+					<details class="mb-4 text-xs text-slate-600">
+						<summary class="cursor-pointer font-medium text-blue-700">¿Qué municipios puedo agregar?</summary>
+						<p class="mt-2 leading-relaxed">{{ coverageRuleMessage() }}</p>
+					</details>
+				}
+
+				@if (!loadingCoverage() && !coverageMunicipalLocked()) {
+				<div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+					<div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+						<p class="text-sm font-semibold text-slate-700">Agregar municipio</p>
+						<button type="button" class="rounded-md px-2 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200 disabled:opacity-50" [disabled]="savingCoverage() || !coverageMunicipioInput()" (click)="clearCoverageFilters()">Limpiar búsqueda</button>
 					</div>
 					<div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
 						<div class="coverage-dropdown-municipio relative">
 							<label for="coverage-municipio-search" class="text-xs font-semibold text-slate-600">Municipio</label>
-							<button type="button" class="input-base mt-1 flex w-full items-center justify-between font-normal" [disabled]="coverageDepartamentoFilter() == null" (click)="toggleCoverageMunicipioDropdown()" (keydown)="onCoverageMunicipioKeydown($event)">
-								<span>{{ coverageMunicipioInput() || (coverageDepartamentoFilter() == null ? 'Primero selecciona departamento' : 'Selecciona municipio') }}</span>
+							<button type="button" class="input-base mt-1 flex w-full items-center justify-between font-normal" [disabled]="!coverageDepartamentoActivo() || savingCoverage()" (click)="toggleCoverageMunicipioDropdown()" (keydown)="onCoverageMunicipioKeydown($event)">
+								<span>{{ coverageMunicipioInput() || 'Selecciona municipio' }}</span>
 								<mat-icon class="text-base">expand_more</mat-icon>
 							</button>
-							@if (showCoverageMunicipioDropdown && coverageDepartamentoFilter() != null) {
+							@if (showCoverageMunicipioDropdown && coverageDepartamentoActivo()) {
 								<div class="absolute z-30 mt-1 w-full rounded-lg border border-slate-200 bg-white p-2 shadow-lg">
 									<input id="coverage-municipio-search" class="input-base mb-2 font-normal" type="text" placeholder="Buscar municipio" aria-label="Buscar municipio" [value]="coverageMunicipioInput()" (input)="updateCoverageMunicipioInput($event)" (keydown)="onCoverageMunicipioKeydown($event)" />
 									<p class="mb-1 px-1 text-xs font-semibold text-slate-500">{{ availableMunicipiosForCoverage().length }} coincidencia(s)</p>
 									<div class="max-h-56 overflow-y-auto overscroll-contain">
 										@if (availableMunicipiosForCoverage().length === 0) {
-											<p class="px-2 py-1 text-xs text-slate-500">Sin coincidencias</p>
+											<p class="px-2 py-1 text-xs text-slate-500">No hay municipios disponibles para esta búsqueda. Los que ya están activos aparecen en la lista inferior.</p>
 										} @else {
 											@for (municipio of availableMunicipiosForCoverage(); track municipio.idMunicipio; let i = $index) {
 												<button type="button" class="block w-full rounded px-2 py-1 text-left text-sm hover:bg-blue-50" [ngClass]="i === coverageMunicipioHighlightIndex() ? 'bg-blue-50' : ''" (mouseenter)="coverageMunicipioHighlightIndex.set(i)" (click)="selectCoverageMunicipio(municipio.idMunicipio, municipio.nombre)">
@@ -168,26 +154,17 @@
 								</div>
 							}
 						</div>
-						<button type="button" class="btn-action-green w-full md:min-w-[180px] whitespace-nowrap" [disabled]="savingCoverage() || !municipioToAssign() || coverageMunicipioRequiereDepartamento()" (click)="assignCoverageMunicipio()">
-							{{ savingCoverage() ? 'Guardando...' : 'Agregar cobertura' }}
+						<button type="button" class="btn-action-green w-full md:min-w-[180px] whitespace-nowrap" [disabled]="savingCoverage() || !municipioToAssign() || !coverageDepartamentoActivo()" (click)="assignCoverageMunicipio()">
+							{{ savingCoverage() ? 'Guardando...' : 'Agregar municipio' }}
 						</button>
 					</div>
-					@if (coverageMunicipioRequiereDepartamento()) {
-						<div class="text-xs font-medium text-amber-700">Este departamento no está activo en la cobertura. Agrégalo primero para incluir sus municipios.</div>
-					} @else {
-						<div class="text-xs text-slate-600">{{ coverageDepartamentoFilter() == null ? 'Primero selecciona departamento' : 'Selecciona un municipio desde el campo anterior' }}</div>
-					}
 				</div>
 				}
 
 				<div class="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
 					<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-						<p class="text-sm font-bold uppercase tracking-wide text-slate-700">Cobertura configurada</p>
+						<p class="text-sm font-semibold text-slate-700">Municipios asignados</p>
 						<div class="flex flex-wrap items-center gap-2 text-sm">
-							<span class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 font-semibold text-blue-800">
-								<mat-icon class="text-[16px]">apartment</mat-icon>
-								Departamentos: {{ coberturaDepartamental().length }}
-							</span>
 							<span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-semibold text-emerald-800">
 								<mat-icon class="text-[16px]">location_city</mat-icon>
 								Municipios: {{ coberturaMunicipal().length }}
@@ -195,98 +172,55 @@
 						</div>
 					</div>
 
-					@if (coverageTipo() !== 'M') {
-					<div class="mb-3 grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1.5">
-						<button
-							type="button"
-							class="rounded-md px-3 py-2 text-sm font-semibold transition-colors"
-							[ngClass]="coverageSelectedTab() === 'departamentos' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200' : 'text-slate-600 hover:bg-white/70'"
-							(click)="setCoverageTab('departamentos')"
-						>
-							<mat-icon class="mr-1 text-[16px] align-middle">apartment</mat-icon>
-							Departamentos
-						</button>
-						<button
-							type="button"
-							class="rounded-md px-3 py-2 text-sm font-semibold transition-colors"
-							[ngClass]="coverageSelectedTab() === 'municipios' ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200' : 'text-slate-600 hover:bg-white/70'"
-							(click)="setCoverageTab('municipios')"
-						>
-							<mat-icon class="mr-1 text-[16px] align-middle">location_city</mat-icon>
-							Municipios
-						</button>
-					</div>
-					}
-
-					<div class="max-h-72 overflow-auto rounded-lg border border-slate-100">
-						@if (coverageSelectedTab() === 'departamentos') {
-							<table class="table-compact">
-								<thead class="sticky top-0 bg-slate-100">
-									<tr>
-										<th class="px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wide text-slate-700">Departamento</th>
-										<th class="px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-slate-700">Estado</th>
-										<th class="px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-slate-700">Acción</th>
-									</tr>
-								</thead>
-								<tbody>
-									@if (loadingCoverage()) {
-										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Cargando cobertura departamental...</td></tr>
-									} @else if (coberturaDepartamental().length === 0) {
-										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Sin cobertura departamental registrada</td></tr>
-									} @else {
-										@for (cobertura of coberturaDepartamental(); track cobertura.idDepartamento) {
-											<tr class="border-t border-slate-100">
-												<td class="px-3 py-2">{{ cobertura.nombreDepartamento }}</td>
-												<td class="px-3 py-2 text-center">
-													<span class="status-badge" [ngClass]="cobertura.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ cobertura.estado === 'A' ? 'Activa' : 'Inactiva' }}</span>
-												</td>
-												<td class="px-3 py-2 text-center">
-													@if (cobertura.estado === 'A') {
-														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50" [disabled]="savingCoverage()" (click)="removeCoverageDepartamento(cobertura.idDepartamento)">Quitar</button>
-													} @else {
-														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50" [disabled]="savingCoverage()" (click)="activateCoverageDepartamento(cobertura.idDepartamento)">Activar</button>
-													}
-												</td>
-											</tr>
-										}
-									}
-								</tbody>
-							</table>
-						} @else {
-							<table class="table-compact">
+					<div class="max-h-72 overflow-auto overscroll-contain rounded-lg border border-slate-100">
+							<table class="table-compact municipalities-table">
 								<thead class="sticky top-0 bg-slate-100">
 									<tr>
 										<th class="px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wide text-slate-700">Municipio</th>
-										<th class="px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-slate-700">Estado</th>
-										<th class="px-3 py-2.5 text-center text-xs font-bold uppercase tracking-wide text-slate-700">Acción</th>
+										<th class="municipality-state text-xs font-bold uppercase tracking-wide text-slate-700">Atención</th>
+										<th class="municipality-action text-xs font-bold uppercase tracking-wide text-slate-700">Acción</th>
 									</tr>
 								</thead>
 								<tbody>
 									@if (loadingCoverage()) {
-										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Cargando cobertura municipal...</td></tr>
+										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Cargando municipios...</td></tr>
 									} @else if (coberturaMunicipal().length === 0) {
-										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">Sin cobertura municipal registrada</td></tr>
+										<tr><td class="px-3 py-6 text-center text-sm text-slate-500" colspan="3">No hay municipios asignados.</td></tr>
 									} @else {
 										@for (cobertura of coberturaMunicipal(); track cobertura.idMunicipio) {
 											<tr class="border-t border-slate-100">
-												<td class="px-3 py-2">{{ cobertura.nombreMunicipio }}</td>
+												<td>
+													<details class="expandable-name">
+														<summary [title]="cobertura.nombreMunicipio + ' (pulsa para expandir o contraer)'">
+															<span>{{ cobertura.nombreMunicipio }}</span>
+														</summary>
+													</details>
+												</td>
 												<td class="px-3 py-2 text-center">
-													<span class="status-badge" [ngClass]="cobertura.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ cobertura.estado === 'A' ? 'Activa' : 'Inactiva' }}</span>
+													<span class="status-badge" [ngClass]="cobertura.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ cobertura.estado === 'A' ? 'Activo' : 'Inactivo' }}</span>
 												</td>
 												<td class="px-3 py-2 text-center">
 													@if (cobertura.estado === 'A') {
-														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50" [disabled]="savingCoverage()" (click)="removeCoverageMunicipio(cobertura.idMunicipio)">Quitar</button>
+														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50" [disabled]="savingCoverage()" (click)="removeCoverageMunicipio(cobertura.idMunicipio)">Desactivar</button>
 													} @else {
-														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50" [disabled]="savingCoverage()" (click)="activateCoverageMunicipio(cobertura.idMunicipio)">Activar</button>
+														<button type="button" class="rounded-md px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50" [disabled]="savingCoverage() || !canActivateCoverageMunicipio(cobertura.idMunicipio)" [title]="coverageActivationBlockReason(cobertura.idMunicipio) || 'Habilitar atención en este municipio'" (click)="activateCoverageMunicipio(cobertura.idMunicipio)">Activar</button>
 													}
 												</td>
 											</tr>
+											@if (cobertura.estado !== 'A') {
+												@if (coverageActivationBlockReason(cobertura.idMunicipio); as reason) {
+													<tr><td colspan="3" class="text-xs text-amber-800" role="status">{{ reason }}</td></tr>
+												}
+											}
 										}
 									}
 								</tbody>
 							</table>
-						}
 					</div>
+				</div>
+				</div>
+				<div class="flex shrink-0 justify-end border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-5">
+					<button type="button" class="btn-action-gray" [disabled]="savingCoverage()" (click)="closeCoverageModal()">Cerrar</button>
 				</div>
 			</div>
 		</div>
@@ -345,18 +279,18 @@
 			} @else {
 				<div class="table-shell">
 					<div class="table-scroll max-h-80">
-						<table class="table-compact">
+						<table class="table-compact secretaries-table">
 							<thead>
 								<tr>
 									@if (isSuperAdmin()) {
 										<th class="px-3 py-2 text-left">ID</th>
 									}
-									<th class="px-3 py-2 text-left">Nombre</th>
+									<th class="secretary-name px-3 py-2 text-left">Nombre</th>
 									@if (isSuperAdmin()) {
 										<th class="px-3 py-2 text-left">Código</th>
 									}
-									<th class="px-3 py-2 text-center">Estado</th>
-									<th class="px-3 py-2 text-center">Cobertura</th>
+									<th class="px-3 py-2 text-center">Estado de secretaría</th>
+									<th class="px-3 py-2 text-center">Municipios de atención</th>
 									<th class="px-3 py-2 text-center">Parámetros</th>
 									@if (isSuperAdmin()) {
 										<th class="px-3 py-2 text-center">Acciones</th>
@@ -370,7 +304,11 @@
 											<td class="px-3 py-2 font-semibold text-slate-700">#{{ secretaria.idSecretaria }}</td>
 										}
 										<td class="px-3 py-2">
-											{{ secretaria.nombre }}
+											<details class="expandable-name">
+												<summary [title]="secretaria.nombre + ' (pulsa para expandir o contraer)'">
+													<span>{{ secretaria.nombre }}</span>
+												</summary>
+											</details>
 											@if (secretaria.tipo) {
 												<span class="ml-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold uppercase" [ngClass]="secretaria.tipo === 'M' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-blue-200 bg-blue-50 text-blue-800'">
 													{{ secretaria.tipo === 'M' ? 'Municipal' : 'Departamental' }}
@@ -386,7 +324,7 @@
 											</span>
 										</td>
 										<td class="px-3 py-2 text-center">
-											<button type="button" class="rounded-md p-1 text-emerald-700 hover:bg-emerald-50" (click)="openCoverageModal(secretaria)" [title]="isSuperAdmin() ? 'Gestionar cobertura territorial' : 'Gestionar cobertura de tu secretaría activa'" aria-label="Gestionar cobertura territorial">
+											<button type="button" class="rounded-md p-1 text-emerald-700 hover:bg-emerald-50" (click)="openCoverageModal(secretaria)" [title]="isSuperAdmin() ? 'Gestionar municipios de atención' : 'Gestionar municipios de tu secretaría activa'" aria-label="Gestionar municipios de atención">
 												<mat-icon>public</mat-icon>
 											</button>
 										</td>

@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { SearchService } from '../../../core/services/search.service';
 import { PageTitleService } from '../../../core/services/pageTitle.service';
 import { TokenService } from '../../../core/services/token.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   CdkMenu,
   CdkMenuTrigger,
@@ -16,6 +16,7 @@ import { ISecretariaAcceso } from '../../../core/models/responseLogin.model';
   selector: 'app-header',
   standalone: true,
   imports: [
+    RouterLink,
     CdkMenuBar,
     CdkMenuItem,
     CdkMenuTrigger,

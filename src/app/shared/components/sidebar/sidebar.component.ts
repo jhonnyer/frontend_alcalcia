@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, merge, of, Subject, switchMap, timeout } from 'rxjs';
 import { ParametroNegocioService } from '../../../core/services/parametro-negocio.service';
+import { DefaultLogoCache } from '../../../core/services/default-logo.service';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TokenService } from '../../../core/services/token.service';
 import { ListHomeComponent } from './components/list-home/list-home.component';
@@ -38,10 +39,25 @@ export class SidebarComponent implements OnInit {
   private readonly parametros = inject(ParametroNegocioService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly retry = new Subject<void>();
+  private readonly defaultLogo = inject(DefaultLogoCache);
   readonly institutionName = signal('Cargando institución...');
   readonly institutionError = signal('');
+  readonly institutionLogo = signal('');
+  readonly logoError = signal(false);
+
+  private releaseLogo(): void {
+    const url = this.institutionLogo();
+    if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+    this.institutionLogo.set('');
+  }
+
+  onLogoError(): void {
+    this.releaseLogo();
+    this.logoError.set(true);
+  }
 
   ngOnInit(): void {
+    this.destroyRef.onDestroy(() => this.releaseLogo());
     const activeSecretary$ = this.tokenService.tokenChanges$.pipe(
       debounceTime(0),
       map(() => this.tokenService.getActiveSecretaryId()),
@@ -53,6 +69,8 @@ export class SidebarComponent implements OnInit {
       this.retry.pipe(map(() => this.tokenService.getActiveSecretaryId())),
     ).pipe(
       switchMap(id => {
+        this.releaseLogo();
+        this.logoError.set(false);
         this.institutionError.set('');
         this.institutionName.set(id ? 'Cargando institución...' : 'Sin secretaría activa');
         if (!id) return of(null);
@@ -62,10 +80,29 @@ export class SidebarComponent implements OnInit {
             if (parametros.idSecretariaFk !== id) {
               throw new Error('La configuración institucional no corresponde a la secretaría activa.');
             }
-            return parametros.nombreAlcaldia?.trim().replace(/\s+/g, ' ') || null;
+            return parametros;
+          }),
+          switchMap(parametros => {
+            const nombre = parametros.nombreAlcaldia?.trim().replace(/\s+/g, ' ') || null;
+            this.institutionName.set(nombre || 'Institución no disponible');
+            if (!nombre) {
+              this.institutionError.set('Configura el nombre institucional en los parámetros de la secretaría.');
+            }
+            if (parametros.logoInstitucional?.trim()) {
+              return of(parametros.logoInstitucional.trim());
+            }
+            return this.defaultLogo.image$.pipe(
+              map(blob => URL.createObjectURL(blob)),
+              catchError(error => {
+                console.error('No se pudo cargar el logo institucional del menú:', error);
+                this.logoError.set(true);
+                return of('');
+              }),
+            );
           }),
           catchError((error: unknown) => {
             console.error('No se pudo cargar el nombre institucional del menú:', error);
+            this.institutionName.set('Institución no disponible');
             this.institutionError.set(error instanceof HttpErrorResponse && error.status === 404
               ? 'Configura los parámetros institucionales de la secretaría.'
               : 'No se pudo consultar el nombre institucional. Puedes reintentar.');
@@ -74,16 +111,7 @@ export class SidebarComponent implements OnInit {
         );
       }),
       takeUntilDestroyed(this.destroyRef),
-    ).subscribe(nombre => {
-      if (nombre) {
-        this.institutionName.set(nombre);
-      } else if (this.tokenService.getActiveSecretaryId()) {
-        this.institutionName.set('Institución no disponible');
-        if (!this.institutionError()) {
-          this.institutionError.set('Configura el nombre institucional en los parámetros de la secretaría.');
-        }
-      }
-    });
+    ).subscribe(logo => this.institutionLogo.set(logo || ''));
   }
 
   retryInstitution(): void {

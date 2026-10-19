@@ -1,18 +1,9 @@
-<ul class="mb-4 flex flex-col gap-1">
-  <li class="mx-3.5 mt-4 mb-2">
-    <p
-      class="block font-sans text-sm leading-normal text-white font-black uppercase opacity-75 transition-all duration-200"
-      [ngClass]="{ 'opacity-0 translate-x-[-10px] pointer-events-none': collapsed }"
-    >
-      Inicio
-    </p>
-  </li>
-
+<ul class="flex flex-col gap-1">
   <li>
     <a routerLink="home" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
       <button
         type="button"
-        class="w-full flex items-center gap-4 px-4 py-3 text-xs rounded-lg font-bold text-white transition-colors duration-200 ease-in-out
+        class="w-full flex items-center gap-4 rounded-lg px-4 py-3 text-sm font-semibold text-white transition-colors duration-200 ease-in-out
                hover:bg-white/10 active:bg-white/30
                disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none"
         [ngClass]="{

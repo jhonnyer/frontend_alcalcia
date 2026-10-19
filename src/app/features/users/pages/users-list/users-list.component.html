@@ -1,4 +1,4 @@
-<section class="min-h-[calc(100vh-6rem)] rounded-xl bg-slate-50 p-4">
+<section class="min-h-[calc(100vh-6rem)] rounded-xl bg-slate-50 p-3 sm:p-4">
 	@if (loadErrors().length) {
 		<div role="alert" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
 			<p class="font-semibold">No se pudo cargar toda la información administrativa.</p>
@@ -17,15 +17,15 @@
 				}
 			</p>
 		</div>
-		<div class="flex flex-col gap-2 sm:flex-row">
+		<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
 			@if (isSuperAdmin()) {
-				<button type="button" class="btn-action-green" (click)="openSecretaryModal()">
+				<button type="button" class="btn-action-green w-full sm:w-auto" (click)="openSecretaryModal()">
 					<mat-icon class="text-base">add_business</mat-icon>
 					Nueva secretaría
 				</button>
 			}
 			@if (!isSuperAdmin()) {
-			<button type="button" class="btn-action-blue" (click)="goToUsers()">
+			<button type="button" class="btn-action-blue w-full sm:w-auto" (click)="goToUsers()">
 				<mat-icon class="text-base">manage_accounts</mat-icon>
 				Ver contactos de responsables
 			</button>
@@ -59,7 +59,7 @@
 				<h2 class="text-base font-semibold text-slate-800">Editar nombre</h2>
 				<p class="text-sm text-slate-500">Actualiza el nombre institucional de la secretaría en contexto.</p>
 			</div>
-			<button type="submit" class="btn-action-blue" [disabled]="activeSecretaryForm.invalid || editingActiveSecretary()">
+			<button type="submit" class="btn-action-blue w-full sm:w-auto" [disabled]="activeSecretaryForm.invalid || editingActiveSecretary()">
 				<mat-icon class="text-base">save</mat-icon>
 				{{ editingActiveSecretary() ? 'Guardando...' : 'Actualizar nombre' }}
 			</button>
@@ -75,7 +75,7 @@
 	<app-secretary-parameters-modal [open]="parameterModalOpen()" [loading]="loadingParameters()" [saving]="savingParameters()" [secretariaName]="selectedSecretaryForParameters()?.nombre || ''" [tipoSecretaria]="selectedSecretaryForParameters()?.tipo" [parameters]="currentParameters()" (cancel)="closeParameterModal()" (save)="saveSecretaryParameters($event)"></app-secretary-parameters-modal>
 
 	@if (coverageModalOpen()) {
-		<div class="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-3 sm:p-4">
+		<div class="fixed inset-0 z-[130] flex items-start justify-center overflow-y-auto bg-black/45 p-3 sm:items-center sm:p-4">
 			<div role="dialog" aria-modal="true" aria-labelledby="coverage-modal-title" aria-describedby="coverage-modal-description" class="flex max-h-[calc(100dvh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
 				<div class="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5">
 					<div class="min-w-0 break-words">
@@ -251,7 +251,7 @@
 		</div>
 
 		@if (activeTab() === 'secretarias') {
-		<section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+		<section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
 			<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<h2 class="text-base font-semibold text-slate-800">
 					{{ isSuperAdmin() ? 'Secretarías configuradas' : 'Configuración de secretaría activa' }}
@@ -379,7 +379,7 @@
 		</section>
 		} @else {
 
-		<section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+		<section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
 			<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h2 class="text-base font-semibold text-slate-800">Usuarios de la secretaría activa</h2>
@@ -393,7 +393,7 @@
 							<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearUsuarioSearch()" aria-label="Limpiar búsqueda de responsables"><mat-icon>close</mat-icon></button>
 						}
 					</div>
-					<button type="button" class="btn-action-blue" (click)="goToNewUser()">
+					<button type="button" class="btn-action-blue w-full sm:w-auto" (click)="goToNewUser()">
 						<mat-icon class="text-base">person_add</mat-icon>
 						Nuevo Usuario
 					</button>
@@ -412,7 +412,7 @@
 			} @else {
 				<div class="table-shell">
 					<div class="table-scroll max-h-80">
-						<table class="table-compact min-w-[980px]">
+						<table class="table-compact min-w-[820px] md:min-w-[980px]">
 							<thead>
 								<tr>
 									<th class="px-3 py-2 text-left">ID</th>
@@ -471,7 +471,7 @@
 		}
 
 		@if (userFormModalOpen()) {
-			<div class="fixed inset-0 z-[130] flex items-center justify-center bg-black/45 p-4">
+			<div class="fixed inset-0 z-[130] flex items-start justify-center overflow-y-auto bg-black/45 p-3 sm:items-center sm:p-4">
 				<div class="w-full max-w-4xl">
 					<app-responsible-update
 						[modalMode]="true"

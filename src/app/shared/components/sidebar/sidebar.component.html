@@ -26,12 +26,24 @@
          class="block rounded-md text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
          [attr.title]="institutionName() + ' — Ir al inicio'"
          [attr.aria-label]="institutionName() + ' — Ir al inicio'">
+        @if (institutionLogo()) {
+          <img [src]="institutionLogo()" alt="Logo institucional"
+               class="mx-auto mb-2 block max-w-full rounded-lg bg-white p-1 object-contain"
+               [class.h-9]="collapsed" [class.w-9]="collapsed"
+               [class.h-20]="!collapsed" [class.w-28]="!collapsed"
+               (error)="onLogoError()" />
+        }
         @if (collapsed) {
           <mat-icon class="block mx-auto" aria-hidden="true">home</mat-icon>
         } @else {
           <span class="block text-xs font-semibold leading-relaxed [overflow-wrap:anywhere]">{{ institutionName() }}</span>
         }
       </a>
+      @if (logoError()) {
+        <button type="button" (click)="retryInstitution()" class="mt-1 text-xs text-amber-200 underline" title="No se pudo cargar el logo. Reintentar">
+          {{ collapsed ? 'Reintentar' : 'Logo no disponible. Reintentar' }}
+        </button>
+      }
       @if (institutionError()) {
         <button type="button" (click)="retryInstitution()"
                 class="mt-1 text-xs text-amber-200 underline"
@@ -59,6 +71,12 @@
 
   <!-- Menú -->
   <div class="m-3 space-y-1 pt-1">
+    <a routerLink="/mi-perfil" routerLinkActive="bg-white/20"
+       class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white hover:bg-white/10"
+       [attr.title]="collapsed ? 'Mi perfil' : null">
+      <mat-icon>account_circle</mat-icon>
+      @if (!collapsed) { <span>Mi perfil</span> }
+    </a>
     @if (isSuperAdmin) {
       <app-list-nucleo [collapsed]="collapsed" />
       <a routerLink="/users" routerLinkActive="bg-white/20"

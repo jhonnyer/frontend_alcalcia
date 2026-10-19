@@ -28,6 +28,10 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     children: [
       {
+        path: 'mi-perfil',
+        loadComponent: () => import('./features/responsible/pages/mi-perfil/mi-perfil.component').then(m => m.MiPerfilComponent)
+      },
+      {
         path: 'home',
         canActivate: [operationalViewGuard],
         loadChildren: () => import('./features/home/home.routes').then(m => m.HOME_ROUTES)

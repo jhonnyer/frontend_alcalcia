@@ -1,0 +1,102 @@
+<section class="mx-auto max-w-5xl space-y-5 px-1 py-4 sm:px-2" aria-labelledby="perfil-title">
+  <header>
+    <h1 id="perfil-title" class="text-2xl font-bold text-slate-800">Mi perfil</h1>
+    <p class="mt-1 text-sm text-slate-500">Consulta y actualiza tus datos personales.</p>
+  </header>
+  @if (loading()) {
+    <p role="status" class="rounded-xl bg-white p-6 text-sm text-slate-500">Cargando perfil...</p>
+  } @else if (loadError()) {
+    <div role="alert" class="rounded-xl bg-red-50 p-4 text-sm text-red-800">
+      {{ loadError() }}
+      <button type="button" class="ml-2 font-semibold underline" (click)="load()">Reintentar</button>
+    </div>
+  }
+  @if (!loading() && !loadError() && perfil(); as usuario) {
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="mb-3 font-semibold text-slate-800">Información de la cuenta</h2>
+      <div class="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-slate-700">
+        Si necesitas cambiar tu usuario, documento o la secretaría asociada, solicita el ajuste al administrador.
+      </div>
+      <dl class="grid gap-3 text-sm sm:grid-cols-2">
+        <div><dt class="font-semibold text-slate-700">Usuario</dt><dd class="break-words font-normal text-slate-700">{{ usuario.usuario }}</dd></div>
+        <div><dt class="font-semibold text-slate-700">Documento</dt><dd class="break-words font-normal text-slate-700">{{ usuario.tipoIdentificacion }} {{ usuario.numeroIdentificacion }}</dd></div>
+        <div><dt class="font-semibold text-slate-700">Área</dt><dd class="break-words font-normal text-slate-700">{{ usuario.area || 'Sin dato' }}</dd></div>
+        <div><dt class="font-semibold text-slate-700">Cargo</dt><dd class="break-words font-normal text-slate-700">{{ usuario.cargo || 'Sin dato' }}</dd></div>
+      </dl>
+    </div>
+    <form class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="mb-4 flex flex-col gap-1">
+        <h2 class="font-semibold text-slate-800">Datos personales</h2>
+        <p class="text-xs text-slate-500">Los campos marcados con <span class="font-semibold text-red-600">*</span> son obligatorios.</p>
+      </div>
+      <fieldset class="grid min-w-0 gap-4 md:grid-cols-2" [disabled]="saving()">
+        <legend class="sr-only">Editar datos personales</legend>
+        <div>
+          <label for="perfil-primer-nombre" class="label-base">Primer nombre <span class="text-red-600">*</span></label>
+          <input id="perfil-primer-nombre" class="input-base" formControlName="primerNombre" autocomplete="given-name" maxlength="50" required aria-describedby="perfil-primer-nombre-error" [attr.aria-invalid]="form.controls.primerNombre.touched && form.controls.primerNombre.invalid" />
+          @if (form.controls.primerNombre.touched && form.controls.primerNombre.invalid) { <p id="perfil-primer-nombre-error" class="mt-1 text-xs text-red-600">Ingresa tu primer nombre, máximo 50 caracteres.</p> }
+        </div>
+        <div>
+          <label for="perfil-segundo-nombre" class="label-base">Segundo nombre</label>
+          <input id="perfil-segundo-nombre" class="input-base" formControlName="segundoNombre" autocomplete="additional-name" maxlength="50" />
+        </div>
+        <div>
+          <label for="perfil-primer-apellido" class="label-base">Primer apellido <span class="text-red-600">*</span></label>
+          <input id="perfil-primer-apellido" class="input-base" formControlName="primerApellido" autocomplete="family-name" maxlength="50" required aria-describedby="perfil-primer-apellido-error" [attr.aria-invalid]="form.controls.primerApellido.touched && form.controls.primerApellido.invalid" />
+          @if (form.controls.primerApellido.touched && form.controls.primerApellido.invalid) { <p id="perfil-primer-apellido-error" class="mt-1 text-xs text-red-600">Ingresa tu primer apellido, máximo 50 caracteres.</p> }
+        </div>
+        <div>
+          <label for="perfil-segundo-apellido" class="label-base">Segundo apellido</label>
+          <input id="perfil-segundo-apellido" class="input-base" formControlName="segundoApellido" maxlength="50" />
+        </div>
+        <div>
+          <label for="perfil-area" class="label-base">Área <span class="text-red-600">*</span></label>
+          <input id="perfil-area" class="input-base" formControlName="area" maxlength="100" required aria-describedby="perfil-area-error" [attr.aria-invalid]="form.controls.area.touched && form.controls.area.invalid" />
+          @if (form.controls.area.touched && form.controls.area.invalid) { <p id="perfil-area-error" class="mt-1 text-xs text-red-600">Ingresa el área, máximo 100 caracteres.</p> }
+        </div>
+        <div>
+          <label for="perfil-cargo" class="label-base">Cargo <span class="text-red-600">*</span></label>
+          <input id="perfil-cargo" class="input-base" formControlName="cargo" maxlength="100" required aria-describedby="perfil-cargo-error" [attr.aria-invalid]="form.controls.cargo.touched && form.controls.cargo.invalid" />
+          @if (form.controls.cargo.touched && form.controls.cargo.invalid) { <p id="perfil-cargo-error" class="mt-1 text-xs text-red-600">Ingresa el cargo, máximo 100 caracteres.</p> }
+        </div>
+        <div>
+          <label for="perfil-email" class="label-base">Correo electrónico <span class="text-red-600">*</span></label>
+          <input id="perfil-email" class="input-base" formControlName="email" type="email" autocomplete="email" maxlength="100" required aria-describedby="perfil-email-error" [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" />
+          @if (form.controls.email.touched && form.controls.email.invalid) { <p id="perfil-email-error" class="mt-1 text-xs text-red-600">Ingresa un correo electrónico válido.</p> }
+        </div>
+        <div>
+          <label for="perfil-telefono" class="label-base">Teléfono <span class="text-red-600">*</span></label>
+          <input id="perfil-telefono" class="input-base" formControlName="telefono" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" required aria-describedby="perfil-telefono-error" [attr.aria-invalid]="form.controls.telefono.touched && form.controls.telefono.invalid" />
+          @if (form.controls.telefono.touched && form.controls.telefono.invalid) { <p id="perfil-telefono-error" class="mt-1 text-xs text-red-600">Solo números, máximo 10 dígitos.</p> }
+        </div>
+      </fieldset>
+      @if (saveError()) { <p role="alert" class="mt-4 text-sm text-red-700">{{ saveError() }}</p> }
+      <div class="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button type="submit" class="btn-action-blue w-full sm:w-auto" [disabled]="saving() || form.invalid || !form.dirty">{{ saving() ? 'Guardando...' : 'Guardar datos' }}</button>
+      </div>
+    </form>
+    <form class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" [formGroup]="passwordForm" (ngSubmit)="changePassword()" novalidate>
+      <h2 class="font-semibold text-slate-800">Cambiar contraseña</h2>
+      <p id="perfil-password-help" class="mb-4 mt-1 text-xs text-slate-500">Usa al menos 8 caracteres. Con caracteres especiales o emojis, el límite de 72 bytes puede alcanzarse antes.</p>
+      <fieldset class="grid min-w-0 gap-4 md:grid-cols-2" [disabled]="changingPassword()">
+        <legend class="sr-only">Cambio de contraseña</legend>
+        <div class="sm:col-span-2">
+          <label for="perfil-password-actual" class="label-base">Contraseña actual <span class="text-red-600">*</span></label>
+          <input id="perfil-password-actual" class="input-base" formControlName="passwordActual" type="password" autocomplete="current-password" required />
+        </div>
+        <div>
+          <label for="perfil-password-nueva" class="label-base">Nueva contraseña <span class="text-red-600">*</span></label>
+          <input id="perfil-password-nueva" class="input-base" formControlName="passwordNueva" type="password" autocomplete="new-password" minlength="8" maxlength="72" required aria-describedby="perfil-password-help" />
+        </div>
+        <div>
+          <label for="perfil-password-confirmar" class="label-base">Confirmar nueva contraseña <span class="text-red-600">*</span></label>
+          <input id="perfil-password-confirmar" class="input-base" formControlName="confirmarPassword" type="password" autocomplete="new-password" maxlength="72" required />
+        </div>
+      </fieldset>
+      @if (passwordError()) { <p role="alert" class="mt-4 text-sm text-red-700">{{ passwordError() }}</p> }
+      <div class="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button type="submit" class="btn-action-blue w-full sm:w-auto" [disabled]="changingPassword() || passwordForm.invalid || !passwordForm.dirty">{{ changingPassword() ? 'Actualizando...' : 'Actualizar contraseña' }}</button>
+      </div>
+    </form>
+  }
+</section>

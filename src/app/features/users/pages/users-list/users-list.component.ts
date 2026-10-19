@@ -34,7 +34,7 @@ import { finalize, forkJoin, timeout } from 'rxjs';
   ],
   templateUrl: `./users-list.component.html`,
   styles: `
-    .secretaries-table { min-width: 36rem; }
+    .secretaries-table { min-width: 34rem; }
     .secretaries-table .secretary-name { width: 14rem; }
     .expandable-name { width: 11rem; max-width: 100%; }
     .expandable-name summary { display: flex; align-items: baseline; gap: 0.5rem; list-style: none; cursor: pointer; }
@@ -57,6 +57,8 @@ import { finalize, forkJoin, timeout } from 'rxjs';
     .municipalities-table .municipality-action { width: 6rem; text-align: center; }
     .municipalities-table .expandable-name { width: 100%; }
     @media (max-width: 640px) {
+      .secretaries-table { min-width: 30rem; }
+      .secretaries-table .secretary-name { width: 11rem; }
       .expandable-name { width: 9rem; }
       .municipalities-table { font-size: 0.75rem; }
       .municipalities-table .municipality-state { width: 4.5rem; }

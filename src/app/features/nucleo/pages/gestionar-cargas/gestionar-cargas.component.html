@@ -1,4 +1,10 @@
 <section class="min-h-full bg-slate-50 p-4 sm:p-6">
+  @if (erroresCarga().length) {
+    <div role="alert" class="mx-auto mb-4 max-w-[1200px] rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <ul class="list-inside list-disc">@for (message of erroresCarga(); track message) { <li>{{ message }}</li> }</ul>
+      <button type="button" class="btn-action-blue mt-3" (click)="cargarDatos()" [disabled]="cargando() || cargandoHistorico()">Reintentar</button>
+    </div>
+  }
   <header class="mx-auto flex max-w-[1200px] items-end justify-between gap-4">
     <div>
       <a routerLink="/nucleo" class="mb-2 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">
@@ -14,7 +20,7 @@
     </a>
   </header>
 
-  <main class="mx-auto mt-5 max-w-[1200px]">
+  <main class="mx-auto mt-5 max-w-[1200px]" [hidden]="erroresCarga().length > 0">
     <div class="mb-4 flex gap-1 border-b border-slate-200" role="tablist" aria-label="Cargas masivas">
       <button type="button" class="load-tab" [class.load-tab-active]="pestana() === 'pendientes'" (click)="cambiarPestana('pendientes')">
         Pendientes

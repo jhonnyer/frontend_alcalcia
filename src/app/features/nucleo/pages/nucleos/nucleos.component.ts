@@ -15,7 +15,7 @@ import { ConfirmDeleteDialogComponent } from '../../components/confirm-delete-di
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActasService } from '../../../../core/services/actas.service';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, finalize, timeout } from 'rxjs';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
@@ -78,17 +78,25 @@ export class NucleosComponent implements OnInit{
   }
 
   getAll() {
-    this.nucleoService.getAll(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).subscribe({
+    this.listLoading.set(true);
+    this.loadError.set('');
+    this.nucleoService.getAll(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).pipe(
+      timeout(45000), finalize(() => this.listLoading.set(false))
+    ).subscribe({
       next: response => {
         this.data.set(response.content ?? []);
         this.totalElements.set(response.totalElements ?? response.content?.length ?? 0);
         this.totalPages.set(Math.max(1, response.totalPages ?? 1));
       },
       error: error => {
-        console.log("Error getAll nucleos: ", error)
+        console.error('Error al cargar actores sociales:', error);
+        this.loadError.set('No se pudieron cargar los actores sociales. La consulta falló o tardó demasiado.');
       }
     })
   }
+
+  listLoading = signal(false);
+  loadError = signal('');
 
   public dataTable = createAngularTable(() => ({
     data: this.data(),

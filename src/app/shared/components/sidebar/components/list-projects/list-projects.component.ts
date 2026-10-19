@@ -2,12 +2,13 @@ import { NgClass, NgFor } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink, RouterLinkActive} from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-list-projects',
   standalone: true,
   imports: [
-    RouterLink, RouterLinkActive, NgClass, NgFor
+    RouterLink, RouterLinkActive, NgClass, NgFor, MatIconModule
   ],
   styles: ``,
   templateUrl: './list-projects.component.html',

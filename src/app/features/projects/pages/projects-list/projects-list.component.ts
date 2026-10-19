@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
@@ -55,6 +57,9 @@ export class ProjectsListComponent {
   private router = inject(Router);
   private authService = inject(AuthService);
   private alert = inject(AlertService);
+  private destroyRef = inject(DestroyRef);
+  isLoading = signal(false);
+  loadError = signal('');
   Math = Math;
 
   // Cambiamos el tipo del signal para manejar el objeto completo
@@ -99,7 +104,12 @@ export class ProjectsListComponent {
   }
 
   getAll() {
-    this.proyectosService.getAll().subscribe({
+    this.isLoading.set(true);
+    this.loadError.set('');
+    this.proyectosService.getAll().pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.isLoading.set(false))
+    ).subscribe({
       next: (response) => {
         if (response.estado === 'exito') {
           let proyectos = response.respuesta;
@@ -114,7 +124,7 @@ export class ProjectsListComponent {
       },
       error: (error) => {
         console.error('❌ Error al cargar proyectos:', error);
-        this.alert.error('No se pudieron cargar los proyectos', 'Intenta nuevamente en unos momentos.');
+        this.loadError.set('No se pudieron cargar los proyectos. La consulta falló o tardó demasiado.');
       }
     });
   }

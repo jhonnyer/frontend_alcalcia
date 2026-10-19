@@ -5,11 +5,15 @@
     aria-controls="dropdown"
     data-collapse-toggle="dropdown"
     (click)="toggleMenu()"
+    aria-label="Actas"
+    [attr.title]="collapsed ? 'Actas' : null"
+    [attr.aria-expanded]="activeMenu && !collapsed"
   >
-    <span class="flex-1 ml-3 text-left whitespace-nowrap" sidebar-toggle-item>
-      3. Actas
+    <mat-icon class="shrink-0">description</mat-icon>
+    <span class="flex-1 text-left whitespace-nowrap" [class.hidden]="collapsed" sidebar-toggle-item>
+      Actas
     </span>
-    <svg sidebar-toggle-item class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
+    <svg sidebar-toggle-item class="w-5 h-5 shrink-0" [class.hidden]="collapsed" fill="currentColor" viewBox="0 0 20 20"
         xmlns="http://www.w3.org/2000/svg"
         [ngClass]="{ 'rotate-180 transition-transform duration-300': activeMenu }">
       <path fill-rule="evenodd"

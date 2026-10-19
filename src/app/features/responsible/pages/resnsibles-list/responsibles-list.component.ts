@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { finalize, timeout } from 'rxjs';
 import { Component, inject, Injector, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -23,7 +24,6 @@ import { IResponsable } from '../../../../core/models/responsable.model';
 import { MatIconModule } from '@angular/material/icon';
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { AlertService } from '../../../../core/services/alert.service';
 import { ResponsibleUpdateComponent } from '../responsible-update/responsible-update.component';
 
 @Component({
@@ -47,7 +47,6 @@ export class ResponsiblesListComponent {
   private responsibleService = inject(ResponsibleService);
   injector = inject(Injector);
   private pageTitleService = inject(PageTitleService);
-  private alert = inject(AlertService);
   data = signal<IResponsable[]>([]);
   formModalOpen = signal(false);
   editingResponsableId = signal<number | null>(null);
@@ -71,16 +70,23 @@ export class ResponsiblesListComponent {
   }
 
   getAll() {
-    this.responsibleService.getAll().subscribe({
+    this.listLoading.set(true);
+    this.loadError.set('');
+    this.responsibleService.getAll().pipe(
+      timeout(45000), finalize(() => this.listLoading.set(false))
+    ).subscribe({
       next: response => {
         this.data.set(response.filter(item => (item.perfilUsuario || '').toUpperCase() !== 'SUPERADMIN'));
       },
       error: error => {
         console.error("Error getAll responsables:", error);
-        this.alert.error('No se pudieron cargar los usuarios', 'Intenta nuevamente en unos momentos.');
+        this.loadError.set('No se pudieron cargar los usuarios. La consulta falló o tardó demasiado.');
       }
     });
   }
+
+  listLoading = signal(false);
+  loadError = signal('');
 
   public dataTable = createAngularTable(() => ({
     data: this.data(),
@@ -175,5 +181,3 @@ export class ResponsiblesListComponent {
   }
 
 }
-
-

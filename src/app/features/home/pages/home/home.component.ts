@@ -1,4 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { RouterLink } from '@angular/router';
 import { ActasService } from '../../../../core/services/actas.service';
@@ -75,6 +76,8 @@ export class HomeComponent implements OnInit{
   private proyectosService= inject(ProyectosService);
   private beneficiarioProyectoService= inject(BeneficiarioProyectoService);
   private excelReportes = inject(ExcelGeneradorReportesService);
+  private destroyRef = inject(DestroyRef);
+  reportOptionsError = '';
 
   isLoadingPDF = false;
   reportPeriod: 'ALL' | 'YEAR' | 'MONTH' = 'ALL';
@@ -135,7 +138,8 @@ export class HomeComponent implements OnInit{
   }
 
   private loadReportFilterOptions(): void {
-    this.proyectosService.getAll().subscribe(response => {
+    this.proyectosService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: response => {
       const projects = response.respuesta ?? [];
       this.reportProjectOptions = projects.map(item => ({
         id: item.proyecto.idProyecto,
@@ -149,13 +153,24 @@ export class HomeComponent implements OnInit{
       }))).filter((category, index, categories) =>
         categories.findIndex(item => item.id === category.id && item.projectId === category.projectId) === index);
       this.updateReportCategoryOptions();
+      },
+      error: error => {
+        console.error('Error al cargar proyectos para los filtros de reportes:', error);
+        this.reportOptionsError = 'No se pudieron cargar algunas opciones de los filtros. Recarga la página para reintentar.';
+      }
     });
-    this.responsibleService.getAll().subscribe(responsables => {
+    this.responsibleService.getAll().pipe(timeout(45000), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: responsables => {
       this.reportResponsibleOptions = (responsables ?? []).map(responsable => ({
         id: responsable.idResponsable,
         nombre: `${responsable.primerNombre} ${responsable.primerApellido}`.trim()
       }));
       this.reportFilteredResponsibles = [...this.reportResponsibleOptions];
+      },
+      error: error => {
+        console.error('Error al cargar responsables para los filtros de reportes:', error);
+        this.reportOptionsError = 'No se pudieron cargar algunas opciones de los filtros. Recarga la página para reintentar.';
+      }
     });
   }
 

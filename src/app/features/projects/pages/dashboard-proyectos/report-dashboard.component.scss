@@ -116,11 +116,18 @@
 }
 
 /* Mantener consistencia con las demás gráficas */
-mat-card canvas {
+mat-card {
+  min-width: 0;
+}
+
+.chart-container {
+  position: relative;
+  height: 260px;
+  min-width: 0;
+}
+
+.chart-container canvas {
   display: block;
-  margin-top: 0.25rem;
-  height: auto;
-  max-height: 260px; 
 }
 
 /* Modern visual refresh */

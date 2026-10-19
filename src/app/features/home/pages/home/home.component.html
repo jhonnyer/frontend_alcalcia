@@ -71,6 +71,9 @@
       </ng-template>
 
       <!-- 🧱 Bloques de reportes con scroll horizontal y vertical -->
+      @if (reportOptionsError) {
+        <div role="alert" class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{{ reportOptionsError }}</div>
+      }
       <div class="reportes-wrapper pb-4">
         <div
           class="reportes-container mt-6 mb-8 grid gap-y-6 gap-x-4

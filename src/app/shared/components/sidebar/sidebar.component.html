@@ -39,11 +39,27 @@
 
   <!-- Menú -->
   <div class="m-3 space-y-1 pt-1">
-    <app-list-home />
-    <app-list-nucleo />
-    <app-list-projects />
-    <app-list-proceedings />
-    <app-list-responsible *hasRole="['ADMIN', 'RESP', 'SUPERADMIN', 'USER', 'BENEF']" />
+    @if (isSuperAdmin) {
+      <app-list-nucleo [collapsed]="collapsed" />
+      <a routerLink="/users" routerLinkActive="bg-white/20"
+        class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white hover:bg-white/10"
+        [attr.title]="collapsed ? 'Panel administrativo' : null">
+        <mat-icon>admin_panel_settings</mat-icon>
+        @if (!collapsed) { <span>Panel administrativo</span> }
+      </a>
+      <a routerLink="/resposibles/soporte" routerLinkActive="bg-white/20"
+        class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white hover:bg-white/10"
+        [attr.title]="collapsed ? 'Soporte administrativo' : null">
+        <mat-icon>support_agent</mat-icon>
+        @if (!collapsed) { <span>Soporte administrativo</span> }
+      </a>
+    } @else {
+    <app-list-home [collapsed]="collapsed" />
+    <app-list-nucleo [collapsed]="collapsed" />
+    <app-list-projects [collapsed]="collapsed" />
+    <app-list-proceedings [collapsed]="collapsed" />
+    <app-list-responsible [collapsed]="collapsed" *hasRole="['ADMIN', 'RESP', 'SUPERADMIN', 'USER', 'BENEF']" />
+    }
   </div>
 
   <!-- Cerrar sesión -->

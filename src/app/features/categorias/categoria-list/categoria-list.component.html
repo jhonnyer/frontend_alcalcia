@@ -1,4 +1,12 @@
 <section class="min-h-[calc(100vh-6rem)] scrollbar-custom">
+  @if (listLoading()) { <p role="status" class="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Cargando categorías…</p> }
+  @if (loadError()) {
+    <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn-action-blue mt-3" (click)="getAll()" [disabled]="listLoading()">Reintentar</button>
+    </div>
+  }
+  <div [hidden]="listLoading() || !!loadError()">
   <mat-card class="shadow-sm bg-white rounded-lg border border-gray-200">
     <!-- HEADER -->
     <div class="flex flex-col gap-3 p-4 border-b border-gray-200 lg:flex-row lg:items-end lg:justify-between">
@@ -142,6 +150,9 @@
               }
             </tr>
           }
+          @if (dataTable.getRowModel().rows.length === 0) {
+            <tr><td [attr.colspan]="dataTable.getAllColumns().length" class="px-4 py-10 text-center text-sm text-slate-500">No hay categorías para mostrar en esta secretaría con los filtros actuales.</td></tr>
+          }
         </tbody>
       </table>
       </div>
@@ -196,4 +207,5 @@
       </div>
     </div>
   </mat-card>
+  </div>
 </section>

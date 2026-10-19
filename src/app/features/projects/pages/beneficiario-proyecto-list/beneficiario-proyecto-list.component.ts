@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { finalize, timeout } from 'rxjs';
 import { Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -79,8 +80,10 @@ export class BeneficiarioProyectoListComponent implements OnInit {
 
   getAll() {
     this.loading.set(true);
+    this.loadError.set('');
     this.beneficiarioProyectoService
       .getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters())
+      .pipe(timeout(45000), finalize(() => this.loading.set(false)))
       .subscribe({
       next: response => {
         this.data.set(response.content ?? []);
@@ -90,10 +93,13 @@ export class BeneficiarioProyectoListComponent implements OnInit {
       },
       error: error => {
         console.error("Error getAll beneficiarios-proyecto: ", error);
+        this.loadError.set('No se pudieron cargar las asignaciones de beneficiarios. La consulta falló o tardó demasiado.');
         this.loading.set(false);
       }
     });
   }
+
+  loadError = signal('');
 
   public dataTable = createAngularTable(() => ({
     data: this.filteredData(),

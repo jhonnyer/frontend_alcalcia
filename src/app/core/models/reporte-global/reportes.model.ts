@@ -25,6 +25,7 @@ export interface ReportePoblacionVulnerable {
   discapacidad: number;
   victimas: number;
   menores: number;
+  menoresEdad?: number;
   mujeres: number;
   lgbti: number;
 }

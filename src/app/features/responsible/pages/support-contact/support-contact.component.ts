@@ -10,6 +10,7 @@ import { ParametroNegocioService } from '../../../../core/services/parametro-neg
 import { ResponsibleService } from '../../../../core/services/responsible.service';
 import { SecretariaAdminService } from '../../../../core/services/secretaria-admin.service';
 import { TokenService } from '../../../../core/services/token.service';
+import { finalize, timeout } from 'rxjs';
 
 @Component({
   selector: 'app-support-contact',
@@ -28,6 +29,7 @@ export class SupportContactComponent {
   private readonly tokenService = inject(TokenService);
 
   loading = signal(true);
+  loadErrors = signal<string[]>([]);
   parametros = signal<IParametroNegocio | null>(null);
   superAdmin = signal<ISoporteSuperAdmin | null>(null);
   activeSecretaryName = signal('');
@@ -91,8 +93,19 @@ export class SupportContactComponent {
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Soporte administrativo');
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading.set(true);
+    this.loadErrors.set([]);
 
     const activeId = this.tokenService.getActiveSecretaryId();
+    let pending = activeId == null ? 2 : 3;
+    const finish = () => {
+      pending--;
+      if (pending === 0) this.loading.set(false);
+    };
     if (activeId != null) {
       const fromToken = this.tokenService
         .getAvailableSecretaries()
@@ -102,7 +115,7 @@ export class SupportContactComponent {
         this.activeSecretaryName.set(tokenName);
       }
 
-      this.secretariaAdminService.getAll().subscribe({
+      this.secretariaAdminService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
         next: (secretarias) => {
           this.secretarias.set(secretarias);
           const active = secretarias.find(secretaria => secretaria.idSecretaria === activeId);
@@ -113,29 +126,33 @@ export class SupportContactComponent {
         },
         error: (error) => {
           console.error('Error al cargar secretaría activa de sesión:', error);
+          this.loadErrors.update(errors => [...errors, 'No se pudo consultar el nombre de la secretaría activa.']);
         }
       });
     }
 
-    this.parametroNegocioService.getActive().subscribe({
+    this.parametroNegocioService.getActive().pipe(timeout(45000), finalize(finish)).subscribe({
       next: (data) => {
         this.parametros.set(data);
       },
       error: (error) => {
+        if (error?.status === 404) {
+          this.parametros.set(null);
+          return;
+        }
         console.error('Error al cargar datos de soporte:', error);
+        this.loadErrors.update(errors => [...errors, 'No se pudieron consultar los datos institucionales.']);
       }
     });
 
-    this.responsibleService.getSupportSuperAdmin().subscribe({
+    this.responsibleService.getSupportSuperAdmin().pipe(timeout(45000), finalize(finish)).subscribe({
       next: (responsable) => {
         this.superAdmin.set(responsable);
-        this.loading.set(false);
       },
       error: (error) => {
         console.error('Error al cargar soporte SuperAdmin:', error);
         this.superAdmin.set(null);
-        this.loading.set(false);
-        this.alert.warning('Soporte no configurado', 'No se encontró un usuario SuperAdmin de soporte o no tienes permisos para verlo.');
+        this.loadErrors.update(errors => [...errors, 'No se pudo consultar el contacto de soporte. La consulta falló, tardó demasiado o no tienes permisos.']);
       }
     });
   }

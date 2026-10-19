@@ -1,4 +1,11 @@
 <div class="min-h-screen bg-gray-50 py-4 sm:py-6">
+  @if (loadError) {
+    <div role="alert" class="m-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <p>{{ loadError }}</p>
+      <button type="button" class="btn-action-blue mt-3" (click)="loadData()" [disabled]="loading">Reintentar</button>
+      <button type="button" class="btn-action-gray mt-3 ml-2" (click)="volver()">Volver</button>
+    </div>
+  }
   <div *ngIf="loading" class="flex h-[80vh] items-center justify-center">
     <mat-spinner diameter="50"></mat-spinner>
   </div>

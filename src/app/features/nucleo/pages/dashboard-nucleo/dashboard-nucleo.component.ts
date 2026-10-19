@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, ElementRef, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { finalize, timeout } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -157,6 +158,15 @@ export class DashboardComponent implements OnInit {
   };
 
   ngOnInit() {
+    this.loadData();
+    this.pageTitleService.setCurrentPage('Dashboard');
+  }
+
+  loadError = '';
+
+  loadData(): void {
+    this.loading = true;
+    this.loadError = '';
     const id = Number(this.route.snapshot.paramMap.get('id'));
 
     // Intentar leer el núcleo desde el estado de navegación
@@ -168,35 +178,36 @@ export class DashboardComponent implements OnInit {
       this.aplicarDatosDashboard(this.nucleo);
       this.loading = false;
     } else {
-      this.nucleoService.obtenerDetalleNucleo(id).subscribe({
+      this.nucleoService.obtenerDetalleNucleo(id).pipe(
+        timeout(45000), finalize(() => this.loading = false)
+      ).subscribe({
         next: ({ respuesta }) => {
-          const fallback = respuesta || {
-            idNucleo: id,
-            nombreNucleo: 'Sin nombre',
-            direccion: '—',
-            nombreZona: '—',
-            nombreBarrio: '—',
-            numeroIntegrantes: 0,
-            beneficiariosNucleo: [],
-            beneficiariosProyecto: [],
-            actas: []
-          };
-          this.aplicarDatosDashboard(fallback);
+          if (!respuesta) {
+            this.loadError = 'No se encontró el actor social solicitado.';
+            return;
+          }
+          this.aplicarDatosDashboard(respuesta);
           this.loading = false;
         },
         error: (err) => {
           console.error('Error cargando actor social', err);
+          this.loadError = 'No se pudo cargar el dashboard del actor social. La consulta falló o tardó demasiado.';
           this.loading = false;
         }
       });
     }
 
-    this.pageTitleService.setCurrentPage('Dashboard');
   }
 
   private aplicarDatosDashboard(data: NucleoDetallado) {
-    this.nucleo = data;
-    this.allData = data;
+    const normalized = {
+      ...data,
+      actas: data.actas ?? [],
+      beneficiariosNucleo: data.beneficiariosNucleo ?? [],
+      beneficiariosProyecto: data.beneficiariosProyecto ?? []
+    };
+    this.nucleo = normalized;
+    this.allData = normalized;
     this.recalcularDashboard();
   }
 

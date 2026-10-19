@@ -1,5 +1,6 @@
 import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { finalize, timeout } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { NucleoDetallado } from '../../../../core/models/nucleo-detallado.model';
@@ -48,17 +49,28 @@ export class NucleoDetalleComponent implements OnInit {
   detalle?: NucleoDetallado;
   loading = true;
   loadingPdf = false;
+  loadError = '';
 
   ngOnInit(): void {
     this.updateViewportMode();
+    this.loadData();
+  }
+
+  loadData(): void {
+    this.loading = true;
+    this.loadError = '';
     const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.nucleoService.obtenerDetalleNucleo(id).subscribe({
+    this.nucleoService.obtenerDetalleNucleo(id).pipe(
+      timeout(45000), finalize(() => this.loading = false)
+    ).subscribe({
       next: (data) => {
         this.detalle = data.respuesta;
+        if (!this.detalle) this.loadError = 'No se encontró el actor social solicitado.';
         this.loading = false;
       },
       error: (err) => {
         console.error('Error cargando núcleo', err);
+        this.loadError = 'No se pudo cargar el actor social. La consulta falló o tardó demasiado.';
         this.loading = false;
       }
     });

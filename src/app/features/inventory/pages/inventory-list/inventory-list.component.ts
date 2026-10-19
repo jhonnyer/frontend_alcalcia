@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { finalize, Subscription, timeout } from 'rxjs';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CdkTableModule } from '@angular/cdk/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
@@ -103,7 +105,9 @@ export class InventoryListComponent implements OnInit {
   }
 
   getAll() {
-    this.proyectosService.getAll().subscribe({
+    this.listLoading.set(true);
+    this.loadError.set('');
+    this.proyectosService.getAll().pipe(finalize(() => this.listLoading.set(false))).subscribe({
       next: response => {
         const proyectos = response.respuesta ?? [];
         this.proyectos.set(proyectos);
@@ -121,11 +125,20 @@ export class InventoryListComponent implements OnInit {
       },
       error: error => {
         console.error("Error al cargar productos:", error);
+        this.loadError.set('No se pudieron cargar los proyectos del inventario. La consulta falló o tardó demasiado.');
       }
     });
   }
 
+  listLoading = signal(false);
+  private destroyRef = inject(DestroyRef);
+  private productsRequest?: Subscription;
+  loadError = signal('');
+  productsLoading = signal(false);
+  productsError = signal('');
+
   selectProject(id: number | string | null): void {
+    this.productsRequest?.unsubscribe();
     const projectId = id === null || id === '' ? null : Number(id);
     const project = this.proyectos().find(item => item.proyecto.idProyecto === projectId) ?? null;
     this.selectedProjectId.set(projectId);
@@ -136,20 +149,29 @@ export class InventoryListComponent implements OnInit {
     this.categorySearch.set('');
     this.projectSuggestionsVisible.set(false);
     this.data.set([]);
+    this.productsError.set('');
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
   }
 
   selectCategory(id: number | string | null): void {
+    this.productsRequest?.unsubscribe();
     const categoryId = id === null || id === '' ? null : Number(id);
     const category = this.categories().find(item => item.idCategoria === categoryId) ?? null;
     this.selectedCategoryId.set(categoryId);
     this.categorySearch.set(category ? `#${category.idCategoria} - ${category.nombre}` : '');
     this.categorySuggestionsVisible.set(false);
     this.data.set([]);
+    this.productsError.set('');
     if (this.selectedProjectId() && categoryId) {
-      this.productosService.getByProjectCategory(this.selectedProjectId()!, categoryId).subscribe({
+      this.productsLoading.set(true);
+      this.productsRequest = this.productosService.getByProjectCategory(this.selectedProjectId()!, categoryId).pipe(
+        timeout(45000), takeUntilDestroyed(this.destroyRef), finalize(() => this.productsLoading.set(false))
+      ).subscribe({
         next: products => this.data.set(products),
-        error: error => console.error('Error al cargar productos por proyecto y categoría:', error)
+        error: error => {
+          console.error('Error al cargar productos por proyecto y categoría:', error);
+          this.productsError.set('No se pudieron cargar los productos. La consulta falló o tardó demasiado.');
+        }
       });
     }
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));

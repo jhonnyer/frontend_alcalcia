@@ -1,31 +1,54 @@
 <section class="min-h-[calc(100vh-6rem)] rounded-xl bg-slate-50 p-4">
+	@if (loadErrors().length) {
+		<div role="alert" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+			<p class="font-semibold">No se pudo cargar toda la información administrativa.</p>
+			<ul class="mt-2 list-inside list-disc">@for (message of loadErrors(); track message) { <li>{{ message }}</li> }</ul>
+			<button type="button" class="btn-action-blue mt-3" (click)="loadData()" [disabled]="loading()">Reintentar</button>
+		</div>
+	}
 	<header class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 		<div>
 			<h1 class="text-xl font-bold text-slate-800">Gestión administrativa</h1>
-			<p class="text-sm text-slate-500">Administración de secretarías, cobertura territorial y parámetros institucionales.</p>
+			<p class="text-sm text-slate-500">
+				@if (isSuperAdmin()) {
+					Gestiona secretarías, cobertura territorial y parámetros institucionales de toda la plataforma.
+				} @else {
+					Consulta y administra la secretaría activa de tu cuenta.
+				}
+			</p>
 		</div>
 		<div class="flex flex-col gap-2 sm:flex-row">
-			<button type="button" class="btn-action-green" (click)="openSecretaryModal()">
-				<mat-icon class="text-base">add_business</mat-icon>
-				Nueva secretaría
-			</button>
+			@if (isSuperAdmin()) {
+				<button type="button" class="btn-action-green" (click)="openSecretaryModal()">
+					<mat-icon class="text-base">add_business</mat-icon>
+					Nueva secretaría
+				</button>
+			}
+			@if (!isSuperAdmin()) {
 			<button type="button" class="btn-action-blue" (click)="goToUsers()">
 				<mat-icon class="text-base">manage_accounts</mat-icon>
 				Ver contactos de responsables
 			</button>
+			}
 		</div>
 	</header>
 
-	<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+	<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
 		<article class="rounded-xl border border-slate-200 border-l-4 border-l-blue-500 bg-white p-4 shadow-sm">
-			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Secretarías</p>
-			<p class="mt-2 text-3xl font-bold text-slate-800">{{ filteredSecretarias().length }}</p>
-			<p class="text-sm text-slate-500">Áreas habilitadas para operación multi-secretaría.</p>
+			@if (isSuperAdmin()) {
+				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Secretarías</p>
+				<p class="mt-2 text-3xl font-bold text-slate-800">{{ filteredSecretarias().length }}</p>
+				<p class="text-sm text-slate-500">Áreas habilitadas en la plataforma.</p>
+			} @else {
+				<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Acceso administrativo</p>
+				<p class="mt-2 text-xl font-bold text-slate-800">Configuración local</p>
+				<p class="text-sm text-slate-500">Gestiona los usuarios y la configuración de tu secretaría.</p>
+			}
 		</article>
 
 		<article class="rounded-xl border border-slate-200 border-l-4 border-l-amber-500 bg-white p-4 shadow-sm">
 			<p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Parámetros</p>
-			<p class="mt-2 text-3xl font-bold text-slate-800">Por secretaría</p>
+			<p class="mt-2 break-words text-base font-normal text-slate-800">{{ activeSecretaryName() || 'Sin secretaría activa' }}</p>
 			<p class="text-sm text-slate-500">Datos institucionales usados en actas y documentos.</p>
 		</article>
 	</div>
@@ -33,8 +56,8 @@
 	<form [formGroup]="activeSecretaryForm" (ngSubmit)="updateActiveSecretaryName()" class="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
 		<div class="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
 			<div>
-				<h2 class="text-base font-semibold text-slate-800">Secretaría activa</h2>
-				<p class="text-sm text-slate-500">Solo se permite editar el nombre de la secretaría con la sesión actual.</p>
+				<h2 class="text-base font-semibold text-slate-800">Editar nombre</h2>
+				<p class="text-sm text-slate-500">Actualiza el nombre institucional de la secretaría en contexto.</p>
 			</div>
 			<button type="submit" class="btn-action-blue" [disabled]="activeSecretaryForm.invalid || editingActiveSecretary()">
 				<mat-icon class="text-base">save</mat-icon>
@@ -43,7 +66,7 @@
 		</div>
 		<div class="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto] md:items-end">
 			<label class="text-sm font-semibold text-slate-700">Nombre actual
-				<input class="input-base" formControlName="nombre" [placeholder]="activeSecretaryName() || 'Secretaría activa'" />
+				<input class="input-base font-normal" formControlName="nombre" [placeholder]="activeSecretaryName() || 'Secretaría activa'" />
 			</label>
 		</div>
 	</form>
@@ -272,14 +295,18 @@
 		@if (activeTab() === 'secretarias') {
 		<section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
 			<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-				<h2 class="text-base font-semibold text-slate-800">Secretarías configuradas</h2>
-				<div class="relative w-full sm:w-72">
-					<label for="secretaria-search" class="sr-only">Buscar secretaría</label>
-					<input id="secretaria-search" class="input-base pr-10" type="text" placeholder="Buscar secretaría" [value]="secretariaSearch()" (input)="updateSecretariaSearch($event)" />
-					@if (secretariaSearch()) {
-						<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearSecretariaSearch()" aria-label="Limpiar filtro de secretarías"><mat-icon>close</mat-icon></button>
-					}
-				</div>
+				<h2 class="text-base font-semibold text-slate-800">
+					{{ isSuperAdmin() ? 'Secretarías configuradas' : 'Configuración de secretaría activa' }}
+				</h2>
+				@if (isSuperAdmin()) {
+					<div class="relative w-full sm:w-72">
+						<label for="secretaria-search" class="sr-only">Buscar secretaría</label>
+						<input id="secretaria-search" class="input-base pr-10" type="text" placeholder="Buscar secretaría" [value]="secretariaSearch()" (input)="updateSecretariaSearch($event)" />
+						@if (secretariaSearch()) {
+							<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearSecretariaSearch()" aria-label="Limpiar filtro de secretarías"><mat-icon>close</mat-icon></button>
+						}
+					</div>
+				}
 			</div>
 
 			@if (loading()) {
@@ -297,9 +324,13 @@
 						<table class="table-compact">
 							<thead>
 								<tr>
-									<th class="px-3 py-2 text-left">ID</th>
+									@if (isSuperAdmin()) {
+										<th class="px-3 py-2 text-left">ID</th>
+									}
 									<th class="px-3 py-2 text-left">Nombre</th>
-									<th class="px-3 py-2 text-left">Código</th>
+									@if (isSuperAdmin()) {
+										<th class="px-3 py-2 text-left">Código</th>
+									}
 									<th class="px-3 py-2 text-center">Estado</th>
 									<th class="px-3 py-2 text-center">Cobertura</th>
 									<th class="px-3 py-2 text-center">Parámetros</th>
@@ -311,16 +342,20 @@
 							<tbody>
 								@for (secretaria of paginatedSecretarias(); track secretaria.idSecretaria) {
 									<tr class="border-t border-slate-100 hover:bg-blue-50/40">
-										<td class="px-3 py-2 font-semibold text-slate-700">#{{ secretaria.idSecretaria }}</td>
+										@if (isSuperAdmin()) {
+											<td class="px-3 py-2 font-semibold text-slate-700">#{{ secretaria.idSecretaria }}</td>
+										}
 										<td class="px-3 py-2">{{ secretaria.nombre }}</td>
-										<td class="px-3 py-2">{{ secretaria.codigo }}</td>
+										@if (isSuperAdmin()) {
+											<td class="px-3 py-2">{{ secretaria.codigo }}</td>
+										}
 										<td class="px-3 py-2 text-center">
 											<span class="status-badge" [ngClass]="secretaria.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">
 												{{ secretaria.estado === 'A' ? 'Activa' : 'Inactiva' }}
 											</span>
 										</td>
 										<td class="px-3 py-2 text-center">
-											<button type="button" class="rounded-md p-1 text-emerald-700 hover:bg-emerald-50" (click)="openCoverageModal(secretaria)" title="Gestionar cobertura municipal" aria-label="Gestionar cobertura municipal">
+											<button type="button" class="rounded-md p-1 text-emerald-700 hover:bg-emerald-50" (click)="openCoverageModal(secretaria)" [title]="isSuperAdmin() ? 'Gestionar cobertura territorial' : 'Gestionar cobertura de tu secretaría activa'" aria-label="Gestionar cobertura territorial">
 												<mat-icon>public</mat-icon>
 											</button>
 										</td>
@@ -350,19 +385,25 @@
 					</div>
 					<div class="flex flex-col gap-2 border-t border-slate-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
 						<div class="text-xs text-slate-500">
-							Mostrando {{ paginatedSecretarias().length }} de {{ filteredSecretarias().length }} secretarías
+							@if (isSuperAdmin()) {
+								Mostrando {{ paginatedSecretarias().length }} de {{ filteredSecretarias().length }} secretarías
+							} @else {
+								Configuración limitada a la secretaría activa
+							}
 						</div>
-						<div class="flex flex-wrap items-center gap-2">
-							<label for="secretaria-page-size" class="sr-only">Filas por página de secretarías</label>
-							<select id="secretaria-page-size" class="select-base" (change)="onSecretariaPageSizeChange($event)">
-								<option [value]="6" [selected]="secretariaPageSize() === 6">6</option>
-								<option [value]="10" [selected]="secretariaPageSize() === 10">10</option>
-								<option [value]="15" [selected]="secretariaPageSize() === 15">15</option>
-							</select>
-							<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() === 0" (click)="previousSecretariaPage()">Anterior</button>
-							<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() >= secretariaTotalPages() - 1" (click)="nextSecretariaPage()">Siguiente</button>
-							<span class="text-xs text-slate-600">Página {{ secretariaPageIndex() + 1 }} de {{ secretariaTotalPages() }}</span>
-						</div>
+						@if (isSuperAdmin()) {
+							<div class="flex flex-wrap items-center gap-2">
+								<label for="secretaria-page-size" class="sr-only">Filas por página de secretarías</label>
+								<select id="secretaria-page-size" class="select-base" (change)="onSecretariaPageSizeChange($event)">
+									<option [value]="6" [selected]="secretariaPageSize() === 6">6</option>
+									<option [value]="10" [selected]="secretariaPageSize() === 10">10</option>
+									<option [value]="15" [selected]="secretariaPageSize() === 15">15</option>
+								</select>
+								<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() === 0" (click)="previousSecretariaPage()">Anterior</button>
+								<button type="button" class="btn-navigate-black" [disabled]="secretariaPageIndex() >= secretariaTotalPages() - 1" (click)="nextSecretariaPage()">Siguiente</button>
+								<span class="text-xs text-slate-600">Página {{ secretariaPageIndex() + 1 }} de {{ secretariaTotalPages() }}</span>
+							</div>
+						}
 					</div>
 				</div>
 			}

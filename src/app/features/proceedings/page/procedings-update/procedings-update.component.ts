@@ -1,5 +1,6 @@
 import { Component, inject, Input, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { finalize, timeout } from 'rxjs';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActasService } from '../../../../core/services/actas.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
@@ -236,12 +237,18 @@ export class ProcedingsUpdateComponent implements OnInit {
   }
 
   // Cargo los datos del acta
-  private loadActaData(): void {
+  loadActaData(): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.actasService.getById(this.idActa).subscribe({
+    this.actasService.getById(this.idActa).pipe(
+      timeout(45000), finalize(() => this.loading.set(false))
+    ).subscribe({
       next: (response) => {
+        if (response.estado !== 'exito' || !response.respuesta) {
+          this.error.set(response.mensaje || 'No se encontró el acta solicitada');
+          return;
+        }
         if (response.estado === 'exito') {
           const acta = response.respuesta;
           this.actaData.set(acta);
@@ -385,12 +392,13 @@ export class ProcedingsUpdateComponent implements OnInit {
       },
       error: error => {
         console.error("Error al cargar proyectos:", error);
+        this.alert.error('Error de consulta', 'No se pudieron cargar los proyectos. Recarga la vista para reintentar.');
       }
     });
   }
 
   getResponsables() {
-    this.responsibleService.getAll().subscribe({
+    this.responsibleService.getAll().pipe(timeout(45000)).subscribe({
       next: (response: IResponsable[]) => {
         // 1️⃣ Filtrar solo los activos
         const activos = response.filter(r => r.estado?.trim().toUpperCase() === 'A');
@@ -407,6 +415,7 @@ export class ProcedingsUpdateComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar responsables:', error);
+        this.alert.error('Error de consulta', 'No se pudieron cargar los responsables. Recarga la vista para reintentar.');
       }
     });
   }

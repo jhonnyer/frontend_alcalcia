@@ -124,7 +124,8 @@ export class LoginComponent {
 
     if (response.estadoUser === 'A') {
       this.alert.success('Inicio de sesión exitoso', 'Sesión iniciada exitosamente');
-      this.router.navigate(['/home']);
+      const role = (this.tokenService.getUserRole() ?? '').trim().toUpperCase().replace(/^ROLE_/, '');
+      this.router.navigate([role === 'SUPERADMIN' ? '/users' : '/home']);
     } else {
       this.router.navigate(['/user-inactive']);
     }

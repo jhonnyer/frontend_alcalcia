@@ -19,6 +19,7 @@ import { MunicipioService } from '../../../../core/services/municipio.service';
 import { IMunicipio } from '../../../../core/models/municipio.model';
 import { DepartamentoService } from '../../../../core/services/departamento.service';
 import { IDepartamento } from '../../../../core/models/departamento.model';
+import { finalize, forkJoin, timeout } from 'rxjs';
 
 @Component({
   selector: 'app-users-list',
@@ -52,6 +53,7 @@ export class UsersListComponent implements OnInit {
   municipios = signal<IMunicipio[]>([]);
   responsables = signal<IResponsable[]>([]);
   loading = signal(true);
+  loadErrors = signal<string[]>([]);
   secretariaSearch = signal('');
   usuarioSearch = signal('');
   creatingSecretary = signal(false);
@@ -94,7 +96,11 @@ export class UsersListComponent implements OnInit {
 
   filteredSecretarias = computed(() => {
     const query = this.normalizeSearchText(this.secretariaSearch());
-    return this.secretarias().filter(secretaria => {
+    const activeSecretaryId = this.tokenService.getActiveSecretaryId();
+    const visibleSecretarias = this.isSuperAdmin()
+      ? this.secretarias()
+      : this.secretarias().filter(secretaria => secretaria.idSecretaria === activeSecretaryId);
+    return visibleSecretarias.filter(secretaria => {
       const text = this.normalizeSearchText(`${secretaria.idSecretaria} ${secretaria.nombre} ${secretaria.codigo} ${secretaria.estado}`);
       return !query || text.includes(query);
     });
@@ -134,7 +140,10 @@ export class UsersListComponent implements OnInit {
     return this.visibleResponsables().slice(start, start + pageSize);
   });
 
-  readonly isSuperAdmin = computed(() => this.normalizeSearchText(this.tokenService.getUserRole()) === 'superadmin');
+  readonly isSuperAdmin = computed(() => {
+    const role = (this.tokenService.getUserRole() ?? '').trim().replace(/^ROLE_/i, '');
+    return this.normalizeSearchText(role) === 'superadmin';
+  });
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Gestión administrativa');
@@ -172,19 +181,31 @@ export class UsersListComponent implements OnInit {
     this.closeCoverageModal();
   }
 
-  private loadData(): void {
+  loadData(): void {
     this.loading.set(true);
-    this.departamentoService.getAll().subscribe({
+    this.loadErrors.set([]);
+    let pending = 4;
+    const finish = () => {
+      pending--;
+      if (pending === 0) this.loading.set(false);
+    };
+    this.departamentoService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
       next: departamentos => this.departamentos.set(departamentos),
-      error: error => console.error('Error al cargar departamentos:', error)
+      error: error => {
+        console.error('Error al cargar departamentos:', error);
+        this.loadErrors.update(errors => [...errors, 'No se pudieron cargar los departamentos.']);
+      }
     });
 
-    this.municipioService.getAll().subscribe({
+    this.municipioService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
       next: municipios => this.municipios.set(municipios),
-      error: error => console.error('Error al cargar municipios:', error)
+      error: error => {
+        console.error('Error al cargar municipios:', error);
+        this.loadErrors.update(errors => [...errors, 'No se pudieron cargar los municipios.']);
+      }
     });
 
-    this.secretariaAdminService.getAll().subscribe({
+    this.secretariaAdminService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
       next: secretarias => {
         this.secretarias.set(secretarias);
         const activeId = this.tokenService.getActiveSecretaryId();
@@ -194,16 +215,18 @@ export class UsersListComponent implements OnInit {
           this.activeSecretaryForm.patchValue({ nombre: active.nombre });
         }
       },
-      error: error => console.error('Error al cargar secretarías:', error)
+      error: error => {
+        console.error('Error al cargar secretarías:', error);
+        this.loadErrors.update(errors => [...errors, 'No se pudieron cargar las secretarías.']);
+      }
     });
-    this.responsibleService.getAll().subscribe({
+    this.responsibleService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
       next: responsables => {
         this.responsables.set(responsables);
-        this.loading.set(false);
       },
       error: error => {
         console.error('Error al cargar usuarios:', error);
-        this.loading.set(false);
+        this.loadErrors.update(errors => [...errors, 'No se pudieron cargar los usuarios.']);
       }
     });
   }
@@ -233,6 +256,10 @@ export class UsersListComponent implements OnInit {
   }
 
   async createSecretary(payload: CreateSecretaryModalPayload): Promise<void> {
+    if (!this.isSuperAdmin()) {
+      this.alert.warning('Permiso requerido', 'Solo un usuario SuperAdmin puede crear secretarías.');
+      return;
+    }
 
     const confirmed = await this.alert.confirm(
       'Crear secretaría',
@@ -453,6 +480,10 @@ export class UsersListComponent implements OnInit {
   }
 
   openSecretaryModal(): void {
+    if (!this.isSuperAdmin()) {
+      this.alert.warning('Permiso requerido', 'Solo un usuario SuperAdmin puede crear secretarías.');
+      return;
+    }
     this.secretaryModalOpen.set(true);
   }
 
@@ -470,6 +501,10 @@ export class UsersListComponent implements OnInit {
   }
 
   openCoverageModal(secretaria: ISecretaria): void {
+    if (!this.isSuperAdmin() && !this.isActiveSecretary(secretaria)) {
+      this.alert.warning('Permiso requerido', 'Solo puedes gestionar la cobertura de tu secretaría activa.');
+      return;
+    }
     this.selectedSecretaryForCoverage.set(secretaria);
     this.coverageModalOpen.set(true);
     this.departamentoToAssign.set(null);
@@ -886,23 +921,18 @@ export class UsersListComponent implements OnInit {
 
   private loadCoverage(idSecretaria: number): void {
     this.loadingCoverage.set(true);
-    this.secretariaAdminService.getCoberturaDepartamental(idSecretaria).subscribe({
+    forkJoin({
+      departamentos: this.secretariaAdminService.getCoberturaDepartamental(idSecretaria),
+      municipios: this.secretariaAdminService.getCoberturaMunicipal(idSecretaria)
+    }).pipe(timeout(45000), finalize(() => this.loadingCoverage.set(false))).subscribe({
       next: coberturas => {
-        this.coberturaDepartamental.set(coberturas);
+        this.coberturaDepartamental.set(coberturas.departamentos);
+        this.coberturaMunicipal.set(coberturas.municipios);
         this.syncCoverageSelectedTab();
-      },
-      error: error => console.error('Error al cargar cobertura departamental:', error)
-    });
-    this.secretariaAdminService.getCoberturaMunicipal(idSecretaria).subscribe({
-      next: coberturas => {
-        this.coberturaMunicipal.set(coberturas);
-        this.syncCoverageSelectedTab();
-        this.loadingCoverage.set(false);
       },
       error: error => {
-        console.error('Error al cargar cobertura municipal:', error);
-        this.loadingCoverage.set(false);
-        this.alert.error('Operación fallida', 'No se pudo cargar la cobertura municipal.');
+        console.error('Error al cargar cobertura territorial:', error);
+        this.alert.error('Operación fallida', 'No se pudo cargar la cobertura territorial. Cierra y vuelve a abrir el modal para reintentar.');
       }
     });
   }
@@ -955,7 +985,7 @@ export class UsersListComponent implements OnInit {
     this.loadingParameters.set(true);
     this.currentParameters.set(null);
 
-    this.parametroNegocioService.getActive().subscribe({
+    this.parametroNegocioService.getActive().pipe(timeout(45000)).subscribe({
       next: parametros => {
         this.currentParameters.set(parametros);
         this.loadingParameters.set(false);

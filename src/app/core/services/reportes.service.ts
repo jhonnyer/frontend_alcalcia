@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, shareReplay } from 'rxjs';
+import { Observable, map, shareReplay, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import { TokenService } from './token.service';
@@ -38,8 +38,9 @@ export class ReportesService {
       this.dashboard$ = this.http
         .get<DashboardReport>(this.EP, { context: checkToken() })
         .pipe(
+          timeout(45000),
           map(d => this.normalizeDashboard(d)),
-          shareReplay(1)
+          shareReplay({ bufferSize: 1, refCount: true })
         );
     }
     return this.dashboard$;
@@ -48,7 +49,7 @@ export class ReportesService {
   obtenerDashboardFiltrado(filtro: ReporteFiltroRequest): Observable<DashboardReport> {
     return this.http
       .post<DashboardReport>(`${this.EP}/filtrado`, filtro, { context: checkToken() })
-      .pipe(map(d => this.normalizeDashboard(d)));
+      .pipe(timeout(45000), map(d => this.normalizeDashboard(d)));
   }
 
   // ---- Selectores (derivados del mismo dashboard) ----
@@ -124,7 +125,9 @@ export class ReportesService {
   // ===== Normalizadores (si necesitas tocar fechas/orden, etc.) =====
 
   private normalizeDashboard(d: DashboardReport): DashboardReport {
-    // Si en el futuro quieres normalizar algo global (fechas, ordenar, labels), hazlo aquí.
+    if (!d || typeof d !== 'object' || Array.isArray(d)) {
+      throw new Error('El servidor no devolvió un dashboard válido');
+    }
     return d;
   }
 

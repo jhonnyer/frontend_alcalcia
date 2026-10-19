@@ -1,5 +1,5 @@
 import { Component, EventEmitter, inject, Input, Output, SimpleChanges } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TokenService } from '../../../core/services/token.service';
 import { ListHomeComponent } from './components/list-home/list-home.component';
 import { ListNucleoComponent } from './components/list-nucleo/list-nucleo.component';
@@ -23,7 +23,9 @@ import { NgClass, NgIf} from '@angular/common'
     HasRoleDirective, 
     MatIconModule,
     NgClass,
-    NgIf
+    NgIf,
+    RouterLink,
+    RouterLinkActive
 ],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
@@ -31,6 +33,10 @@ import { NgClass, NgIf} from '@angular/common'
 export class SidebarComponent {
   private tokenService = inject(TokenService);
   private router = inject(Router);
+
+  get isSuperAdmin(): boolean {
+    return (this.tokenService.getUserRole() ?? '').trim().toUpperCase().replace(/^ROLE_/, '') === 'SUPERADMIN';
+  }
 
   isAnimating = false;
   /** Abierto/cerrado en móviles */

@@ -114,7 +114,7 @@ select:focus-visible {
 // }
 
 .btn-aside-dropdown {
-  @apply flex items-center w-full p-2 text-base font-normal text-gray-100 border-white border-b-2 transition duration-75 hover:text-gray-700 hover:bg-gray-100 hover:rounded-lg;
+  @apply flex items-center gap-3 w-full rounded-lg px-3 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white;
 }
 
 

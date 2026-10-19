@@ -3,14 +3,17 @@
     type="button"
     class="btn-aside-dropdown"
     aria-controls="dropdown"
-    [attr.aria-expanded]="activeMenu"
+    [attr.aria-expanded]="activeMenu && !collapsed"
+    aria-label="Proyectos"
+    [attr.title]="collapsed ? 'Proyectos' : null"
     data-collapse-toggle="dropdown"
     (click)="toggleMenu()"
   >
-    <span class="flex-1 ml-3 text-left whitespace-nowrap" sidebar-toggle-item>
-      2. Proyectos
+    <mat-icon class="shrink-0">work_outline</mat-icon>
+    <span class="flex-1 text-left whitespace-nowrap" [class.hidden]="collapsed" sidebar-toggle-item>
+      Proyectos
     </span>
-    <svg sidebar-toggle-item class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"
+    <svg sidebar-toggle-item class="w-5 h-5 shrink-0" [class.hidden]="collapsed" fill="currentColor" viewBox="0 0 20 20"
         xmlns="http://www.w3.org/2000/svg"
         [ngClass]="{ 'rotate-180 transition-transform duration-300': activeMenu }">
       <path fill-rule="evenodd"
@@ -49,7 +52,6 @@
     </ul>
 
 </div>
-
 
 
 

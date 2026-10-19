@@ -1,4 +1,18 @@
 <section class="min-h-[calc(100vh-6rem)] scrollbar-custom bg-gray-50 p-6 rounded-xl shadow-inner">
+  @if (listLoading()) { <p role="status" class="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Cargando proyectos del inventario…</p> }
+  @if (loadError()) {
+    <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn-action-blue mt-3" (click)="getAll()" [disabled]="listLoading()">Reintentar</button>
+    </div>
+  }
+  @if (productsLoading()) { <p role="status" class="mb-4 text-sm text-blue-900">Cargando productos…</p> }
+  @if (productsError()) {
+    <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <p>{{ productsError() }}</p>
+      <button type="button" class="btn-action-blue mt-3" (click)="selectCategory(selectedCategoryId())" [disabled]="productsLoading()">Reintentar</button>
+    </div>
+  }
 
   <!-- 🧭 HEADER -->
   <header class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -139,7 +153,7 @@
         @if (dataTable.getRowModel().rows.length === 0) {
           <tr>
             <td colspan="100%" class="text-center py-8 text-gray-500 italic">
-              ⚠️ No hay productos registrados.
+              {{ productsLoading() ? 'Cargando productos…' : productsError() ? 'La consulta no está disponible. Usa Reintentar.' : 'No hay productos registrados en esta categoría.' }}
             </td>
           </tr>
         }
@@ -149,7 +163,7 @@
   </div>
   } @else {
     <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-      Selecciona un proyecto y una categoría para consultar sus productos.
+      {{ listLoading() ? 'Cargando proyectos…' : loadError() ? 'No se pudo consultar el inventario. Usa Reintentar.' : proyectos().length === 0 ? 'Aún no hay proyectos disponibles para consultar inventario en esta secretaría.' : 'Selecciona un proyecto y una categoría para consultar sus productos.' }}
     </div>
   }
 

@@ -1,4 +1,12 @@
 <section class="min-h-[calc(100vh-6rem)] p-4 bg-gray-50 rounded-xl shadow-sm">
+  @if (listLoading()) { <p role="status" class="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Cargando actores sociales…</p> }
+  @if (loadError()) {
+    <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn-action-blue mt-3" (click)="getAll()" [disabled]="listLoading()">Reintentar</button>
+    </div>
+  }
+  <div [hidden]="listLoading() || !!loadError()">
   <!-- HEADER -->
   <header class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
@@ -128,6 +136,9 @@
             }
           </tr>
         }
+        @if (dataTable.getRowModel().rows.length === 0) {
+          <tr><td [attr.colspan]="dataTable.getAllColumns().length" class="px-4 py-10 text-center text-sm text-slate-500">No hay actores sociales para mostrar en esta secretaría con los filtros actuales.</td></tr>
+        }
       </tbody>
     </table>
     </div>
@@ -138,7 +149,7 @@
     <!-- Info de registros -->
     <span>
       Mostrando 
-      <b>{{ serverPageIndex() * serverPageSize() + 1 }}</b>
+      <b>{{ totalElements() === 0 ? 0 : serverPageIndex() * serverPageSize() + 1 }}</b>
       -
       <b>{{ Math.min((serverPageIndex() + 1) * serverPageSize(), totalElements()) }}</b>
       de 
@@ -181,5 +192,6 @@
         Siguiente
       </button>
     </div>
+  </div>
   </div>
 </section>

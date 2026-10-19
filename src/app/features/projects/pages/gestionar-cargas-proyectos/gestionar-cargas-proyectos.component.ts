@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
+import { finalize, timeout } from 'rxjs';
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { AlertService } from '../../../../core/services/alert.service';
 import { ImportacionProyectosService } from '../../../../core/services/importacion-proyectos.service';
 import { ImportacionProyectosHistorica } from '../../../../core/models/importacion-proyectos.model';
 
@@ -31,6 +31,11 @@ import { ImportacionProyectosHistorica } from '../../../../core/models/importaci
       <main class="mx-auto mt-5 max-w-[1200px]">
         @if (cargando()) {
           <div class="rounded-xl border border-blue-100 bg-blue-50 p-5 text-sm text-blue-800">Consultando historial...</div>
+        } @else if (errorCarga()) {
+          <div role="alert" class="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+            <p>{{ errorCarga() }}</p>
+            <button type="button" class="btn-action-blue mt-3" (click)="cargarDatos()">Reintentar</button>
+          </div>
         } @else if (historico().length === 0) {
           <div class="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600 shadow-sm">
             Aún no hay cargas de proyectos confirmadas.
@@ -83,10 +88,10 @@ import { ImportacionProyectosHistorica } from '../../../../core/models/importaci
 })
 export class GestionarCargasProyectosComponent implements OnInit {
   private readonly service = inject(ImportacionProyectosService);
-  private readonly alert = inject(AlertService);
 
   readonly historico = signal<ImportacionProyectosHistorica[]>([]);
   readonly cargando = signal(true);
+  readonly errorCarga = signal('');
   readonly filtro = signal('');
   readonly paginaActual = signal(0);
   readonly tamanoPagina = 15;
@@ -101,14 +106,21 @@ export class GestionarCargasProyectosComponent implements OnInit {
   readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.filtrado().length / this.tamanoPagina)));
 
   ngOnInit(): void {
-    this.service.historial().subscribe({
+    this.cargarDatos();
+  }
+
+  cargarDatos(): void {
+    this.cargando.set(true);
+    this.errorCarga.set('');
+    this.service.historial().pipe(timeout(45000), finalize(() => this.cargando.set(false))).subscribe({
       next: res => {
         this.historico.set(res.respuesta ?? []);
         this.cargando.set(false);
       },
       error: error => {
         this.cargando.set(false);
-        this.alert.error('No se pudo consultar el historial', error?.error?.mensaje ?? 'Intenta nuevamente.');
+        console.error('Error al consultar historial de proyectos:', error);
+        this.errorCarga.set('No se pudo consultar el historial. La consulta falló o tardó demasiado.');
       },
     });
   }

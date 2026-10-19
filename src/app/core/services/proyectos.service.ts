@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map, timeout } from 'rxjs';
 import { IProyecto, IProyectoAndCategoriaArray, IProyectoCategorias } from '../models/proyecto.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
@@ -15,7 +15,18 @@ export class ProyectosService {
   private http = inject(HttpClient);
 
   getAll(): Observable<ResponseStandar<IProyectoAndCategoriaArray>> {
-    return this.http.get<ResponseStandar<IProyectoAndCategoriaArray>>(`${this.URL}/proyectos/list`, { context: checkToken() });
+    return this.http.get<ResponseStandar<IProyectoAndCategoriaArray>>(`${this.URL}/proyectos/list`, { context: checkToken() }).pipe(
+      timeout(45000),
+      map(response => {
+        if (!response || response.estado !== 'exito') {
+          throw new Error(response?.mensaje || 'No se pudo obtener la lista de proyectos');
+        }
+        return {
+          ...response,
+          respuesta: (response.respuesta ?? []).map(item => ({ ...item, categorias: item.categorias ?? [] }))
+        };
+      })
+    );
   }
 
   getById(id: string | number): Observable<ResponseStandarUnique<IProyectoAndCategoriaArray>> {

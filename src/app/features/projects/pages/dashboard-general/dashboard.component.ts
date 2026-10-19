@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,6 +15,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 import { ReportesService } from '../../../../core/services/reportes.service';
 import { DashboardReport, ResumenProyecto } from '../../../../core/models/reporte-global/reportes.model';
+import { hasChartData, hasDashboardData } from '../../../../core/models/reporte-global/dashboard.utils';
 import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
 
 Chart.register(...registerables, ChartDataLabels);
@@ -34,6 +36,10 @@ Chart.register(...registerables, ChartDataLabels);
 export class DashboardComponent implements OnInit {
   private reportes = inject(ReportesService);
   private pdfService = inject(PdfGeneradorDashboardService);
+  private destroyRef = inject(DestroyRef);
+  readonly hasChartData = hasChartData;
+  readonly hasDashboardData = hasDashboardData;
+  loadError = signal('');
 
   // Payload cacheado
   dashboard = signal<DashboardReport | null>(null);
@@ -70,6 +76,7 @@ export class DashboardComponent implements OnInit {
   chartEdadData: ChartData<'doughnut'> = { labels: [], datasets: [] };
   chartEdadOptions: ChartOptions<'doughnut'> = {
     responsive: true,
+    maintainAspectRatio: false,
     cutout: '55%',
     plugins: {
         legend: {
@@ -106,6 +113,7 @@ export class DashboardComponent implements OnInit {
   chartPVData: ChartConfiguration['data'] = { labels: [], datasets: [] };
   chartPVOptions: ChartConfiguration['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { position: 'bottom' },
       datalabels: {
@@ -172,6 +180,7 @@ export class DashboardComponent implements OnInit {
   chartProdData: ChartConfiguration['data'] = { labels: [], datasets: [] };
   chartProdOptions: ChartConfiguration['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
     indexAxis: 'y',
     plugins: { legend: { display: false } },
     scales: { x: { beginAtZero: true } }
@@ -206,7 +215,13 @@ export class DashboardComponent implements OnInit {
     ];
 
     ngOnInit(): void {
-        this.reportes.obtenerDashboard().subscribe(d => {
+        this.loadDashboard();
+    }
+
+    loadDashboard(): void {
+        this.loadError.set('');
+        this.reportes.obtenerDashboard().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+          next: d => {
             this.dashboard.set(d);
             // categorías únicas para filtro
             const setCats = new Set<string>();
@@ -224,6 +239,11 @@ export class DashboardComponent implements OnInit {
             this.aniosDisponibles = Array.from(years).sort((a,b)=>a-b);
 
             this.buildCharts(d);
+          },
+          error: error => {
+            console.error('Error al cargar el dashboard de inicio:', error);
+            this.loadError.set('No se pudo cargar la información. La consulta falló o tardó demasiado. Puedes reintentar o continuar en otro módulo.');
+          }
         });
     }
 
@@ -236,14 +256,13 @@ export class DashboardComponent implements OnInit {
 
 private buildChartPoblacionVulnerable(d: DashboardReport) {
     const pv = d.poblacionVulnerable;
-    if (!pv) return;
     const labels = ['Discapacidad','Víctimas','Menores','Mujeres','LGBTI'];
     const data = [
-      pv.discapacidad ?? 0,
-      pv.victimas ?? 0,
-      (pv as any).menoresEdad ?? 0,
-      pv.mujeres ?? 0,
-      pv.lgbti ?? 0
+      pv?.discapacidad ?? 0,
+      pv?.victimas ?? 0,
+      pv?.menoresEdad ?? pv?.menores ?? 0,
+      pv?.mujeres ?? 0,
+      pv?.lgbti ?? 0
     ];
     this.chartPVData = {
       labels,

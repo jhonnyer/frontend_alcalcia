@@ -10,6 +10,7 @@ import { roleGuard } from './core/guards/role.guard';
 import { authenticationGuard } from './core/guards/authentication.guard';
 import { unauthenticatedGuard } from './core/guards/unauthenticated.guard';
 import { hasRoleGuard } from './core/guards/has-role-guard.guard';
+import { operationalViewGuard } from './core/guards/operational-view.guard';
 
 export const routes: Routes = [
   {
@@ -28,13 +29,14 @@ export const routes: Routes = [
     children: [
       {
         path: 'home',
+        canActivate: [operationalViewGuard],
         loadChildren: () => import('./features/home/home.routes').then(m => m.HOME_ROUTES)
       },
       {
 
         path: 'nucleo',
         canActivate: [hasRoleGuard],
-        data: { allowedRoles: ['ADMIN', 'RESP'] },
+        data: { allowedRoles: ['ADMIN', 'RESP', 'SUPERADMIN'] },
         loadChildren: () => import('./features/nucleo/nucleo.routes').then(m=> m.NUCLEO_ROUTES)
       },
       {
@@ -49,14 +51,17 @@ export const routes: Routes = [
       },
       {
         path: 'proceedings',
+        canActivate: [operationalViewGuard],
         loadChildren: () => import('./features/proceedings/procedings.routes').then(m => m.PROCEDINGS_ROUTES)
       },
       {
         path: 'projects',
+        canActivate: [operationalViewGuard],
         loadChildren: () => import('./features/projects/projects.routes').then(m => m.PROJECTS_ROUTES)
       },
       {
         path: 'categorias',
+        canActivate: [operationalViewGuard],
         loadChildren: () => import('./features/categorias/categorias.routes').then(m => m.CATEGORIAS_ROUTES)
       },
       {

@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { finalize, timeout } from 'rxjs';
 import { ChangeDetectionStrategy, Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -110,10 +111,12 @@ export class ProcedingsListComponent implements OnInit {
   // ============================================================
   getAll(): void {
     this.loading.set(true);
+    this.loadError.set('');
     this.actasService.getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters())
+      .pipe(timeout(45000), finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
-          const orderedResponse = [...response.content].sort((first, second) => {
+          const orderedResponse = [...(response.content ?? [])].sort((first, second) => {
             const firstReceived = first.estado === 'R' ? 0 : 1;
             const secondReceived = second.estado === 'R' ? 0 : 1;
 
@@ -178,11 +181,13 @@ export class ProcedingsListComponent implements OnInit {
         },
         error: (error) => {
           console.error('❌ Error getAll actas:', error);
-          this.alert.error('No se pudieron cargar las actas', 'Intenta nuevamente en unos momentos.');
+          this.loadError.set('No se pudieron cargar las actas. La consulta falló o tardó demasiado.');
           this.loading.set(false);
         }
       });
   }
+
+  loadError = signal('');
 
   private parseActaDate(value: string): number {
     const parsed = Date.parse(value);

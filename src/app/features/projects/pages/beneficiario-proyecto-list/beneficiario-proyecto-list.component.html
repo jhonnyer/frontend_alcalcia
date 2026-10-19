@@ -1,4 +1,11 @@
 <section class="min-h-[calc(100vh-6rem)] scrollbar-custom bg-white rounded-xl shadow-sm p-5">
+  @if (loadError()) {
+    <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn-action-blue mt-3" (click)="getAll()" [disabled]="loading()">Reintentar</button>
+    </div>
+  }
+  <div [hidden]="!!loadError()">
   <!-- 🔹 HEADER -->
   <header class="flex flex-wrap justify-between items-center gap-3 mb-5">
     <h1 class="text-2xl font-semibold text-gray-800">Beneficiarios en Proyectos</h1>
@@ -165,5 +172,6 @@
         <b>{{ totalPages() }}</b>
       </span>
     </div>
+  </div>
   </div>
 </section>

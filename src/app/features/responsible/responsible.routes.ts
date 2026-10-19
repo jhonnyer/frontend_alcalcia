@@ -16,7 +16,7 @@ export const RESPONSIBLE_ROUTES: Routes = [
     path: '',
     pathMatch: 'full',
     canActivate: [hasRoleGuard],
-    data: { allowedRoles: ['ADMIN', 'SUPERADMIN'] },
+    data: { allowedRoles: ['ADMIN'] },
     component: ResponsiblesListComponent
   },
   {

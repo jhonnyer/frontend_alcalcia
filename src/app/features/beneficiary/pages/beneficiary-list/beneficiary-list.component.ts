@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { finalize, timeout } from 'rxjs';
 import { Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -105,18 +106,25 @@ export class BeneficiaryListComponent implements OnInit {
   
 
   getAll() {
-    this.beneficiaryService.getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).subscribe({
+    this.listLoading.set(true);
+    this.loadError.set('');
+    this.beneficiaryService.getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).pipe(
+      timeout(45000), finalize(() => this.listLoading.set(false))
+    ).subscribe({
       next: (response) => {
-        this.data.set(response.content);
-        this.totalElements.set(response.totalElements ?? response.content.length);
+        this.data.set(response.content ?? []);
+        this.totalElements.set(response.totalElements ?? response.content?.length ?? 0);
         this.totalPages.set(Math.max(1, response.totalPages ?? 1));
       },
       error: error => {
         console.error("Error getAll Beneficiarios:", error);
-        this.alert.error('No se pudieron cargar los beneficiarios', 'Intenta nuevamente en unos momentos.');
+        this.loadError.set('No se pudieron cargar los beneficiarios. La consulta falló o tardó demasiado.');
       }
     });
   }
+
+  listLoading = signal(false);
+  loadError = signal('');
 
   public dataTable = createAngularTable(() => ({
     data: this.filteredData(),

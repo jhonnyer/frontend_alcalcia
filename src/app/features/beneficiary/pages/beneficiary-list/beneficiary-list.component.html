@@ -1,4 +1,12 @@
 <section class="min-h-[calc(100vh-6rem)] scrollbar-custom">
+  @if (listLoading()) { <p role="status" class="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Cargando beneficiarios…</p> }
+  @if (loadError()) {
+    <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn-action-blue mt-3" (click)="getAll()" [disabled]="listLoading()">Reintentar</button>
+    </div>
+  }
+  <div [hidden]="listLoading() || !!loadError()">
   <!-- HEADER -->
   <header class="flex items-center gap-2 mb-3">
     <div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -210,4 +218,5 @@
       </div>
     </div>
   </mat-card>
+  </div>
 </section>

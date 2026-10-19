@@ -3,11 +3,12 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NgClass, NgFor } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-list-nucleo',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, OverlayModule, NgClass, NgFor],
+  imports: [RouterLink, RouterLinkActive, OverlayModule, NgClass, NgFor, MatIconModule],
   templateUrl: './list-nucleo.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -1,11 +1,17 @@
 <div #dashboardContainer 
   class="dashboard-container bg-gray-50 py-6 scrollbar-custom rounded-lg border border-gray-200 shadow-sm p-6">
+  @if (loadError) {
+    <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <p>{{ loadError }}</p>
+      <button type="button" class="btn-action-blue mt-3" (click)="loadData()" [disabled]="loading">Reintentar</button>
+    </div>
+  }
 
   <div *ngIf="loading" class="flex h-[55vh] items-center justify-center">
     <mat-spinner diameter="52"></mat-spinner>
   </div>
 
-  <div *ngIf="!loading">
+  <div *ngIf="!loading && !loadError">
 
   <!-- === ENCABEZADO === -->
   <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
@@ -223,12 +229,15 @@
     <!-- === Gráfica de Beneficiarios === -->
     <mat-card class="p-4">
       <h3 class="text-lg font-semibold mb-3 text-gray-700">Beneficiarios por rango de edad</h3>
-      <canvas #chartBenef baseChart 
+      <canvas *ngIf="totalBeneficiarios > 0; else noBeneficiarios" #chartBenef baseChart
               [type]="chartBenefType" 
               [data]="chartBenefData" 
               [options]="chartBenefOptions"
               (chartClick)="onBenefChartClick($event)">
       </canvas>
+      <ng-template #noBeneficiarios>
+        <p role="status" class="py-8 text-center text-sm text-gray-500">No hay beneficiarios para mostrar con los filtros actuales.</p>
+      </ng-template>
     </mat-card>
 
   </div>

@@ -1,4 +1,10 @@
 <section class="min-h-[calc(100vh-6rem)] rounded-xl bg-slate-50 p-4">
+  @if (loadErrors().length) {
+    <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      <ul class="list-inside list-disc">@for (message of loadErrors(); track message) { <li>{{ message }}</li> }</ul>
+      <button type="button" class="btn-action-blue mt-3" (click)="loadData()" [disabled]="loading()">Reintentar</button>
+    </div>
+  }
   <header class="mb-4">
     <h1 class="text-xl font-bold text-slate-800">Soporte administrativo</h1>
     <p class="text-sm font-semibold text-slate-500">Información de contacto del SuperAdmin encargado del soporte de la plataforma.</p>
@@ -11,7 +17,7 @@
     </div>
   } @else if (!superAdmin()) {
     <div class="rounded-lg border border-dashed border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
-      No se encontró un usuario SuperAdmin configurado para soporte.
+      {{ loadErrors().length ? 'El contacto de soporte no está disponible. Reintenta la consulta.' : 'No se encontró un usuario SuperAdmin configurado para soporte.' }}
     </div>
   } @else {
     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">

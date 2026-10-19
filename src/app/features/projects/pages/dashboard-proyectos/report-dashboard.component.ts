@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,8 +15,9 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 import { ReportesService, ReporteFiltroRequest } from '../../../../core/services/reportes.service';
 import { AlertService } from '../../../../core/services/alert.service';
-import { timeout } from 'rxjs';
+import { finalize } from 'rxjs';
 import { DashboardReport, ResumenProyecto } from '../../../../core/models/reporte-global/reportes.model';
+import { hasChartData, hasDashboardData } from '../../../../core/models/reporte-global/dashboard.utils';
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
@@ -43,6 +45,10 @@ export class ReportDashboardComponent implements OnInit {
   private pageTitleService = inject(PageTitleService);
   private pdfService = inject(PdfGeneradorDashboardService);
   private alert = inject(AlertService);
+  private destroyRef = inject(DestroyRef);
+  readonly hasChartData = hasChartData;
+  readonly hasDashboardData = hasDashboardData;
+  loadError = signal('');
 
   // Dashboard sin filtrar (para opciones de filtro y para restaurar)
   baseDashboard = signal<DashboardReport | null>(null);
@@ -127,6 +133,7 @@ export class ReportDashboardComponent implements OnInit {
   chartEdadData: ChartData<'doughnut'> = { labels: [], datasets: [] };
   chartEdadOptions: ChartOptions<'doughnut'> = {
     responsive: true,
+    maintainAspectRatio: false,
     cutout: '55%',
     plugins: {
         legend: {
@@ -179,6 +186,7 @@ export class ReportDashboardComponent implements OnInit {
   chartPVData: ChartConfiguration['data'] = { labels: [], datasets: [] };
   chartPVOptions: ChartConfiguration['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { position: 'bottom' },
       datalabels: {
@@ -246,6 +254,7 @@ export class ReportDashboardComponent implements OnInit {
   chartProdData: ChartConfiguration['data'] = { labels: [], datasets: [] };
   chartProdOptions: ChartConfiguration['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
     indexAxis: 'y',
     plugins: { legend: { display: false } },
     scales: { x: { beginAtZero: true } }
@@ -281,7 +290,13 @@ export class ReportDashboardComponent implements OnInit {
 
     ngOnInit(): void {
         this.pageTitleService.setCurrentPage('Dashboard Proyectos');
-        this.reportes.obtenerDashboard().subscribe(d => {
+        this.loadDashboard();
+    }
+
+    loadDashboard(): void {
+        this.loadError.set('');
+        this.reportes.obtenerDashboard().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+          next: d => {
             this.baseDashboard.set(d);
             this.dashboard.set(d);
             // categorías únicas para filtro
@@ -300,6 +315,11 @@ export class ReportDashboardComponent implements OnInit {
             this.aniosDisponibles = Array.from(years).sort((a,b)=>a-b);
 
             this.buildCharts(d);
+          },
+          error: error => {
+            console.error('Error al cargar el dashboard de proyectos:', error);
+            this.loadError.set('No se pudo cargar la información. La consulta falló o tardó demasiado. Puedes reintentar o volver a Proyectos.');
+          }
         });
     }
 
@@ -312,14 +332,13 @@ export class ReportDashboardComponent implements OnInit {
 
   private buildChartPoblacionVulnerable(d: DashboardReport) {
     const pv = d.poblacionVulnerable;
-    if (!pv) return;
     const labels = ['Discapacidad','Víctimas','Menores','Mujeres','LGBTI'];
     const data = [
-      pv.discapacidad ?? 0,
-      pv.victimas ?? 0,
-      (pv as any).menoresEdad ?? 0,
-      pv.mujeres ?? 0,
-      pv.lgbti ?? 0
+      pv?.discapacidad ?? 0,
+      pv?.victimas ?? 0,
+      pv?.menoresEdad ?? pv?.menores ?? 0,
+      pv?.mujeres ?? 0,
+      pv?.lgbti ?? 0
     ];
     this.chartPVData = {
       labels,
@@ -613,17 +632,18 @@ export class ReportDashboardComponent implements OnInit {
     }
 
     this.aplicandoFiltros.set(true);
-    this.reportes.obtenerDashboardFiltrado(filtro).pipe(timeout(45000)).subscribe({
+    this.reportes.obtenerDashboardFiltrado(filtro).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.aplicandoFiltros.set(false))
+    ).subscribe({
       next: d => {
         this.proyectoAplicado.set(proyecto);
         this.filtroAnio.set(anio);
         this.filtroMes.set(mes);
         this.dashboard.set(d);
         this.buildCharts(d);
-        this.aplicandoFiltros.set(false);
       },
       error: error => {
-        this.aplicandoFiltros.set(false);
         console.error('Error al aplicar filtros del reporte:', error);
         this.alert.error('No se pudo aplicar el filtro', 'La consulta falló o tardó demasiado. Inténtalo de nuevo.');
       },

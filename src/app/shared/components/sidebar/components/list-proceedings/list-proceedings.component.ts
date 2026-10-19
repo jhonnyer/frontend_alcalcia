@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { NgClass, NgFor } from '@angular/common';
 import { RouterLink, RouterLinkActive} from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-list-proceedings',
@@ -9,7 +10,8 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   imports: [
     RouterLink, RouterLinkActive,
     NgClass,
-    NgFor
+    NgFor,
+    MatIconModule
   ],
   styles: ``,
   templateUrl: './list-proceedings.component.html',
@@ -21,8 +23,8 @@ export class ListProceedingsComponent {
   activeMenu: boolean = false;
   @Input() collapsed = false;
   menuItems = [
-    { label: 'a. Registrar acta', link: 'proceedings/register'},
-    { label: 'b. Listado de actas', link: 'proceedings'},
+    { label: 'Registrar acta', link: 'proceedings/register'},
+    { label: 'Listado de actas', link: 'proceedings'},
   ];
 
   toggleMenu() {

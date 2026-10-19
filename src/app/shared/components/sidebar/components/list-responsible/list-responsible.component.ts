@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router, RouterLink, RouterLinkActive} from '@angular/router';
 import { TokenService } from '../../../../../core/services/token.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-list-responsible',
@@ -11,7 +12,8 @@ import { TokenService } from '../../../../../core/services/token.service';
     RouterLink, 
     RouterLinkActive,
     NgClass,
-    NgFor
+    NgFor,
+    MatIconModule
   ],
   styles: ``,
   templateUrl: './list-responsible.component.html',

@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { finalize, timeout } from 'rxjs';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -27,6 +28,7 @@ export class GestionarCargasComponent implements OnInit {
   readonly historico = signal<ImportacionHistorica[]>([]);
   readonly cargando = signal(true);
   readonly cargandoHistorico = signal(false);
+  readonly erroresCarga = signal<string[]>([]);
   readonly pestana = signal<'pendientes' | 'historico'>('pendientes');
   readonly filtroPendientes = signal('');
   readonly filtroHistorico = signal('');
@@ -48,14 +50,21 @@ export class GestionarCargasComponent implements OnInit {
   readonly totalPaginasHistorico = computed(() => Math.max(1, Math.ceil(this.historicoFiltrado().length / this.tamanoPagina)));
 
   ngOnInit(): void {
-    this.service.pendientes().subscribe({
+    this.cargarDatos();
+  }
+
+  cargarDatos(): void {
+    this.cargando.set(true);
+    this.erroresCarga.set([]);
+    this.service.pendientes().pipe(timeout(45000), finalize(() => this.cargando.set(false))).subscribe({
       next: response => {
         this.cargas.set(response.respuesta ?? []);
         this.cargando.set(false);
       },
       error: error => {
         this.cargando.set(false);
-        this.alert.error('No se pudieron consultar las cargas', error?.error?.mensaje ?? 'Intenta nuevamente.');
+        console.error('Error al consultar cargas pendientes:', error);
+        this.erroresCarga.update(errores => [...errores, 'No se pudieron consultar las cargas pendientes. La consulta falló o tardó demasiado.']);
       },
     });
     this.cargarHistorico();
@@ -63,14 +72,15 @@ export class GestionarCargasComponent implements OnInit {
 
   private cargarHistorico(): void {
     this.cargandoHistorico.set(true);
-    this.service.historial().subscribe({
+    this.service.historial().pipe(timeout(45000), finalize(() => this.cargandoHistorico.set(false))).subscribe({
       next: response => {
         this.historico.set(response.respuesta ?? []);
         this.cargandoHistorico.set(false);
       },
       error: error => {
         this.cargandoHistorico.set(false);
-        this.alert.error('No se pudo consultar el histórico', error?.error?.mensaje ?? 'Intenta nuevamente.');
+        console.error('Error al consultar histórico de cargas:', error);
+        this.erroresCarga.update(errores => [...errores, 'No se pudo consultar el histórico. La consulta falló o tardó demasiado.']);
       },
     });
   }

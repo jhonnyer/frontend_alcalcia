@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { finalize } from 'rxjs';
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { CategoriasService } from '../../../core/services/categorias.service';
@@ -108,7 +109,9 @@ export class CategoriaListComponent implements OnInit {
   }
 
   getAll() {
-    this.proyectosService.getAll().subscribe({
+    this.listLoading.set(true);
+    this.loadError.set('');
+    this.proyectosService.getAll().pipe(finalize(() => this.listLoading.set(false))).subscribe({
       next: response => {
         const rows = (response.respuesta ?? []).flatMap((item: IProyectoAndCategoriaArray) =>
           (item.categorias ?? []).map(categoria => ({
@@ -122,10 +125,13 @@ export class CategoriaListComponent implements OnInit {
       },
       error: error => {
         console.error("Error al cargar categorías:", error);
-        this.alert.error('No se pudieron cargar las categorías', 'Intenta nuevamente en unos momentos.');
+        this.loadError.set('No se pudieron cargar las categorías. La consulta falló o tardó demasiado.');
       }
     });
   }
+
+  listLoading = signal(false);
+  loadError = signal('');
 
   public dataTable = createAngularTable(() => ({
     data: this.filteredData(),

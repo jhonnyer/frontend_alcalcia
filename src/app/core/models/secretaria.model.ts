@@ -1,8 +1,11 @@
+export type TipoSecretaria = 'M' | 'D';
+
 export interface ISecretaria {
   idSecretaria: number;
   nombre: string;
   codigo: string;
   prefijoProducto?: string;
+  tipo?: TipoSecretaria;
   estado: string;
 }
 
@@ -10,6 +13,7 @@ export interface ICreateSecretariaRequest {
   nombre: string;
   codigo: string;
   prefijoProducto: string;
+  tipo: TipoSecretaria;
   estado: 'A';
   idsMunicipio?: number[];
   idsDepartamento?: number[];

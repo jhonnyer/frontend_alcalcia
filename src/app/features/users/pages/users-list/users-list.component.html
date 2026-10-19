@@ -79,16 +79,31 @@
 			<div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-5 shadow-xl">
 				<div class="mb-4 flex items-center justify-between gap-3">
 					<div>
-						<h3 class="text-lg font-bold text-slate-800">Cobertura municipal</h3>
-						<p class="text-sm text-slate-500">Secretaría: {{ selectedSecretaryForCoverage()?.nombre }}</p>
+						<h3 class="text-lg font-bold text-slate-800">Cobertura territorial</h3>
+						<p class="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+							Secretaría: {{ selectedSecretaryForCoverage()?.nombre }}
+							@if (coverageTipo()) {
+								<span class="rounded-full border px-2 py-0.5 text-xs font-semibold" [ngClass]="coverageTipo() === 'M' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-blue-200 bg-blue-50 text-blue-800'">
+									{{ coverageTipo() === 'M' ? 'Municipal' : 'Departamental' }}
+								</span>
+							}
+						</p>
 					</div>
 					<button type="button" class="rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="closeCoverageModal()">
 						<mat-icon>close</mat-icon>
 					</button>
 				</div>
 
+				@if (coverageRuleMessage()) {
+					<div class="mb-3 flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-900">
+						<mat-icon class="!h-4 !w-4 shrink-0 text-[16px]" aria-hidden="true">info</mat-icon>
+						<span>{{ coverageRuleMessage() }}</span>
+					</div>
+				}
+
+				@if (!coverageMunicipalLocked()) {
 				<div class="rounded-lg border border-slate-200 bg-slate-50 p-3">
-					<p class="mb-2 text-sm font-semibold text-slate-700">Agregar cobertura departamental y municipal</p>
+					<p class="mb-2 text-sm font-semibold text-slate-700">{{ coverageTipo() === 'M' ? 'Asignar municipio' : 'Agregar cobertura departamental y municipal' }}</p>
 					<div class="mb-2 flex items-center justify-between gap-2">
 						<div class="text-xs font-medium text-slate-500">Selecciona departamento y agrega cobertura territorial.</div>
 						<button type="button" class="btn-action-gray whitespace-nowrap" (click)="clearCoverageFilters()">Limpiar filtros</button>
@@ -120,9 +135,11 @@
 								</div>
 							}
 						</div>
-						<button type="button" class="btn-action-green w-full md:min-w-[180px] whitespace-nowrap" [disabled]="savingCoverage() || !departamentoToAssign()" (click)="assignCoverageDepartamento()">
-							{{ savingCoverage() ? 'Guardando...' : 'Agregar departamento' }}
-						</button>
+						@if (coverageTipo() !== 'M') {
+							<button type="button" class="btn-action-green w-full md:min-w-[180px] whitespace-nowrap" [disabled]="savingCoverage() || !departamentoToAssign()" (click)="assignCoverageDepartamento()">
+								{{ savingCoverage() ? 'Guardando...' : 'Agregar departamento' }}
+							</button>
+						}
 					</div>
 					<div class="mb-2 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
 						<div class="coverage-dropdown-municipio relative">
@@ -151,12 +168,17 @@
 								</div>
 							}
 						</div>
-						<button type="button" class="btn-action-green w-full md:min-w-[180px] whitespace-nowrap" [disabled]="savingCoverage() || !municipioToAssign()" (click)="assignCoverageMunicipio()">
+						<button type="button" class="btn-action-green w-full md:min-w-[180px] whitespace-nowrap" [disabled]="savingCoverage() || !municipioToAssign() || coverageMunicipioRequiereDepartamento()" (click)="assignCoverageMunicipio()">
 							{{ savingCoverage() ? 'Guardando...' : 'Agregar cobertura' }}
 						</button>
 					</div>
-					<div class="text-xs text-slate-600">{{ coverageDepartamentoFilter() == null ? 'Primero selecciona departamento' : 'Selecciona un municipio desde el campo anterior' }}</div>
+					@if (coverageMunicipioRequiereDepartamento()) {
+						<div class="text-xs font-medium text-amber-700">Este departamento no está activo en la cobertura. Agrégalo primero para incluir sus municipios.</div>
+					} @else {
+						<div class="text-xs text-slate-600">{{ coverageDepartamentoFilter() == null ? 'Primero selecciona departamento' : 'Selecciona un municipio desde el campo anterior' }}</div>
+					}
 				</div>
+				}
 
 				<div class="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
 					<div class="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -173,6 +195,7 @@
 						</div>
 					</div>
 
+					@if (coverageTipo() !== 'M') {
 					<div class="mb-3 grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1.5">
 						<button
 							type="button"
@@ -193,6 +216,7 @@
 							Municipios
 						</button>
 					</div>
+					}
 
 					<div class="max-h-72 overflow-auto rounded-lg border border-slate-100">
 						@if (coverageSelectedTab() === 'departamentos') {
@@ -345,7 +369,14 @@
 										@if (isSuperAdmin()) {
 											<td class="px-3 py-2 font-semibold text-slate-700">#{{ secretaria.idSecretaria }}</td>
 										}
-										<td class="px-3 py-2">{{ secretaria.nombre }}</td>
+										<td class="px-3 py-2">
+											{{ secretaria.nombre }}
+											@if (secretaria.tipo) {
+												<span class="ml-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold uppercase" [ngClass]="secretaria.tipo === 'M' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-blue-200 bg-blue-50 text-blue-800'">
+													{{ secretaria.tipo === 'M' ? 'Municipal' : 'Departamental' }}
+												</span>
+											}
+										</td>
 										@if (isSuperAdmin()) {
 											<td class="px-3 py-2">{{ secretaria.codigo }}</td>
 										}

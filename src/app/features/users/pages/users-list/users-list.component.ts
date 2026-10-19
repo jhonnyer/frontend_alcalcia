@@ -514,7 +514,7 @@ export class UsersListComponent implements OnInit {
     this.coverageMunicipioInput.set('');
     this.showCoverageDepartamentoDropdown = false;
     this.showCoverageMunicipioDropdown = false;
-    this.coverageSelectedTab.set('departamentos');
+    this.coverageSelectedTab.set(secretaria.tipo === 'M' ? 'municipios' : 'departamentos');
     this.loadCoverage(secretaria.idSecretaria);
   }
 
@@ -660,6 +660,10 @@ export class UsersListComponent implements OnInit {
   }
 
   private syncCoverageSelectedTab(preferred?: 'departamentos' | 'municipios'): void {
+    if (this.coverageTipo() === 'M') {
+      this.coverageSelectedTab.set('municipios');
+      return;
+    }
     const depCount = this.coberturaDepartamental().filter(c => c.estado === 'A').length;
     const munCount = this.coberturaMunicipal().filter(c => c.estado === 'A').length;
 
@@ -717,7 +721,11 @@ export class UsersListComponent implements OnInit {
   assignCoverageDepartamento(): void {
     const secretaria = this.selectedSecretaryForCoverage();
     const idDepartamento = this.departamentoToAssign();
-    if (!secretaria || !idDepartamento) return;
+    if (!secretaria || !idDepartamento || this.coverageTipo() === 'M') return;
+    if (this.coverageTipo() === 'D' && this.coberturaDepartamental().some(c => c.idDepartamento !== idDepartamento)) {
+      this.alert.warning('Cobertura no permitida', 'Una secretaría departamental solo puede tener cobertura en su departamento.');
+      return;
+    }
 
     this.savingCoverage.set(true);
     this.secretariaAdminService.assignCoberturaDepartamental(secretaria.idSecretaria, {
@@ -746,7 +754,8 @@ export class UsersListComponent implements OnInit {
   assignCoverageMunicipio(): void {
     const secretaria = this.selectedSecretaryForCoverage();
     const idMunicipio = this.municipioToAssign();
-    if (!secretaria || !idMunicipio || this.coverageDepartamentoFilter() == null) return;
+    if (!secretaria || !idMunicipio || this.coverageDepartamentoFilter() == null
+      || this.coverageMunicipalLocked() || this.coverageMunicipioRequiereDepartamento()) return;
 
     this.savingCoverage.set(true);
     this.secretariaAdminService.assignCoberturaMunicipal(secretaria.idSecretaria, {
@@ -880,12 +889,41 @@ export class UsersListComponent implements OnInit {
     });
   }
 
+  coverageTipo = computed(() => this.selectedSecretaryForCoverage()?.tipo ?? null);
+
+  /** Una secretaría municipal solo conserva su municipio: no se agregan departamentos ni otros municipios. */
+  coverageMunicipalLocked = computed(() => this.coverageTipo() === 'M' && this.coberturaMunicipal().length > 0);
+
+  activeCoverageDepartamentoIds = computed(() =>
+    new Set(this.coberturaDepartamental().filter(c => c.estado === 'A').map(c => c.idDepartamento)));
+
+  coverageMunicipioRequiereDepartamento = computed(() => {
+    const dept = this.coverageDepartamentoFilter();
+    return this.coverageTipo() === 'D' && dept != null && !this.activeCoverageDepartamentoIds().has(dept);
+  });
+
+  coverageRuleMessage = computed(() => {
+    const tipo = this.coverageTipo();
+    if (tipo === 'M') {
+      const municipio = this.coberturaMunicipal()[0]?.nombreMunicipio;
+      return municipio
+        ? `Secretaría municipal: su cobertura es únicamente ${municipio}. Puedes activarla o desactivarla, pero no agregar otros municipios ni departamentos.`
+        : 'Secretaría municipal: asigna su único municipio.';
+    }
+    if (tipo === 'D') {
+      return 'Secretaría departamental: su cobertura se limita a su departamento. Solo puedes agregar o reactivar municipios de ese departamento.';
+    }
+    return '';
+  });
+
   availableMunicipiosForCoverage = computed(() => {
     const usados = new Set(this.coberturaMunicipal().filter(c => c.estado === 'A').map(c => c.idMunicipio));
     const query = this.normalizeSearchText(this.coverageMunicipioInput());
     const dept = this.coverageDepartamentoFilter();
+    const departamentosPermitidos = this.coverageTipo() === 'D' ? this.activeCoverageDepartamentoIds() : null;
     return this.municipios().filter(m => {
       if (usados.has(m.idMunicipio)) return false;
+      if (departamentosPermitidos && !departamentosPermitidos.has(m.idDepartamentoFk)) return false;
       const byDept = dept == null || m.idDepartamentoFk === dept;
       const bySearch = !query || this.normalizeSearchText(m.nombre).includes(query);
       return byDept && bySearch;
@@ -894,8 +932,12 @@ export class UsersListComponent implements OnInit {
 
   availableDepartamentosForCoverage = computed(() => {
     const query = this.normalizeSearchText(this.coverageDepartamentoInput());
-    if (!query) return this.departamentos();
-    return this.departamentos().filter(dep => this.normalizeSearchText(dep.nombre).includes(query));
+    const asignados = new Set(this.coberturaDepartamental().map(c => c.idDepartamento));
+    const base = this.coverageTipo() === 'D' && asignados.size > 0
+      ? this.departamentos().filter(dep => asignados.has(dep.idDepartamento))
+      : this.departamentos();
+    if (!query) return base;
+    return base.filter(dep => this.normalizeSearchText(dep.nombre).includes(query));
   });
 
   getMatchParts(text: string, query: string): { before: string; match: string; after: string } {

@@ -26,12 +26,14 @@ import { TableFilterComponent } from '../../../../shared/components/table-filter
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ResponsibleUpdateComponent } from '../responsible-update/responsible-update.component';
 import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
+import { ServerPaginationComponent } from '../../../../shared/components/server-pagination/server-pagination.component';
 
 @Component({
   selector: 'app-responsibles-list',
   standalone: true,
   imports: [
     TableFilterToolbarComponent,
+    ServerPaginationComponent,
     CommonModule, 
     CdkTableModule, 
     MatIconModule,

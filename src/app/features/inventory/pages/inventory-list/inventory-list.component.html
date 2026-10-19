@@ -31,7 +31,25 @@
     </button>
   </header>
 
-  <div class="mb-5 grid grid-cols-1 gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-2">
+  <div class="mb-5 rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-2">
+      <div class="flex items-center gap-2 text-xs text-slate-600">
+        <mat-icon class="!h-5 !w-5 text-[20px] text-slate-400" aria-hidden="true">category</mat-icon>
+        <span class="font-semibold text-slate-700">Selección de inventario</span>
+        <span class="hidden sm:inline">· elige el proyecto y la categoría a consultar</span>
+      </div>
+      <button
+        type="button"
+        class="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-300 disabled:hover:bg-white disabled:hover:text-slate-700"
+        [disabled]="!hasSelection()"
+        (click)="clearSelection()"
+        title="Quitar el proyecto y la categoría seleccionados"
+      >
+        <mat-icon class="!h-4 !w-4 text-[16px]" aria-hidden="true">restart_alt</mat-icon>
+        Cambiar selección
+      </button>
+    </div>
+    <div class="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
     <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
       Proyecto
       <div class="relative">
@@ -74,6 +92,7 @@
         }
       </div>
     </label>
+    </div>
   </div>
 
   <!-- 📊 TABLA -->
@@ -162,57 +181,13 @@
     </table>
     </div>
   </div>
+  <app-server-pagination [pageIndex]="dataTable.getState().pagination.pageIndex" [totalPages]="dataTable.getPageCount() || 1"
+    [totalElements]="dataTable.getRowCount()" [pageSize]="dataTable.getState().pagination.pageSize" [pageSizes]="sizePage()"
+    (pageChange)="dataTable.setPageIndex($event)" (pageSizeChange)="onChangeValueSizePageSelect($event)" />
   } @else {
     <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
       {{ listLoading() ? 'Cargando proyectos…' : loadError() ? 'No se pudo consultar el inventario. Usa Reintentar.' : proyectos().length === 0 ? 'Aún no hay proyectos disponibles para consultar inventario en esta secretaría.' : 'Selecciona un proyecto y una categoría para consultar sus productos.' }}
     </div>
   }
 
-  <!-- 📑 PAGINACIÓN -->
-  <footer class="flex flex-col sm:flex-row justify-between items-center mt-5 text-sm text-gray-700">
-    <div class="flex items-center mb-2 sm:mb-0">
-      Mostrando <b class="mx-1">{{ dataTable.getRowModel().rows.length }}</b> de
-      <b class="mx-1">{{ dataTable.getRowCount() }}</b> registros
-    </div>
-
-    <div class="flex flex-wrap items-center gap-3">
-      <span>Página {{ dataTable.getState().pagination.pageIndex + 1 }} de {{ dataTable.getPageCount() }}</span>
-
-      <label for="inventory-page-size" class="sr-only">Filas por pagina de inventario</label>
-      <select
-        id="inventory-page-size"
-        aria-label="Filas por pagina de inventario"
-        (change)="onChangeValueSizePageSelect($event)"
-        class="select-base"
-      >
-        @for(size of sizePage(); track size) {
-          <option [value]="size" [selected]="size === dataTable.getState().pagination.pageSize">
-            {{ size }} / pág.
-          </option>
-        }
-      </select>
-
-      <div class="flex items-center gap-2">
-        <button
-          [disabled]="!dataTable.getCanPreviousPage()"
-          (click)="dataTable.previousPage()"
-            class="btn-navigate-black"
-          type="button"
-        >
-          <mat-icon class="text-sm">arrow_back</mat-icon>
-          Anterior
-        </button>
-
-        <button
-          [disabled]="!dataTable.getCanNextPage()"
-          (click)="dataTable.nextPage()"
-            class="btn-navigate-black"
-          type="button"
-        >
-          Siguiente
-          <mat-icon class="text-sm">arrow_forward</mat-icon>
-        </button>
-      </div>
-    </div>
-  </footer>
 </section>

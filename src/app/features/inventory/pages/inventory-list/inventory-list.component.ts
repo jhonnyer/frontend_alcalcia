@@ -31,12 +31,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AlertService } from '../../../../core/services/alert.service';
 import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
+import { ServerPaginationComponent } from '../../../../shared/components/server-pagination/server-pagination.component';
 
 @Component({
   selector: 'app-inventory-list',
   standalone: true,
   imports: [
     TableFilterToolbarComponent,
+    ServerPaginationComponent,
     CommonModule, 
     CdkTableModule, 
     FlexRenderDirective, 
@@ -211,15 +213,20 @@ export class InventoryListComponent implements OnInit {
   }
 
   activeFilterCount(): number {
-    return this.columnFilters().length
-      + (this.filtroActual.trim() ? 1 : 0)
-      + (this.selectedProjectId() !== null || this.projectSearch().trim() ? 1 : 0)
-      + (this.selectedCategoryId() !== null || this.categorySearch().trim() ? 1 : 0);
+    return this.columnFilters().length;
+  }
+
+  hasSelection(): boolean {
+    return this.selectedProjectId() !== null || !!this.projectSearch().trim() || !!this.categorySearch().trim();
   }
 
   clearAllFilters(): void {
     this.columnFilters.set([]);
-    this.filtroActual = '';
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  clearSelection(): void {
+    this.columnFilters.set([]);
     this.clearProjectFilter();
     this.categorySuggestionsVisible.set(false);
   }

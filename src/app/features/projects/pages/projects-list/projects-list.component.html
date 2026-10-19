@@ -130,52 +130,7 @@
     </div>
   </mat-card>
 
-  <!-- PAGINACIÓN -->
-  <div class="mt-4 flex flex-col gap-3 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between">
-    <!-- Info de registros -->
-    <span>
-      Mostrando 
-      <b>{{ dataTable.getRowCount() === 0 ? 0 : dataTable.getState().pagination.pageIndex * dataTable.getState().pagination.pageSize + 1 }}</b>
-      -
-      <b>{{ Math.min((dataTable.getState().pagination.pageIndex + 1) * dataTable.getState().pagination.pageSize, dataTable.getRowCount()) }}</b>
-      de 
-      <b>{{ dataTable.getRowCount() }}</b> proyectos
-    </span>
-
-    <!-- Controles -->
-    <div class="flex flex-wrap items-center gap-3">
-      <!-- Select tamaño de página -->
-      <label class="flex items-center gap-1">
-        <span>Filas por página:</span>
-        <select 
-          class="select-base"
-          (change)="onChangeValueSizePageSelect($event)"
-        >
-          @for(size of sizePage(); track size){
-            <option [value]="size" [selected]="size === dataTable.getState().pagination.pageSize">
-              {{size}}
-            </option>
-          }
-        </select>
-      </label>
-
-      <!-- Botones -->
-      <button 
-        [disabled]="!dataTable.getCanPreviousPage()" 
-        (click)="dataTable.previousPage()" 
-        class="btn-navigate-black"
-        type="button"
-      >
-        Anterior
-      </button>
-      <button 
-        [disabled]="!dataTable.getCanNextPage()" 
-        (click)="dataTable.nextPage()" 
-        class="btn-navigate-black"
-        type="button"
-      >
-        Siguiente
-      </button>
-    </div>
-  </div>
+  <app-server-pagination [pageIndex]="dataTable.getState().pagination.pageIndex" [totalPages]="dataTable.getPageCount() || 1"
+    [totalElements]="dataTable.getRowCount()" [pageSize]="dataTable.getState().pagination.pageSize" [pageSizes]="sizePage()"
+    (pageChange)="dataTable.setPageIndex($event)" (pageSizeChange)="onChangeValueSizePageSelect($event)" />
 </section>

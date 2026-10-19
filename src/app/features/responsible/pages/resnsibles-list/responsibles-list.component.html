@@ -124,58 +124,8 @@
     </div>
   </div>
 
-  <!-- PAGINACIÓN -->
-  <div class="flex flex-col gap-3 justify-between mt-4 text-sm text-gray-700 sm:flex-row sm:items-center">
-    <div>
-      Mostrando
-      <b>{{ dataTable.getRowModel().rows.length }}</b> de
-      <b>{{ dataTable.getRowCount() }}</b> registros
-    </div>
-
-    <div class="flex flex-wrap items-center gap-3">
-      <!-- Selector de cantidad -->
-      <label for="page-size-select" class="sr-only">Cantidad por página</label>
-      <select
-        id="page-size-select"
-        (change)="onChangeValueSizePageSelect($event)"
-        class="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-      >
-        @for(size of sizePage(); track size) {
-          <option
-            [value]="size"
-            [selected]="size === dataTable.getState().pagination.pageSize"
-          >
-            {{ size }}
-          </option>
-        }
-      </select>
-
-      <!-- Botones juntos -->
-      <div class="flex gap-2">
-        <button
-          [disabled]="!dataTable.getCanPreviousPage()"
-          (click)="dataTable.previousPage()"
-          class="btn-navigate-black"
-        >
-          <mat-icon>chevron_left</mat-icon>
-          Anterior
-        </button>
-
-        <button
-          [disabled]="!dataTable.getCanNextPage()"
-          (click)="dataTable.nextPage()"
-          class="btn-navigate-black"
-        >
-          Siguiente
-          <mat-icon>chevron_right</mat-icon>
-        </button>
-      </div>
-
-      <span>
-        Página <b>{{ dataTable.getState().pagination.pageIndex + 1 }}</b> de
-        <b>{{ dataTable.getPageCount() }}</b>
-      </span>
-    </div>
-  </div>
+  <app-server-pagination [pageIndex]="dataTable.getState().pagination.pageIndex" [totalPages]="dataTable.getPageCount() || 1"
+    [totalElements]="dataTable.getRowCount()" [pageSize]="dataTable.getState().pagination.pageSize" [pageSizes]="sizePage()"
+    (pageChange)="dataTable.setPageIndex($event)" (pageSizeChange)="onChangeValueSizePageSelect($event)" />
   </div>
 </section>

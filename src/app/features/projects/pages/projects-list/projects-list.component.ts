@@ -32,12 +32,14 @@ import { AuthService } from '../../../../core/services/auth.service';
 import { AlertService } from '../../../../core/services/alert.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
+import { ServerPaginationComponent } from '../../../../shared/components/server-pagination/server-pagination.component';
 
 @Component({
   selector: 'app-projects-list',
   standalone: true,
   imports: [
     TableFilterToolbarComponent,
+    ServerPaginationComponent,
     CommonModule, 
     CdkTableModule, 
     FlexRenderDirective, 

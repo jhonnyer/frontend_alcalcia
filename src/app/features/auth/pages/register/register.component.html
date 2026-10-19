@@ -1,245 +1,164 @@
-<section
-  class="relative flex items-center justify-center min-h-[calc(100vh-6rem)] bg-gradient-to-br from-blue-50 via-white to-blue-100 overflow-hidden"
->
-  <!-- 🔹 Fondo decorativo -->
-  <div
-    class="absolute inset-0 bg-[url('/assets/img/bg-register.jpg')] bg-cover bg-center opacity-10"
-  ></div>
-
-  <!-- 🔹 Tarjeta principal -->
-  <div
-    class="relative z-10 w-full max-w-3xl bg-white/90 backdrop-blur-xl shadow-2xl rounded-2xl border border-gray-200 p-8 md:p-10"
-  >
-    <!-- Encabezado -->
-    <div class="text-center mb-8">
-      <h3 class="text-2xl font-bold text-gray-800 mb-1">
-        GESTIÓN DE PROYECTOS E INVENTARIO
-      </h3>
-      <p class="text-gray-500 text-sm">Crea tu cuenta para continuar</p>
+<main class="register-page scrollbar-custom" aria-labelledby="register-title">
+  <div class="mx-auto w-full max-w-5xl">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+      <p class="font-semibold text-slate-600">Gestión de proyectos e inventario</p>
+      <a routerLink="/auth" class="rounded-md font-semibold text-blue-700 hover:underline">Volver al inicio de sesión</a>
     </div>
 
-    <!-- Formulario -->
-    <form
-      class="space-y-6"
-      [formGroup]="formFamilyCore"
-      (ngSubmit)="onSubmit()"
-      autocomplete="off"
-    >
-      <!-- Usuario y correo -->
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="label-base">Usuario</label>
-          <input
-            formControlName="usuario"
-            type="text"
-            class="input-base"
-            placeholder="nombre de usuario"
-          />
-          <p
-            *ngIf="formFamilyCore.get('usuario')?.touched && formFamilyCore.get('usuario')?.invalid"
-            class="text-xs text-red-500 mt-1"
-          >
-            ⚠️ Campo obligatorio
-          </p>
-        </div>
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60">
+      <header class="border-b border-blue-100 bg-gradient-to-br from-blue-50 to-slate-50 px-5 py-5 text-center sm:px-8">
+        <h1 id="register-title" class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Crea tu cuenta</h1>
+        <p class="mt-2 text-sm text-slate-600">Tu cuenta requiere activación de un administrador.</p>
+        <p class="mt-2 text-xs text-slate-500"><span class="font-bold text-red-600">*</span> Campo obligatorio</p>
+      </header>
 
-        <div>
-          <label class="label-base">Correo electrónico</label>
-          <input
-            formControlName="email"
-            type="email"
-            class="input-base"
-            placeholder="beneficiario@correo.com"
-          />
-          <p
-            *ngIf="formFamilyCore.get('email')?.touched && formFamilyCore.get('email')?.invalid"
-            class="text-xs text-red-500 mt-1"
-          >
-            ⚠️ Campo obligatorio
-          </p>
-        </div>
-      </div>
+      <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" novalidate [attr.aria-busy]="isLoading">
+        <nav class="register-progress" aria-label="Progreso del registro">
+          @for (section of registrationSections; track section.key; let index = $index) {
+            <button type="button" class="register-progress-item" [class.is-done]="isSectionComplete(section.key)" (click)="goToSection(section.key)" [disabled]="isLoading" [attr.aria-label]="section.title + (isSectionComplete(section.key) ? ': completada' : ': pendiente')">
+              <span class="register-step" aria-hidden="true">
+                @if (isSectionComplete(section.key)) { <mat-icon>check</mat-icon> }
+                @else { {{ index + 1 }} }
+              </span>
+              <span>{{ section.title }}</span>
+            </button>
+          }
+        </nav>
+        <fieldset class="min-w-0 space-y-7 px-5 py-6 sm:px-8" [disabled]="isLoading">
+          <legend class="sr-only">Datos para crear la cuenta</legend>
 
-      <!-- Nombres -->
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="label-base">Primer nombre</label>
-          <input
-            formControlName="primerNombre"
-            type="text"
-            class="input-base"
-            placeholder="Ej: Juan"
-          />
-          <p
-            *ngIf="formFamilyCore.get('primerNombre')?.touched && formFamilyCore.get('primerNombre')?.invalid"
-            class="text-xs text-red-500 mt-1"
-          >
-            ⚠️ Campo obligatorio
-          </p>
-        </div>
+          <section id="register-personal-section" aria-labelledby="register-person-title">
+            <div class="register-section-heading">
+              <span class="register-step" [class.is-done]="isSectionComplete('personal')" aria-hidden="true">@if (isSectionComplete('personal')) { <mat-icon>check</mat-icon> } @else { 1 }</span>
+              <div>
+                <h2 id="register-person-title">Información personal</h2>
+              </div>
+            </div>
+            <div class="grid min-w-0 gap-4 sm:grid-cols-2">
+              <div>
+                <label class="label-base" for="register-first-name">Primer nombre <span class="text-red-600">*</span></label>
+                <input id="register-first-name" formControlName="primerNombre" type="text" class="input-base" placeholder="Primer nombre" autocomplete="given-name" required [attr.aria-invalid]="invalidField('primerNombre')" aria-describedby="register-first-name-error" />
+                <p id="register-first-name-error" class="register-error">@if (invalidField('primerNombre')) { Ingresa tu primer nombre. }</p>
+              </div>
+              <div>
+                <label class="label-base" for="register-middle-name">Segundo nombre <span class="register-optional">(opcional)</span></label>
+                <input id="register-middle-name" formControlName="segundoNombre" type="text" class="input-base" placeholder="Segundo nombre" autocomplete="additional-name" />
+              </div>
+              <div>
+                <label class="label-base" for="register-first-surname">Primer apellido <span class="text-red-600">*</span></label>
+                <input id="register-first-surname" formControlName="primerApellido" type="text" class="input-base" placeholder="Primer apellido" autocomplete="family-name" required [attr.aria-invalid]="invalidField('primerApellido')" aria-describedby="register-first-surname-error" />
+                <p id="register-first-surname-error" class="register-error">@if (invalidField('primerApellido')) { Ingresa tu primer apellido. }</p>
+              </div>
+              <div>
+                <label class="label-base" for="register-second-surname">Segundo apellido <span class="register-optional">(opcional)</span></label>
+                <input id="register-second-surname" formControlName="segundoApellido" type="text" class="input-base" placeholder="Segundo apellido" />
+              </div>
+              <div>
+                <label class="label-base" for="register-document-type">Tipo de documento <span class="text-red-600">*</span></label>
+                <select id="register-document-type" formControlName="tipoIdentificacion" class="input-base" required>
+                  <option value="CC">Cédula de ciudadanía</option>
+                  <option value="TI">Tarjeta de identidad</option>
+                  <option value="CE">Cédula de extranjería</option>
+                  <option value="PA">Pasaporte</option>
+                  <option value="NIT">NIT</option>
+                </select>
+              </div>
+              <div>
+                <label class="label-base" for="register-document">Número de documento <span class="text-red-600">*</span></label>
+                <input id="register-document" formControlName="numeroIdentificacion" type="text" class="input-base" placeholder="Número sin puntos ni espacios" required [attr.aria-invalid]="invalidField('numeroIdentificacion')" aria-describedby="register-document-error" />
+                <p id="register-document-error" class="register-error">@if (invalidField('numeroIdentificacion')) { Ingresa tu número de documento. }</p>
+              </div>
+              <div>
+                <label class="label-base" for="register-phone">Teléfono <span class="text-red-600">*</span></label>
+                <input id="register-phone" formControlName="telefono" type="tel" inputmode="numeric" maxlength="10" class="input-base" placeholder="Máximo 10 dígitos, sin espacios" autocomplete="tel-national" required [attr.aria-invalid]="invalidField('telefono')" aria-describedby="register-phone-error" />
+                <p id="register-phone-error" class="register-error">@if (invalidField('telefono')) { Ingresa solo números, máximo 10 dígitos. }</p>
+              </div>
+            </div>
+          </section>
 
-        <div>
-          <label class="label-base">Segundo nombre</label>
-          <input
-            formControlName="segundoNombre"
-            type="text"
-            class="input-base"
-            placeholder="Ej: Carlos"
-          />
-        </div>
-      </div>
+          <section id="register-access-section" class="border-t border-slate-100 pt-6" aria-labelledby="register-access-title">
+            <div class="register-section-heading">
+              <span class="register-step" [class.is-done]="isSectionComplete('access')" aria-hidden="true">@if (isSectionComplete('access')) { <mat-icon>check</mat-icon> } @else { 2 }</span>
+              <div><h2 id="register-access-title">Datos de acceso</h2></div>
+            </div>
+            <div class="grid min-w-0 gap-4 sm:grid-cols-2">
+              <div>
+                <label class="label-base" for="register-user">Usuario <span class="text-red-600">*</span></label>
+                <input id="register-user" formControlName="usuario" type="text" class="input-base" placeholder="Nombre de usuario" autocomplete="username" autocapitalize="none" spellcheck="false" required [attr.aria-invalid]="invalidField('usuario')" aria-describedby="register-user-error" />
+                <p id="register-user-error" class="register-error">@if (invalidField('usuario')) { Ingresa un nombre de usuario. }</p>
+              </div>
+              <div>
+                <label class="label-base" for="register-email">Correo electrónico <span class="text-red-600">*</span></label>
+                <input id="register-email" formControlName="email" type="email" class="input-base" placeholder="usuario@correo.com" autocomplete="email" required [attr.aria-invalid]="invalidField('email')" aria-describedby="register-email-error" />
+                <p id="register-email-error" class="register-error">@if (invalidField('email')) { Ingresa un correo electrónico válido. }</p>
+              </div>
+              <div>
+                <label class="label-base" for="register-password">Contraseña <span class="text-red-600">*</span></label>
+                <input id="register-password" formControlName="password" type="password" class="input-base" placeholder="Crea tu contraseña" autocomplete="new-password" required [attr.aria-invalid]="invalidField('password')" aria-describedby="register-password-error" />
+                <p id="register-password-error" class="register-error">@if (invalidField('password')) { Ingresa una contraseña. }</p>
+              </div>
+              <div>
+                <label class="label-base" for="register-confirm">Confirmar contraseña <span class="text-red-600">*</span></label>
+                <input id="register-confirm" formControlName="confirmPassword" type="password" class="input-base" placeholder="Repite tu contraseña" autocomplete="new-password" required [attr.aria-invalid]="invalidField('confirmPassword') || passwordMismatch" aria-describedby="register-confirm-error" />
+                <p id="register-confirm-error" class="register-error">
+                  @if (invalidField('confirmPassword')) { Confirma tu contraseña. }
+                  @else if (passwordMismatch) { Las contraseñas no coinciden. }
+                </p>
+              </div>
+            </div>
+          </section>
 
-      <!-- Apellidos -->
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="label-base">Primer apellido</label>
-          <input
-            formControlName="primerApellido"
-            type="text"
-            class="input-base"
-            placeholder="Ej: Pérez"
-          />
-          <p
-            *ngIf="formFamilyCore.get('primerApellido')?.touched && formFamilyCore.get('primerApellido')?.invalid"
-            class="text-xs text-red-500 mt-1"
-          >
-            ⚠️ Campo obligatorio
-          </p>
-        </div>
+          <section id="register-institution-section" class="border-t border-slate-100 pt-6" aria-labelledby="register-institution-title">
+            <div class="register-section-heading">
+              <span class="register-step" [class.is-done]="isSectionComplete('institution')" aria-hidden="true">@if (isSectionComplete('institution')) { <mat-icon>check</mat-icon> } @else { 3 }</span>
+              <div>
+                <h2 id="register-institution-title">Vinculación institucional</h2>
+              </div>
+            </div>
+            <div class="grid min-w-0 gap-4 sm:grid-cols-2">
+              <div class="min-w-0 sm:col-span-2">
+                <label class="label-base" for="register-secretary">Secretaría <span class="text-red-600">*</span></label>
+                <select id="register-secretary" formControlName="idSecretaria" class="input-base min-w-0 truncate" required [attr.aria-invalid]="invalidField('idSecretaria')" aria-describedby="register-secretary-status register-secretary-error">
+                  <option [ngValue]="null" disabled>{{ loadingSecretarias ? 'Cargando secretarías...' : 'Selecciona tu secretaría' }}</option>
+                  @for (s of secretarias; track s.idSecretaria) {
+                    <option [ngValue]="s.idSecretaria">{{ s.nombre }}</option>
+                  }
+                </select>
+                <div id="register-secretary-status" aria-live="polite" class="mt-1 text-xs">
+                  @if (secretariasError) {
+                    <p class="text-red-700">{{ secretariasError }} <button type="button" class="rounded font-semibold underline" (click)="loadSecretarias()" [disabled]="loadingSecretarias">Reintentar</button></p>
+                  } @else if (!loadingSecretarias && !secretarias.length) {
+                    <p class="text-amber-800">No hay secretarías disponibles. Contacta al administrador para continuar.</p>
+                  }
+                </div>
+                <p id="register-secretary-error" class="register-error">@if (invalidField('idSecretaria')) { Selecciona una secretaría. }</p>
+              </div>
+              <div>
+                <label class="label-base" for="register-area">Área <span class="text-red-600">*</span></label>
+                <input id="register-area" formControlName="area" type="text" class="input-base" placeholder="Ej.: Planeación" required [attr.aria-invalid]="invalidField('area')" aria-describedby="register-area-error" />
+                <p id="register-area-error" class="register-error">@if (invalidField('area')) { Ingresa el área a la que perteneces. }</p>
+              </div>
+              <div>
+                <label class="label-base" for="register-position">Cargo <span class="text-red-600">*</span></label>
+                <input id="register-position" formControlName="cargo" type="text" class="input-base" placeholder="Ej.: Coordinador" autocomplete="organization-title" required [attr.aria-invalid]="invalidField('cargo')" aria-describedby="register-position-error" />
+                <p id="register-position-error" class="register-error">@if (invalidField('cargo')) { Ingresa tu cargo. }</p>
+              </div>
+            </div>
+          </section>
+        </fieldset>
 
-        <div>
-          <label class="label-base">Segundo apellido</label>
-          <input
-            formControlName="segundoApellido"
-            type="text"
-            class="input-base"
-            placeholder="Ej: López"
-          />
-        </div>
-      </div>
-
-      <!-- Documento -->
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="label-base">Tipo de documento</label>
-          <select formControlName="tipoIdentificacion" class="input-base">
-            <option value="CC">Cédula de ciudadanía</option>
-            <option value="TI">Tarjeta de identidad</option>
-            <option value="CE">Cédula extranjera</option>
-            <option value="PA">Pasaporte</option>
-            <option value="NIT">NIT</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="label-base">Número de documento</label>
-          <input
-            formControlName="numeroIdentificacion"
-            type="text"
-            class="input-base"
-            placeholder="Ej: 1002456789"
-          />
-        </div>
-      </div>
-
-      <!-- Cargo y área -->
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="label-base">Área</label>
-          <input
-            formControlName="area"
-            type="text"
-            class="input-base"
-            placeholder="Ej: Planeación"
-          />
-        </div>
-        <div>
-          <label class="label-base">Cargo</label>
-          <input
-            formControlName="cargo"
-            type="text"
-            class="input-base"
-            placeholder="Ej: Coordinador"
-          />
-        </div>
-      </div>
-
-      <!-- Secretaría -->
-      <div>
-        <label class="label-base">Secretaría</label>
-        <select formControlName="idSecretaria" class="input-base">
-          <option [ngValue]="null" disabled>Selecciona tu secretaría</option>
-          <option *ngFor="let s of secretarias" [ngValue]="s.idSecretaria">{{ s.nombre }}</option>
-        </select>
-        <p
-          *ngIf="formFamilyCore.get('idSecretaria')?.touched && formFamilyCore.get('idSecretaria')?.invalid"
-          class="text-xs text-red-500 mt-1"
-        >
-          ⚠️ Selecciona una secretaría
-        </p>
-      </div>
-
-      <!-- Teléfono -->
-      <div>
-        <label class="label-base">Teléfono</label>
-        <input
-          formControlName="telefono"
-          type="tel"
-          class="input-base"
-          placeholder="+57 320 000 0000"
-        />
-      </div>
-
-      <!-- Contraseñas -->
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="label-base">Contraseña</label>
-          <input
-            type="password"
-            formControlName="password"
-            class="input-base"
-            placeholder="••••••••"
-          />
-        </div>
-
-        <div>
-          <label class="label-base">Confirmar contraseña</label>
-          <input
-            type="password"
-            formControlName="confirmPassword"
-            class="input-base"
-            placeholder="••••••••"
-          />
-          <p
-            *ngIf="formFamilyCore.hasError('match_password')"
-            class="text-xs text-red-500 mt-1"
-          >
-            ⚠️ Las contraseñas no coinciden
-          </p>
-        </div>
-      </div>
-
-      <!-- Botón -->
-      <button
-        type="submit"
-        [disabled]="isLoading"
-        class="w-full flex justify-center items-center gap-2 py-2.5 font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        @if (isLoading) {
-          <mat-spinner diameter="20" color="accent"></mat-spinner>
-          Registrando...
-        } @else {
-          Registrarse
-        }
-      </button>
-
-      <!-- Volver al login -->
-      <p class="text-center text-sm text-gray-500">
-        ¿Ya tienes una cuenta?
-        <a routerLink="/auth" class="font-medium text-blue-600 hover:underline"
-          >Inicia sesión</a
-        >
-      </p>
-    </form>
+        <footer class="flex flex-col gap-4 border-t border-slate-200 bg-slate-50 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <p class="text-center text-sm text-slate-500 sm:text-left">¿Ya tienes una cuenta? <a routerLink="/auth" class="rounded font-semibold text-blue-700 hover:underline">Inicia sesión</a></p>
+          <button type="submit" [disabled]="isLoading || loadingSecretarias || !secretarias.length" class="btn-action-blue w-full gap-2 sm:w-auto sm:min-w-44">
+            @if (isLoading) {
+              <mat-spinner diameter="20" color="accent"></mat-spinner>
+              Registrando...
+            } @else {
+              Crear cuenta
+            }
+          </button>
+        </footer>
+      </form>
+    </div>
   </div>
-</section>
+</main>

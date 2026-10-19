@@ -8,7 +8,6 @@ import { AlertService } from '../../../../core/services/alert.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { ParametroNegocioService } from '../../../../core/services/parametro-negocio.service';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
-import { SecretariaAdminService } from '../../../../core/services/secretaria-admin.service';
 import { TokenService } from '../../../../core/services/token.service';
 import { finalize, timeout } from 'rxjs';
 
@@ -25,7 +24,6 @@ export class SupportContactComponent {
   private readonly responsibleService = inject(ResponsibleService);
   private readonly pageTitleService = inject(PageTitleService);
   private readonly alert = inject(AlertService);
-  private readonly secretariaAdminService = inject(SecretariaAdminService);
   private readonly tokenService = inject(TokenService);
 
   loading = signal(true);
@@ -34,6 +32,16 @@ export class SupportContactComponent {
   superAdmin = signal<ISoporteSuperAdmin | null>(null);
   activeSecretaryName = signal('');
   secretarias = signal<ISecretaria[]>([]);
+
+  get institutionLabel(): string {
+    const tipo = this.secretarias()[0]?.tipo;
+    return tipo === 'D' ? 'Gobernación' : tipo === 'M' ? 'Alcaldía' : 'Institución';
+  }
+
+  get authorityLabel(): string {
+    const tipo = this.secretarias()[0]?.tipo;
+    return tipo === 'D' ? 'Gobernador o gobernadora' : tipo === 'M' ? 'Alcalde o alcaldesa' : 'Máxima autoridad';
+  }
 
   get supportEmail(): string {
     return String(this.superAdmin()?.email ?? '').trim();
@@ -103,11 +111,12 @@ export class SupportContactComponent {
   loadData(): void {
     this.loading.set(true);
     this.loadErrors.set([]);
+    this.parametros.set(null);
+    this.secretarias.set([]);
+    this.activeSecretaryName.set('');
 
     const activeId = this.tokenService.getActiveSecretaryId();
-    const canReadSecretaries = ['ADMIN', 'SUPERADMIN'].includes(this.normalizedRole);
-    const shouldReadSecretaries = activeId != null && canReadSecretaries;
-    let pending = shouldReadSecretaries ? 3 : 2;
+    let pending = activeId != null ? 2 : 1;
     const finish = () => {
       pending--;
       if (pending === 0) this.loading.set(false);
@@ -122,36 +131,19 @@ export class SupportContactComponent {
       }
     }
 
-    if (shouldReadSecretaries) {
-      this.secretariaAdminService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
-        next: (secretarias) => {
-          this.secretarias.set(secretarias);
-          const active = secretarias.find(secretaria => secretaria.idSecretaria === activeId);
-          const serviceName = String(active?.nombre ?? '').trim();
-          if (serviceName) {
-            this.activeSecretaryName.set(serviceName);
-          }
+    if (activeId != null) {
+      this.parametroNegocioService.getContext().pipe(timeout(45000), finalize(finish)).subscribe({
+        next: (contexto) => {
+          this.parametros.set(contexto.parametros);
+          this.secretarias.set([contexto.secretaria]);
+          this.activeSecretaryName.set(contexto.secretaria.nombre);
         },
         error: (error) => {
-          console.error('Error al cargar secretaría activa de sesión:', error);
-          this.loadErrors.update(errors => [...errors, 'No se pudo consultar el nombre de la secretaría activa.']);
+          console.error('Error al cargar los datos institucionales de soporte:', error);
+          this.loadErrors.update(errors => [...errors, 'No se pudieron consultar los datos institucionales de la secretaría activa.']);
         }
       });
     }
-
-    this.parametroNegocioService.getActive().pipe(timeout(45000), finalize(finish)).subscribe({
-      next: (data) => {
-        this.parametros.set(data);
-      },
-      error: (error) => {
-        if (error?.status === 404) {
-          this.parametros.set(null);
-          return;
-        }
-        console.error('Error al cargar datos de soporte:', error);
-        this.loadErrors.update(errors => [...errors, 'No se pudieron consultar los datos institucionales.']);
-      }
-    });
 
     this.responsibleService.getSupportSuperAdmin().pipe(timeout(45000), finalize(finish)).subscribe({
       next: (responsable) => {

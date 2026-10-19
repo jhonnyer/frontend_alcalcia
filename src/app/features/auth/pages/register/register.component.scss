@@ -1,0 +1,72 @@
+:host {
+  display: block;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+
+.register-page {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  @apply bg-gradient-to-br from-slate-100 via-blue-50 to-slate-100 px-4 py-5 sm:px-6 sm:py-8;
+}
+
+.register-section-heading {
+  @apply mb-4 flex items-center gap-3;
+
+  h2 {
+    @apply text-base font-bold text-slate-800;
+  }
+
+  p {
+    @apply mt-0.5 text-xs leading-relaxed text-slate-500;
+  }
+}
+
+.register-step {
+  @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-blue-700;
+
+  &.is-done {
+    @apply bg-emerald-100 text-emerald-700;
+  }
+
+  mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+}
+
+.register-progress {
+  @apply grid gap-2 border-b border-slate-100 p-4 sm:grid-cols-3 sm:px-8;
+}
+
+.register-progress-item {
+  @apply flex min-w-0 items-center gap-2 rounded-lg bg-slate-50 p-2 text-left text-xs font-semibold text-slate-600 transition hover:bg-blue-50;
+
+  &.is-done {
+    @apply bg-emerald-50 text-emerald-800;
+
+    .register-step {
+      @apply bg-emerald-100 text-emerald-700;
+    }
+  }
+}
+
+section {
+  scroll-margin-top: 1rem;
+}
+
+.register-optional {
+  @apply text-xs font-normal text-slate-400;
+}
+
+.register-error {
+  @apply mt-1 text-xs text-red-600;
+
+  &:empty {
+    display: none;
+  }
+}

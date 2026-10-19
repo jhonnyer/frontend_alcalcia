@@ -1,18 +1,9 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom, timeout } from 'rxjs';
-import { environment } from '../../../../environments/environment';
-import { checkToken } from '../../../core/interceptors/token-interceptor.interceptor';
 import { IParametroNegocio } from '../../../core/models/parametro-negocio.model';
-import { ISecretaria } from '../../../core/models/secretaria.model';
+import { ParametroNegocioService } from '../../../core/services/parametro-negocio.service';
 import { TokenService } from '../../../core/services/token.service';
 import { DefaultLogoCache } from '../../../core/services/default-logo.service';
-
-interface ContextoInstitucional {
-  secretaria: ISecretaria;
-  parametros: IParametroNegocio;
-  departamento: string | null;
-}
 
 export interface InstitucionPdf {
   nombre: string;
@@ -42,16 +33,13 @@ export function sectorPdf(ubicacion: string | null | undefined): string {
 
 @Injectable({ providedIn: 'root' })
 export class PdfInstitucionalService {
-  private readonly http = inject(HttpClient);
+  private readonly parametrosService = inject(ParametroNegocioService);
   private readonly token = inject(TokenService);
   private readonly defaultLogo = inject(DefaultLogoCache);
 
   async cargar(): Promise<InstitucionPdf> {
     const idSecretaria = this.token.getActiveSecretaryId();
-    const contexto = await firstValueFrom(this.http.get<ContextoInstitucional>(
-      `${environment.URL_API}/parametros-negocio/contexto-institucional`,
-      { context: checkToken() },
-    ).pipe(timeout(45000)));
+    const contexto = await firstValueFrom(this.parametrosService.getContext().pipe(timeout(45000)));
     if (!idSecretaria || contexto.secretaria.idSecretaria !== idSecretaria) {
       throw new Error('La secretaría del reporte no coincide con la sesión activa. Vuelve a cargar la vista.');
     }

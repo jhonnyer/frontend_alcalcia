@@ -7,7 +7,6 @@ import { ListProceedingsComponent } from './components/list-proceedings/list-pro
 import { ListResponsibleComponent } from './components/list-responsible/list-responsible.component';
 import { ListProjectsComponent } from "./components/list-projects/list-projects.component";
 
-import { HasRoleDirective } from '../../../core/directives/has-role/has-role-directive.directive';
 import { MatIconModule } from '@angular/material/icon';
 import { NgClass, NgIf} from '@angular/common'
 
@@ -20,7 +19,6 @@ import { NgClass, NgIf} from '@angular/common'
     ListProceedingsComponent,
     ListResponsibleComponent,
     ListProjectsComponent,
-    HasRoleDirective, 
     MatIconModule,
     NgClass,
     NgIf,

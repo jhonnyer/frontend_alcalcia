@@ -1,398 +1,444 @@
-<!-- 🔹 Botón fijo superior derecho ultra compacto -->
-<div class="sticky top-0 z-10 bg-white border-b border-gray-200 px-1 py-[2px] flex justify-end">
-  <button 
-    type="button"
-    (click)="cancelar()"
-    matTooltip="Volver a la lista de actas"
-    class="p-[2px] rounded-full hover:bg-red-50 transition"
-    aria-label="Cerrar formulario de acta"
-  >
-    <mat-icon class="text-red-500 hover:text-red-700 text-[18px]">close</mat-icon>
-  </button>
-</div>
+<div class="overflow-y-auto font-std w-full relative flex flex-col h-section scrollbar-custom bg-slate-50 rounded-2xl">
+  <div class="acta-page">
 
-<div class="overflow-y-auto font-std w-full font-normal relative overflow-x-auto flex flex-col h-section scrollbar-custom bg-white rounded-2xl">
-
-  <div class="grid grid-cols-3 gap-2 border-b border-slate-200 bg-white px-4 py-3 text-center text-xs sm:text-sm">
-    <div [ngClass]="beneficiario() ? 'text-emerald-700' : 'text-slate-400'">
-      <mat-icon class="align-middle text-base">{{ beneficiario() ? 'check_circle' : 'person_search' }}</mat-icon>
-      <span class="ml-1">Beneficiario</span>
-    </div>
-    <div [ngClass]="beneficiarioProyecto() ? 'text-emerald-700' : 'text-slate-400'">
-      <mat-icon class="align-middle text-base">{{ beneficiarioProyecto() ? 'check_circle' : 'folder_open' }}</mat-icon>
-      <span class="ml-1">Proyecto</span>
-    </div>
-    <div [ngClass]="selectedProductsInfo().length ? 'text-emerald-700' : 'text-slate-400'">
-      <mat-icon class="align-middle text-base">{{ selectedProductsInfo().length ? 'check_circle' : 'inventory_2' }}</mat-icon>
-      <span class="ml-1">Productos</span>
-    </div>
-  </div>
-
-  <!-- 🔹 Buscador de beneficiario -->
-  <div class="flex flex-col p-5 border-b bg-gray-50">
-    <div class="flex justify-between items-center mb-3">
-      <label for="buscarBeneficiario" class="text-gray-800 font-semibold flex items-center gap-2">
-        <mat-icon color="primary">search</mat-icon> Buscar beneficiario (por número de documento o código)
-      </label>
-      <button
-        type="button"
-        (click)="cancelar()"
-        class="text-gray-600 hover:text-blue-700 flex items-center gap-1 text-sm transition"
-      >
-        <mat-icon class="text-base">close</mat-icon>
-        Cerrar formulario
-      </button>
-    </div>
-
-    <div class="flex gap-3">
-      <input
-        id="buscarBeneficiario"
-        type="text"
-        class="input-base w-full"
-        placeholder="Ingrese el número de documento o código del beneficiario"
-        [formControl]="searchBeneficiario"
-        inputmode="text"
-        pattern="[A-Za-z0-9-]*"
-      />
-    </div>
-
-    <!-- ⚠️ Validaciones de búsqueda -->
-    @if(searchBeneficiario.errors && searchBeneficiario.touched) {
-      <div class="mt-2 text-red-500 text-sm">
-        @if(searchBeneficiario.hasError('minlength')) { <p>* Mínimo 4 dígitos</p> }
-        @if(searchBeneficiario.hasError('maxlength')) { <p>* Máximo 20 dígitos</p> }
-        @if(searchBeneficiario.hasError('pattern')) { <p>* Solo se permiten letras, números y guiones</p> }
-      </div>
-    }
-
-    @if(beneficiarioNoEncontrado) {
-      <div class="mt-3 bg-yellow-50 border border-yellow-300 rounded-lg p-3 text-yellow-800 text-sm text-center shadow-sm">
-        <mat-icon class="text-yellow-600 text-base">info</mat-icon>
-        <span class="font-semibold">Beneficiario no encontrado o sin proyecto vinculado</span>
-      </div>
-    }
-  </div>
-
-  <!-- 🧾 Información del beneficiario y proyecto -->
-  @if (beneficiario() !== null && beneficiarioProyecto() !== null) {
-    <div class="p-5 grid md:grid-cols-2 gap-5 border-b bg-gray-50">
-      <!-- Beneficiario -->
-      <div>
-        <h3 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-          <mat-icon color="primary">person</mat-icon> Información del beneficiario
-        </h3>
-        <p class="text-sm text-gray-700">Nombre: <b>{{ beneficiario()?.primerNombre }} {{ beneficiario()?.primerApellido }}</b></p>
-        <p class="text-sm text-gray-700">Documento: <b>{{ beneficiario()?.numeroDocumento }}</b></p>
-        <p class="text-sm text-gray-700">
-          Estado:
-          <span class="status-badge" [ngClass]="beneficiarioProyecto()?.esBeneficiarioActivo ? 'status-badge-active' : 'status-badge-inactive'">
-            {{ beneficiarioProyecto()?.esBeneficiarioActivo ? 'Activo' : 'Inactivo' }}
-          </span>
-        </p>
-      </div>
-
-      <!-- Proyecto -->
-      <div>
-        <h3 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-          <mat-icon color="primary">folder_open</mat-icon> Proyectos vinculados
-        </h3>
-
-        <!-- 🔹 Selector de proyectos -->
-        <div class="mb-2">
-          <label for="proyecto-activo-select" class="text-sm text-gray-700 mb-1 block">Seleccionar proyecto:</label>
-          <select
-            id="proyecto-activo-select"
-            aria-label="Seleccionar proyecto activo"
-            name="proyectoActivo"
-            class="input-base w-full"
-            [(ngModel)]="proyectoSeleccionadoId"
-            [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="onProyectoSeleccionado($event)"
-          >
-            <option *ngFor="let p of getProyectosActivos()" [value]="p.idProyecto">
-              {{ p.nombreProyecto }}
-            </option>
-          </select>
-
-        </div>
-
-        <!-- 🔹 Info del proyecto seleccionado -->
-        <div *ngIf="beneficiarioProyecto()">
-          <p class="text-sm text-gray-700">
-            Proyecto: <b>{{ beneficiarioProyecto()?.nombreProyecto }}</b>
-          </p>
-
-          <p class="text-sm text-gray-700">
-            Estado:
-            <span class="status-badge" [ngClass]="beneficiarioProyecto()?.estadoProyecto === 'A' ? 'status-badge-active' : 'status-badge-inactive'">
-              {{ beneficiarioProyecto()?.estadoProyecto === 'A' ? 'Activo' : 'Inactivo' }}
-            </span>
-          </p>
-
-          <p class="text-sm text-gray-700">
-            Beneficiario:
-            <span class="status-badge" [ngClass]="beneficiarioProyecto()?.esBeneficiarioActivo ? 'status-badge-active' : 'status-badge-inactive'">
-              {{ beneficiarioProyecto()?.esBeneficiarioActivo ? 'Activo' : 'Inactivo' }}
-            </span>
-          </p>
-
-          <p class="text-sm text-gray-700">
-            Inicio: <b>{{ beneficiarioProyecto()?.fechaInicio | date:'dd/MM/yyyy' }}</b>
-          </p>
-        </div>
-
-        <!-- 🔹 Tabla de proyectos activos, colapsable para reducir ruido visual -->
-        <div *ngIf="tieneProyectosActivos()" class="mt-3">
-          <button
-            type="button"
-            class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-            (click)="toggleProyectosActivos()"
-            [attr.aria-expanded]="proyectosActivosVisible()"
-          >
-            <span class="flex items-center gap-2">
-              <mat-icon class="text-base text-blue-600">folder_open</mat-icon>
-              Proyectos activos del beneficiario
-              <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
-                {{ getProyectosActivos().length }}
-              </span>
-            </span>
-            <mat-icon>{{ proyectosActivosVisible() ? 'expand_less' : 'expand_more' }}</mat-icon>
-          </button>
-
-          <div
-            *ngIf="proyectosActivosVisible()"
-            class="mt-2 table-shell"
-          >
-          <div class="table-scroll">
-          <table class="table-compact min-w-[620px]">
-            <thead>
-              <tr>
-                <th class="px-3 py-2 text-left">Proyecto</th>
-                <th class="px-3 py-2 text-center">Estado Proyecto</th>
-                <th class="px-3 py-2 text-center">Estado Beneficiario</th>
-                <th class="px-3 py-2 text-center">Inicio</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let p of getProyectosActivos()"
-                  [ngClass]="{
-                    'bg-blue-50 border-l-4 border-blue-400': beneficiarioProyecto()?.idProyecto === p.idProyecto,
-                    'hover:bg-blue-50 cursor-pointer': true
-                  }"
-                  class="transition">
-                <td class="px-3 py-2 font-medium">
-                  <button type="button" class="text-left text-blue-700 hover:underline" (click)="onProyectoSeleccionado(p.idProyecto)">{{ p.nombreProyecto }}</button>
-                </td>
-                <td class="px-3 py-2 text-center"><span class="status-badge status-badge-active">Activo</span></td>
-                <td class="px-3 py-2 text-center">
-                  <span class="status-badge" [ngClass]="p.esBeneficiarioActivo ? 'status-badge-active' : 'status-badge-inactive'">
-                    {{ p.esBeneficiarioActivo ? 'Activo' : 'Inactivo' }}
-                  </span>
-                  </td>
-                <td class="px-3 py-2 text-center">{{ p.fechaInicio | date:'dd/MM/yyyy' }}</td>
-              </tr>
-            </tbody>
-          </table>
-          </div>
-          </div>
-        </div>
-
-        <!-- 🔹 Mensaje si no hay proyectos activos -->
-        <div
-          *ngIf="!tieneProyectosActivos()"
-          class="mt-3 p-4 text-center bg-yellow-50 border border-yellow-300 rounded-lg text-yellow-800 text-sm"
-        >
-          <mat-icon class="align-middle text-yellow-600">info</mat-icon>
-          <b>No hay proyectos activos vinculados al beneficiario.</b>
-        </div>
-
-
-      </div>
-
-    </div>
-
-    <!-- 🚫 Bloqueo por inactividad -->
-    @if (
-      beneficiarioProyecto()?.estadoProyecto === 'I' ||
-      !beneficiarioProyecto()?.esBeneficiarioActivo
-    ) {
-      <div class="w-full p-6 mt-4 bg-red-50 border border-red-300 text-red-700 rounded-xl text-center shadow-sm">
-        <mat-icon class="text-red-500 align-middle mr-2">block</mat-icon>
-        <b>No es posible registrar el acta.</b>
-        <p class="mt-2 text-sm text-gray-700">
-          El proyecto o beneficiario se encuentra <b>inactivo</b>.
-        </p>
-      </div>
-    }
-    @else {
-      <!-- ✅ Formulario del acta -->
-      <form [formGroup]="formActa" (ngSubmit)="onSubmit()" class="p-5 flex flex-col gap-6 leading-relaxed pb-20 md:pb-5">
-
-        <!-- Responsable -->
-        <div class="w-full md:w-1/2">
-          <label for="selectResponsable" class="label-base">*Responsable del acta</label>
-          <select [formControl]="selectResponsable" id="selectResponsable" class="input-base">
-            <option value="" disabled selected>Seleccione un responsable</option>
-            @for (responsable of responsables(); track responsable) {
-              <option [value]="responsable.idResponsable">
-                {{responsable.primerNombre}}
-                {{responsable.segundoNombre}}
-                {{responsable.primerApellido}}
-                {{responsable.segundoApellido}}
-              </option>
-            }
-          </select>
-          @if(selectResponsable.hasError('required') && selectResponsable.touched) {
-            <p class="text-red-500 text-sm mt-1">* Este campo es requerido</p>
-          }
-        </div>
-
-        <!-- Fechas y datos generales -->
-        <div class="flex flex-wrap md:flex-nowrap gap-5">
-          <div class="w-full md:w-1/3">
-            <label for="fechaEntrega" class="label-base">*Fecha de entrega</label>
-            <input formControlName="fechaEntrega" id="fechaEntrega" type="date" class="input-base" />
-            @if(formActa.get('fechaEntrega')?.hasError('required') && formActa.get('fechaEntrega')?.touched) {
-              <p class="text-red-500 text-sm">* Este campo es requerido</p>
-            }
-          </div>
-
-          <div class="w-full md:w-1/3">
-            <label for="prioridad" class="label-base">*Prioridad</label>
-            <select formControlName="prioridad" id="prioridad" class="input-base">
-              <option value="A">Alta</option>
-              <option value="M">Media</option>
-              <option value="B">Baja</option>
-            </select>
-            @if(formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
-              <p class="mt-1 text-sm text-red-500">* Selecciona una prioridad</p>
-            }
-          </div>
-
-          <div class="w-full md:w-1/3">
-            <label for="tipoSolicitud" class="label-base">*Tipo de solicitud</label>
-            <input formControlName="tipoSolicitud" id="tipoSolicitud" type="text" class="input-base" placeholder="Ej: Alimentación" />
-            @if(formActa.get('tipoSolicitud')?.hasError('required') && formActa.get('tipoSolicitud')?.touched) {
-              <p class="mt-1 text-sm text-red-500">* Este campo es requerido</p>
-            }
-          </div>
-        </div>
-
-        <!-- Ubicación y responsable visita -->
-        <div class="flex flex-wrap md:flex-nowrap gap-5">
-          <div class="w-full md:w-1/2">
-            <label for="ubicacionEntrega" class="label-base">*Ubicación de la entrega</label>
-            <input formControlName="ubicacionEntrega" id="ubicacionEntrega" type="text" class="input-base" placeholder="Ubicación" />
-            @if(formActa.get('ubicacionEntrega')?.hasError('required') && formActa.get('ubicacionEntrega')?.touched) {
-              <p class="mt-1 text-sm text-red-500">* Este campo es requerido</p>
-            }
-          </div>
-          <div class="w-full md:w-1/2">
-            <label for="responsableVisita" class="label-base">*Responsable de visita</label>
-            <input formControlName="responsableVisita" id="responsableVisita" type="text" class="input-base" placeholder="Ej: Coordinador local" />
-            @if(formActa.get('responsableVisita')?.hasError('required') && formActa.get('responsableVisita')?.touched) {
-              <p class="mt-1 text-sm text-red-500">* Este campo es requerido</p>
-            }
-          </div>
-        </div>
-
-        <!-- Observaciones -->
+    <header class="acta-header">
+      <div class="flex items-center gap-3">
+        <span class="acta-card-icon"><mat-icon>note_add</mat-icon></span>
         <div>
-          <label for="observaciones" class="label-base">Observaciones</label>
-          <textarea formControlName="observaciones" id="observaciones" rows="4" class="input-base" placeholder="Notas sobre la entrega..."></textarea>
+          <h1>Nueva acta de entrega</h1>
+          <p>Busca el beneficiario, confirma el proyecto, completa la entrega y agrega los productos.</p>
         </div>
+      </div>
+      <button type="button" class="acta-icon-button" (click)="cancelar()"
+        aria-label="Cerrar formulario de acta" title="Volver a la lista de actas">
+        <mat-icon>close</mat-icon>
+      </button>
+    </header>
 
-        <!-- 🛒 Productos -->
-        <div class="mt-6">
-          <div class="flex justify-between items-center mb-3">
-            <h2 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
-              <mat-icon color="primary">inventory_2</mat-icon> Productos seleccionados
-            </h2>
-            <button
-              type="button"
-              (click)="openDialog()"
-              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-1 transition-all duration-200 shadow-sm"
-            >
-              <mat-icon>add_shopping_cart</mat-icon> Añadir productos
-            </button>
+    <nav class="acta-steps" aria-label="Progreso del registro">
+      <div class="acta-step" [class.is-done]="beneficiario()">
+        <span class="acta-step-index"><mat-icon class="!text-base">{{ beneficiario() ? 'check' : 'person_search' }}</mat-icon></span>
+        <span>Beneficiario</span>
+      </div>
+      <div class="acta-step" [class.is-done]="beneficiarioProyecto()">
+        <span class="acta-step-index"><mat-icon class="!text-base">{{ beneficiarioProyecto() ? 'check' : 'folder_open' }}</mat-icon></span>
+        <span>Proyecto</span>
+      </div>
+      <div class="acta-step" [class.is-done]="datosEntregaCompletos()">
+        <span class="acta-step-index"><mat-icon class="!text-base">{{ datosEntregaCompletos() ? 'check' : 'local_shipping' }}</mat-icon></span>
+        <span>Datos de la entrega</span>
+      </div>
+      <div class="acta-step" [class.is-done]="selectedProductsInfo().length">
+        <span class="acta-step-index"><mat-icon class="!text-base">{{ selectedProductsInfo().length ? 'check' : 'inventory_2' }}</mat-icon></span>
+        <span>Productos</span>
+      </div>
+    </nav>
+
+    <!-- Paso 1: búsqueda -->
+    <section class="acta-card" aria-labelledby="acta-buscar-title">
+      <div class="acta-card-header">
+        <div class="acta-card-title">
+          <span class="acta-card-icon"><mat-icon>person_search</mat-icon></span>
+          <div>
+            <h2 id="acta-buscar-title">1. Buscar beneficiario</h2>
+            <p>Ingresa el número de documento o el código del beneficiario.</p>
           </div>
+        </div>
+      </div>
 
-          @if (selectedProductsInfo().length === 0) {
-            <div class="flex items-center justify-center h-32 bg-gray-50 rounded-lg border border-dashed border-gray-300">
-              <p class="text-gray-500 text-sm">🛒 No hay productos seleccionados</p>
-            </div>
-          } @else {
-            <div class="table-shell">
-              <div class="table-scroll">
-              <table class="table-compact min-w-[720px]">
-                <thead>
-                  <tr>
-                    <th class="w-[24%] px-4 py-3">Producto</th>
-                    <th class="w-[34%] px-4 py-3">Descripción</th>
-                    <th class="w-[12%] px-4 py-3 text-center">Stock</th>
-                    <th class="w-[18%] px-4 py-3 text-center">Cantidad</th>
-                    <th class="w-[12%] px-4 py-3 text-center">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (product of selectedProductsInfo(); track product.idProducto) {
-                    <tr class="border-b border-slate-100 transition hover:bg-blue-50/40">
-                      <td class="px-4 py-3 font-semibold text-gray-800">{{ product.nombre }}</td>
-                      <td class="px-4 py-3 text-gray-600">{{ product.descripcion || 'Sin descripción' }}</td>
-                      <td class="px-4 py-3 text-center font-medium">{{ product.stock }}</td>
-                      <td class="px-4 py-3 text-center">
-                        <label class="sr-only" [attr.for]="'reg-cantidad-' + product.idProducto">Cantidad para {{ product.nombre }}</label>
-                        <input
-                          [id]="'reg-cantidad-' + product.idProducto"
-                          type="number"
-                          [attr.aria-label]="'Cantidad para ' + product.nombre"
-                          [value]="product.cantidad"
-                          min="1"
-                          [max]="product.stock"
-                          (change)="updateProductQuantity(product.idProducto, $event)"
-                          class="w-24 rounded-lg border border-slate-300 py-2 text-center shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                        />
-                      </td>
-                      <td class="px-4 py-3 text-center">
-                        <button
-                          type="button"
-                          (click)="removeSelectedProduct(product.idProducto)"
-                          class="text-red-600 hover:text-red-800 transition"
-                          matTooltip="Eliminar producto"
-                        >
-                          <mat-icon>delete_forever</mat-icon>
-                        </button>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
+      <div class="acta-field">
+        <label for="buscarBeneficiario">Documento o código</label>
+        <div class="relative">
+          <mat-icon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</mat-icon>
+          <input
+            id="buscarBeneficiario"
+            type="text"
+            class="input-base w-full !pl-10"
+            placeholder="Ej: 1061234567"
+            [formControl]="searchBeneficiario"
+            inputmode="text"
+            pattern="[A-Za-z0-9-]*"
+            aria-describedby="buscarBeneficiarioHint"
+          />
+        </div>
+        <p id="buscarBeneficiarioHint" class="acta-hint">La búsqueda se realiza automáticamente mientras escribes.</p>
+
+        @if (searchBeneficiario.errors && searchBeneficiario.touched) {
+          <div class="acta-error" role="alert">
+            @if (searchBeneficiario.hasError('minlength')) { <p>Ingresa mínimo 4 caracteres.</p> }
+            @if (searchBeneficiario.hasError('maxlength')) { <p>Ingresa máximo 20 caracteres.</p> }
+            @if (searchBeneficiario.hasError('pattern')) { <p>Solo se permiten letras, números y guiones.</p> }
+          </div>
+        }
+      </div>
+
+      @if (beneficiarioNoEncontrado) {
+        <div class="acta-notice acta-notice-warning mt-4" role="status">
+          <mat-icon class="!text-lg">info</mat-icon>
+          <span>No encontramos el beneficiario o no tiene proyectos vinculados. Verifica el documento.</span>
+        </div>
+      }
+    </section>
+
+    @if (beneficiario() !== null && beneficiarioProyecto() !== null) {
+      <div class="acta-layout" [class.summary-hidden]="!resumenVisible()">
+        <div class="acta-main">
+
+          <!-- Paso 2: beneficiario y proyecto -->
+          <section class="acta-card" aria-labelledby="acta-proyecto-title">
+            <div class="acta-card-header">
+              <div class="acta-card-title">
+                <span class="acta-card-icon"><mat-icon>folder_shared</mat-icon></span>
+                <div>
+                  <h2 id="acta-proyecto-title">2. Beneficiario y proyecto</h2>
+                  <p>Confirma los datos y elige el proyecto de la entrega.</p>
+                </div>
               </div>
             </div>
+
+            <div class="acta-info-grid">
+              <div class="acta-info-item">
+                <span>Beneficiario</span>
+                <strong>{{ beneficiario()?.primerNombre }} {{ beneficiario()?.primerApellido }}</strong>
+              </div>
+              <div class="acta-info-item">
+                <span>Documento</span>
+                <strong>{{ beneficiario()?.numeroDocumento }}</strong>
+              </div>
+            </div>
+
+            <div class="acta-grid acta-grid-2 mt-4">
+              <div class="acta-field">
+                <label for="proyecto-activo-select">Proyecto <span class="acta-required">*</span></label>
+                <select
+                  id="proyecto-activo-select"
+                  name="proyectoActivo"
+                  class="input-base w-full"
+                  [(ngModel)]="proyectoSeleccionadoId"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="onProyectoSeleccionado($event)"
+                >
+                  <option *ngFor="let p of getProyectosActivos()" [value]="p.idProyecto">
+                    {{ p.nombreProyecto }}
+                  </option>
+                </select>
+              </div>
+              <div class="flex flex-wrap items-end gap-2 pb-1">
+                <span class="acta-pill" [ngClass]="beneficiarioProyecto()?.estadoProyecto === 'A' ? 'acta-pill-green' : 'acta-pill-red'">
+                  Proyecto {{ beneficiarioProyecto()?.estadoProyecto === 'A' ? 'activo' : 'inactivo' }}
+                </span>
+                <span class="acta-pill" [ngClass]="beneficiarioProyecto()?.esBeneficiarioActivo ? 'acta-pill-green' : 'acta-pill-red'">
+                  Beneficiario {{ beneficiarioProyecto()?.esBeneficiarioActivo ? 'activo' : 'inactivo' }}
+                </span>
+                @if (beneficiarioProyecto()?.fechaInicio) {
+                  <span class="acta-pill acta-pill-gray">
+                    Desde {{ beneficiarioProyecto()?.fechaInicio | date:'dd/MM/yyyy' }}
+                  </span>
+                }
+              </div>
+            </div>
+
+            @if (tieneProyectosActivos()) {
+              @if (getProyectosActivos().length > 1) {
+                <div class="mt-4">
+                  <button
+                    type="button"
+                    class="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    (click)="toggleProyectosActivos()"
+                    [attr.aria-expanded]="proyectosActivosVisible()"
+                  >
+                    <span class="flex items-center gap-2">
+                      Ver todos los proyectos activos
+                      <span class="acta-pill acta-pill-blue">{{ getProyectosActivos().length }}</span>
+                    </span>
+                    <mat-icon>{{ proyectosActivosVisible() ? 'expand_less' : 'expand_more' }}</mat-icon>
+                  </button>
+
+                  @if (proyectosActivosVisible()) {
+                    <div class="mt-2 table-shell">
+                      <div class="table-scroll">
+                        <table class="table-compact min-w-[560px]">
+                          <thead>
+                            <tr>
+                              <th class="px-3 py-2 text-left">Proyecto</th>
+                              <th class="px-3 py-2 text-center">Beneficiario</th>
+                              <th class="px-3 py-2 text-center">Inicio</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let p of getProyectosActivos()"
+                              [ngClass]="{ 'bg-blue-50': beneficiarioProyecto()?.idProyecto === p.idProyecto }">
+                              <td class="px-3 py-2 font-medium">
+                                <button type="button" class="text-left text-blue-700 hover:underline" (click)="onProyectoSeleccionado(p.idProyecto)">
+                                  {{ p.nombreProyecto }}
+                                </button>
+                              </td>
+                              <td class="px-3 py-2 text-center">
+                                <span class="acta-pill" [ngClass]="p.esBeneficiarioActivo ? 'acta-pill-green' : 'acta-pill-red'">
+                                  {{ p.esBeneficiarioActivo ? 'Activo' : 'Inactivo' }}
+                                </span>
+                              </td>
+                              <td class="px-3 py-2 text-center">{{ p.fechaInicio | date:'dd/MM/yyyy' }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            } @else {
+              <div class="acta-notice acta-notice-warning mt-4">
+                <mat-icon class="!text-lg">info</mat-icon>
+                <span>El beneficiario no tiene proyectos activos vinculados.</span>
+              </div>
+            }
+          </section>
+
+          @if (beneficiarioProyecto()?.estadoProyecto === 'I' || !beneficiarioProyecto()?.esBeneficiarioActivo) {
+            <div class="acta-notice acta-notice-danger" role="alert">
+              <mat-icon class="!text-lg">block</mat-icon>
+              <span><strong>No es posible registrar el acta.</strong> El proyecto o el beneficiario se encuentra inactivo.</span>
+            </div>
+          } @else {
+            <form id="formRegistrarActa" [formGroup]="formActa" (ngSubmit)="onSubmit()" class="acta-main">
+
+              <!-- Paso 3: datos de la entrega -->
+              <section class="acta-card" aria-labelledby="acta-entrega-title">
+                <div class="acta-card-header">
+                  <div class="acta-card-title">
+                    <span class="acta-card-icon"><mat-icon>local_shipping</mat-icon></span>
+                    <div>
+                      <h2 id="acta-entrega-title">3. Datos de la entrega</h2>
+                      <p>Los campos marcados con <span class="acta-required">*</span> son obligatorios.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="acta-grid acta-grid-3">
+                  <div class="acta-field">
+                    <label for="selectResponsable">Responsable del acta <span class="acta-required">*</span></label>
+                    <select [formControl]="selectResponsable" id="selectResponsable" class="input-base w-full">
+                      <option value="" disabled selected>Seleccione un responsable</option>
+                      @for (responsable of responsables(); track responsable) {
+                        <option [value]="responsable.idResponsable">
+                          {{ responsable.primerNombre }} {{ responsable.segundoNombre }}
+                          {{ responsable.primerApellido }} {{ responsable.segundoApellido }}
+                        </option>
+                      }
+                    </select>
+                    @if (selectResponsable.hasError('required') && selectResponsable.touched) {
+                      <p class="acta-error">Selecciona un responsable.</p>
+                    }
+                  </div>
+
+                  <div class="acta-field">
+                    <label for="fechaEntrega">Fecha de entrega <span class="acta-required">*</span></label>
+                    <input formControlName="fechaEntrega" id="fechaEntrega" type="date" class="input-base w-full" />
+                    @if (formActa.get('fechaEntrega')?.hasError('required') && formActa.get('fechaEntrega')?.touched) {
+                      <p class="acta-error">Selecciona la fecha de entrega.</p>
+                    }
+                  </div>
+
+                  <div class="acta-field">
+                    <label for="prioridad">Prioridad <span class="acta-required">*</span></label>
+                    <select formControlName="prioridad" id="prioridad" class="input-base w-full">
+                      <option value="A">Alta</option>
+                      <option value="M">Media</option>
+                      <option value="B">Baja</option>
+                    </select>
+                    @if (formActa.get('prioridad')?.hasError('required') && formActa.get('prioridad')?.touched) {
+                      <p class="acta-error">Selecciona una prioridad.</p>
+                    }
+                  </div>
+
+                  <div class="acta-field">
+                    <label for="tipoSolicitud">Tipo de solicitud <span class="acta-required">*</span></label>
+                    <input formControlName="tipoSolicitud" id="tipoSolicitud" type="text" class="input-base w-full" placeholder="Ej: Alimentación" />
+                    @if (formActa.get('tipoSolicitud')?.hasError('required') && formActa.get('tipoSolicitud')?.touched) {
+                      <p class="acta-error">Indica el tipo de solicitud.</p>
+                    }
+                  </div>
+
+                  <div class="acta-field">
+                    <label for="ubicacionEntrega">Ubicación de la entrega <span class="acta-required">*</span></label>
+                    <input formControlName="ubicacionEntrega" id="ubicacionEntrega" type="text" class="input-base w-full" placeholder="Ej: Vereda La Palma" />
+                    @if (formActa.get('ubicacionEntrega')?.hasError('required') && formActa.get('ubicacionEntrega')?.touched) {
+                      <p class="acta-error">Indica la ubicación.</p>
+                    }
+                  </div>
+
+                  <div class="acta-field">
+                    <label for="responsableVisita">Responsable de visita <span class="acta-required">*</span></label>
+                    <input formControlName="responsableVisita" id="responsableVisita" type="text" class="input-base w-full" placeholder="Ej: Coordinador local" />
+                    @if (formActa.get('responsableVisita')?.hasError('required') && formActa.get('responsableVisita')?.touched) {
+                      <p class="acta-error">Indica quién realiza la visita.</p>
+                    }
+                  </div>
+
+                  <div class="acta-field acta-span-full">
+                    <label for="observaciones">Observaciones</label>
+                    <textarea formControlName="observaciones" id="observaciones" rows="3" class="input-base w-full" placeholder="Notas adicionales sobre la entrega (opcional)"></textarea>
+                  </div>
+                </div>
+              </section>
+
+              <!-- Paso 4: productos -->
+              <section class="acta-card" aria-labelledby="acta-productos-title">
+                <div class="acta-card-header">
+                  <div class="acta-card-title">
+                    <span class="acta-card-icon"><mat-icon>inventory_2</mat-icon></span>
+                    <div>
+                      <h2 id="acta-productos-title">4. Productos a entregar</h2>
+                      <p>Agrega productos y ajusta la cantidad según el stock disponible.</p>
+                    </div>
+                  </div>
+                  <button type="button" class="acta-add-button" (click)="openDialog()">
+                    <mat-icon class="!text-lg">add_shopping_cart</mat-icon>
+                    Añadir productos
+                  </button>
+                </div>
+
+                @if (selectedProductsInfo().length === 0) {
+                  <div class="acta-empty">
+                    <mat-icon class="text-slate-400">shopping_cart</mat-icon>
+                    <p>Aún no has agregado productos.</p>
+                  </div>
+                } @else {
+                  <div class="table-shell">
+                    <div class="table-scroll">
+                      <table class="table-compact acta-products-table">
+                        <colgroup><col class="col-product"><col class="col-stock"><col class="col-qty"><col class="col-action"></colgroup>
+                        <thead>
+                          <tr>
+                            <th>Producto</th>
+                            <th class="text-center">Stock</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-center"><span class="sr-only">Acciones</span></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (product of selectedProductsInfo(); track product.idProducto) {
+                            <tr>
+                              <td class="px-4 py-3">
+                                <p class="acta-product-name" [title]="product.nombre">{{ product.nombre }}</p>
+                                <p class="acta-product-desc" [title]="product.descripcion || ''">{{ product.descripcion || 'Sin descripción' }}</p>
+                              </td>
+                              <td class="px-4 py-3 text-center">
+                                <span class="acta-pill acta-pill-gray">{{ product.stock }}</span>
+                              </td>
+                              <td class="px-4 py-3 text-center">
+                                <input
+                                  [id]="'reg-cantidad-' + product.idProducto"
+                                  type="number"
+                                  class="acta-qty"
+                                  [attr.aria-label]="'Cantidad para ' + product.nombre"
+                                  [value]="product.cantidad"
+                                  min="1"
+                                  [max]="product.stock"
+                                  (change)="updateProductQuantity(product.idProducto, $event)"
+                                />
+                              </td>
+                              <td class="px-4 py-3 text-center">
+                                <button type="button" class="acta-icon-button" (click)="removeSelectedProduct(product.idProducto)"
+                                  [attr.aria-label]="'Quitar ' + product.nombre" title="Quitar producto">
+                                  <mat-icon>delete_outline</mat-icon>
+                                </button>
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                }
+              </section>
+            </form>
           }
         </div>
 
-        <!-- Acciones -->
-        <div class="flex flex-col-reverse gap-3 mt-6 sm:flex-row sm:justify-end sm:space-x-4 sm:gap-0">
-          <!-- Botón Cancelar -->
-          <button 
-            type="button" 
-            class="btn-action-gray" 
-            (click)="cancelar()">
-            Cancelar
-          </button>
+        <!-- Resumen -->
+        <aside class="acta-aside">
+          @if (resumenVisible()) {
+          <section class="acta-card acta-summary" aria-labelledby="acta-resumen-title">
+            <div class="acta-summary-header">
+              <h2 id="acta-resumen-title">Resumen de la entrega</h2>
+              <button type="button" class="acta-summary-toggle" (click)="toggleResumen()"
+                aria-label="Ocultar resumen" title="Ocultar resumen" [attr.aria-expanded]="true">
+                <mat-icon>visibility_off</mat-icon>
+              </button>
+            </div>
+            <dl>
+              <div>
+                <dt>Beneficiario</dt>
+                <dd>{{ beneficiario()?.primerNombre }} {{ beneficiario()?.primerApellido }}</dd>
+              </div>
+              <div>
+                <dt>Proyecto</dt>
+                <dd>{{ beneficiarioProyecto()?.nombreProyecto || 'Sin seleccionar' }}</dd>
+              </div>
+              <div>
+                <dt>Fecha de entrega</dt>
+                <dd>{{ formActa.get('fechaEntrega')?.value ? (formActa.get('fechaEntrega')?.value | date:'dd/MM/yyyy') : 'Pendiente' }}</dd>
+              </div>
+              <div>
+                <dt>Productos ({{ selectedProductsInfo().length }}) · {{ totalUnits() }} unidad(es)</dt>
+                <dd>
+                  @if (selectedProductsInfo().length) {
+                    <ul class="acta-summary-products">
+                      @for (product of selectedProductsInfo(); track product.idProducto) {
+                        <li>
+                          <span [title]="product.nombre">{{ product.nombre }}</span>
+                          <strong>x{{ product.cantidad }}</strong>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <span class="text-xs font-normal text-slate-500">Sin productos agregados</span>
+                  }
+                </dd>
+              </div>
+            </dl>
+            @if (formActa.invalid) {
+              <div class="acta-notice acta-notice-info mt-4">
+                <mat-icon class="!text-lg">rule</mat-icon>
+                <span>Completa los campos obligatorios para registrar.</span>
+              </div>
+            }
+          </section>
+          } @else {
+            <button type="button" class="acta-summary-show" (click)="toggleResumen()"
+              aria-label="Mostrar resumen" title="Mostrar resumen" [attr.aria-expanded]="false">
+              <mat-icon>summarize</mat-icon>
+              <span>Mostrar resumen</span>
+            </button>
+          }
+        </aside>
+      </div>
+    }
 
-          <!-- Botón Guardar -->
-          <button 
-            type="submit" 
-            class="btn-action-blue flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+    <footer class="acta-actions">
+      <p class="text-xs text-slate-500">
+        @if (beneficiario()) {
+          {{ selectedProductsInfo().length }} producto(s) · {{ totalUnits() }} unidad(es)
+        } @else {
+          Busca un beneficiario para comenzar.
+        }
+      </p>
+      <div class="acta-actions-buttons">
+        <button type="button" class="btn-action-gray" (click)="cancelar()">Cancelar</button>
+        @if (beneficiario() !== null && beneficiarioProyecto() !== null && beneficiarioProyecto()?.estadoProyecto !== 'I' && beneficiarioProyecto()?.esBeneficiarioActivo) {
+          <button
+            type="submit"
+            form="formRegistrarActa"
+            class="btn-action-blue flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
             [disabled]="formActa.invalid || isSubmitting"
           >
-            <mat-icon>save</mat-icon>
-            {{ isSubmitting ? 'Registrando...' : 'Registrar Acta' }}
+            <mat-icon class="!text-lg">save</mat-icon>
+            {{ isSubmitting ? 'Registrando...' : 'Registrar acta' }}
           </button>
-        </div>
-      </form>
-    }
-  }
+        }
+      </div>
+    </footer>
+  </div>
 </div>

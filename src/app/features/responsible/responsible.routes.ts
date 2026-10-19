@@ -7,9 +7,8 @@ import { hasRoleGuard } from "../../core/guards/has-role-guard.guard";
 
 export const RESPONSIBLE_ROUTES: Routes = [
   {
+    // Disponible para cualquier usuario autenticado; la ruta padre ya valida la sesión.
     path: 'soporte',
-    canActivate: [hasRoleGuard],
-    data: { allowedRoles: ['RESP', 'ADMIN', 'SUPERADMIN', 'USER', 'BENEF'] },
     component: SupportContactComponent
   },
   {

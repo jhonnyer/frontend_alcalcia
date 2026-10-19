@@ -1,12 +1,11 @@
 <section class="min-h-[calc(100vh-6rem)] p-4 bg-gray-50 rounded-xl shadow-sm">
-  @if (listLoading()) { <p role="status" class="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Cargando actores sociales…</p> }
   @if (loadError()) {
     <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
       <p>{{ loadError() }}</p>
       <button type="button" class="btn-action-blue mt-3" (click)="getAll()" [disabled]="listLoading()">Reintentar</button>
     </div>
   }
-  <div [hidden]="listLoading() || !!loadError()">
+  <div [hidden]="!!loadError()" [attr.aria-busy]="listLoading()">
   <!-- HEADER -->
   <header class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
@@ -66,6 +65,7 @@
 
   <!-- TABLA -->
   <mat-card class="table-shell">
+    <app-table-filter-toolbar [activeCount]="activeFilterCount()" (clearFilters)="clearAllFilters()" />
     <div class="table-scroll">
     <table class="table-compact min-w-[900px]">
       <thead>
@@ -137,7 +137,7 @@
           </tr>
         }
         @if (dataTable.getRowModel().rows.length === 0) {
-          <tr><td [attr.colspan]="dataTable.getAllColumns().length" class="px-4 py-10 text-center text-sm text-slate-500">No hay actores sociales para mostrar en esta secretaría con los filtros actuales.</td></tr>
+          <tr><td [attr.colspan]="dataTable.getAllColumns().length" class="px-4 py-10 text-center text-sm text-slate-500">{{ listLoading() ? 'Cargando actores sociales...' : 'No hay actores sociales para mostrar en esta secretaría con los filtros actuales.' }}</td></tr>
         }
       </tbody>
     </table>
@@ -145,53 +145,9 @@
   </mat-card>
 
   <!-- PAGINACIÓN -->
-  <div class="mt-4 flex flex-col gap-3 text-sm text-gray-600 sm:flex-row sm:items-center sm:justify-between">
-    <!-- Info de registros -->
-    <span>
-      Mostrando 
-      <b>{{ totalElements() === 0 ? 0 : serverPageIndex() * serverPageSize() + 1 }}</b>
-      -
-      <b>{{ Math.min((serverPageIndex() + 1) * serverPageSize(), totalElements()) }}</b>
-      de 
-      <b>{{ totalElements() }}</b> registros
-    </span>
-
-    <!-- Controles -->
-    <div class="flex flex-wrap items-center gap-3">
-      <!-- Select tamaño de página -->
-      <label for="nucleos-page-size" class="flex items-center gap-1">
-        <span>Filas por página:</span>
-        <select 
-          id="nucleos-page-size"
-          class="select-base"
-          (change)="onChangeValueSizePageSelect($event)"
-        >
-          @for(size of sizePage(); track size){
-            <option [value]="size" [selected]="size === serverPageSize()">
-              {{size}}
-            </option>
-          }
-        </select>
-      </label>
-
-      <!-- Botones -->
-      <button 
-        [disabled]="serverPageIndex() === 0" 
-        (click)="previousServerPage()" 
-        class="btn-navigate-black"
-        type="button"
-      >
-        Anterior
-      </button>
-      <button 
-        [disabled]="serverPageIndex() >= totalPages() - 1" 
-        (click)="nextServerPage()" 
-        class="btn-navigate-black"
-        type="button"
-      >
-        Siguiente
-      </button>
-    </div>
-  </div>
+  <app-server-pagination [pageIndex]="serverPageIndex()" [totalPages]="totalPages()"
+    [totalElements]="totalElements()" [pageSize]="serverPageSize()" [pageSizes]="sizePage()"
+    [disabled]="listLoading()" (pageChange)="goToServerPage($event)"
+    (pageSizeChange)="onChangeValueSizePageSelect($event)" />
   </div>
 </section>

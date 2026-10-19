@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { TableColumnFilters, withColumnFilters } from '../models/table-column-filters';
 import { Observable, map, tap } from 'rxjs';
 import { IBeneficiario, IBeneficiarioUnique } from '../models/beneficiary.models';
 import { environment } from '../../../environments/environment';
@@ -17,7 +18,7 @@ interface SpringPageDto<T> {
   };
 }
 
-export interface BeneficiaryPagedFilters {
+export interface BeneficiaryPagedFilters extends TableColumnFilters {
   idNucleoFk?: number;
   idProyecto?: number;
   busqueda?: string;
@@ -91,7 +92,7 @@ export class BeneficiaryService {
     if (filters.busqueda) params = params.set('busqueda', filters.busqueda);
 
     return this.http
-      .get<BeneficiarioPayload>(`${this.URL}/beneficiarios`, { params, context: checkToken() })
+      .get<BeneficiarioPayload>(`${this.URL}/beneficiarios`, { params: withColumnFilters(params, filters), context: checkToken() })
       .pipe(
         map(payload => this.normalizePagedBeneficiarios(payload, page, size)),
       );

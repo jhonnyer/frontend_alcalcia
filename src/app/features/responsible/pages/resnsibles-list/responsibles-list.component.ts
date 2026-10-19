@@ -25,11 +25,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { TableFilterComponent } from '../../../../shared/components/table-filter/table-filter.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ResponsibleUpdateComponent } from '../responsible-update/responsible-update.component';
+import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 
 @Component({
   selector: 'app-responsibles-list',
   standalone: true,
   imports: [
+    TableFilterToolbarComponent,
     CommonModule, 
     CdkTableModule, 
     MatIconModule,
@@ -87,6 +89,15 @@ export class ResponsiblesListComponent {
 
   listLoading = signal(false);
   loadError = signal('');
+
+  activeFilterCount(): number {
+    return this.columnFilters().length;
+  }
+
+  clearAllFilters(): void {
+    this.columnFilters.set([]);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
 
   public dataTable = createAngularTable(() => ({
     data: this.data(),

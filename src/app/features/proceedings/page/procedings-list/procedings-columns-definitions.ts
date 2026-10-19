@@ -61,16 +61,16 @@ const prioridadFilter: FilterFn<IActa> = (row, columnId, filterValue) => {
 
 export const defaultColumns: ColumnDef<IActa>[] = [
   {
-    id: 'idFecha',
-    accessorFn: (row) => `${row.idActa} - ${row.fechaCreacion}`,
-    header: 'Acta / Fecha',
-    cell: info => {
-      const [id, fecha] = (info.getValue() as string).split(' - ');
-      return `<div>
-                <span class="font-semibold text-gray-800">#${id}</span><br>
-                <span class="text-xs text-gray-500">${fecha}</span>
-              </div>`;
-    },
+    id: 'idActa',
+    accessorFn: (row) => row.idActa,
+    header: 'N.º acta',
+    cell: info => `#${info.getValue()}`,
+    meta: { filterVariant: 'text' }
+  },
+  {
+    id: 'fechaCreacion',
+    accessorFn: (row) => row.fechaCreacion,
+    header: 'Fecha de creación',
     meta: { filterVariant: 'text' }
   },
   {

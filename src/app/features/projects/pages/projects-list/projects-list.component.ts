@@ -31,11 +31,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AlertService } from '../../../../core/services/alert.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 
 @Component({
   selector: 'app-projects-list',
   standalone: true,
   imports: [
+    TableFilterToolbarComponent,
     CommonModule, 
     CdkTableModule, 
     FlexRenderDirective, 
@@ -213,6 +215,16 @@ export class ProjectsListComponent {
     this.projectSearch.set('');
     this.projectSuggestionsVisible.set(false);
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  activeFilterCount(): number {
+    return this.columnFilters().length
+      + (this.selectedProjectId() !== 'ALL' || this.projectSearch().trim() ? 1 : 0);
+  }
+
+  clearAllFilters(): void {
+    this.columnFilters.set([]);
+    this.clearProjectFilter();
   }
 
   showProjectSuggestions(): void {

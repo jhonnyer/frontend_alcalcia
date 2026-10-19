@@ -1,12 +1,11 @@
 <section class="min-h-[calc(100vh-6rem)] scrollbar-custom">
-  @if (listLoading()) { <p role="status" class="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Cargando beneficiarios…</p> }
   @if (loadError()) {
     <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
       <p>{{ loadError() }}</p>
       <button type="button" class="btn-action-blue mt-3" (click)="getAll()" [disabled]="listLoading()">Reintentar</button>
     </div>
   }
-  <div [hidden]="listLoading() || !!loadError()">
+  <div [hidden]="!!loadError()" [attr.aria-busy]="listLoading()">
   <!-- HEADER -->
   <header class="flex items-center gap-2 mb-3">
     <div class="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -62,6 +61,7 @@
 
   <!-- TABLA -->
   <mat-card class="table-shell">
+    <app-table-filter-toolbar [activeCount]="activeFilterCount()" (clearFilters)="clearAllFilters()" />
     <div class="table-scroll">
       <table class="table-compact">
         <caption class="sr-only">Listado de beneficiarios registrados</caption>
@@ -162,7 +162,7 @@
           @if (dataTable.getRowModel().rows.length === 0) {
             <tr>
               <td class="px-4 py-10 text-center text-sm text-slate-500" [attr.colspan]="dataTable.getAllColumns().length">
-                No se encontraron beneficiarios con los filtros actuales.
+                {{ listLoading() ? 'Cargando beneficiarios...' : 'No se encontraron beneficiarios con los filtros actuales.' }}
               </td>
             </tr>
           }
@@ -171,52 +171,10 @@
     </div>
 
     <!-- PAGINACIÓN -->
-    <div class="flex flex-col gap-2 border-t border-slate-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-      <div class="text-xs text-slate-500">
-        Mostrando {{ dataTable.getRowModel().rows.length }} de
-        {{ totalElements() }} beneficiarios
-      </div>
-
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-xs text-slate-600">
-          Página {{ serverPageIndex() + 1 }} de
-          {{ totalPages() }}
-        </span>
-
-        <label for="beneficiary-page-size" class="sr-only">Filas por página de beneficiarios</label>
-        <select
-          id="beneficiary-page-size"
-          class="min-h-9 rounded-md border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
-          (change)="onChangeValueSizePageSelect($event)"
-        >
-          @for(size of sizePage(); track size) {
-            <option
-              [value]="size"
-              [selected]="size === serverPageSize()"
-            >
-              {{ size }}
-            </option>
-          }
-        </select>
-
-        <button
-          [disabled]="serverPageIndex() === 0"
-          (click)="previousServerPage()"
-          class="btn-navigate-black"
-          type="button"
-        >
-          Anterior
-        </button>
-        <button
-          [disabled]="serverPageIndex() >= totalPages() - 1"
-          (click)="nextServerPage()"
-          class="btn-navigate-black"
-          type="button"
-        >
-          Siguiente
-        </button>
-      </div>
-    </div>
+    <app-server-pagination [pageIndex]="serverPageIndex()" [totalPages]="totalPages()"
+      [totalElements]="totalElements()" [pageSize]="serverPageSize()" [pageSizes]="sizePage()"
+      [disabled]="listLoading()" (pageChange)="goToServerPage($event)"
+      (pageSizeChange)="onChangeValueSizePageSelect($event)" />
   </mat-card>
   </div>
 </section>

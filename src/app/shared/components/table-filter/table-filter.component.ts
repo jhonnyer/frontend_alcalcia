@@ -1,4 +1,4 @@
-import { Component, input, signal } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { Column } from '@tanstack/angular-table';
 
 @Component({
@@ -10,16 +10,13 @@ import { Column } from '@tanstack/angular-table';
 })
 export class TableFilterComponent {
   column = input.required<Column<any, any>>();
-  filterValue = signal('');
 
   onInputChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
-    this.filterValue.set(value);
     this.column().setFilterValue(value || undefined);
   }
 
   clearFilter(): void {
-    this.filterValue.set('');
     this.column().setFilterValue(undefined);
   }
 }

@@ -41,6 +41,7 @@
 
   <!-- 🔹 TABLA -->
   <div class="table-shell">
+    <app-table-filter-toolbar [activeCount]="activeFilterCount()" (clearFilters)="clearAllFilters()" />
     <div class="table-scroll">
     <table class="table-compact min-w-[900px]">
       <thead>
@@ -114,7 +115,7 @@
         @if (dataTable.getRowModel().rows.length === 0) {
           <tr>
             <td colspan="10" class="text-center py-6 text-gray-500">
-              No se encontraron beneficiarios asociados a proyectos.
+              {{ loading() ? 'Cargando asignaciones...' : 'No se encontraron beneficiarios asociados a proyectos.' }}
             </td>
           </tr>
         }
@@ -124,54 +125,9 @@
   </div>
 
   <!-- 🔹 PAGINACIÓN -->
-  <div class="mt-4 flex flex-col gap-3 text-sm text-gray-700 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      Mostrando <b>{{ dataTable.getRowModel().rows.length }}</b> de
-      <b>{{ totalElements() }}</b> registros
-    </div>
-
-    <div class="flex flex-wrap items-center gap-3">
-      <label for="benef-proy-size" class="sr-only">Filas por página</label>
-      <select
-        id="benef-proy-size"
-        (change)="onChangeValueSizePageSelect($event)"
-        class="select-base"
-      >
-        @for (size of sizePage(); track size) {
-          <option
-            [value]="size"
-            [selected]="size === serverPageSize()"
-          >
-            {{ size }}
-          </option>
-        }
-      </select>
-
-      <div class="flex gap-2">
-        <button
-          [disabled]="serverPageIndex() === 0 || loading()"
-          (click)="previousServerPage()"
-          class="btn-navigate-black"
-        >
-          <mat-icon>chevron_left</mat-icon>
-          Anterior
-        </button>
-
-        <button
-          [disabled]="serverPageIndex() >= totalPages() - 1 || loading()"
-          (click)="nextServerPage()"
-          class="btn-navigate-black"
-        >
-          Siguiente
-          <mat-icon>chevron_right</mat-icon>
-        </button>
-      </div>
-
-      <span>
-        Página <b>{{ serverPageIndex() + 1 }}</b> de
-        <b>{{ totalPages() }}</b>
-      </span>
-    </div>
-  </div>
+  <app-server-pagination [pageIndex]="serverPageIndex()" [totalPages]="totalPages()"
+    [totalElements]="totalElements()" [pageSize]="serverPageSize()" [pageSizes]="sizePage()"
+    [disabled]="loading()" (pageChange)="goToServerPage($event)"
+    (pageSizeChange)="onChangeValueSizePageSelect($event)" />
   </div>
 </section>

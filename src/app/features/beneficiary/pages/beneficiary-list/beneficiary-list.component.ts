@@ -1,5 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { finalize, timeout } from 'rxjs';
+import { finalize, timeout, Subscription } from 'rxjs';
+import { OnDestroy } from '@angular/core';
+import { ServerPaginationComponent } from '../../../../shared/components/server-pagination/server-pagination.component';
+import { toColumnFilters, TableColumnFilters } from '../../../../core/models/table-column-filters';
 import { Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -31,15 +34,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { BeneficiaryUpdateComponent } from '../beneficiary-update/beneficiary-update.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AlertService } from '../../../../core/services/alert.service';
+import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 
 @Component({
   selector: 'app-beneficiary-list',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, MatCardModule, MatIconModule, HasRoleDirective],
+  imports: [TableFilterToolbarComponent, CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, ServerPaginationComponent, MatCardModule, MatIconModule, HasRoleDirective],
   templateUrl: './beneficiary-list.component.html',
   styles: ``,
 })
-export class BeneficiaryListComponent implements OnInit {
+export class BeneficiaryListComponent implements OnInit, OnDestroy {
   constructor(
     private dialog: MatDialog, 
     private snackBar: MatSnackBar, 
@@ -50,6 +54,11 @@ export class BeneficiaryListComponent implements OnInit {
   private router = inject(Router);
   private alert = inject(AlertService);
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private pageRequest?: Subscription;
+  ngOnDestroy(): void {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.pageRequest?.unsubscribe();
+  }
   data = signal<IBeneficiario[]>([]);
   totalElements = signal(0);
   totalPages = signal(1);
@@ -106,9 +115,11 @@ export class BeneficiaryListComponent implements OnInit {
   
 
   getAll() {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.pageRequest?.unsubscribe();
     this.listLoading.set(true);
     this.loadError.set('');
-    this.beneficiaryService.getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).pipe(
+    this.pageRequest = this.beneficiaryService.getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).pipe(
       timeout(45000), finalize(() => this.listLoading.set(false))
     ).subscribe({
       next: (response) => {
@@ -130,6 +141,8 @@ export class BeneficiaryListComponent implements OnInit {
     data: this.filteredData(),
     getCoreRowModel: getCoreRowModel(),
     columns: defaultColumns,
+    manualFiltering: true,
+    manualPagination: true,
 
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -164,6 +177,8 @@ export class BeneficiaryListComponent implements OnInit {
       updater instanceof Function
         ? this.columnFilters.update(updater)
         : this.columnFilters.set(updater);
+      this.serverPageIndex.set(0);
+      this.runDebouncedSearch();
     },
   }));
 
@@ -177,6 +192,12 @@ export class BeneficiaryListComponent implements OnInit {
   previousServerPage(): void {
     if (this.serverPageIndex() <= 0) return;
     this.serverPageIndex.update(v => v - 1);
+    this.getAll();
+  }
+
+  goToServerPage(page: number): void {
+    if (this.listLoading() || page === this.serverPageIndex()) return;
+    this.serverPageIndex.set(page);
     this.getAll();
   }
 
@@ -229,17 +250,30 @@ export class BeneficiaryListComponent implements OnInit {
     this.getAll();
   }
 
-  private buildPagedFilters(): { idNucleoFk?: number; busqueda?: string } {
+  activeFilterCount(): number {
+    return this.columnFilters().length
+      + (this.actorFilter() !== 'ALL' || this.actorSearchQuery().trim() ? 1 : 0);
+  }
+
+  clearAllFilters(): void {
+    this.columnFilters.set([]);
+    this.clearActorFilter();
+    this.actorSuggestionsVisible.set(false);
+  }
+
+  private buildPagedFilters(): TableColumnFilters & { idNucleoFk?: number; busqueda?: string } {
     const actor = this.actorFilter();
     const busqueda = this.actorSearchQuery().trim();
 
     return {
+      columnas: toColumnFilters(this.columnFilters()),
       idNucleoFk: actor === 'ALL' ? undefined : actor,
       busqueda: actor === 'ALL' && busqueda ? busqueda : undefined,
     };
   }
 
   private runDebouncedSearch(): void {
+    this.pageRequest?.unsubscribe();
     if (this.searchDebounceTimer) {
       clearTimeout(this.searchDebounceTimer);
     }
@@ -247,7 +281,7 @@ export class BeneficiaryListComponent implements OnInit {
     this.searchDebounceTimer = setTimeout(() => {
       this.getAll();
       this.searchDebounceTimer = null;
-    }, 250);
+    }, 600);
   }
 
   onSortingColumn(column: Column<IBeneficiario>) {

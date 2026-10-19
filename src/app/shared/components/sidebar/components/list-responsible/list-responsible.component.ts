@@ -36,27 +36,19 @@ export class ListResponsibleComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    const role = (this.tokenService.getUserRole() || '').toUpperCase();
-    this.menuGroups = [
-      {
-        title: role === 'SUPERADMIN' ? 'SuperAdmin' : 'Administración',
-        items: role === 'SUPERADMIN'
-          ? [
-              { label: 'Gestión de secretarías', link: '/users' },
-              { label: 'Contactos de responsables', link: '/resposibles' },
-              { label: 'Soporte administrativo', link: '/resposibles/soporte' }
-            ]
-          : role === 'RESP'
-            ? [
-                { label: 'Soporte administrativo', link: '/resposibles/soporte' }
-              ]
-            : [
-                { label: 'Panel administrativo', link: '/users' },
-                { label: 'Usuarios y responsables', link: '/resposibles' },
-                { label: 'Soporte administrativo', link: '/resposibles/soporte' }
-              ]
-      }
-    ];
+    const role = (this.tokenService.getUserRole() || '').toUpperCase().replace(/^ROLE_/, '').trim();
+    const support = { label: 'Soporte administrativo', link: '/resposibles/soporte' };
+    const items = role === 'ADMIN'
+      ? [
+          { label: 'Panel administrativo', link: '/users' },
+          { label: 'Usuarios y responsables', link: '/resposibles' },
+          support
+        ]
+      : role === 'SUPERADMIN'
+        ? [{ label: 'Panel administrativo', link: '/users' }, support]
+        : [support];
+
+    this.menuGroups = [{ title: 'Administración', items }];
 
     this.activeMenu = this.router.url.startsWith('/users')
       || this.router.url.startsWith('/resposibles');

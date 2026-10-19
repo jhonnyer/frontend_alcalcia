@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { TableColumnFilters, withColumnFilters } from '../models/table-column-filters';
 import { Observable, map, tap } from 'rxjs';
 import { IActa, IActaById, ICreateActa, ICreateActaResponse } from '../models/acta.model';
 import { environment } from '../../../environments/environment';
@@ -18,7 +19,7 @@ interface SpringPageDto<T> {
   };
 }
 
-export interface ActasPagedFilters {
+export interface ActasPagedFilters extends TableColumnFilters {
   estado?: string;
   prioridad?: string;
   idProyecto?: number;
@@ -57,6 +58,7 @@ export class ActasService {
     if (filters.fechaInicio) params = params.set('fechaInicio', filters.fechaInicio);
     if (filters.fechaFin) params = params.set('fechaFin', filters.fechaFin);
 
+    params = withColumnFilters(params, filters);
     return this.http
       .get<PaginatedResponse<IActa> | SpringPageDto<IActa> | IActa[]>(`${this.URL}/actas/list`, { params, context: checkToken() })
       .pipe(

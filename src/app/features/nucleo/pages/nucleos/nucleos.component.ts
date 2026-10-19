@@ -1,4 +1,8 @@
 import { CommonModule } from '@angular/common';
+import { OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { ServerPaginationComponent } from '../../../../shared/components/server-pagination/server-pagination.component';
+import { toColumnFilters, TableColumnFilters } from '../../../../core/models/table-column-filters';
 import { ChangeDetectionStrategy, Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -19,16 +23,17 @@ import { firstValueFrom, finalize, timeout } from 'rxjs';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
+import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 
 @Component({
   selector: 'app-nucleos',
   standalone: true,
-  imports: [CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, HasRoleDirective, MatCardModule, MatIconModule, RouterLink],
+  imports: [TableFilterToolbarComponent, CommonModule, CdkTableModule, FlexRenderDirective, TableFilterComponent, ServerPaginationComponent, HasRoleDirective, MatCardModule, MatIconModule, RouterLink],
   templateUrl: './nucleos.component.html',
   styles: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NucleosComponent implements OnInit{
+export class NucleosComponent implements OnInit, OnDestroy {
   constructor(
     private dialog: MatDialog, 
     private snackBar: MatSnackBar ,
@@ -42,6 +47,11 @@ export class NucleosComponent implements OnInit{
   private readonly actasService = inject(ActasService);
   private readonly beneficiaryService=inject(BeneficiaryService);
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private pageRequest?: Subscription;
+  ngOnDestroy(): void {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.pageRequest?.unsubscribe();
+  }
   data = signal<INucleoUpdate[]>([]);
   totalElements = signal(0);
   totalPages = signal(1);
@@ -78,9 +88,11 @@ export class NucleosComponent implements OnInit{
   }
 
   getAll() {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.pageRequest?.unsubscribe();
     this.listLoading.set(true);
     this.loadError.set('');
-    this.nucleoService.getAll(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).pipe(
+    this.pageRequest = this.nucleoService.getAll(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters()).pipe(
       timeout(45000), finalize(() => this.listLoading.set(false))
     ).subscribe({
       next: response => {
@@ -102,6 +114,8 @@ export class NucleosComponent implements OnInit{
     data: this.data(),
     getCoreRowModel: getCoreRowModel(),
     columns: defaultColumns,
+    manualFiltering: true,
+    manualPagination: true,
 
     //Paginación
     getPaginationRowModel: getPaginationRowModel(),
@@ -145,6 +159,8 @@ export class NucleosComponent implements OnInit{
       updater instanceof Function
         ? this.columnFilters.update(updater)
         : this.columnFilters.set(updater);
+      this.serverPageIndex.set(0);
+      this.runDebouncedSearch();
     },
   }));
 
@@ -160,6 +176,12 @@ export class NucleosComponent implements OnInit{
   previousServerPage(): void {
     if (this.serverPageIndex() <= 0) return;
     this.serverPageIndex.update(v => v - 1);
+    this.getAll();
+  }
+
+  goToServerPage(page: number): void {
+    if (this.listLoading() || page === this.serverPageIndex()) return;
+    this.serverPageIndex.set(page);
     this.getAll();
   }
 
@@ -220,14 +242,26 @@ export class NucleosComponent implements OnInit{
     this.getAll();
   }
 
-  private buildPagedFilters(): { busqueda?: string } {
+  activeFilterCount(): number {
+    return this.columnFilters().length
+      + (this.actorNameFilter().trim() ? 1 : 0);
+  }
+
+  clearAllFilters(): void {
+    this.columnFilters.set([]);
+    this.clearActorNameFilter();
+  }
+
+  private buildPagedFilters(): TableColumnFilters & { busqueda?: string } {
     const busqueda = this.actorNameFilter().trim();
     return {
+      columnas: toColumnFilters(this.columnFilters()),
       busqueda: busqueda || undefined,
     };
   }
 
   private runDebouncedSearch(): void {
+    this.pageRequest?.unsubscribe();
     if (this.searchDebounceTimer) {
       clearTimeout(this.searchDebounceTimer);
     }
@@ -235,7 +269,7 @@ export class NucleosComponent implements OnInit{
     this.searchDebounceTimer = setTimeout(() => {
       this.getAll();
       this.searchDebounceTimer = null;
-    }, 250);
+    }, 600);
   }
 
   async delete(row: Row<INucleoUpdate>) {

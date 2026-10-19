@@ -1,92 +1,66 @@
-<<<<<<< HEAD
 # Donaciones
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.1.
+Aplicacion frontend desarrollada con Angular 18.
 
-## Development server
+## Requisitos
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- Node.js compatible con Angular 18: `^18.19.1`, `^20.11.1` o `^22.0.0`.
+- npm.
+- Backend disponible para utilizar las funciones que consultan la API.
 
-## Code scaffolding
+No es necesario instalar Angular CLI globalmente: los comandos de npm utilizan la version del proyecto.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Instalacion
 
-## Build
+Desde la carpeta del proyecto:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+```powershell
+npm ci
+```
 
-## Running unit tests
+Para agregar o actualizar dependencias y actualizar el archivo de bloqueo, utilizar `npm install`.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Configuracion
 
-## Running end-to-end tests
+Configurar la URL de la API en los archivos de entorno:
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+- Desarrollo: [environment.development.ts](src/environments/environment.development.ts).
+- Produccion: [environment.ts](src/environments/environment.ts).
 
-## Further help
+El servidor de desarrollo utiliza la configuracion de proxy de [proxy.conf.js](proxy.conf.js). Revisar su destino si cambia la direccion del backend.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Ejecucion local
 
+```powershell
+npm start
+```
 
-src/
-├── app/
-│   ├── core/                    # Funcionalidades core de la aplicación
-│   │   ├── guards/             
-│   │   │   └── auth.guard.ts
-│   │   ├── interceptors/
-│   │   │   └── token.interceptor.ts
-│   │   └── services/
-│   │       ├── auth.service.ts
-│   │       └── local-storage.service.ts
-│   │
-│   ├── shared/                  # Componentes y utilidades compartidas
-│   │   ├── components/
-│   │   │   ├── header/
-│   │   │   ├── sidebar/
-│   │   │   └── loader/
-│   │   ├── interfaces/
-│   │   └── utils/
-│   │
-│   ├── features/               # Módulos principales
-│   │   ├── auth/              # Módulo de autenticación
-│   │   │   ├── pages/
-│   │   │   │   ├── login/
-│   │   │   │   └── register/
-│   │   │   ├── interfaces/
-│   │   │   └── services/
-│   │   │
-│   │   ├── inventory/         # Módulo de inventario
-│   │   │   ├── pages/
-│   │   │   │   ├── inventory-list/
-│   │   │   │   ├── inventory-detail/
-│   │   │   │   └── inventory-form/
-│   │   │   ├── components/
-│   │   │   ├── interfaces/
-│   │   │   └── services/
-│   │   │
-│   │   └── people/           # Módulo de personas
-│   │       ├── pages/
-│   │       │   ├── people-list/
-│   │       │   ├── people-detail/
-│   │       │   └── people-form/
-│   │       ├── components/
-│   │       ├── interfaces/
-│   │       └── services/
-│   │
-│   ├── layouts/              # Layouts de la aplicación
-│   │   └── main-layout/
-│   │       ├── main-layout.component.ts
-│   │       ├── main-layout.component.html
-│   │       └── main-layout.component.css
-│   │
-│   ├── app.config.ts
-│   ├── app.component.ts
-│   └── app.routes.ts
-│
-├── assets/
-└── styles/
-    └── globals.css
-=======
-# donaciones
-Control de donaciones para alcaldía
->>>>>>> 480382e0a7e6045a52b4dab92423e01e0de6363b
+Abrir http://localhost:4200/. Los cambios en el codigo se recargan automaticamente.
+
+Para consultar la version local de Angular CLI:
+
+```powershell
+npm run ng -- version
+```
+
+## Compilacion para produccion
+
+```powershell
+npm run build
+```
+
+Los archivos generados se guardan en `dist/donaciones`.
+
+Publicar el contenido de esa carpeta en un servidor web. Configurar el servidor para devolver `index.html` en las rutas de la aplicacion, de modo que la navegacion directa y la recarga de paginas funcionen.
+
+## Compilacion de desarrollo
+
+```powershell
+npm run build -- --configuration development
+```
+
+Para recompilar automaticamente al modificar archivos:
+
+```powershell
+npm run watch
+```

@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { TableColumnFilters, withColumnFilters } from '../models/table-column-filters';
 import { INucleoUpdate } from '../models/nucleo.model';
 import { environment } from '../../../environments/environment';
 import { Observable, map, tap } from 'rxjs';
@@ -17,7 +18,7 @@ interface SpringPageDto<T> {
   };
 }
 
-export interface NucleoPagedFilters {
+export interface NucleoPagedFilters extends TableColumnFilters {
   nombreZona?: string;
   idZonaFk?: number;
   idBarrioFk?: number;
@@ -39,6 +40,7 @@ export class NucleoService {
     if (filters.idBarrioFk !== undefined) params = params.set('idBarrioFk', filters.idBarrioFk);
     if (filters.busqueda) params = params.set('busqueda', filters.busqueda);
 
+    params = withColumnFilters(params, filters);
     return this.http
       .get<PaginatedResponse<INucleoUpdate> | SpringPageDto<INucleoUpdate>>(`${this.URL}/nucleosFamiliares/list`, { params, context: checkToken() })
       .pipe(map(payload => this.normalizePagedNucleos(payload, page, size ?? 10)));

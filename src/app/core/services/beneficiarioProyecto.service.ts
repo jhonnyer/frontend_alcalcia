@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { TableColumnFilters, withColumnFilters } from '../models/table-column-filters';
 import { IBeneficiarioProyecto } from '../models/beneficiarioProyecto.model';
 import { environment } from '../../../environments/environment';
 import { map, Observable, tap } from 'rxjs';
@@ -7,7 +8,7 @@ import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import { ResponseStandarUnique } from '../models/response.model';
 import { PaginatedResponse } from '../models/pagination.model';
 
-export interface BeneficiarioProyectoPagedFilters {
+export interface BeneficiarioProyectoPagedFilters extends TableColumnFilters {
   idProyecto?: number;
   busqueda?: string;
 }
@@ -56,7 +57,7 @@ export class BeneficiarioProyectoService {
     if (filters.busqueda) params = params.set('busqueda', filters.busqueda);
 
     return this.http
-      .get<PaginatedResponse<IBeneficiarioProyecto> | SpringPageDto<IBeneficiarioProyecto> | IBeneficiarioProyecto[]>(`${this.URL}/beneficiarios-proyectos/list`, { params, context: checkToken() })
+      .get<PaginatedResponse<IBeneficiarioProyecto> | SpringPageDto<IBeneficiarioProyecto> | IBeneficiarioProyecto[]>(`${this.URL}/beneficiarios-proyectos/list`, { params: withColumnFilters(params, filters), context: checkToken() })
       .pipe(
         map(payload => this.normalizePaged(payload, page, size)),
         tap(response => {

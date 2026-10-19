@@ -14,7 +14,16 @@
         <mat-icon class="text-blue_primary">description</mat-icon>
         Actas
       </h1>
-      <p class="text-sm text-slate-500">Primero se muestran las actas recibidas más recientes.</p>
+      <p class="text-sm text-slate-500">Primero se muestran las actas pendientes (recibidas, procesadas y autorizadas), luego las demás.</p>
+    </div>
+    <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
+    <div class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-48">
+      <label for="actas-estado-filter" class="font-semibold">Estado</label>
+      <select id="actas-estado-filter" class="input-base" [value]="selectedEstado()" (change)="onEstadoChange($event)">
+        @for (estado of estadoOptions; track estado.value) {
+          <option [value]="estado.value">{{ estado.label }}</option>
+        }
+      </select>
     </div>
     <div class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-96">
       <span class="font-semibold">Filtrar por proyecto</span>
@@ -35,12 +44,14 @@
         }
       </div>
     </div>
+    </div>
   </header>
+
 
   <!-- 📊 TABLA -->
   <div class="table-shell">
 
-    @if (loading()) {
+    @if (loading() && !dataTable) {
       <!-- Loader elegante mientras se cargan las actas -->
       <div class="flex flex-col items-center justify-center h-56 gap-4 bg-gradient-to-b from-white to-gray-50">
         <div class="relative">
@@ -55,7 +66,8 @@
       </div>
     }
     @else if (dataTable) {
-      <div class="table-scroll">
+      <app-table-filter-toolbar [activeCount]="activeFilterCount()" (clearFilters)="clearAllFilters()" />
+      <div class="table-scroll" [attr.aria-busy]="loading()">
       <table class="table-compact min-w-[760px]">
         <thead>
           <tr class="bg-gray-100 text-gray-700">
@@ -139,55 +151,10 @@
 
   <!-- 📑 PAGINACIÓN -->
   @if (dataTable) {
-    <footer class="flex flex-col sm:flex-row justify-between items-center mt-5 text-sm text-gray-700">
-      <div class="flex items-center mb-2 sm:mb-0">
-        Mostrando
-        <b class="mx-1">{{ dataTable.getRowModel().rows.length }}</b> de
-        <b class="mx-1">{{ totalElements() }}</b> registros
-      </div>
-
-      <div class="flex flex-wrap items-center gap-3">
-        <span>
-          Página {{ serverPageIndex() + 1 }}
-          de {{ totalPages() }}
-        </span>
-
-        <label for="actas-page-size" class="sr-only">Filas por página de actas</label>
-        <select
-          id="actas-page-size"
-          (change)="onChangeValueSizePageSelect($event)"
-          class="select-base"
-        >
-          @for (size of sizePage(); track size) {
-            <option [value]="size" [selected]="size === serverPageSize()">
-              {{ size }} / pág.
-            </option>
-          }
-        </select>
-
-        <div class="flex items-center gap-2">
-          <button
-            [disabled]="serverPageIndex() === 0 || loading()"
-            (click)="previousServerPage()"
-            class="btn-navigate-black"
-            type="button"
-          >
-            <mat-icon class="text-sm">arrow_back</mat-icon>
-            Anterior
-          </button>
-
-          <button
-            [disabled]="serverPageIndex() >= totalPages() - 1 || loading()"
-            (click)="nextServerPage()"
-            class="btn-navigate-black"
-            type="button"
-          >
-            Siguiente
-            <mat-icon class="text-sm">arrow_forward</mat-icon>
-          </button>
-        </div>
-      </div>
-    </footer>
+    <app-server-pagination [pageIndex]="serverPageIndex()" [totalPages]="totalPages()"
+      [totalElements]="totalElements()" [pageSize]="serverPageSize()" [pageSizes]="sizePage()"
+      [disabled]="loading()" (pageChange)="goToServerPage($event)"
+      (pageSizeChange)="onChangeValueSizePageSelect($event)" />
   }
 
   </div>

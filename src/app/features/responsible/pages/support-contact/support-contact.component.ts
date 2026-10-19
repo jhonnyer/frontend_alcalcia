@@ -77,10 +77,14 @@ export class SupportContactComponent {
   }
 
   get isSuperAdminProfile(): boolean {
+    return this.normalizedRole === 'SUPERADMIN';
+  }
+
+  private get normalizedRole(): string {
     return String(this.tokenService.getUserRole() ?? '')
       .toLocaleUpperCase()
       .replace(/^ROLE_/, '')
-      .trim() === 'SUPERADMIN';
+      .trim();
   }
 
   get mayorName(): string {
@@ -101,7 +105,9 @@ export class SupportContactComponent {
     this.loadErrors.set([]);
 
     const activeId = this.tokenService.getActiveSecretaryId();
-    let pending = activeId == null ? 2 : 3;
+    const canReadSecretaries = ['ADMIN', 'SUPERADMIN'].includes(this.normalizedRole);
+    const shouldReadSecretaries = activeId != null && canReadSecretaries;
+    let pending = shouldReadSecretaries ? 3 : 2;
     const finish = () => {
       pending--;
       if (pending === 0) this.loading.set(false);
@@ -114,7 +120,9 @@ export class SupportContactComponent {
       if (tokenName) {
         this.activeSecretaryName.set(tokenName);
       }
+    }
 
+    if (shouldReadSecretaries) {
       this.secretariaAdminService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
         next: (secretarias) => {
           this.secretarias.set(secretarias);

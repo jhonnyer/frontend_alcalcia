@@ -46,6 +46,7 @@
 
     <!-- TABLA -->
     <div class="table-shell">
+      <app-table-filter-toolbar [activeCount]="activeFilterCount()" (clearFilters)="clearAllFilters()" />
       <div class="table-scroll">
       <table class="table-compact">
         <thead>

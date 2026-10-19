@@ -33,7 +33,7 @@ interface ProductoWithCantidadUpdate extends ProductoWithCantidad {
   selector: 'app-procedings-update',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatIconModule],
-  styles: ``,
+  styleUrl: '../acta-form.css',
   templateUrl: './procedings-update.component.html'
 })
 export class ProcedingsUpdateComponent implements OnInit {
@@ -64,6 +64,21 @@ export class ProcedingsUpdateComponent implements OnInit {
   responsables = signal<IResponsable[]>([]);
   // selectedProductsInfo = signal<ProductoWithCantidad[]>([]);
   selectedProductsInfo = signal<ProductoWithCantidadUpdate[]>([]);
+
+  totalUnits(): number {
+    return this.selectedProductsInfo().reduce((total, product) => total + (Number(product.cantidad) || 0), 0);
+  }
+
+  resumenVisible = signal(true);
+
+  toggleResumen(): void {
+    this.resumenVisible.update(visible => !visible);
+  }
+
+  get canEditProducts(): boolean {
+    const estado = this.formActa.get('estado')?.value;
+    return estado === 'R' || estado === 'P';
+  }
 
   proyectoSelect = signal<number | null>(null);
   responsableActa = signal<number | null>(null);

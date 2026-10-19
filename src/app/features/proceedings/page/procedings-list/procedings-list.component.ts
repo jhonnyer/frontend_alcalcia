@@ -1,5 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { finalize, timeout } from 'rxjs';
+import { finalize, timeout, Subscription } from 'rxjs';
+import { OnDestroy } from '@angular/core';
+import { ServerPaginationComponent } from '../../../../shared/components/server-pagination/server-pagination.component';
+import { toColumnFilters, TableColumnFilters } from '../../../../core/models/table-column-filters';
 import { ChangeDetectionStrategy, Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -25,26 +28,34 @@ import { IActa } from '../../../../core/models/acta.model';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AlertService } from '../../../../core/services/alert.service';
+import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 
 @Component({
   selector: 'app-procedings-list',
   standalone: true,
   imports: [
+    TableFilterToolbarComponent,
     CommonModule,
     CdkTableModule,
     FlexRenderDirective,
     TableFilterComponent,
+    ServerPaginationComponent,
     MatIconModule
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './procedings-list.component.html',
   styles: ``
 })
-export class ProcedingsListComponent implements OnInit {
+export class ProcedingsListComponent implements OnInit, OnDestroy {
 
   constructor(private sanitizer: DomSanitizer) {}
   private alert = inject(AlertService);
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private pageRequest?: Subscription;
+  ngOnDestroy(): void {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.pageRequest?.unsubscribe();
+  }
 
   // 🔹 Inyecciones
   private actasService = inject(ActasService);
@@ -60,6 +71,15 @@ export class ProcedingsListComponent implements OnInit {
   serverPageIndex = signal(0);
   serverPageSize = signal(5);
   selectedProjectId = signal<number | 'ALL'>('ALL');
+  selectedEstado = signal('');
+  readonly estadoOptions = [
+    { value: '', label: 'Todos los estados' },
+    { value: 'R', label: 'Recibido' },
+    { value: 'P', label: 'Procesado' },
+    { value: 'A', label: 'Autorizado' },
+    { value: 'E', label: 'Entregado' },
+    { value: 'RC', label: 'Rechazado' }
+  ];
   projectSearch = signal('');
   projectSuggestionsVisible = signal(false);
   projectOptions = computed(() => {
@@ -110,15 +130,18 @@ export class ProcedingsListComponent implements OnInit {
   // ✅ CARGAR DATOS
   // ============================================================
   getAll(): void {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.pageRequest?.unsubscribe();
     this.loading.set(true);
     this.loadError.set('');
-    this.actasService.getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters())
+    this.pageRequest = this.actasService.getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters())
       .pipe(timeout(45000), finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response) => {
+          const estadoRank: Record<string, number> = { R: 0, P: 1, A: 2 };
           const orderedResponse = [...(response.content ?? [])].sort((first, second) => {
-            const firstReceived = first.estado === 'R' ? 0 : 1;
-            const secondReceived = second.estado === 'R' ? 0 : 1;
+            const firstReceived = estadoRank[first.estado] ?? 3;
+            const secondReceived = estadoRank[second.estado] ?? 3;
 
             if (firstReceived !== secondReceived) {
               return firstReceived - secondReceived;
@@ -138,6 +161,8 @@ export class ProcedingsListComponent implements OnInit {
             this.dataTable = createAngularTable<IActa>(() => ({
               data: this.filteredData(),
               columns: defaultColumns,
+              manualFiltering: true,
+              manualPagination: true,
               getCoreRowModel: getCoreRowModel(),
               getPaginationRowModel: getPaginationRowModel(),
               getSortedRowModel: getSortedRowModel(),
@@ -164,9 +189,15 @@ export class ProcedingsListComponent implements OnInit {
                   : this.rowSelectionState.set(valueOrFunction);
               },
               onColumnFiltersChange: (updater) => {
+                const previousEstado = this.columnFilters().find(filter => filter.id === 'estado')?.value;
                 updater instanceof Function
                   ? this.columnFilters.update(updater)
                   : this.columnFilters.set(updater);
+                if (previousEstado !== this.columnFilters().find(filter => filter.id === 'estado')?.value) {
+                  this.selectedEstado.set('');
+                }
+                this.serverPageIndex.set(0);
+                this.runDebouncedSearch();
               },
             }));
           } else {
@@ -207,6 +238,12 @@ export class ProcedingsListComponent implements OnInit {
   previousServerPage(): void {
     if (this.serverPageIndex() <= 0 || this.loading()) return;
     this.serverPageIndex.update(v => v - 1);
+    this.getAll();
+  }
+
+  goToServerPage(page: number): void {
+    if (this.loading() || page === this.serverPageIndex()) return;
+    this.serverPageIndex.set(page);
     this.getAll();
   }
 
@@ -253,6 +290,18 @@ export class ProcedingsListComponent implements OnInit {
     this.getAll();
   }
 
+  activeFilterCount(): number {
+    return this.columnFilters().length
+      + (this.selectedEstado() ? 1 : 0)
+      + (this.selectedProjectId() !== 'ALL' || this.projectSearch().trim() ? 1 : 0);
+  }
+
+  clearAllFilters(): void {
+    this.columnFilters.set([]);
+    this.selectedEstado.set('');
+    this.clearProjectFilter();
+  }
+
   showProjectSuggestions(): void {
     this.projectSuggestionsVisible.set(true);
   }
@@ -261,13 +310,22 @@ export class ProcedingsListComponent implements OnInit {
     setTimeout(() => this.projectSuggestionsVisible.set(false), 150);
   }
 
-  private buildPagedFilters(): { idProyecto?: number; busqueda?: string } {
+  onEstadoChange(event: Event): void {
+    this.selectedEstado.set((event.target as HTMLSelectElement).value);
+    this.columnFilters.update(filters => filters.filter(filter => filter.id !== 'estado'));
+    this.serverPageIndex.set(0);
+    this.getAll();
+  }
+
+  private buildPagedFilters(): TableColumnFilters & { idProyecto?: number; busqueda?: string; estado?: string } {
     const selectedProject = this.selectedProjectId();
     const search = this.projectSearch().trim();
 
     return {
+      columnas: toColumnFilters(this.columnFilters()),
       idProyecto: selectedProject === 'ALL' ? undefined : selectedProject,
       busqueda: selectedProject === 'ALL' && search ? search : undefined,
+      estado: this.selectedEstado() || undefined,
     };
   }
 
@@ -280,6 +338,7 @@ export class ProcedingsListComponent implements OnInit {
   }
 
   private runDebouncedSearch(): void {
+    this.pageRequest?.unsubscribe();
     if (this.searchDebounceTimer) {
       clearTimeout(this.searchDebounceTimer);
     }
@@ -287,7 +346,7 @@ export class ProcedingsListComponent implements OnInit {
     this.searchDebounceTimer = setTimeout(() => {
       this.getAll();
       this.searchDebounceTimer = null;
-    }, 250);
+    }, 600);
   }
 
   delete(item: Row<IActa>): void {

@@ -1,5 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { finalize, timeout } from 'rxjs';
+import { finalize, timeout, Subscription } from 'rxjs';
+import { OnDestroy } from '@angular/core';
+import { ServerPaginationComponent } from '../../../../shared/components/server-pagination/server-pagination.component';
+import { toColumnFilters, TableColumnFilters } from '../../../../core/models/table-column-filters';
 import { Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { Router } from '@angular/router';
@@ -12,22 +15,25 @@ import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProye
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { PdfBeneficiariosProyectoService } from '../../../../shared/components/pdf/pdf-beneficiarios-proyecto.service';
+import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 
 
 @Component({
   selector: 'app-beneficiario-proyecto-list',
   standalone: true,
   imports: [
+    TableFilterToolbarComponent,
     CommonModule, 
     CdkTableModule, 
     FlexRenderDirective, 
     TableFilterComponent, 
+    ServerPaginationComponent,
     MatIconModule
   ],
   templateUrl: './beneficiario-proyecto-list.component.html',
   styleUrl: './beneficiario-proyecto-list.component.scss'
 })
-export class BeneficiarioProyectoListComponent implements OnInit {
+export class BeneficiarioProyectoListComponent implements OnInit, OnDestroy {
   constructor(
     private sanitizer: DomSanitizer
   ) {}
@@ -38,6 +44,11 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   private pageTitleService = inject(PageTitleService);
   private pdfService = inject(PdfBeneficiariosProyectoService);
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private pageRequest?: Subscription;
+  ngOnDestroy(): void {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.pageRequest?.unsubscribe();
+  }
   isExportingPdf = false;
   loading = signal(true);
   data = signal<IBeneficiarioProyecto[]>([]);
@@ -79,9 +90,11 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   }
 
   getAll() {
+    if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+    this.pageRequest?.unsubscribe();
     this.loading.set(true);
     this.loadError.set('');
-    this.beneficiarioProyectoService
+    this.pageRequest = this.beneficiarioProyectoService
       .getPaged(this.serverPageIndex(), this.serverPageSize(), this.buildPagedFilters())
       .pipe(timeout(45000), finalize(() => this.loading.set(false)))
       .subscribe({
@@ -105,6 +118,8 @@ export class BeneficiarioProyectoListComponent implements OnInit {
     data: this.filteredData(),
     getCoreRowModel: getCoreRowModel(),
     columns: defaultColumns,
+    manualFiltering: true,
+    manualPagination: true,
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -133,6 +148,8 @@ export class BeneficiarioProyectoListComponent implements OnInit {
       updater instanceof Function
         ? this.columnFilters.update(updater)
         : this.columnFilters.set(updater);
+      this.serverPageIndex.set(0);
+      this.runDebouncedSearch();
     },
   }));
 
@@ -146,6 +163,12 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   previousServerPage(): void {
     if (this.serverPageIndex() <= 0 || this.loading()) return;
     this.serverPageIndex.update(v => v - 1);
+    this.getAll();
+  }
+
+  goToServerPage(page: number): void {
+    if (this.loading() || page === this.serverPageIndex()) return;
+    this.serverPageIndex.set(page);
     this.getAll();
   }
 
@@ -197,6 +220,16 @@ export class BeneficiarioProyectoListComponent implements OnInit {
     this.getAll();
   }
 
+  activeFilterCount(): number {
+    return this.columnFilters().length
+      + (this.selectedProjectId() !== 'ALL' || this.projectSearch().trim() ? 1 : 0);
+  }
+
+  clearAllFilters(): void {
+    this.columnFilters.set([]);
+    this.clearProjectFilter();
+  }
+
   showProjectSuggestions(): void { this.projectSuggestionsVisible.set(true); }
   hideProjectSuggestions(): void { setTimeout(() => this.projectSuggestionsVisible.set(false), 150); }
 
@@ -205,6 +238,7 @@ export class BeneficiarioProyectoListComponent implements OnInit {
   }
 
   private runDebouncedSearch(): void {
+    this.pageRequest?.unsubscribe();
     if (this.searchDebounceTimer) {
       clearTimeout(this.searchDebounceTimer);
     }
@@ -212,14 +246,15 @@ export class BeneficiarioProyectoListComponent implements OnInit {
     this.searchDebounceTimer = setTimeout(() => {
       this.getAll();
       this.searchDebounceTimer = null;
-    }, 250);
+    }, 600);
   }
 
-  private buildPagedFilters(): { idProyecto?: number; busqueda?: string } {
+  private buildPagedFilters(): TableColumnFilters & { idProyecto?: number; busqueda?: string } {
     const selectedProject = this.selectedProjectId();
     const search = this.projectSearch().trim();
 
     return {
+      columnas: toColumnFilters(this.columnFilters()),
       idProyecto: selectedProject === 'ALL' ? undefined : selectedProject,
       busqueda: selectedProject === 'ALL' && search ? search : undefined,
     };

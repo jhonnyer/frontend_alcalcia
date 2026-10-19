@@ -30,11 +30,13 @@ import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AlertService } from '../../../../core/services/alert.service';
+import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 
 @Component({
   selector: 'app-inventory-list',
   standalone: true,
   imports: [
+    TableFilterToolbarComponent,
     CommonModule, 
     CdkTableModule, 
     FlexRenderDirective, 
@@ -206,6 +208,20 @@ export class InventoryListComponent implements OnInit {
   clearProjectFilter(): void {
     this.selectProject(null);
     this.projectSuggestionsVisible.set(false);
+  }
+
+  activeFilterCount(): number {
+    return this.columnFilters().length
+      + (this.filtroActual.trim() ? 1 : 0)
+      + (this.selectedProjectId() !== null || this.projectSearch().trim() ? 1 : 0)
+      + (this.selectedCategoryId() !== null || this.categorySearch().trim() ? 1 : 0);
+  }
+
+  clearAllFilters(): void {
+    this.columnFilters.set([]);
+    this.filtroActual = '';
+    this.clearProjectFilter();
+    this.categorySuggestionsVisible.set(false);
   }
 
   clearCategoryFilter(): void {

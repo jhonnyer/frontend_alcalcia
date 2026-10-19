@@ -31,11 +31,13 @@ import { MatCardModule } from '@angular/material/card';
 import { AlertService } from '../../../core/services/alert.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
+import { TableFilterToolbarComponent } from '../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 
 @Component({
   selector: 'app-categoria-list',
   standalone: true,
   imports: [
+    TableFilterToolbarComponent,
     CommonModule, 
     CdkTableModule, 
     FlexRenderDirective, 
@@ -198,6 +200,16 @@ export class CategoriaListComponent implements OnInit {
     this.projectSearch.set('');
     this.projectSuggestionsVisible.set(false);
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  activeFilterCount(): number {
+    return this.columnFilters().length
+      + (this.selectedProjectId() !== 'ALL' || this.projectSearch().trim() ? 1 : 0);
+  }
+
+  clearAllFilters(): void {
+    this.columnFilters.set([]);
+    this.clearProjectFilter();
   }
 
   showProjectSuggestions(): void {

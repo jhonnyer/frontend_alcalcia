@@ -43,7 +43,7 @@ interface DialogData {
     MatIconModule,
     FormsModule
   ],
-  styles: ``,
+  styleUrl: '../acta-form.css',
   templateUrl: './procedings-register.component.html'
 })
 export class ProcedingsRegisterComponent implements OnInit{
@@ -76,6 +76,22 @@ export class ProcedingsRegisterComponent implements OnInit{
 
   selectedProductsInfo = signal<ProductoWithCantidad[]>([]);
   isSubmitting = false;
+
+  totalUnits(): number {
+    return this.selectedProductsInfo().reduce((total, product) => total + (Number(product.cantidad) || 0), 0);
+  }
+
+  resumenVisible = signal(true);
+
+  toggleResumen(): void {
+    this.resumenVisible.update(visible => !visible);
+  }
+
+  datosEntregaCompletos(): boolean {
+    return this.selectResponsable.valid
+      && ['ubicacionEntrega', 'prioridad', 'responsableVisita', 'tipoSolicitud']
+        .every(control => !!this.formActa.get(control)?.valid);
+  }
 
   // Lista completa de proyectos asociados al beneficiario
   beneficiariosProyecto = signal<IBeneficiarioProyecto[]>([]);

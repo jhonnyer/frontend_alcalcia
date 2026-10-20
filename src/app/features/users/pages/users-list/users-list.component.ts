@@ -1040,6 +1040,7 @@ export class UsersListComponent implements OnInit {
           return;
         }
         console.error('Error al cargar parámetros:', error);
+        this.parameterModalOpen.set(false);
         this.alert.error('Operación fallida', 'No se pudieron cargar los parámetros de la secretaría activa.');
       }
     });

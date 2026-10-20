@@ -9,6 +9,7 @@ import { IDepartamento } from '../../../../core/models/departamento.model';
 import { ICreateSecretariaAdmin, TipoSecretaria } from '../../../../core/models/secretaria.model';
 import { leerLogoInstitucional } from '../logo-institucional';
 import { LogoPreviewComponent } from '../logo-preview.component';
+import { MyValidators } from '../../../../core/utils/validators';
 
 export interface CreateSecretaryModalPayload {
   secretaria: {
@@ -70,7 +71,11 @@ export class SecretaryCreateModalComponent implements OnChanges {
     parametroDireccionAlcaldia: [''],
     parametroCodigoPostal: [''],
     parametroContactoAlcaldia: [''],
-    parametroFirmaActa: [''],
+    parametroFirmaActa: ['', [Validators.maxLength(255)]],
+    encabezadoActa: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
+    codigoFormatoActa: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(100)]],
+    versionFormatoActa: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(30)]],
+    fechaAprobacionFormatoActa: ['', [Validators.required, MyValidators.validIsoDate]],
     logoInstitucional: [''],
   });
 
@@ -109,6 +114,10 @@ export class SecretaryCreateModalComponent implements OnChanges {
         parametroCodigoPostal: '',
         parametroContactoAlcaldia: '',
         parametroFirmaActa: '',
+        encabezadoActa: '',
+        codigoFormatoActa: '',
+        versionFormatoActa: '',
+        fechaAprobacionFormatoActa: '',
         logoInstitucional: '',
       });
       this.departamentoFiltro = null;
@@ -265,7 +274,15 @@ export class SecretaryCreateModalComponent implements OnChanges {
         direccionAlcaldia: String(v.parametroDireccionAlcaldia ?? '').trim(),
         codigoPostal: String(v.parametroCodigoPostal ?? '').trim(),
         contactoAlcaldia: String(v.parametroContactoAlcaldia ?? '').trim(),
-        firmaActa: String(v.parametroFirmaActa ?? '').trim(),
+        configuracionDocumentos: {
+          acta: {
+            encabezado: (v.encabezadoActa ?? '').trim(),
+            codigoFormato: (v.codigoFormatoActa ?? '').trim(),
+            versionFormato: (v.versionFormatoActa ?? '').trim(),
+            fechaAprobacionFormato: v.fechaAprobacionFormatoActa ?? '',
+            firmaActa: (v.parametroFirmaActa ?? '').trim(),
+          },
+        },
         logoInstitucional: v.logoInstitucional ?? '',
       }
     };
@@ -312,6 +329,11 @@ export class SecretaryCreateModalComponent implements OnChanges {
       'parametroNombreAlcalde',
       'parametroNombreSecretaria',
       'parametroCorreoAlcaldia',
+      'parametroFirmaActa',
+      'encabezadoActa',
+      'codigoFormatoActa',
+      'versionFormatoActa',
+      'fechaAprobacionFormatoActa',
     ];
 
     return !this.readingLogo && required.every(name => this.form.get(name)?.valid === true) && this.coverageIsValid();

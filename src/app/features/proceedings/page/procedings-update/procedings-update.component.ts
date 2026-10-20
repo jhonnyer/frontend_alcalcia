@@ -18,6 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AlertService } from '../../../../core/services/alert.service';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { HttpErrorResponse } from '@angular/common/http';
 
 interface DialogData {
   idProyecto: number | null;
@@ -624,9 +625,21 @@ export class ProcedingsUpdateComponent implements OnInit {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
       },
-      error: error => {
+      error: async (error: HttpErrorResponse) => {
         console.error('Error al descargar el PDF:', error);
-        this.alert.error('Error servicio','Error al descargar el PDF del acta');
+        let mensaje = 'Error al descargar el PDF del acta. Verifica la configuración del formato con el administrador de la secretaría.';
+        if (error.error instanceof Blob && error.error.type.includes('json')) {
+          try {
+            const respuesta: unknown = JSON.parse(await error.error.text());
+            if (respuesta !== null && typeof respuesta === 'object'
+              && 'mensaje' in respuesta && typeof respuesta.mensaje === 'string') {
+              mensaje = respuesta.mensaje;
+            }
+          } catch (parseError) {
+            console.error('No se pudo leer el detalle del error del PDF:', parseError);
+          }
+        }
+        this.alert.error('No se pudo generar el acta', mensaje);
       }
     });
   }

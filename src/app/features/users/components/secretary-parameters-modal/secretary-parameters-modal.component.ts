@@ -7,6 +7,7 @@ import { AlertService } from '../../../../core/services/alert.service';
 import { TipoSecretaria } from '../../../../core/models/secretaria.model';
 import { leerLogoInstitucional } from '../logo-institucional';
 import { LogoPreviewComponent } from '../logo-preview.component';
+import { MyValidators } from '../../../../core/utils/validators';
 
 @Component({
   selector: 'app-secretary-parameters-modal',
@@ -39,8 +40,12 @@ export class SecretaryParametersModalComponent implements OnChanges {
     direccionAlcaldia: [''],
     codigoPostal: [''],
     contactoAlcaldia: [''],
-    firmaActa: [''],
+    firmaActa: ['', [Validators.maxLength(255)]],
     logoInstitucional: [''],
+    encabezadoActa: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(255)]],
+    codigoFormatoActa: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(100)]],
+    versionFormatoActa: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(30)]],
+    fechaAprobacionFormatoActa: ['', [Validators.required, MyValidators.validIsoDate]],
   });
 
   @HostListener('document:keydown.escape')
@@ -111,7 +116,7 @@ export class SecretaryParametersModalComponent implements OnChanges {
   }
 
   onSubmit(): void {
-    if (this.form.invalid || this.saving || this.loading || this.readingLogo) {
+    if (!this.form.valid || this.saving || this.loading || this.readingLogo) {
       this.form.markAllAsTouched();
       return;
     }
@@ -125,8 +130,18 @@ export class SecretaryParametersModalComponent implements OnChanges {
       direccionAlcaldia: String(values.direccionAlcaldia ?? '').trim(),
       codigoPostal: String(values.codigoPostal ?? '').trim(),
       contactoAlcaldia: String(values.contactoAlcaldia ?? '').trim(),
-      firmaActa: String(values.firmaActa ?? '').trim(),
       logoInstitucional: values.logoInstitucional ?? '',
+      configuracionDocumentos: {
+        ...this.parameters?.configuracionDocumentos,
+        acta: {
+          ...this.parameters?.configuracionDocumentos?.acta,
+          encabezado: (values.encabezadoActa ?? '').trim(),
+          codigoFormato: (values.codigoFormatoActa ?? '').trim(),
+          versionFormato: (values.versionFormatoActa ?? '').trim(),
+          fechaAprobacionFormato: values.fechaAprobacionFormatoActa ?? '',
+          firmaActa: (values.firmaActa ?? '').trim(),
+        },
+      },
     });
   }
 
@@ -139,8 +154,12 @@ export class SecretaryParametersModalComponent implements OnChanges {
       direccionAlcaldia: parametros?.direccionAlcaldia ?? '',
       codigoPostal: parametros?.codigoPostal ?? '',
       contactoAlcaldia: parametros?.contactoAlcaldia ?? '',
-      firmaActa: parametros?.firmaActa ?? '',
+      firmaActa: parametros?.configuracionDocumentos?.acta?.firmaActa ?? '',
       logoInstitucional: parametros?.logoInstitucional ?? '',
+      encabezadoActa: parametros?.configuracionDocumentos?.acta?.encabezado ?? secretariaName,
+      codigoFormatoActa: parametros?.configuracionDocumentos?.acta?.codigoFormato ?? '',
+      versionFormatoActa: parametros?.configuracionDocumentos?.acta?.versionFormato ?? '',
+      fechaAprobacionFormatoActa: parametros?.configuracionDocumentos?.acta?.fechaAprobacionFormato ?? '',
     };
   }
 }

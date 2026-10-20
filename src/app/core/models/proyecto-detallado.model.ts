@@ -4,6 +4,7 @@ import { IActaById } from "./acta.model";
 import { IBeneficiarioProyecto } from "./beneficiarioProyecto.model";
 import { IProductoFk } from "./products.model";
 import { IPaqueteFk } from "./paquetes.model";
+import { IConfiguracionDocumentos } from "./parametro-negocio.model";
 
 export interface IParametrosNegocio {
   nombreAlcalde: string;
@@ -12,7 +13,7 @@ export interface IParametrosNegocio {
   nombreSecretaria: string;
   direccionAlcaldia: string;
   codigoPostal: string;
-  firmaActa: string;
+  configuracionDocumentos?: IConfiguracionDocumentos | null;
   contactoAlcaldia: String;
 }
 

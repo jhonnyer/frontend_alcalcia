@@ -6,6 +6,20 @@ export interface IContextoInstitucional {
   departamento: string | null;
 }
 
+export interface IFormatoActa {
+  encabezado: string;
+  codigoFormato: string;
+  versionFormato: string;
+  fechaAprobacionFormato: string | null;
+  firmaActa?: string;
+  [campo: string]: unknown;
+}
+
+export interface IConfiguracionDocumentos {
+  acta?: IFormatoActa;
+  [documento: string]: unknown;
+}
+
 export interface IParametroNegocio {
   idParametro?: number;
   idSecretariaFk?: number;
@@ -16,6 +30,6 @@ export interface IParametroNegocio {
   direccionAlcaldia: string;
   codigoPostal: string;
   contactoAlcaldia: string;
-  firmaActa: string;
   logoInstitucional?: string;
+  configuracionDocumentos?: IConfiguracionDocumentos | null;
 }

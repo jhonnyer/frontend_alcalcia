@@ -10,6 +10,7 @@ import { ICreateSecretariaAdmin, TipoSecretaria } from '../../../../core/models/
 import { leerLogoInstitucional } from '../logo-institucional';
 import { LogoPreviewComponent } from '../logo-preview.component';
 import { MyValidators } from '../../../../core/utils/validators';
+import { ActaFormatPreviewComponent } from '../acta-format-preview.component';
 
 export interface CreateSecretaryModalPayload {
   secretaria: {
@@ -28,7 +29,7 @@ export interface CreateSecretaryModalPayload {
 @Component({
   selector: 'app-secretary-create-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, LogoPreviewComponent],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, LogoPreviewComponent, ActaFormatPreviewComponent],
   templateUrl: './secretary-create-modal.component.html',
 })
 export class SecretaryCreateModalComponent implements OnChanges {

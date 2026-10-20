@@ -7,7 +7,7 @@ import { DefaultLogoCache } from '../../../core/services/default-logo.service';
   selector: 'app-logo-preview',
   standalone: true,
   template: `
-    @if (!logo) {
+    @if (!logo && !compact) {
       <p class="mt-2 text-xs text-slate-500">Logo institucional predeterminado</p>
     }
     @if (loading) {
@@ -20,18 +20,22 @@ import { DefaultLogoCache } from '../../../core/services/default-logo.service';
       </div>
     }
     @if (downloadUrl) {
-      <div class="my-3 rounded-lg border border-slate-200 bg-white p-3">
-        <img class="h-24 max-w-full object-contain" [src]="downloadUrl" alt="Logo institucional seleccionado" (error)="onImageError()" />
-        <div class="mt-2 flex flex-wrap items-start gap-3">
-          <a class="rounded-md text-xs font-semibold text-blue-700 underline hover:text-blue-900"
-             [href]="downloadUrl" [download]="fileName">Descargar logo</a>
-        </div>
+      <div [class]="compact ? 'flex items-center justify-center p-1' : 'my-3 rounded-lg border border-slate-200 bg-white p-3'">
+        <img class="max-w-full object-contain" [class.h-24]="!compact" [class.max-h-28]="compact"
+          [src]="downloadUrl" alt="Logo institucional seleccionado" (error)="onImageError()" />
+        @if (!compact) {
+          <div class="mt-2 flex flex-wrap items-start gap-3">
+            <a class="rounded-md text-xs font-semibold text-blue-700 underline hover:text-blue-900"
+               [href]="downloadUrl" [download]="fileName">Descargar logo</a>
+          </div>
+        }
       </div>
     }
   `,
 })
 export class LogoPreviewComponent implements OnChanges, OnDestroy {
   @Input({ required: true }) logo = '';
+  @Input() compact = false;
   downloadUrl = '';
   fileName = '';
   loading = false;

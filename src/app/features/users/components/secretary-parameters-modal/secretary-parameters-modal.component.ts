@@ -8,11 +8,12 @@ import { TipoSecretaria } from '../../../../core/models/secretaria.model';
 import { leerLogoInstitucional } from '../logo-institucional';
 import { LogoPreviewComponent } from '../logo-preview.component';
 import { MyValidators } from '../../../../core/utils/validators';
+import { ActaFormatPreviewComponent } from '../acta-format-preview.component';
 
 @Component({
   selector: 'app-secretary-parameters-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, LogoPreviewComponent],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, LogoPreviewComponent, ActaFormatPreviewComponent],
   templateUrl: './secretary-parameters-modal.component.html',
 })
 export class SecretaryParametersModalComponent implements OnChanges {

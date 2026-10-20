@@ -6,9 +6,9 @@
 			<button type="button" class="btn-action-blue mt-3" (click)="loadData()" [disabled]="loading()">Reintentar</button>
 		</div>
 	}
-	<header class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-		<div>
-			<h1 class="text-xl font-bold text-slate-800">Gestión administrativa</h1>
+	<header class="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+		<div class="min-w-0 flex-1">
+			<h1 class="text-xl font-bold text-slate-800 [overflow-wrap:anywhere]">Gestión administrativa</h1>
 			<p class="text-sm text-slate-500">
 				@if (isSuperAdmin()) {
 					Gestiona secretarías, cobertura territorial y parámetros institucionales de toda la plataforma.
@@ -17,7 +17,7 @@
 				}
 			</p>
 		</div>
-		<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+		<div class="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
 			@if (isSuperAdmin()) {
 				<button type="button" class="btn-action-green w-full sm:w-auto" (click)="openSecretaryModal()">
 					<mat-icon class="text-base">add_business</mat-icon>

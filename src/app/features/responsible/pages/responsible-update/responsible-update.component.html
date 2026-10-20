@@ -201,9 +201,9 @@
       <!-- Estado y perfil -->
       <div class="flex flex-wrap gap-4 mt-4">
         <div class="border border-gray-200 rounded-lg p-4 flex-1 bg-gray-50">
-          <p class="label-base mb-2 block"><span class="text-red-600">*</span> {{ modoCreacion ? 'Estado inicial' : 'Estado de la vinculación' }}</p>
+          <p class="label-base mb-2 block"><span class="text-red-600">*</span> {{ modoCreacion ? 'Estado inicial' : 'Estado del acceso' }}</p>
           <p class="mb-3 text-xs text-slate-500">
-            {{ modoCreacion ? 'Se aplicará a la cuenta nueva y a su primera vinculación.' : 'Controla el acceso a la secretaría activa. La cuenta se mantiene activa mientras tenga acceso activo a otra secretaría.' }}
+            {{ modoCreacion ? 'Se aplicará a la cuenta nueva y a su primera vinculación.' : 'Se muestra Inactivo si la cuenta o esta vinculación están inactivas. Si no cambias esta selección, se conservarán ambos estados. Activar el acceso también puede reactivar la cuenta.' }}
           </p>
           <div class="flex gap-6">
             <label class="flex items-center gap-2">
@@ -217,9 +217,6 @@
           </div>
           @if(formFamilyCore.get('estado')?.hasError('required') && formFamilyCore.get('estado')?.touched) {
             <p class="text-red-500 text-sm mt-1">Seleccione un estado.</p>
-          }
-          @if (!modoCreacion && estadoCuenta) {
-            <p class="mt-3 text-xs text-slate-600">Estado actual de la cuenta: <strong>{{ estadoCuenta === 'A' ? 'Activa' : 'Inactiva' }}</strong></p>
           }
         </div>
 
@@ -273,7 +270,7 @@
 
         <button
           type="submit"
-          [disabled]="formFamilyCore.invalid"
+          [disabled]="!formFamilyCore.valid || loading || loadError || saving"
           class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-md font-medium transition-all duration-200 shadow-sm
             text-white
             disabled:bg-slate-200 disabled:text-slate-500 disabled:border disabled:border-slate-300 disabled:cursor-not-allowed
@@ -281,7 +278,7 @@
         >
           <mat-icon *ngIf="formFamilyCore.invalid" class="text-sm align-middle">lock</mat-icon>
           <mat-icon *ngIf="!formFamilyCore.invalid" class="text-sm align-middle">save</mat-icon>
-          <span>{{ modoCreacion ? 'Crear usuario' : 'Actualizar' }}</span>
+          <span>{{ saving ? 'Guardando...' : (modoCreacion ? 'Crear usuario' : 'Actualizar') }}</span>
         </button>
       </div>
     </form>

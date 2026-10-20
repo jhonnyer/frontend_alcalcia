@@ -8,8 +8,7 @@ import { IResponsable } from '../../../../core/models/responsable.model';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { AlertService } from '../../../../core/services/alert.service';
 import { MatIconModule } from '@angular/material/icon';
-import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-responsible-update',
@@ -33,12 +32,14 @@ export class ResponsibleUpdateComponent implements OnInit {
   private responsibleService = inject(ResponsibleService);
   private pageTitleService = inject(PageTitleService);
   private alert = inject(AlertService);
-  private dialog = inject(MatDialog);
   private cdRef = inject(ChangeDetectorRef);
 
   public formFamilyCore: FormGroup = new FormGroup({});
   private originalPassword: string = '';
-  public estadoCuenta: IResponsable['estadoCuenta'];
+  private initialAccessState: IResponsable['estado'] | undefined;
+  public loading = false;
+  public saving = false;
+  public loadError = false;
 
   @HostListener('document:keydown.escape')
   onDocumentEscape(): void {
@@ -143,16 +144,23 @@ export class ResponsibleUpdateComponent implements OnInit {
   // Cargar datos si se edita
   cargarResponsable(): void {
     if (!this.responsableId) return;
-
-    this.responsibleService.getByParams(this.responsableId.toString()).subscribe({
+    this.loading = true;
+    this.loadError = false;
+    this.responsibleService.getByParams(this.responsableId.toString()).pipe(
+      finalize(() => this.loading = false)
+    ).subscribe({
       next: (response) => this.initResponsable(response),
-      error: (err) => console.error('Error al cargar responsable:', err),
+      error: (err) => {
+        console.error('Error al cargar responsable:', err);
+        this.loadError = true;
+        this.alert.error('No se pudo cargar el usuario', 'Reintenta la consulta antes de actualizar.');
+      },
     });
   }
 
   private initResponsable(responsable: IResponsable): void {
-    this.estadoCuenta = responsable.estadoCuenta;
     this.originalPassword = responsable.password || '';
+    this.initialAccessState = responsable.estadoCuenta === 'I' ? 'I' : responsable.estado;
     this.formFamilyCore.patchValue(
       {
         idResponsable: responsable.idResponsable,
@@ -167,7 +175,7 @@ export class ResponsibleUpdateComponent implements OnInit {
         email: responsable.email,
         usuario: responsable.usuario,
         telefono: responsable.telefono,
-        estado: responsable.estado,
+        estado: this.initialAccessState,
         perfilUsuario: responsable.perfilUsuario,
         password: ''
       },
@@ -176,16 +184,12 @@ export class ResponsibleUpdateComponent implements OnInit {
   }
 
   // Confirmación antes de guardar
-  onSubmit(): void {
-    if (this.formFamilyCore.invalid) {
+  async onSubmit(): Promise<void> {
+    if (this.saving || this.loading || this.loadError) return;
+    if (!this.formFamilyCore.valid) {
       this.formFamilyCore.markAllAsTouched();
 
-      this.dialog.open(ConfirmDialogComponent, {
-        width: '350px',
-        data: {
-          mensaje: '⚠️ Verifica los campos del formulario antes de continuar.',
-        },
-      });
+      this.alert.warning('Revisa el formulario', 'Verifica los campos antes de continuar.');
       return;
     }
 
@@ -195,50 +199,55 @@ export class ResponsibleUpdateComponent implements OnInit {
     if (!this.modoCreacion && (!data.password || data.password === this.originalPassword)) {
       delete data.password;
     }
+    const stateChanged = !this.modoCreacion && data.estado !== this.initialAccessState;
+    // No recalcular ni reactivar la cuenta al guardar cambios de otros campos.
+    if (!this.modoCreacion && !stateChanged) delete data.estado;
 
     const mensajeConfirmacion = this.modoCreacion
       ? '¿Desea registrar un nuevo responsable?'
-      : '¿Desea actualizar la información del usuario?';
+      : stateChanged
+        ? `¿Desea actualizar el usuario y ${data.estado === 'A' ? 'activar' : 'inactivar'} su acceso a esta secretaría?${data.estado === 'A' ? ' Activar este acceso también puede reactivar la cuenta.' : ''}`
+        : '¿Desea actualizar la información del usuario? Su estado se conservará sin cambios.';
+    this.saving = true;
+    this.formFamilyCore.disable({ emitEvent: false });
+    const confirmado = await this.alert.confirm(
+      this.modoCreacion ? 'Crear usuario' : 'Actualizar usuario',
+      mensajeConfirmacion, 'Sí, guardar', 'Cancelar'
+    );
+    if (!confirmado) {
+      this.saving = false;
+      this.formFamilyCore.enable({ emitEvent: false });
+      return;
+    }
 
-    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '350px',
-      data: { mensaje: mensajeConfirmacion },
-    });
+    const peticion = this.modoCreacion
+      ? this.responsibleService.post(data)
+      : this.responsibleService.updateById(
+          this.responsableId!.toString(),
+          data
+        );
 
-    confirmRef.afterClosed().subscribe((confirmado: boolean) => {
-      if (!confirmado) return;
-
-      // Selecciona la acción según el modo
-      const peticion = this.modoCreacion
-        ? this.responsibleService.post(data)
-        : this.responsibleService.updateById(
-            this.responsableId!.toString(),
-            data
-          );
-
-      peticion.subscribe({
-        next: () => {
-          if (this.modalMode) {
-            this.saved.emit();
-            return;
-          }
-          this.router.navigate(['resposibles']);
-        },
-        error: (error) => {
-          console.error('Error al guardar:', error);
-          this.dialog.open(ConfirmDialogComponent, {
-            width: '350px',
-            data: {
-              mensaje:
-                '⚠️ Ocurrió un error al guardar la información. Intente nuevamente.',
-            },
-          });
-        },
-      });
+    peticion.pipe(finalize(() => {
+      this.saving = false;
+      this.formFamilyCore.enable({ emitEvent: false });
+    })).subscribe({
+      next: () => {
+        this.alert.success('Operación exitosa', 'La información del usuario se guardó correctamente.');
+        if (this.modalMode) {
+          this.saved.emit();
+          return;
+        }
+        this.router.navigate(['resposibles']);
+      },
+      error: (error) => {
+        console.error('Error al guardar:', error);
+        this.alert.error('No se pudo guardar', 'Ocurrió un error al guardar la información. Intenta nuevamente.');
+      },
     });
   }
 
   async cancelar(): Promise<void> {
+    if (this.saving) return;
     if (this.modalMode) {
       if (this.formFamilyCore.dirty) {
         const confirmed = await this.alert.confirm(

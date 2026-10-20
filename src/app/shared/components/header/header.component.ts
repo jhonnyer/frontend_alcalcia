@@ -3,13 +3,8 @@ import { SearchService } from '../../../core/services/search.service';
 import { PageTitleService } from '../../../core/services/pageTitle.service';
 import { TokenService } from '../../../core/services/token.service';
 import { Router, RouterLink } from '@angular/router';
-import {
-  CdkMenu,
-  CdkMenuTrigger,
-  CdkMenuItem,
-  CdkMenuBar,
-} from '@angular/cdk/menu';
 import { MatIconModule } from '@angular/material/icon';
+import { FormsModule } from '@angular/forms';
 import { ISecretariaAcceso } from '../../../core/models/responseLogin.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { AlertService } from '../../../core/services/alert.service';
@@ -22,11 +17,8 @@ import { finalize, timeout } from 'rxjs';
   standalone: true,
   imports: [
     RouterLink,
-    CdkMenuBar,
-    CdkMenuItem,
-    CdkMenuTrigger,
-    CdkMenu,
-    MatIconModule
+    MatIconModule,
+    FormsModule
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
@@ -40,7 +32,9 @@ export class HeaderComponent implements OnInit {
   public userRole = signal<string | null>(null);
   public secretarias: ISecretariaAcceso[] = [];
   public activeSecretaryId: number | null = null;
+  public selectedSecretaryId: number | null = null;
   public changingSecretary = false;
+  public contextExpanded = true;
   private readonly auth = inject(AuthService);
   private readonly alert = inject(AlertService);
   private readonly document = inject(DOCUMENT);
@@ -65,6 +59,7 @@ export class HeaderComponent implements OnInit {
     this.loadUserRole();
     this.secretarias = this.tokenService.getAvailableSecretaries();
     this.activeSecretaryId = this.tokenService.getActiveSecretaryId();
+    this.selectedSecretaryId = this.activeSecretaryId;
   }
 
   loginState(){
@@ -88,10 +83,6 @@ export class HeaderComponent implements OnInit {
     this.userRole.set(role);
   }
 
-  goHome(): void {
-    this.route.navigate([this.userRole() === 'SUPERADMIN' ? '/users' : '/home']);
-  }
-
   refreshSecretaries(): void {
     if (this.userRole() !== 'SUPERADMIN' || this.refreshingSecretaries) return;
     this.refreshingSecretaries = true;
@@ -111,20 +102,23 @@ export class HeaderComponent implements OnInit {
     });
   }
 
-  async changeSecretary(event: Event): Promise<void> {
-    const select = event.target as HTMLSelectElement;
-    const requestedId = select.value === '' ? null : Number(select.value);
-    select.value = this.activeSecretaryId === null ? '' : String(this.activeSecretaryId);
+  async changeSecretary(): Promise<void> {
+    const requestedId = this.selectedSecretaryId;
     if (this.changingSecretary || requestedId === this.activeSecretaryId) return;
-    if (requestedId === null && this.userRole() !== 'SUPERADMIN') return;
-    if (requestedId !== null && !this.secretarias.some(s => s.idSecretaria === requestedId)) {
+    if (requestedId === null && this.userRole() !== 'SUPERADMIN') {
+      this.alert.error('Contexto no válido', 'Selecciona una secretaría disponible.');
+      return;
+    }
+    const requestedSecretary = this.secretarias.find(s => s.idSecretaria === requestedId);
+    if (requestedId !== null && !requestedSecretary) {
       this.alert.error('Secretaría no válida', 'Selecciona una de las secretarías disponibles.');
       return;
     }
+    const contextName = requestedSecretary?.nombre ?? 'Administración global';
     this.changingSecretary = true;
     const confirmed = await this.alert.confirm(
       'Cambiar contexto',
-      'Se recargará la vista para no mezclar datos entre secretarías. Los cambios sin guardar se perderán.',
+      `Cambiarás a: ${contextName}. Se recargará la vista para no mezclar datos entre secretarías. Los cambios sin guardar se perderán.`,
       'Cambiar', 'Cancelar'
     );
     if (!confirmed) {
@@ -134,7 +128,7 @@ export class HeaderComponent implements OnInit {
     const request = requestedId === null
       ? this.auth.enterGlobalContext()
       : this.auth.changeSecretary(requestedId);
-    request.subscribe({
+    request.pipe(timeout(45000)).subscribe({
       next: response => {
         if (response.idSecretaria !== requestedId) {
           this.changingSecretary = false;

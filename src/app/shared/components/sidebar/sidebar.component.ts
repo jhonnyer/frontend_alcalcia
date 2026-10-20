@@ -72,7 +72,7 @@ export class SidebarComponent implements OnInit {
         this.releaseLogo();
         this.logoError.set(false);
         this.institutionError.set('');
-        this.institutionName.set(id ? 'Cargando institución...' : 'Sin secretaría activa');
+        this.institutionName.set(id ? 'Cargando institución...' : 'Administración global');
         if (!id) return of(null);
         return this.parametros.getActive().pipe(
           timeout(45000),

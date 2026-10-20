@@ -47,7 +47,7 @@ export class TokenService {
 
       if (!secretaryPending && response.idSecretaria !== null && response.idSecretaria !== undefined) {
         localStorage.setItem(this.SECRETARY_KEY, String(response.idSecretaria));
-      } else if (secretaryPending) {
+      } else {
         localStorage.removeItem(this.SECRETARY_KEY);
       }
       localStorage.setItem(this.SECRETARIES_KEY, JSON.stringify(response.secretarias ?? []));

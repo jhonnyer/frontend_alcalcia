@@ -60,5 +60,30 @@ export interface ICoberturaMunicipioRequest {
 
 export interface IMembresiaSecretariaRequest {
   rol: string;
+  idSecretariaOrigen?: number;
+}
+
+export interface IMembresiaResponsable {
+  idSecretaria: number;
+  nombreSecretaria: string;
+  rol: 'ADMIN' | 'RESP';
   estado: string;
+  fechaAsignacion: string;
+}
+
+export interface IResponsableMembresias {
+  idResponsable: number;
+  primerNombre: string;
+  segundoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  usuario: string;
+  tipoIdentificacion: string;
+  numeroIdentificacion: string;
+  email: string;
+  telefono: string;
+  area: string;
+  cargo: string;
+  estado: string;
+  membresias: IMembresiaResponsable[];
 }

@@ -10,6 +10,7 @@ import {
   ICoberturaMunicipioRequest,
   ICreateSecretariaRequest,
   IMembresiaSecretariaRequest,
+  IResponsableMembresias,
   ISecretaria
 } from '../models/secretaria.model';
 
@@ -37,6 +38,32 @@ export class SecretariaAdminService {
   assignResponsible(idSecretaria: number, idResponsable: number, data: IMembresiaSecretariaRequest): Observable<unknown> {
     return this.http.post(
       `${this.URL}/administracion/secretarias/${idSecretaria}/membresias/${idResponsable}`,
+      data,
+      { context: checkToken() }
+    );
+  }
+
+  deactivateResponsibleMembership(idSecretaria: number, idResponsable: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.URL}/administracion/secretarias/${idSecretaria}/membresias/${idResponsable}`,
+      { context: checkToken() }
+    );
+  }
+
+  getResponsablesWithMemberships(): Observable<IResponsableMembresias[]> {
+    return this.http.get<IResponsableMembresias[]>(
+      `${this.URL}/administracion/secretarias/membresias/responsables`,
+      { context: checkToken() }
+    );
+  }
+
+  changeResponsibleSecretary(
+    idSecretaria: number,
+    idResponsable: number,
+    data: IMembresiaSecretariaRequest
+  ): Observable<unknown> {
+    return this.http.post(
+      `${this.URL}/administracion/secretarias/${idSecretaria}/membresias/${idResponsable}/cambiar-secretaria`,
       data,
       { context: checkToken() }
     );

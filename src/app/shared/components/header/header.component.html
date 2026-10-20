@@ -29,7 +29,22 @@
         </p>
       }
 
-      @if (activeSecretaryId !== null) {
+      @if (userRole() === 'SUPERADMIN' || secretarias.length > 1) {
+        <label class="flex min-w-0 max-w-full flex-col gap-1 text-xs text-gray-600">
+          Contexto de datos
+          <select class="max-w-full rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 md:max-w-64"
+                  [value]="activeSecretaryId === null ? '' : activeSecretaryId"
+                  [disabled]="changingSecretary" (focus)="refreshSecretaries()" (change)="changeSecretary($event)">
+            @if (userRole() === 'SUPERADMIN') {
+              <option value="">Administración global</option>
+            }
+            @for (secretaria of secretarias; track secretaria.idSecretaria) {
+              <option [value]="secretaria.idSecretaria">{{ secretaria.nombre }}</option>
+            }
+          </select>
+        </label>
+        @if (changingSecretary) { <span role="status" class="text-xs text-gray-600">Cambiando contexto...</span> }
+      } @else if (activeSecretaryId !== null) {
         <span
           class="min-w-0 max-w-full whitespace-normal break-words rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 md:max-w-52 md:truncate md:whitespace-nowrap"
           [title]="activeSecretaryName"

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SecretariaAdminService } from '../../../../core/services/secretaria-admin.service';
 import { ResponsibleService } from '../../../../core/services/responsible.service';
@@ -26,6 +26,7 @@ import { finalize, forkJoin, timeout } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     MatIconModule,
     ReactiveFormsModule,
     SecretaryCreateModalComponent,
@@ -120,6 +121,7 @@ export class UsersListComponent implements OnInit {
   userFormModalOpen = signal(false);
   userFormResponsableId = signal<number | null>(null);
   deletingSecretariaId = signal<number | null>(null);
+  readonly hasSecretaryContext = this.tokenService.getActiveSecretaryId() !== null;
 
   activeSecretaryForm = this.fb.group({
     nombre: ['', [Validators.required]]
@@ -215,7 +217,8 @@ export class UsersListComponent implements OnInit {
   loadData(): void {
     this.loading.set(true);
     this.loadErrors.set([]);
-    let pending = 4;
+    let pending = this.hasSecretaryContext ? 4 : 3;
+    if (!this.hasSecretaryContext) this.responsables.set([]);
     const finish = () => {
       pending--;
       if (pending === 0) this.loading.set(false);
@@ -251,7 +254,7 @@ export class UsersListComponent implements OnInit {
         this.loadErrors.update(errors => [...errors, 'No se pudieron cargar las secretarías.']);
       }
     });
-    this.responsibleService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
+    if (this.hasSecretaryContext) this.responsibleService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
       next: responsables => {
         this.responsables.set(responsables);
       },

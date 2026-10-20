@@ -33,6 +33,14 @@
 		</div>
 	</header>
 
+	@if (isSuperAdmin() && !hasSecretaryContext) {
+		<div role="status" class="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+			<p class="font-semibold">Administración global</p>
+			<p class="mt-1">Puedes gestionar secretarías y vinculaciones sin seleccionar una secretaría. Para consultar núcleos familiares o usuarios locales, selecciona un contexto de datos en el encabezado.</p>
+			<a routerLink="/membresias" class="mt-2 inline-block font-semibold underline">Gestionar vinculaciones de usuarios</a>
+		</div>
+	}
+
 	<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
 		<article class="rounded-xl border border-slate-200 border-l-4 border-l-blue-500 bg-white p-4 shadow-sm">
 			@if (isSuperAdmin()) {
@@ -53,6 +61,7 @@
 		</article>
 	</div>
 
+	@if (hasSecretaryContext) {
 	<form [formGroup]="activeSecretaryForm" (ngSubmit)="updateActiveSecretaryName()" class="mt-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
 		<div class="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
 			<div>
@@ -70,6 +79,7 @@
 			</label>
 		</div>
 	</form>
+	}
 
 	<app-secretary-create-modal [open]="secretaryModalOpen()" [loading]="creatingSecretary()" [departamentos]="departamentos()" [municipios]="municipios()" (cancel)="closeSecretaryModal()" (create)="createSecretary($event)"></app-secretary-create-modal>
 	<app-secretary-parameters-modal [open]="parameterModalOpen()" [loading]="loadingParameters()" [saving]="savingParameters()" [secretariaName]="selectedSecretaryForParameters()?.nombre || ''" [tipoSecretaria]="selectedSecretaryForParameters()?.tipo" [parameters]="currentParameters()" (cancel)="closeParameterModal()" (save)="saveSecretaryParameters($event)"></app-secretary-parameters-modal>
@@ -383,8 +393,9 @@
 			<div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h2 class="text-base font-semibold text-slate-800">Usuarios de la secretaría activa</h2>
-					<p class="text-sm text-slate-500">La lista corresponde al contexto de secretaría con el que se inició sesión.</p>
+					<p class="text-sm text-slate-500">Los roles corresponden a la secretaría activa. Cambiarlos no modifica los permisos en otras secretarías.</p>
 				</div>
+				@if (hasSecretaryContext) {
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
 					<div class="relative w-full sm:w-72">
 						<label for="usuario-search" class="sr-only">Buscar responsable</label>
@@ -393,14 +404,19 @@
 							<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearUsuarioSearch()" aria-label="Limpiar búsqueda de responsables"><mat-icon>close</mat-icon></button>
 						}
 					</div>
+					@if (!isSuperAdmin()) {
 					<button type="button" class="btn-action-blue w-full sm:w-auto" (click)="goToNewUser()">
 						<mat-icon class="text-base">person_add</mat-icon>
 						Nuevo Usuario
 					</button>
+					}
 				</div>
+				}
 			</div>
 
-			@if (loading()) {
+			@if (!hasSecretaryContext) {
+				<p class="rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Selecciona una secretaría en el encabezado para consultar sus usuarios. Para asignar o trasladar vinculaciones, usa <a routerLink="/membresias" class="font-semibold underline">Gestión de membresías</a>.</p>
+			} @else if (loading()) {
 				<div class="flex items-center justify-center rounded-lg border border-dashed border-slate-200 px-4 py-10 text-sm text-slate-500">
 					<mat-icon class="mr-2 animate-spin text-base">progress_activity</mat-icon>
 					Cargando responsables...
@@ -420,9 +436,9 @@
 									<th class="px-3 py-2 text-left">Usuario</th>
 									<th class="px-3 py-2 text-left">Correo</th>
 									<th class="px-3 py-2 text-left">Teléfono</th>
-									<th class="px-3 py-2 text-center">Perfil</th>
+									<th class="px-3 py-2 text-center">Rol en esta secretaría</th>
 									<th class="px-3 py-2 text-center">Estado</th>
-									<th class="px-3 py-2 text-center">Acciones</th>
+									@if (!isSuperAdmin()) { <th class="px-3 py-2 text-center">Acciones</th> }
 								</tr>
 							</thead>
 							<tbody>
@@ -433,17 +449,26 @@
 										<td class="px-3 py-2">{{ responsable.usuario }}</td>
 										<td class="px-3 py-2">{{ responsable.email }}</td>
 										<td class="px-3 py-2">{{ responsable.telefono }}</td>
-										<td class="px-3 py-2 text-center">{{ responsable.perfilUsuario }}</td>
+										<td class="px-3 py-2 text-center">
+											@switch (responsable.perfilUsuario) {
+												@case ('ADMIN') { Administrador }
+												@case ('RESP') { Responsable }
+												@case ('SUPERADMIN') { Super Administrador }
+												@default { {{ responsable.perfilUsuario }} }
+											}
+										</td>
 										<td class="px-3 py-2 text-center">
 											<span class="status-badge" [ngClass]="responsable.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">
 												{{ responsable.estado === 'A' ? 'Activo' : 'Inactivo' }}
 											</span>
 										</td>
+										@if (!isSuperAdmin()) {
 										<td class="px-3 py-2 text-center">
 											<button type="button" class="rounded-md p-1 text-blue-700 hover:bg-blue-50" (click)="editUser(responsable.idResponsable)" title="Editar responsable" aria-label="Editar responsable">
 												<mat-icon>edit</mat-icon>
 											</button>
 										</td>
+										}
 									</tr>
 								}
 							</tbody>

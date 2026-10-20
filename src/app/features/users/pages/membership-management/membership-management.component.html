@@ -1,0 +1,207 @@
+<section class="mx-auto max-w-7xl space-y-5 py-4" aria-labelledby="membership-title">
+  <header>
+    <h1 id="membership-title" class="text-2xl font-bold text-slate-800">Gestión de membresías</h1>
+    <p class="mt-1 text-sm text-slate-600">Busca un responsable y selecciona Gestionar para administrar sus accesos a las secretarías.</p>
+  </header>
+
+  @if (loadError()) {
+    <div role="alert" class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+      {{ loadError() }}
+      <button type="button" class="ml-2 font-semibold underline" (click)="loadData()" [disabled]="loading()">Reintentar</button>
+    </div>
+  }
+
+  <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="responsables-title">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 id="responsables-title" class="font-semibold text-slate-800">Responsables registrados</h2>
+        <p class="mt-1 text-xs text-slate-500">{{ filteredResponsables().length }} resultados</p>
+      </div>
+      <div class="w-full sm:max-w-sm">
+        <label for="membership-search" class="sr-only">Buscar responsable</label>
+        <input id="membership-search" class="input-base" type="search" placeholder="Nombre, usuario o documento" [value]="search()" (input)="updateSearch($event)" />
+      </div>
+    </div>
+    @if (loading() && !responsables().length) {
+      <p role="status" class="py-8 text-center text-sm text-slate-500">Cargando responsables...</p>
+    } @else if (!filteredResponsables().length) {
+      <p class="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">No se encontraron responsables.</p>
+    } @else {
+      <div class="table-shell">
+        <div class="table-scroll">
+          <table class="table-compact">
+            <caption class="sr-only">Responsables y cantidad de vinculaciones activas</caption>
+            <thead>
+              <tr>
+                <th scope="col">Responsable</th>
+                <th scope="col">Usuario / documento</th>
+                <th scope="col">Vínculos activos</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (responsable of paginatedResponsables(); track responsable.idResponsable) {
+                <tr>
+                  <td>
+                    <p class="font-semibold">{{ responsable.primerNombre }} {{ responsable.segundoNombre }} {{ responsable.primerApellido }} {{ responsable.segundoApellido }}</p>
+                    <p class="mt-1 break-all text-xs text-slate-500">{{ responsable.email }}</p>
+                  </td>
+                  <td>
+                    <p>{{ responsable.usuario }}</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ responsable.tipoIdentificacion }} {{ responsable.numeroIdentificacion }}</p>
+                  </td>
+                  <td><span class="status-badge bg-blue-50 text-blue-700">{{ activeMembershipCount(responsable) }}</span></td>
+                  <td>
+                    <button type="button" class="btn-action-blue gap-2" [disabled]="saving() || loading()" (click)="selectResponsable(responsable)"
+                      [attr.aria-label]="'Gestionar membresías de ' + responsable.primerNombre + ' ' + responsable.primerApellido">
+                      <mat-icon aria-hidden="true">manage_accounts</mat-icon> Gestionar
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="mt-5 flex flex-col gap-4 border-t border-slate-100 pt-4 md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-wrap items-center gap-4">
+          <p class="text-xs text-slate-500">Mostrando {{ firstVisibleIndex() }}–{{ lastVisibleIndex() }} de {{ filteredResponsables().length }}</p>
+          <label for="membership-page-size" class="sr-only">Responsables por página</label>
+          <select id="membership-page-size" class="select-base" [value]="pageSize()" (change)="updatePageSize($event)">
+            <option value="10">10 por página</option>
+            <option value="20">20 por página</option>
+            <option value="50">50 por página</option>
+          </select>
+        </div>
+        <nav class="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-xl bg-slate-50 p-2" aria-label="Paginación de responsables">
+          <button type="button" class="btn-navigate-black" [disabled]="pageIndex() === 0" (click)="previousPage()">Anterior</button>
+          <span class="text-center text-xs text-slate-600" aria-live="polite">Página {{ pageIndex() + 1 }} de {{ totalPages() }}</span>
+          <button type="button" class="btn-navigate-black" [disabled]="pageIndex() >= totalPages() - 1" (click)="nextPage()">Siguiente</button>
+        </nav>
+      </div>
+    }
+  </section>
+</section>
+
+@if (selectedResponsable(); as responsable) {
+  <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-3 sm:p-5"
+    (keydown.escape)="$event.stopPropagation(); closeManagement()">
+    <section role="dialog" aria-modal="true" aria-labelledby="membership-detail-title"
+      [cdkTrapFocus]="!saving()" [cdkTrapFocusAutoCapture]="true"
+      class="flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+      <header class="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 p-4 sm:p-5">
+        <div class="min-w-0">
+          <h2 id="membership-detail-title" class="text-lg font-bold text-slate-800">Vinculaciones de {{ responsable.primerNombre }} {{ responsable.primerApellido }}</h2>
+          <p class="mt-1 break-words text-sm text-slate-500">{{ responsable.usuario }} · {{ responsable.tipoIdentificacion }} {{ responsable.numeroIdentificacion }}</p>
+        </div>
+        <button type="button" cdkFocusInitial class="shrink-0 rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+          [disabled]="saving() || loading()" (click)="closeManagement()" aria-label="Cerrar gestión de membresías">
+          <mat-icon aria-hidden="true">close</mat-icon>
+        </button>
+      </header>
+
+      <div class="min-h-0 space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-5">
+        @if (loadError()) {
+          <div role="alert" class="rounded-lg bg-red-50 p-3 text-sm text-red-800">
+            {{ loadError() }}
+            <button type="button" class="ml-2 font-semibold underline" (click)="loadData()" [disabled]="loading()">Reintentar</button>
+          </div>
+        }
+        @if (saveError()) { <p role="alert" class="rounded-lg bg-red-50 p-3 text-sm text-red-700">{{ saveError() }}</p> }
+        @if (successMessage()) { <p role="status" class="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{{ successMessage() }}</p> }
+        @if (loading()) { <p role="status" class="text-sm text-slate-500">Actualizando vinculaciones...</p> }
+
+        <div>
+          <h3 class="mb-3 font-semibold text-slate-800">Secretarías asignadas</h3>
+          @if (responsable.membresias.length) {
+            <table class="w-full border-separate border-spacing-0 text-sm text-slate-700">
+              <caption class="sr-only">Vinculaciones con acciones para activar o inactivar</caption>
+              <thead class="hidden sm:table-header-group">
+                <tr class="bg-slate-50">
+                  <th scope="col" class="p-3 text-left">Secretaría</th>
+                  <th scope="col" class="p-3 text-left">Rol</th>
+                  <th scope="col" class="p-3 text-left">Estado</th>
+                  <th scope="col" class="p-3 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody class="block space-y-3 sm:table-row-group sm:space-y-0">
+                @for (membresia of responsable.membresias; track membresia.idSecretaria) {
+                  <tr class="block rounded-xl border border-slate-200 p-3 sm:table-row sm:p-0">
+                    <td class="block break-words pb-2 font-medium sm:table-cell sm:border-b sm:border-slate-100 sm:p-3">{{ membresia.nombreSecretaria }}</td>
+                    <td class="inline-block pr-2 sm:table-cell sm:border-b sm:border-slate-100 sm:p-3">{{ membresia.rol === 'ADMIN' ? 'Administrador' : 'Responsable' }}</td>
+                    <td class="inline-block sm:table-cell sm:border-b sm:border-slate-100 sm:p-3">
+                      <span class="status-badge" [ngClass]="membresia.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ membresia.estado === 'A' ? 'Activa' : 'Inactiva' }}</span>
+                    </td>
+                    <td class="mt-3 block sm:mt-0 sm:table-cell sm:border-b sm:border-slate-100 sm:p-3 sm:text-right">
+                      <button type="button" class="min-h-9 w-full rounded-lg border px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                        [ngClass]="membresia.estado === 'A' ? 'border-red-200 text-red-700 hover:bg-red-50' : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'"
+                        [disabled]="saving() || loading() || !!loadError()"
+                        [attr.aria-label]="(membresia.estado === 'A' ? 'Inactivar acceso a ' : 'Activar acceso a ') + membresia.nombreSecretaria"
+                        (click)="membresia.estado === 'A' ? deactivateMembership(membresia) : activateMembership(membresia)">
+                        {{ membresia.estado === 'A' ? 'Inactivar' : 'Activar' }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="rounded-lg bg-slate-50 p-4 text-sm text-slate-500">No tiene secretarías asignadas. Usa «Agregar secretaría» para crear su primera vinculación.</p>
+          }
+        </div>
+
+        @if (!formVisible()) {
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <button type="button" class="btn-action-blue gap-2" [disabled]="saving() || loading() || !!loadError()" (click)="openForm('agregar')">
+              <mat-icon aria-hidden="true">add</mat-icon> Agregar secretaría
+            </button>
+            <button type="button" class="btn-action-gray disabled:cursor-not-allowed disabled:opacity-50"
+              [disabled]="saving() || loading() || !!loadError() || !activeMemberships().length" (click)="openForm('cambiar')">Cambiar de secretaría</button>
+          </div>
+        } @else {
+          <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4" novalidate>
+            <h3 class="font-semibold text-slate-800">{{ form.controls.accion.value === 'cambiar' ? 'Cambiar de secretaría' : 'Agregar secretaría' }}</h3>
+            <p class="text-xs leading-relaxed text-slate-600">
+              {{ form.controls.accion.value === 'cambiar' ? 'Se inactivará únicamente la vinculación de origen y se activará la de destino. Las demás se conservarán.' : 'Se conservarán las vinculaciones actuales. Las secretarías ya activas no pueden agregarse otra vez; las inactivas también pueden reactivarse desde la tabla.' }}
+            </p>
+            <fieldset class="grid min-w-0 gap-4 sm:grid-cols-2" [disabled]="saving() || loading() || !!loadError()">
+              <legend class="sr-only">Datos de la vinculación</legend>
+              @if (form.controls.accion.value === 'cambiar') {
+                <label class="text-sm font-semibold text-slate-700 sm:col-span-2">Secretaría de origen <span class="text-red-600">*</span>
+                  <select class="input-base mt-1 font-normal" formControlName="idSecretariaOrigen">
+                    <option value="">Selecciona la vinculación que se inactivará</option>
+                    @for (membresia of activeMemberships(); track membresia.idSecretaria) {
+                      <option [value]="membresia.idSecretaria">{{ membershipLabel(membresia) }}</option>
+                    }
+                  </select>
+                </label>
+              }
+              <label class="text-sm font-semibold text-slate-700">Secretaría destino <span class="text-red-600">*</span>
+                <select class="input-base mt-1 font-normal" formControlName="idSecretaria">
+                  <option value="">Selecciona una secretaría</option>
+                  @for (secretaria of secretarias(); track secretaria.idSecretaria) {
+                    <option [value]="secretaria.idSecretaria" [disabled]="isActiveMembership(secretaria.idSecretaria)">{{ secretaria.nombre }}</option>
+                  }
+                </select>
+              </label>
+              <label class="text-sm font-semibold text-slate-700">Rol en la secretaría destino <span class="text-red-600">*</span>
+                <select class="input-base mt-1 font-normal" formControlName="rol">
+                  <option value="RESP">Responsable</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              </label>
+            </fieldset>
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end">
+              <button type="button" class="btn-action-gray" [disabled]="saving() || loading()" (click)="cancelForm()">Cancelar</button>
+              <button type="button" class="btn-action-gray disabled:opacity-50" [disabled]="saving() || loading() || !form.dirty" (click)="openForm(form.controls.accion.value)">Limpiar</button>
+              <button type="submit" class="btn-action-blue" [disabled]="!canSubmit()">{{ saving() ? 'Guardando...' : 'Confirmar vinculación' }}</button>
+            </div>
+          </form>
+        }
+      </div>
+      <footer class="flex shrink-0 justify-end border-t border-slate-200 bg-slate-50 p-4">
+        <button type="button" class="btn-action-gray w-full sm:w-auto" [disabled]="saving() || loading()" (click)="closeManagement()">Cerrar</button>
+      </footer>
+    </section>
+  </div>
+}

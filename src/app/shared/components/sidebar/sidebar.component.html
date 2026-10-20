@@ -85,6 +85,12 @@
         <mat-icon>admin_panel_settings</mat-icon>
         @if (!collapsed) { <span>Panel administrativo</span> }
       </a>
+      <a routerLink="/membresias" routerLinkActive="bg-white/20"
+        class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white hover:bg-white/10"
+        [attr.title]="collapsed ? 'Gestión de membresías' : null">
+        <mat-icon>group_add</mat-icon>
+        @if (!collapsed) { <span>Gestión de membresías</span> }
+      </a>
       <a routerLink="/resposibles/soporte" routerLinkActive="bg-white/20"
         class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white hover:bg-white/10"
         [attr.title]="collapsed ? 'Soporte administrativo' : null">

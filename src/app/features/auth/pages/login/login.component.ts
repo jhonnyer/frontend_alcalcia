@@ -68,7 +68,7 @@ export class LoginComponent {
         next: response => {
           this.secretarias = response.secretarias ?? [];
 
-          if (this.secretarias.length > 1) {
+          if (response.rol !== 'SUPERADMIN' && this.secretarias.length > 1) {
             this.tokenService.saveLoginResponse(response, true);
             this.requiresSecretarySelection = true;
             this.credentialsValidated = true;

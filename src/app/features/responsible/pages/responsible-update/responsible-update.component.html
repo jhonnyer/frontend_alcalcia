@@ -218,7 +218,8 @@
         </div>
 
         <div class="border border-gray-200 rounded-lg p-4 flex-1 bg-gray-50">
-          <p class="label-base mb-2 block"><span class="text-red-600">*</span> Perfil del usuario</p>
+          <p class="label-base mb-2 block"><span class="text-red-600">*</span> Rol en la secretaría activa</p>
+          <p class="mb-3 text-xs text-slate-500">Este rol solo aplica a esta vinculación. No cambia los permisos en otras secretarías.</p>
           <div class="flex gap-6">
             <label class="flex items-center gap-2">
               <input formControlName="perfilUsuario" type="radio" value="RESP" class="input-radio-base" />
@@ -230,7 +231,7 @@
             </label>
           </div>
           @if(formFamilyCore.get('perfilUsuario')?.hasError('required') && formFamilyCore.get('perfilUsuario')?.touched) {
-            <p class="text-red-500 text-sm mt-1">Seleccione un perfil de usuario.</p>
+            <p class="text-red-500 text-sm mt-1">Seleccione un rol para esta secretaría.</p>
           }
         </div>
       </div>

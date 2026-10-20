@@ -34,6 +34,10 @@ export class AuthService {
     return this.http.post<IResponseLogin>(`${this.URL}/auth/secretaria/${idSecretaria}`, {});
   }
 
+  enterGlobalContext(): Observable<IResponseLogin> {
+    return this.http.post<IResponseLogin>(`${this.URL}/auth/contexto-global`, {});
+  }
+
   logout() {
     // Método para cerrar sesión
     this.tokenService.clearToken();

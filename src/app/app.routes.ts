@@ -11,6 +11,7 @@ import { authenticationGuard } from './core/guards/authentication.guard';
 import { unauthenticatedGuard } from './core/guards/unauthenticated.guard';
 import { hasRoleGuard } from './core/guards/has-role-guard.guard';
 import { operationalViewGuard } from './core/guards/operational-view.guard';
+import { secretaryContextGuard } from './core/guards/secretary-context.guard';
 
 export const routes: Routes = [
   {
@@ -39,18 +40,19 @@ export const routes: Routes = [
       {
 
         path: 'nucleo',
-        canActivate: [hasRoleGuard],
+        canActivate: [hasRoleGuard, secretaryContextGuard],
         data: { allowedRoles: ['ADMIN', 'RESP', 'SUPERADMIN'] },
         loadChildren: () => import('./features/nucleo/nucleo.routes').then(m=> m.NUCLEO_ROUTES)
       },
       {
         path: 'inventory',
-        canActivate: [hasRoleGuard],
+        canActivate: [hasRoleGuard, secretaryContextGuard],
         data: { allowedRoles: ['ADMIN', 'RESP'] },
         loadChildren: () => import('./features/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES)
       },
       {
         path: 'beneficary',
+        canActivate: [secretaryContextGuard],
         loadChildren: () => import('./features/beneficiary/beneficiary.routes').then(m => m.BENEFICIARY_ROUTES)
       },
       {
@@ -77,6 +79,13 @@ export const routes: Routes = [
         canActivate: [hasRoleGuard],
         data: { allowedRoles: ['ADMIN', 'SUPERADMIN'] },
         loadChildren: () => import('./features/users/users.routes').then(m => m.USERS_ROUTES)
+      },
+      {
+        path: 'membresias',
+        canActivate: [hasRoleGuard],
+        data: { allowedRoles: ['SUPERADMIN'] },
+        loadComponent: () => import('./features/users/pages/membership-management/membership-management.component')
+          .then(m => m.MembershipManagementComponent)
       },
       {
         path: 'secretarias',

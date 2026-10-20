@@ -82,7 +82,7 @@ export const defaultColumns: ColumnDef<IResponsable>[] = [
     id: 'perfilUsuario',
     accessorFn: (r) => perfilUsuarioLabel[r.perfilUsuario],
     cell: (info) => info.getValue(),
-    header: 'Perfil',
+    header: 'Rol en esta secretaría',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' },
   },

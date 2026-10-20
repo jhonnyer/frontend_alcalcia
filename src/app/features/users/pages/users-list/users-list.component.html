@@ -437,7 +437,8 @@
 									<th class="px-3 py-2 text-left">Correo</th>
 									<th class="px-3 py-2 text-left">Teléfono</th>
 									<th class="px-3 py-2 text-center">Rol en esta secretaría</th>
-									<th class="px-3 py-2 text-center">Estado</th>
+									<th class="px-3 py-2 text-center">Estado de vinculación</th>
+									<th class="px-3 py-2 text-center">Estado de cuenta</th>
 									@if (!isSuperAdmin()) { <th class="px-3 py-2 text-center">Acciones</th> }
 								</tr>
 							</thead>
@@ -461,6 +462,11 @@
 											<span class="status-badge" [ngClass]="responsable.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">
 												{{ responsable.estado === 'A' ? 'Activo' : 'Inactivo' }}
 											</span>
+										</td>
+										<td class="px-3 py-2 text-center">
+											@if (responsable.estadoCuenta; as estadoCuenta) {
+												<span class="status-badge" [ngClass]="estadoCuenta === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ estadoCuenta === 'A' ? 'Activa' : 'Inactiva' }}</span>
+											} @else { No disponible }
 										</td>
 										@if (!isSuperAdmin()) {
 										<td class="px-3 py-2 text-center">

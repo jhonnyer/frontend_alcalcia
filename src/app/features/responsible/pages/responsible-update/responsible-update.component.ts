@@ -38,6 +38,7 @@ export class ResponsibleUpdateComponent implements OnInit {
 
   public formFamilyCore: FormGroup = new FormGroup({});
   private originalPassword: string = '';
+  public estadoCuenta: IResponsable['estadoCuenta'];
 
   @HostListener('document:keydown.escape')
   onDocumentEscape(): void {
@@ -65,6 +66,13 @@ export class ResponsibleUpdateComponent implements OnInit {
   }
 
   private initializeMode(id: string | null): void {
+    const password = this.formFamilyCore.get('password');
+    if (id && id !== 'nuevo') {
+      password?.clearValidators();
+    } else {
+      password?.setValidators([Validators.required, Validators.minLength(6)]);
+    }
+    password?.updateValueAndValidity({ emitEvent: false });
     if (id && id !== 'nuevo') {
       // MODO EDICIÓN
       this.modoCreacion = false;
@@ -143,6 +151,7 @@ export class ResponsibleUpdateComponent implements OnInit {
   }
 
   private initResponsable(responsable: IResponsable): void {
+    this.estadoCuenta = responsable.estadoCuenta;
     this.originalPassword = responsable.password || '';
     this.formFamilyCore.patchValue(
       {
@@ -201,10 +210,10 @@ export class ResponsibleUpdateComponent implements OnInit {
 
       // Selecciona la acción según el modo
       const peticion = this.modoCreacion
-        ? this.responsibleService.post(this.formFamilyCore.value)
+        ? this.responsibleService.post(data)
         : this.responsibleService.updateById(
             this.responsableId!.toString(),
-            this.formFamilyCore.value
+            data
           );
 
       peticion.subscribe({

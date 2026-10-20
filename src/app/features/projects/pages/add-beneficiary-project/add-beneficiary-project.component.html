@@ -1,106 +1,120 @@
-<div class="h-[calc(100vh-6rem)] scroll-auto scrollbar-custom  overflow-y-auto p-6 bg-white rounded-lg shadow">
-  <h2 class="text-2xl font-semibold mb-6">Asignar Beneficiario a Proyecto</h2>
+<section class="mx-auto max-w-5xl space-y-5 rounded-2xl bg-slate-50 p-3 sm:p-6" aria-labelledby="assignment-title">
+  <header class="flex items-start gap-3">
+    <span class="hidden rounded-xl bg-blue-100 p-3 text-blue-700 sm:inline-flex"><mat-icon aria-hidden="true">person_add</mat-icon></span>
+    <div>
+      <h1 id="assignment-title" class="text-xl font-bold text-slate-800 sm:text-2xl">Asignar beneficiario a proyecto</h1>
+      <p class="mt-1 text-sm text-slate-600">Verifica el documento del beneficiario y selecciona un proyecto activo.</p>
+      <p class="mt-2 text-xs text-slate-500"><span class="font-bold text-red-600">*</span> Campos obligatorios</p>
+    </div>
+  </header>
 
-   <!-- Buscador de Beneficiario -->
-  <div class="flex flex-col">
-    <div class="flex flex-col gap-2">
-      <label for="buscarBeneficiario" class="label-base">*Buscar beneficiario</label>
-      <input
-        type="text"
-        id="buscarBeneficiario"
-        class="input-base"
-        placeholder="Ingrese el número de cedula"
-        [formControl]="searchBeneficiario"
-        min="0"
-      >
-      @if(searchBeneficiario.errors && searchBeneficiario.touched){
-        @if(searchBeneficiario.hasError('minlength')){
-          <p class="text-red-500">* Minimo 6 digitos</p>
-        }
-        @if(searchBeneficiario.hasError('maxlength')){
-          <p class="text-red-500">* Minimo 14 digitos</p>
-        }
-        @if(searchBeneficiario.hasError('pattern')){
-          <p class="text-red-500">* Solo se aceptan números</p>
-        }
-      }
-      @if(beneficiarioNoEncontrado){
-        <p class="text-red-500">* Esta cedula no esta registrada</p>
+  <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="beneficiary-title">
+    <h2 id="beneficiary-title" class="mb-4 flex items-center gap-2 font-semibold text-slate-800">
+      <span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-sm text-blue-700">1</span>
+      Verificar beneficiario
+    </h2>
+    <label for="buscarBeneficiario" class="label-base"><span class="text-red-600">*</span> Número de documento</label>
+    <div class="mt-1 flex flex-col gap-2 sm:flex-row">
+      <input type="text" id="buscarBeneficiario" class="input-base min-w-0 flex-1"
+        placeholder="Ingresa el documento completo" [formControl]="searchBeneficiario" maxlength="40"
+        autocomplete="off" aria-describedby="beneficiary-search-help"
+        [attr.aria-invalid]="searchBeneficiario.touched && searchBeneficiario.invalid" />
+      @if (searchBeneficiario.value) {
+        <button type="button" class="btn-action-gray w-full sm:w-auto" [disabled]="saving()"
+          (click)="searchBeneficiario.setValue('')">Limpiar</button>
       }
     </div>
-
-    @if(beneficiario() !== null){
-      <div class="flex flex-col justify-center items-start gap-4 w-full mt-4 p-4 border rounded-lg bg-gray-50">
-        <div class="flex justify-between gap-5 w-full">
-          <p class="w-1/2">Primer nombre: {{beneficiario()?.primerNombre}}</p>
-          <p class="w-1/2">Segundo nombre: {{beneficiario()?.segundoNombre}}</p>
-        </div>
-        <div class="flex justify-between gap-5 w-full">
-          <p class="w-1/2">Primer apellido: {{beneficiario()?.primerApellido}}</p>
-          <p class="w-1/2">Segundo apellido: {{beneficiario()?.segundoApellido}}</p>
-        </div>
-        <div class="flex justify-between gap-5 w-full">
-          <p class="w-1/2">Tipo de documento: {{beneficiario()?.tipoDocumento}}</p>
-          <p class="w-1/2">Número de documento: {{beneficiario()?.numeroDocumento}}</p>
-        </div>
-      </div>
+    <p id="beneficiary-search-help" class="mt-2 text-xs text-slate-500">Entre 3 y 40 caracteres. Se permiten letras, números, guiones y espacios. La búsqueda es automática.</p>
+    @if (searchBeneficiario.invalid && searchBeneficiario.touched) {
+      <p role="alert" class="mt-2 text-sm text-red-600">Ingresa un documento válido de 3 a 40 caracteres.</p>
     }
-  </div>
+    @if (searchingBeneficiary()) {
+      <p role="status" class="mt-3 flex items-center gap-2 text-sm text-blue-700">
+        <mat-icon class="animate-spin" aria-hidden="true">progress_activity</mat-icon> Verificando beneficiario...
+      </p>
+    } @else if (beneficiaryError()) {
+      <div role="alert" class="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">
+        {{ beneficiaryError() }}
+        <button type="button" class="ml-2 font-semibold underline" [disabled]="saving()" (click)="retryBeneficiary()">Reintentar</button>
+      </div>
+    } @else {
+      @if (beneficiario(); as person) {
+      <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+        <p role="status" class="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-800">
+          <mat-icon aria-hidden="true">check_circle</mat-icon> Beneficiario verificado
+        </p>
+        <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+          <div class="min-w-0"><dt class="font-semibold text-slate-600">Nombres</dt><dd class="mt-1 break-words text-slate-800">{{ person.primerNombre }} {{ person.segundoNombre }}</dd></div>
+          <div class="min-w-0"><dt class="font-semibold text-slate-600">Apellidos</dt><dd class="mt-1 break-words text-slate-800">{{ person.primerApellido }} {{ person.segundoApellido }}</dd></div>
+          <div><dt class="font-semibold text-slate-600">Tipo de documento</dt><dd class="mt-1 text-slate-800">{{ person.tipoDocumento }}</dd></div>
+          <div class="min-w-0"><dt class="font-semibold text-slate-600">Número de documento</dt><dd class="mt-1 break-words text-slate-800">{{ person.numeroDocumento }}</dd></div>
+        </dl>
+      </div>
+    } @else {
+      <p class="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">Busca un beneficiario registrado para habilitar la asignación.</p>
+      }
+    }
+  </section>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
-    <!-- Proyecto -->
-    <div>
-      <label for="idProyecto" class="block text-sm font-medium text-gray-700 mb-1">
-        *Proyecto
-      </label>
-      <div class="relative">
-        <input id="idProyecto" class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
-        @if (projectSearch()) {
-          <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearProjectFilter()" aria-label="Limpiar proyecto" title="Limpiar proyecto"><mat-icon>close</mat-icon></button>
-        }
-        @if (projectSuggestionsVisible() && filteredProjects().length > 0) {
-          <div class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
-            @for (proyecto of filteredProjects(); track proyecto.idProyecto) {
-              <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50" (mousedown)="$event.preventDefault()" (click)="selectProject(proyecto)">
-                <span class="block font-semibold">#{{ proyecto.idProyecto }} - {{ proyecto.nombre }}</span>
-                <span class="block text-xs text-slate-500">{{ proyecto.descripcion || 'Sin descripción' }}</span>
-              </button>
-            }
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5" [attr.aria-busy]="saving()">
+    <section class="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="project-title">
+      <h2 id="project-title" class="flex items-center gap-2 font-semibold text-slate-800">
+        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-sm text-blue-700">2</span>
+        Datos de la asignación
+      </h2>
+      <div>
+        <label for="idProyecto" class="label-base"><span class="text-red-600">*</span> Proyecto activo</label>
+        <div class="relative mt-1" (focusout)="hideProjectSuggestions($event)">
+          <input id="idProyecto" class="input-base pr-10" type="text" placeholder="Buscar por nombre o ID"
+            [value]="projectSearch()" [disabled]="saving() || loadingProjects() || !!projectError()"
+            (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()"
+            (keydown.escape)="projectSuggestionsVisible.set(false)" autocomplete="off" aria-describedby="project-help"
+            [attr.aria-expanded]="projectSuggestionsVisible()" aria-controls="assignment-projects" />
+          @if (projectSearch()) {
+            <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100"
+              [disabled]="saving()" (click)="clearProjectFilter()" aria-label="Limpiar proyecto"><mat-icon aria-hidden="true">close</mat-icon></button>
+          }
+          @if (projectSuggestionsVisible() && !loadingProjects() && !saving() && !projectError()) {
+            <div id="assignment-projects" class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
+              @for (proyecto of filteredProjects(); track proyecto.idProyecto) {
+                <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50 focus:bg-blue-50"
+                  (mousedown)="$event.preventDefault()" (click)="selectProject(proyecto)">
+                  <span class="block break-words font-semibold">#{{ proyecto.idProyecto }} - {{ proyecto.nombre }}</span>
+                  <span class="block break-words text-xs text-slate-500">{{ proyecto.descripcion || 'Sin descripción' }}</span>
+                </button>
+              } @empty {
+                <p class="p-3 text-sm text-slate-500">No se encontraron proyectos activos.</p>
+              }
+            </div>
+          }
+        </div>
+        <p id="project-help" class="mt-2 text-xs text-slate-500">Selecciona un resultado de la lista; escribir el nombre no selecciona el proyecto.</p>
+        @if (loadingProjects()) { <p role="status" class="mt-2 text-sm text-blue-700">Cargando proyectos...</p> }
+        @if (projectError()) {
+          <div role="alert" class="mt-2 text-sm text-red-700">{{ projectError() }}
+            <button type="button" class="ml-2 font-semibold underline" (click)="loadProyectos()">Reintentar</button>
           </div>
+        } @else if (!loadingProjects() && !proyectos().length) {
+          <p role="status" class="mt-2 text-sm text-amber-800">No hay proyectos activos disponibles para asignar.</p>
+        }
+        @if (form.get('idProyecto')?.hasError('required') && form.get('idProyecto')?.touched) {
+          <p class="mt-1 text-sm text-red-600">Selecciona un proyecto activo.</p>
         }
       </div>
-      @if(form.get('idProyecto')?.hasError('required') && form.get('idProyecto')?.touched) {
-        <p class="mt-1 text-sm text-red-600">El proyecto es requerido</p>
-      }
-    </div>
-
-    <!-- Observaciones -->
-    <div>
-      <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-1">
-        Observaciones
-      </label>
-      <textarea
-        id="observaciones"
-        formControlName="observaciones"
-        rows="3"
-        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-        placeholder="Observaciones opcionales"></textarea>
-    </div>
-
-    <!-- Botones -->
-    <div class="flex justify-end space-x-4 pb-10 md:pb-2">
-      <button
-        type="button"
-        (click)="cancel()"
-        class="btn-action-gray">
-        Cancelar
-      </button>
-      <button
-        type="submit"
-        class="btn-action-blue">
-        Guardar
-      </button>
-    </div>
+      <div>
+        <label for="observaciones" class="label-base">Observaciones <span class="font-normal text-slate-400">(opcional)</span></label>
+        <textarea id="observaciones" formControlName="observaciones" rows="3" class="input-base mt-1 resize-y" placeholder="Agrega información relevante sobre la asignación"></textarea>
+      </div>
+    </section>
+    <footer class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-xs text-slate-500">{{ saving() ? 'Guardando asignación...' : 'Guardar se habilita al verificar el beneficiario y seleccionar un proyecto válido.' }}</p>
+      <div class="flex flex-col gap-2 sm:flex-row">
+        <button type="button" (click)="cancel()" class="btn-action-gray w-full sm:w-auto" [disabled]="saving()">Cancelar</button>
+        <button type="submit" class="btn-action-blue w-full gap-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto" [disabled]="!canSave">
+          <mat-icon aria-hidden="true">{{ saving() ? 'hourglass_top' : 'save' }}</mat-icon>
+          {{ saving() ? 'Guardando...' : 'Guardar asignación' }}
+        </button>
+      </div>
+    </footer>
   </form>
-  <tr></tr>
-</div>
+</section>

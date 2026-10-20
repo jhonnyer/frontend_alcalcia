@@ -1,9 +1,10 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, DestroyRef, HostListener, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '../../../shared/components/header/header.component';
 import { SidebarComponent } from '../../../shared/components/sidebar/sidebar.component';
 import { MatIconModule } from '@angular/material/icon';
 import { NgClass, NgIf } from '@angular/common';
+import { SessionSyncService } from '../../../core/services/session-sync.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -12,13 +13,19 @@ import { NgClass, NgIf } from '@angular/common';
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss'
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
+  private readonly sessionSync = inject(SessionSyncService);
+  private readonly destroyRef = inject(DestroyRef);
   isSidebarOpen = true;         // sidebar visible por defecto en desktop
   isSidebarCollapsed = false;   // bandera lógica para manejar expansión
   isMobileView = false;         // detecta vista móvil
 
   constructor() {
     this.checkViewport();
+  }
+
+  ngOnInit(): void {
+    this.sessionSync.monitor(this.destroyRef);
   }
 
   /** Escucha cambios de tamaño de ventana */

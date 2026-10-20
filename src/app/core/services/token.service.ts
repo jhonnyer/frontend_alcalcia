@@ -37,7 +37,7 @@ export class TokenService {
   saveLoginResponse(response: IResponseLogin, secretaryPending = false) {
     if (this.isLocalStorageAvailable()) {
       // Guardar token
-      this.saveToken(response.token);
+      localStorage.setItem(this.TOKEN_KEY, response.token);
 
       // Guardar rol
       localStorage.setItem(this.USER_ROLE_KEY, response.rol);

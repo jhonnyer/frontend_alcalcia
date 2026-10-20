@@ -97,7 +97,15 @@ export const defaultColumns: ColumnDef<IResponsable>[] = [
           : 'text-red-600 font-semibold';
       return `<span class="${color}">${valor}</span>`;
     },
-    header: 'Estado',
+    header: 'Estado de vinculación',
+    filterFn: 'includesString',
+    meta: { filterVariant: 'text' },
+  },
+  {
+    id: 'estadoCuenta',
+    accessorFn: (r) => r.estadoCuenta ? estadoLabel[r.estadoCuenta] : 'No disponible',
+    cell: (info) => info.getValue(),
+    header: 'Estado de cuenta',
     filterFn: 'includesString',
     meta: { filterVariant: 'text' },
   },

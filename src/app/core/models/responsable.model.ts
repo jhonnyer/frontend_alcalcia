@@ -18,6 +18,7 @@ export interface IResponsable {
   password?: string | null;
   perfilUsuario: PerfilUsuario;
   estado: EstadoResponsable;
+  estadoCuenta?: EstadoResponsable;
 }
 
 export interface ISoporteSuperAdmin {

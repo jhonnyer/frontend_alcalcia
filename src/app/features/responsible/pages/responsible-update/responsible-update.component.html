@@ -201,7 +201,10 @@
       <!-- Estado y perfil -->
       <div class="flex flex-wrap gap-4 mt-4">
         <div class="border border-gray-200 rounded-lg p-4 flex-1 bg-gray-50">
-          <p class="label-base mb-2 block"><span class="text-red-600">*</span> Estado</p>
+          <p class="label-base mb-2 block"><span class="text-red-600">*</span> {{ modoCreacion ? 'Estado inicial' : 'Estado de la vinculación' }}</p>
+          <p class="mb-3 text-xs text-slate-500">
+            {{ modoCreacion ? 'Se aplicará a la cuenta nueva y a su primera vinculación.' : 'Controla el acceso a la secretaría activa. La cuenta se mantiene activa mientras tenga acceso activo a otra secretaría.' }}
+          </p>
           <div class="flex gap-6">
             <label class="flex items-center gap-2">
               <input formControlName="estado" type="radio" value="A" class="input-radio-base" />
@@ -214,6 +217,9 @@
           </div>
           @if(formFamilyCore.get('estado')?.hasError('required') && formFamilyCore.get('estado')?.touched) {
             <p class="text-red-500 text-sm mt-1">Seleccione un estado.</p>
+          }
+          @if (!modoCreacion && estadoCuenta) {
+            <p class="mt-3 text-xs text-slate-600">Estado actual de la cuenta: <strong>{{ estadoCuenta === 'A' ? 'Activa' : 'Inactiva' }}</strong></p>
           }
         </div>
 
@@ -239,6 +245,7 @@
       <!-- Contraseña -->
       <div class="mt-4">
         <label for="password" class="label-base">
+          @if (modoCreacion) { <span class="text-red-600">*</span> }
           {{ modoCreacion ? 'Contraseña' : 'Nueva contraseña (opcional)' }}
         </label>
         <input
@@ -252,6 +259,9 @@
           <p class="text-xs text-gray-500 mt-1">
             Si no vas a cambiar la contraseña, puedes dejar este campo vacío
           </p>
+        }
+        @if (modoCreacion && formFamilyCore.get('password')?.invalid && formFamilyCore.get('password')?.touched) {
+          <p class="mt-1 text-sm text-red-600">Ingresa una contraseña de al menos 6 caracteres.</p>
         }
       </div>
 

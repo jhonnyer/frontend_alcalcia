@@ -36,6 +36,7 @@
                 <th scope="col">Responsable</th>
                 <th scope="col">Usuario / documento</th>
                 <th scope="col">Vínculos activos</th>
+                <th scope="col">Estado de cuenta</th>
                 <th scope="col">Acciones</th>
               </tr>
             </thead>
@@ -51,6 +52,7 @@
                     <p class="mt-1 text-xs text-slate-500">{{ responsable.tipoIdentificacion }} {{ responsable.numeroIdentificacion }}</p>
                   </td>
                   <td><span class="status-badge bg-blue-50 text-blue-700">{{ activeMembershipCount(responsable) }}</span></td>
+                  <td><span class="status-badge" [ngClass]="responsable.estado === 'A' ? 'status-badge-active' : 'status-badge-inactive'">{{ responsable.estado === 'A' ? 'Activa' : 'Inactiva' }}</span></td>
                   <td>
                     <button type="button" class="btn-action-blue gap-2" [disabled]="saving() || loading()" (click)="selectResponsable(responsable)"
                       [attr.aria-label]="'Gestionar membresías de ' + responsable.primerNombre + ' ' + responsable.primerApellido">
@@ -101,6 +103,10 @@
       </header>
 
       <div class="min-h-0 space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-5">
+        <div class="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+          <p>Estado de la cuenta: <strong>{{ responsable.estado === 'A' ? 'Activa' : 'Inactiva' }}</strong></p>
+          <p class="mt-1 text-xs">Cada vinculación controla el acceso a una secretaría. Inactivar una vinculación no bloquea los demás accesos; agregar o reactivar una vinculación también activa la cuenta.</p>
+        </div>
         @if (loadError()) {
           <div role="alert" class="rounded-lg bg-red-50 p-3 text-sm text-red-800">
             {{ loadError() }}
@@ -120,7 +126,7 @@
                 <tr class="bg-slate-50">
                   <th scope="col" class="p-3 text-left">Secretaría</th>
                   <th scope="col" class="p-3 text-left">Rol</th>
-                  <th scope="col" class="p-3 text-left">Estado</th>
+                  <th scope="col" class="p-3 text-left">Estado de vinculación</th>
                   <th scope="col" class="p-3 text-right">Acción</th>
                 </tr>
               </thead>

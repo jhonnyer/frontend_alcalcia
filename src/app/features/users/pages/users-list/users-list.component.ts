@@ -352,6 +352,7 @@ export class UsersListComponent implements OnInit {
   }
 
   async deleteSecretary(secretaria: ISecretaria): Promise<void> {
+    if (this.deletingSecretariaId() !== null) return;
     if (!this.isSuperAdmin()) {
       this.alert.warning('Permiso requerido', 'Solo un usuario SuperAdmin puede eliminar secretarías.');
       return;
@@ -364,7 +365,7 @@ export class UsersListComponent implements OnInit {
 
     const firstConfirm = await this.alert.confirm(
       'Eliminar secretaría',
-      `Vas a eliminar la secretaría "${secretaria.nombre}". Esta acción es irreversible y solo funciona si está vacía.`,
+      `Vas a eliminar la secretaría "${secretaria.nombre}". Solo se permite si no tiene datos operativos asociados, incluidos beneficiarios vinculados. Se eliminarán sus parámetros, coberturas, consecutivo y vinculaciones de usuarios; las cuentas de usuario y los catálogos compartidos se conservarán. Esta acción es irreversible.`,
       'Continuar',
       'Cancelar'
     );
@@ -376,7 +377,7 @@ export class UsersListComponent implements OnInit {
       'Eliminar definitivamente',
       'Volver'
     );
-    if (!secondConfirm) return;
+    if (!secondConfirm || this.deletingSecretariaId() !== null) return;
 
     this.deletingSecretariaId.set(secretaria.idSecretaria);
     this.secretariaAdminService.delete(secretaria.idSecretaria).subscribe({
@@ -390,7 +391,7 @@ export class UsersListComponent implements OnInit {
         console.error('Error al eliminar secretaría:', error);
         this.alert.error(
           'Operación fallida',
-          error?.error?.mensaje || error?.error || 'No se pudo eliminar. Verifica que la secretaría no tenga elementos asociados.'
+          error?.error?.mensaje || error?.error || 'No se pudo eliminar. Verifica que la secretaría no tenga datos operativos asociados.'
         );
       }
     });

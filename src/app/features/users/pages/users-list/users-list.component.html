@@ -348,9 +348,9 @@
 												<button
 													type="button"
 													class="rounded-md p-1 text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:text-slate-400"
-													[disabled]="deletingSecretariaId() === secretaria.idSecretaria || isActiveSecretary(secretaria)"
+													[disabled]="deletingSecretariaId() !== null || isActiveSecretary(secretaria)"
 													(click)="deleteSecretary(secretaria)"
-													[title]="isActiveSecretary(secretaria) ? 'No puedes eliminar la secretaría activa' : 'Eliminar secretaría (solo vacía)'"
+													[title]="isActiveSecretary(secretaria) ? 'Cambia a Administración global u otra secretaría antes de eliminarla' : 'Eliminar secretaría sin datos operativos'"
 													aria-label="Eliminar secretaría"
 												>
 													<mat-icon>{{ deletingSecretariaId() === secretaria.idSecretaria ? 'hourglass_top' : 'delete' }}</mat-icon>

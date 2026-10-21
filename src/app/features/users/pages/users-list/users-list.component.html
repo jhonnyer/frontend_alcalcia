@@ -348,14 +348,16 @@
 												<div class="flex items-center justify-center gap-1">
 													<button
 														type="button"
-														class="rounded-md p-1 disabled:cursor-not-allowed disabled:text-slate-400"
+														class="rounded-md p-1 transition-colors disabled:cursor-not-allowed disabled:text-slate-400"
 														[ngClass]="secretaria.estado === 'A' ? 'text-amber-700 hover:bg-amber-50' : 'text-emerald-700 hover:bg-emerald-50'"
 														[disabled]="updatingSecretariaStatusId() !== null || isActiveSecretary(secretaria)"
 														(click)="toggleSecretaryStatus(secretaria)"
 														[title]="isActiveSecretary(secretaria) ? 'Cambia a Administración global u otra secretaría antes de cambiar su estado' : secretaria.estado === 'A' ? 'Inactivar secretaría' : 'Activar secretaría'"
 														aria-label="Cambiar estado de secretaría"
 													>
-														<mat-icon>{{ updatingSecretariaStatusId() === secretaria.idSecretaria ? 'hourglass_top' : (secretaria.estado === 'A' ? 'toggle_off' : 'toggle_on') }}</mat-icon>
+														<mat-icon [ngClass]="secretaria.estado === 'A' ? 'text-amber-700' : 'text-emerald-700'">
+															{{ updatingSecretariaStatusId() === secretaria.idSecretaria ? 'hourglass_top' : (secretaria.estado === 'A' ? 'toggle_off' : 'toggle_on') }}
+														</mat-icon>
 													</button>
 													<button
 														type="button"

@@ -422,7 +422,7 @@ export class UsersListComponent implements OnInit {
 
     const firstConfirm = await this.alert.confirm(
       'Eliminar secretaría',
-      `Vas a eliminar la secretaría "${secretaria.nombre}". Solo se permite si no tiene datos operativos asociados, incluidos beneficiarios vinculados. Se eliminarán sus parámetros, coberturas, consecutivo y vinculaciones de usuarios; las cuentas de usuario y los catálogos compartidos se conservarán. Esta acción es irreversible.`,
+      `Vas a eliminar la secretaría "${secretaria.nombre}". Solo se permite si no tiene datos operativos asociados (proyectos, categorías, productos, paquetes, actas o beneficiarios en proyectos). Se eliminarán sus parámetros, coberturas, consecutivo y vinculaciones; los beneficiarios y usuarios se conservan, eliminando solo la relación con esta secretaría. Esta acción es irreversible.`,
       'Continuar',
       'Cancelar'
     );

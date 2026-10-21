@@ -422,7 +422,7 @@ export class UsersListComponent implements OnInit {
 
     const firstConfirm = await this.alert.confirm(
       'Eliminar secretaría',
-      `Vas a eliminar la secretaría "${secretaria.nombre}". Solo se permite si no tiene datos operativos asociados (proyectos, categorías, productos, paquetes, actas o beneficiarios en proyectos). Se eliminarán sus parámetros, coberturas, consecutivo y vinculaciones; los beneficiarios y usuarios se conservan, eliminando solo la relación con esta secretaría. Esta acción es irreversible.`,
+      `Se eliminará "${secretaria.nombre}" solo si no tiene datos operativos. Se conservarán beneficiarios y usuarios; solo se eliminarán relaciones de esta secretaría. Esta acción es irreversible.`,
       'Continuar',
       'Cancelar'
     );
@@ -446,9 +446,14 @@ export class UsersListComponent implements OnInit {
       error: error => {
         this.deletingSecretariaId.set(null);
         console.error('Error al eliminar secretaría:', error);
+        const backendMessage = String(error?.error?.mensaje ?? error?.error ?? '').trim();
+        const lowerMessage = backendMessage.toLocaleLowerCase();
+        const friendlyMessage = lowerMessage.includes('tiene datos asociados')
+          ? 'No se puede eliminar porque la secretaría tiene datos operativos asociados. Revisa proyectos, categorías, productos, actas o importaciones antes de intentarlo.'
+          : (backendMessage || 'No se pudo eliminar. Verifica que la secretaría no tenga datos operativos asociados.');
         this.alert.error(
           'Operación fallida',
-          error?.error?.mensaje || error?.error || 'No se pudo eliminar. Verifica que la secretaría no tenga datos operativos asociados.'
+          friendlyMessage
         );
       }
     });

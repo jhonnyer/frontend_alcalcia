@@ -66,23 +66,65 @@ export class LoginComponent {
       };
       this.authService.login(credentials).subscribe({
         next: response => {
-          this.secretarias = response.secretarias ?? [];
+          const allSecretarias = response.secretarias ?? [];
+          const activeSecretarias = allSecretarias.filter(secretaria => this.isSecretaryActive(secretaria));
 
-          if (response.rol !== 'SUPERADMIN' && this.secretarias.length > 1) {
-            this.tokenService.saveLoginResponse(response, true);
-            this.requiresSecretarySelection = true;
-            this.credentialsValidated = true;
-            this.formFamilyCore.get('idSecretaria')?.setValue(null);
-            this.isLoading = false;
+          if (response.rol !== 'SUPERADMIN') {
+            if (!activeSecretarias.length) {
+              this.isLoading = false;
+              this.alert.error(
+                'Secretaría inactiva',
+                'Tu cuenta no tiene una secretaría activa para operar. Contacta al SuperAdmin.'
+              );
+              return;
+            }
+
+            const responseWithActiveSecretarias: IResponseLogin = {
+              ...response,
+              secretarias: activeSecretarias,
+            };
+
+            if (activeSecretarias.length > 1) {
+              this.secretarias = activeSecretarias;
+              this.tokenService.saveLoginResponse(responseWithActiveSecretarias, true);
+              this.requiresSecretarySelection = true;
+              this.credentialsValidated = true;
+              this.formFamilyCore.get('idSecretaria')?.setValue(null);
+              this.isLoading = false;
+              return;
+            }
+
+            const onlyActiveSecretary = activeSecretarias[0];
+            if (response.idSecretaria !== onlyActiveSecretary.idSecretaria) {
+              this.secretarias = activeSecretarias;
+              this.changeSecretaryForLogin(onlyActiveSecretary.idSecretaria);
+              return;
+            }
+
+            this.tokenService.saveLoginResponse(responseWithActiveSecretarias);
+            this.finishLogin(responseWithActiveSecretarias);
             return;
           }
 
+          this.secretarias = allSecretarias;
           this.tokenService.saveLoginResponse(response);
           this.finishLogin(response);
         },
         error: error=> {
           this.isLoading = false; // 🔹 Desactiva el loading incluso si falla
-          this.alert.error('Error inicio de sesión','Verifica tus credenciales con un administrador')
+          const backendMessage = typeof error?.error?.message === 'string'
+            ? error.error.message
+            : typeof error?.error?.mensaje === 'string'
+              ? error.error.mensaje
+              : typeof error?.error === 'string'
+                ? error.error
+                : '';
+          const normalized = backendMessage.toLocaleLowerCase();
+          if (normalized.includes('secretar') && normalized.includes('inactiv')) {
+            this.alert.error('Secretaría inactiva', 'No puedes iniciar sesión porque la secretaría está inactiva.');
+            return;
+          }
+          this.alert.error('Error inicio de sesión', backendMessage || 'Verifica tus credenciales con un administrador')
         }
       })
 	  }else{
@@ -99,6 +141,16 @@ export class LoginComponent {
     }
 
     const selectedSecretaryId = Number(idSecretaria);
+    const selectedSecretary = this.secretarias.find(secretaria => secretaria.idSecretaria === selectedSecretaryId);
+    if (!selectedSecretary) {
+      this.alert.error('Secretaría no válida', 'Selecciona una secretaría disponible.');
+      return;
+    }
+    if (!this.isSecretaryActive(selectedSecretary)) {
+      this.alert.error('Secretaría inactiva', 'La secretaría seleccionada está inactiva. Contacta al SuperAdmin.');
+      return;
+    }
+
     this.isLoading = true;
     this.authService.changeSecretary(selectedSecretaryId).subscribe({
       next: response => {
@@ -109,9 +161,50 @@ export class LoginComponent {
         }
         this.finishLogin(response);
       },
-      error: () => {
+      error: error => {
         this.isLoading = false;
+        const backendMessage = typeof error?.error?.message === 'string'
+          ? error.error.message
+          : typeof error?.error?.mensaje === 'string'
+            ? error.error.mensaje
+          : typeof error?.error === 'string'
+            ? error.error
+            : '';
+        if (backendMessage.toLocaleLowerCase().includes('inactiv')) {
+          this.alert.error('Secretaría inactiva', 'La secretaría seleccionada está inactiva. Contacta al SuperAdmin.');
+          return;
+        }
         this.alert.error('Error de secretaría', 'No tienes acceso a la secretaría seleccionada');
+      }
+    });
+  }
+
+  private changeSecretaryForLogin(idSecretaria: number): void {
+    this.isLoading = true;
+    this.authService.changeSecretary(idSecretaria).subscribe({
+      next: response => {
+        if (response.idSecretaria !== idSecretaria) {
+          this.isLoading = false;
+          this.alert.error('Secretaría no confirmada', 'El servidor no confirmó la secretaría activa.');
+          return;
+        }
+        this.tokenService.saveLoginResponse(response);
+        this.finishLogin(response);
+      },
+      error: error => {
+        this.isLoading = false;
+        const backendMessage = typeof error?.error?.message === 'string'
+          ? error.error.message
+          : typeof error?.error?.mensaje === 'string'
+            ? error.error.mensaje
+          : typeof error?.error === 'string'
+            ? error.error
+            : '';
+        if (backendMessage.toLocaleLowerCase().includes('inactiv')) {
+          this.alert.error('Secretaría inactiva', 'La única secretaría disponible para tu usuario está inactiva.');
+          return;
+        }
+        this.alert.error('Error de secretaría', 'No fue posible activar la secretaría de tu usuario.');
       }
     });
   }
@@ -146,6 +239,10 @@ export class LoginComponent {
 
 togglePasswordVisibility(): void {
   this.showPassword = !this.showPassword;
+}
+
+private isSecretaryActive(secretaria: ISecretariaAcceso): boolean {
+  return (secretaria.estado ?? 'A') === 'A';
 }
 
 }

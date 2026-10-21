@@ -113,6 +113,26 @@ export class SecretariaAdminService {
     );
   }
 
+  updateStatus(idSecretaria: number, estado: 'A' | 'I'): Observable<ISecretaria> {
+    return this.http.put<ISecretaria>(
+      `${this.URL}/administracion/secretarias/${idSecretaria}/estado`,
+      { estado },
+      { context: checkToken() }
+    );
+  }
+
+  deactivate(idSecretaria: number): Observable<ISecretaria> {
+    return this.updateStatus(idSecretaria, 'I');
+  }
+
+  activate(idSecretaria: number): Observable<ISecretaria> {
+    return this.updateStatus(idSecretaria, 'A');
+  }
+
+  inactivate(idSecretaria: number): Observable<ISecretaria> {
+    return this.deactivate(idSecretaria);
+  }
+
   delete(idSecretaria: number): Observable<void> {
     return this.http.delete<void>(`${this.URL}/administracion/secretarias/${idSecretaria}`, { context: checkToken() });
   }

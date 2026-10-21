@@ -15,4 +15,5 @@ export interface ISecretariaAcceso {
   nombre: string;
   codigo: string;
   rol: string;
+  estado?: string;
 }

@@ -57,9 +57,11 @@ export class HeaderComponent implements OnInit {
   ngOnInit(): void {
     this.loginState();
     this.loadUserRole();
-    this.secretarias = this.tokenService.getAvailableSecretaries();
+    this.secretarias = this.tokenService.getAvailableSecretaries().filter(secretaria => this.isSecretaryActive(secretaria));
     this.activeSecretaryId = this.tokenService.getActiveSecretaryId();
-    this.selectedSecretaryId = this.activeSecretaryId;
+    this.selectedSecretaryId = this.secretarias.some(secretaria => secretaria.idSecretaria === this.activeSecretaryId)
+      ? this.activeSecretaryId
+      : this.userRole() === 'SUPERADMIN' ? null : this.secretarias[0]?.idSecretaria ?? null;
   }
 
   loginState(){
@@ -92,7 +94,7 @@ export class HeaderComponent implements OnInit {
     ).subscribe({
       next: secretarias => {
         this.secretarias = secretarias.filter(s => s.estado === 'A').map(s => ({
-          idSecretaria: s.idSecretaria, nombre: s.nombre, codigo: s.codigo, rol: 'SUPERADMIN'
+          idSecretaria: s.idSecretaria, nombre: s.nombre, codigo: s.codigo, rol: 'SUPERADMIN', estado: s.estado
         }));
       },
       error: error => {
@@ -112,6 +114,10 @@ export class HeaderComponent implements OnInit {
     const requestedSecretary = this.secretarias.find(s => s.idSecretaria === requestedId);
     if (requestedId !== null && !requestedSecretary) {
       this.alert.error('Secretaría no válida', 'Selecciona una de las secretarías disponibles.');
+      return;
+    }
+    if (requestedSecretary && !this.isSecretaryActive(requestedSecretary)) {
+      this.alert.error('Secretaría inactiva', 'No es posible cambiar a una secretaría inactiva.');
       return;
     }
     const contextName = requestedSecretary?.nombre ?? 'Administración global';
@@ -151,5 +157,9 @@ export class HeaderComponent implements OnInit {
   get activeSecretaryName(): string {
     return this.secretarias.find(secretaria => secretaria.idSecretaria === this.activeSecretaryId)?.nombre
       ?? 'Secretaría activa';
+  }
+
+  private isSecretaryActive(secretaria: ISecretariaAcceso): boolean {
+    return (secretaria.estado ?? 'A') === 'A';
   }
 }

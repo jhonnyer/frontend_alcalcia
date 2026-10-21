@@ -121,6 +121,7 @@ export class UsersListComponent implements OnInit {
   userFormModalOpen = signal(false);
   userFormResponsableId = signal<number | null>(null);
   deletingSecretariaId = signal<number | null>(null);
+  updatingSecretariaStatusId = signal<number | null>(null);
   readonly hasSecretaryContext = this.tokenService.getActiveSecretaryId() !== null;
 
   activeSecretaryForm = this.fb.group({
@@ -349,6 +350,62 @@ export class UsersListComponent implements OnInit {
   nextSecretariaPage(): void {
     if (this.secretariaPageIndex() >= this.secretariaTotalPages() - 1) return;
     this.secretariaPageIndex.update(v => v + 1);
+  }
+
+  async toggleSecretaryStatus(secretaria: ISecretaria): Promise<void> {
+    if (this.updatingSecretariaStatusId() !== null) return;
+    if (!this.isSuperAdmin()) {
+      this.alert.warning('Permiso requerido', 'Solo un usuario SuperAdmin puede activar o inactivar secretarías.');
+      return;
+    }
+
+    if (this.isActiveSecretary(secretaria)) {
+      this.alert.warning('Operación no permitida', 'No puedes cambiar el estado de la secretaría activa de tu sesión.');
+      return;
+    }
+
+    const willActivate = secretaria.estado !== 'A';
+    const actionText = willActivate ? 'activar' : 'inactivar';
+    const nextStatus: 'A' | 'I' = willActivate ? 'A' : 'I';
+
+    const firstConfirm = await this.alert.confirm(
+      `${willActivate ? 'Activar' : 'Inactivar'} secretaría`,
+      willActivate
+        ? `Vas a activar la secretaría "${secretaria.nombre}". Los responsables vinculados podrán volver a operar si su cuenta y membresía están activas.`
+        : `Vas a inactivar la secretaría "${secretaria.nombre}". Esta acción no elimina datos: solo bloqueará el acceso operativo de esa secretaría hasta que se reactive.`,
+      'Continuar',
+      'Cancelar'
+    );
+    if (!firstConfirm) return;
+
+    const secondConfirm = await this.alert.confirm(
+      'Confirmación final',
+      `¿Confirmas ${actionText} "${secretaria.nombre}"?`,
+      `Sí, ${actionText}`,
+      'Volver'
+    );
+    if (!secondConfirm || this.updatingSecretariaStatusId() !== null) return;
+
+    this.updatingSecretariaStatusId.set(secretaria.idSecretaria);
+    this.secretariaAdminService.updateStatus(secretaria.idSecretaria, nextStatus).subscribe({
+      next: secretariaActualizada => {
+        this.updatingSecretariaStatusId.set(null);
+        this.secretarias.update(items => items.map(item =>
+          item.idSecretaria === secretaria.idSecretaria
+            ? { ...item, ...secretariaActualizada }
+            : item
+        ));
+        this.alert.success('Operación exitosa', `Secretaría ${willActivate ? 'activada' : 'inactivada'} correctamente.`);
+      },
+      error: error => {
+        this.updatingSecretariaStatusId.set(null);
+        console.error(`Error al ${actionText} secretaría:`, error);
+        this.alert.error(
+          'Operación fallida',
+          error?.error?.mensaje || error?.error || `No se pudo ${actionText} la secretaría. Verifica las restricciones de negocio e inténtalo nuevamente.`
+        );
+      }
+    });
   }
 
   async deleteSecretary(secretaria: ISecretaria): Promise<void> {

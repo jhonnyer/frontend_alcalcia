@@ -43,29 +43,24 @@ import { LogoPreviewComponent } from './logo-preview.component';
       </div>
       <p class="mt-2 text-xs text-slate-500">El tipo, número de acta y página son ilustrativos. En móvil puedes deslizar el encabezado horizontalmente.</p>
       <div class="mt-3 rounded-md border border-dashed border-slate-300 p-3">
-        @if (nombreAlmacenista?.trim()) {
-          <p class="text-xs text-slate-500">Firmas al final del acta: el almacenista junto al responsable y la máxima autoridad en una fila completa.</p>
-          <div class="mt-3 grid grid-cols-2 gap-3 text-xs [overflow-wrap:anywhere]">
-            <div class="text-slate-400">
-              <div class="mt-4 border-t border-slate-400 pt-1">FIRMA RESPONSABLE</div>
-            </div>
-            <div>
-              <div class="mt-4 border-t border-slate-500 pt-1">
-                <p class="font-semibold uppercase">FIRMA {{ cargoAlmacenista?.trim() || 'Almacenista General' }}</p>
-                <p>Nombre: {{ nombreAlmacenista?.trim() }}</p>
-              </div>
+        <p class="text-xs text-slate-500">Firmas al final del acta: el almacenista junto al responsable y la máxima autoridad en una fila completa.</p>
+        <div class="mt-3 grid grid-cols-2 gap-3 text-xs [overflow-wrap:anywhere]">
+          <div class="text-slate-400">
+            <div class="mt-4 border-t border-slate-400 pt-1">FIRMA RESPONSABLE</div>
+          </div>
+          <div>
+            <div class="mt-4 border-t border-slate-500 pt-1">
+              <p class="font-semibold uppercase" [class.text-slate-400]="!nombreAlmacenista?.trim()">FIRMA {{ cargoAlmacenista?.trim() || 'Almacenista General' }}</p>
+              <p [class.text-slate-400]="!nombreAlmacenista?.trim()">Nombre: {{ nombreAlmacenista?.trim() || 'Nombre del almacenista' }}</p>
             </div>
           </div>
-          <div class="mx-auto mt-6 max-w-sm border-t border-slate-500 pt-1 text-center text-xs [overflow-wrap:anywhere]">
-            <p class="font-semibold uppercase" [class.text-slate-400]="!firma?.trim()">{{ firma?.trim() || 'Cargo de la máxima autoridad' }}</p>
-            <p [class.text-slate-400]="!nombreAutoridad?.trim()">Nombre: {{ nombreAutoridad?.trim() || 'Nombre de la autoridad' }}</p>
-          </div>
-        } @else {
-        <p class="text-xs text-slate-500">Ubicación de la firma de la máxima autoridad: al final del acta, no en la cabecera.</p>
-        <div class="mt-6 max-w-sm border-t border-slate-500 pt-1 text-xs [overflow-wrap:anywhere]">
+        </div>
+        <div class="mx-auto mt-6 max-w-sm border-t border-slate-500 pt-1 text-center text-xs [overflow-wrap:anywhere]">
           <p class="font-semibold uppercase" [class.text-slate-400]="!firma?.trim()">{{ firma?.trim() || 'Cargo de la máxima autoridad' }}</p>
           <p [class.text-slate-400]="!nombreAutoridad?.trim()">Nombre: {{ nombreAutoridad?.trim() || 'Nombre de la autoridad' }}</p>
         </div>
+        @if (!nombreAlmacenista?.trim()) {
+          <p class="mt-3 text-xs text-amber-700">Sin nombre del almacenista, el acta conserva el formato anterior: la máxima autoridad firma junto al responsable.</p>
         }
       </div>
     </figure>

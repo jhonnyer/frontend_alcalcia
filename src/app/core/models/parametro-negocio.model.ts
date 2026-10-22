@@ -12,6 +12,8 @@ export interface IFormatoActa {
   versionFormato: string;
   fechaAprobacionFormato: string | null;
   firmaActa?: string;
+  nombreAlmacenista?: string;
+  cargoAlmacenista?: string;
   [campo: string]: unknown;
 }
 

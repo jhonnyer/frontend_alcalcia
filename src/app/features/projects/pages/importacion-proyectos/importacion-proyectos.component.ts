@@ -10,7 +10,7 @@ import {
 } from '../../../../core/models/importacion-proyectos.model';
 
 type CampoEditable =
-  | 'proyecto' | 'descripcionProyecto' | 'tipoProyecto' | 'fechaInicio' | 'fechaFin'
+  | 'proyecto' | 'descripcionProyecto' | 'tipoProyecto' | 'fechaInicio' | 'fechaFin' | 'contrato'
   | 'categoria' | 'producto' | 'descripcionProducto' | 'stock';
 
 // Nombres de campo que devuelve el backend en los errores.
@@ -20,6 +20,7 @@ const CAMPO_ERROR: Record<CampoEditable, string> = {
   tipoProyecto: 'tipo_proyecto',
   fechaInicio: 'fecha_inicio',
   fechaFin: 'fecha_fin',
+  contrato: 'contrato',
   categoria: 'categoria',
   producto: 'producto',
   descripcionProducto: 'descripcion_producto',
@@ -81,7 +82,7 @@ const CAMPO_ERROR: Record<CampoEditable, string> = {
             </label>
           </div>
           <div class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-            Las filas con el <strong>mismo nombre de proyecto</strong> forman un solo proyecto; el tipo y las fechas se diligencian en su primera fila.
+            Las filas con el <strong>mismo nombre de proyecto</strong> forman un solo proyecto; el tipo, las fechas y el contrato (opcional) se diligencian en su primera fila.
             Si el nombre del proyecto ya existe, no se puede confirmar. Las categorías y productos se crean nuevos.
           </div>
         </section>
@@ -140,11 +141,11 @@ const CAMPO_ERROR: Record<CampoEditable, string> = {
             </div>
 
             <div class="overflow-x-auto">
-              <table class="w-full min-w-[1300px] text-left text-xs">
+              <table class="w-full min-w-[1420px] text-left text-xs">
                 <thead class="bg-slate-100 text-slate-700">
                   <tr>
                     <th class="p-2">#</th><th class="p-2">Proyecto</th><th class="p-2">Descripción</th><th class="p-2">Tipo</th>
-                    <th class="p-2">Inicio</th><th class="p-2">Fin</th><th class="p-2">Categoría</th>
+                    <th class="p-2">Inicio</th><th class="p-2">Fin</th><th class="p-2">Contrato</th><th class="p-2">Categoría</th>
                     <th class="p-2">Producto</th><th class="p-2">Desc. producto</th><th class="p-2">Stock</th><th class="p-2"></th>
                   </tr>
                 </thead>
@@ -163,6 +164,7 @@ const CAMPO_ERROR: Record<CampoEditable, string> = {
                       </td>
                       <td class="p-1"><input type="date" class="cell-input" [class.cell-error]="tieneError(f, 'fechaInicio')" [value]="f.fechaInicio ?? ''" (input)="editar(f, 'fechaInicio', $event)" /></td>
                       <td class="p-1"><input type="date" class="cell-input" [class.cell-error]="tieneError(f, 'fechaFin')" [value]="f.fechaFin ?? ''" (input)="editar(f, 'fechaFin', $event)" /></td>
+                      <td class="p-1"><input class="cell-input" maxlength="100" placeholder="Opcional" [class.cell-error]="tieneError(f, 'contrato')" [value]="f.contrato ?? ''" (input)="editar(f, 'contrato', $event)" /></td>
                       <td class="p-1"><input class="cell-input" [class.cell-error]="tieneError(f, 'categoria')" [value]="f.categoria ?? ''" (input)="editar(f, 'categoria', $event)" /></td>
                       <td class="p-1"><input class="cell-input" [class.cell-error]="tieneError(f, 'producto')" [value]="f.producto ?? ''" (input)="editar(f, 'producto', $event)" /></td>
                       <td class="p-1"><input class="cell-input" [class.cell-error]="tieneError(f, 'descripcionProducto')" [value]="f.descripcionProducto ?? ''" (input)="editar(f, 'descripcionProducto', $event)" /></td>
@@ -334,7 +336,7 @@ export class ImportacionProyectosComponent {
   agregarFila(): void {
     const nueva: ImportacionProyectoFila = {
       numeroFila: null, proyecto: null, descripcionProyecto: null, tipoProyecto: null, fechaInicio: null,
-      fechaFin: null, categoria: null, producto: null, descripcionProducto: null, stock: null,
+      fechaFin: null, contrato: null, categoria: null, producto: null, descripcionProducto: null, stock: null,
     };
     this.filtro.set('');
     this.filas.update(lista => [...lista, nueva]);

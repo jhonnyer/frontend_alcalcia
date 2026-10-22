@@ -7,6 +7,7 @@ export interface ImportacionProyectoFila {
   tipoProyecto: string | null;
   fechaInicio: string | null;
   fechaFin: string | null;
+  contrato?: string | null;
   categoria: string | null;
   producto: string | null;
   descripcionProducto: string | null;

@@ -13,6 +13,7 @@ export interface IProyecto {
   fechaInicio: string;
   fechaFin: string;
   tipoProyecto: TipoProyecto;
+  contrato?: string | null;
 }
 
 export interface IProyectoAndCategoria {

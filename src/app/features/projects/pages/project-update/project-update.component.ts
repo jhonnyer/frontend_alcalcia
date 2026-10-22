@@ -113,6 +113,7 @@ export class ProjectUpdateComponent implements OnInit {
     this.formFamilyCore = this.fb.group({
       nombre: ['', [Validators.required]],
       tipoProyecto: ['', [Validators.required]],
+      contrato: ['', [Validators.maxLength(100)]],
       fechaInicio: ['', [Validators.required]],
       fechaFin: [''],
       estado: ['A', [Validators.required]],
@@ -135,6 +136,7 @@ export class ProjectUpdateComponent implements OnInit {
         this.formFamilyCore.patchValue({
           nombre: proyecto.nombre,
           tipoProyecto: proyecto.tipoProyecto?.trim().toUpperCase() || '',
+          contrato: proyecto.contrato ?? '',
           fechaInicio: proyecto.fechaInicio?.substring(0, 10) || '',
           fechaFin: proyecto.fechaFin?.substring(0, 10) || '',
           estado: proyecto.estado?.trim().toUpperCase() || '',
@@ -295,6 +297,7 @@ export class ProjectUpdateComponent implements OnInit {
           fechaInicio: fv.fechaInicio,
           fechaFin: fv.fechaFin,
           tipoProyecto: fv.tipoProyecto,
+          contrato: fv.contrato?.trim() || null,
         },
         categorias: categoriasSeleccionadas,
       };
@@ -309,6 +312,7 @@ export class ProjectUpdateComponent implements OnInit {
         fechaInicio: fv.fechaInicio,
         fechaFin: fv.fechaFin,
         tipoProyecto: fv.tipoProyecto,
+        contrato: fv.contrato?.trim() || null,
         // sin idProyecto
       } as IProyecto,
       categorias: categoriasSeleccionadas,

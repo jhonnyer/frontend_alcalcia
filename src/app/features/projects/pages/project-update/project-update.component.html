@@ -85,6 +85,17 @@
           </mat-error>
         </mat-form-field>
 
+        <!-- Contrato -->
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Número de contrato</mat-label>
+          <input matInput formControlName="contrato" maxlength="100" placeholder="Ej: CD-045-2026" />
+          <mat-icon matSuffix>description</mat-icon>
+          <mat-hint>Opcional. Si lo indicas, el acta lo menciona junto al proyecto.</mat-hint>
+          <mat-error *ngIf="formFamilyCore.get('contrato')?.hasError('maxlength')">
+            ⚠️ Máximo 100 caracteres.
+          </mat-error>
+        </mat-form-field>
+
         <!-- Estado -->
         <div class="flex flex-col justify-center" *hasRole="['ADMIN']">
           <label class="text-gray-700 font-medium text-sm mb-1">Estado</label>

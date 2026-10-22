@@ -33,6 +33,7 @@ import { AlertService } from '../../../../core/services/alert.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
 import { ServerPaginationComponent } from '../../../../shared/components/server-pagination/server-pagination.component';
+import { HojaEntregasDialogComponent } from '../../components/hoja-entregas-dialog/hoja-entregas-dialog.component';
 
 @Component({
   selector: 'app-projects-list',
@@ -298,6 +299,16 @@ export class ProjectsListComponent {
 
   update(item: Row<IProyectoAndCategoriaArray>) {
     this.router.navigate(["projects/update/", item.original.proyecto.idProyecto]);
+  }
+
+  descargarHojaEntregas(item?: Row<IProyectoAndCategoriaArray>): void {
+    this.dialog.open(HojaEntregasDialogComponent, {
+      width: '820px',
+      maxWidth: '96vw',
+      maxHeight: '92vh',
+      autoFocus: false,
+      data: { proyectos: this.data(), idProyectoInicial: item?.original.proyecto.idProyecto }
+    });
   }
 
   goToDashboard(): void {

@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, map, timeout } from 'rxjs';
-import { IProyecto, IProyectoAndCategoriaArray, IProyectoCategorias } from '../models/proyecto.model';
+import { IProyecto, IProyectoAndCategoriaArray, IProyectoCategorias, FiltroHojaEntregas } from '../models/proyecto.model';
 import { environment } from '../../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
 import { ResponseStandar, ResponseStandarUnique } from '../models/response.model';
 import { IProyectoDetallado } from '../models/proyecto-detallado.model';
@@ -67,6 +67,21 @@ export class ProyectosService {
       `${this.URL}/proyectos/${idProyecto}/detallado`,
       { context: checkToken() }
     );
+  }
+
+  descargarHojaEntregas(filtro: FiltroHojaEntregas): Observable<Blob> {
+    let params = new HttpParams();
+    filtro.idProyectos?.forEach(id => params = params.append('idProyectos', id));
+    filtro.idCategorias?.forEach(id => params = params.append('idCategorias', id));
+    if (filtro.anio) params = params.set('anio', filtro.anio);
+    if (filtro.mes) params = params.set('mes', filtro.mes);
+    if (filtro.fechaInicio) params = params.set('fechaInicio', filtro.fechaInicio);
+    if (filtro.fechaFin) params = params.set('fechaFin', filtro.fechaFin);
+    return this.http.get(`${this.URL}/reportes/entregas-excel`, {
+      params,
+      responseType: 'blob',
+      context: checkToken()
+    });
   }
 
 }

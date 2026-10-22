@@ -32,3 +32,13 @@ export interface IProyectoAndCategoriaArray {
   categorias: ICategorias[];
 }
 
+/** Filtros opcionales de la hoja de trabajo de entregas (año/mes o rango de fechas, no ambos). */
+export interface FiltroHojaEntregas {
+  idProyectos?: number[];
+  idCategorias?: number[];
+  anio?: number;
+  mes?: number;
+  fechaInicio?: string;
+  fechaFin?: string;
+}
+

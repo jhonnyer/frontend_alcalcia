@@ -24,10 +24,9 @@ import { CategoriasService } from '../../../../core/services/categorias.service'
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
 import { IProductoFk } from '../../../../core/models/products.model';
-import { PdfGeneradorProyectoService } from '../../../../shared/components/pdf/pdf-proyectos.service';
+import { ReportesPdfService } from '../../../../core/services/reportes-pdf.service';
 import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 import { AlertService } from '../../../../core/services/alert.service';
-import { timeout } from 'rxjs';
 
 interface ICategoriaUI extends ICategorias {
   expanded?: boolean;
@@ -57,7 +56,7 @@ interface ICategoriaUI extends ICategorias {
   styleUrl: './project-update.component.scss'
 })
 export class ProjectUpdateComponent implements OnInit {
-  constructor(private dialog: MatDialog, private pdfService: PdfGeneradorProyectoService) {}
+  constructor(private dialog: MatDialog, private pdfService: ReportesPdfService) {}
 
   @Input() modo: 'crear' | 'editar' = 'crear';
 
@@ -579,29 +578,17 @@ export class ProjectUpdateComponent implements OnInit {
   }
 
   exportarPdf(): void {
+    if (this.loadingPdf) return;
     if (!this.proyectoId) {
       this.alert.warning('Alerta','⚠️ Primero debes guardar el proyecto antes de exportar.');
       return;
     }
 
     this.loadingPdf = true;
-    this.proyectosService.getProyectoDetallado(this.proyectoId!).pipe(timeout(45000)).subscribe({
-      next: async ({ respuesta }) => {
-        try {
-          await this.pdfService.generateProjectReport(respuesta);
-        } catch (error) {
-          console.error('Error al abrir PDF:', error);
-          this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
-        } finally {
-          this.loadingPdf = false;
-        }
-      },
-      error: (err) => {
-        console.error('Error al generar PDF:', err);
-        this.loadingPdf = false;
-        this.alert.error('Error del servicio','❌ Error al generar el PDF del proyecto o la consulta tardó demasiado.');
-      }
-    });
+    this.pdfService.proyecto(Number(this.proyectoId)).catch(error => {
+      console.error('Error al generar PDF:', error);
+      this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
+    }).finally(() => this.loadingPdf = false);
   }
 
 }

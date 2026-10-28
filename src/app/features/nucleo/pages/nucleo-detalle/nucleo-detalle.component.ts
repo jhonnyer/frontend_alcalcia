@@ -11,7 +11,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { FilterBeneficiarioPipe } from '../../../../shared/components/pipe/filterBeneficiario.pipe';
 import { FilterActaEstadoPipe } from '../../../../shared/components/pipe/filterActaEstado.pipe';
 import { FormsModule } from '@angular/forms';
-import { PdfGeneradorNucleoService } from '../../../../shared/components/pdf/pdf-generador-nucleo.service';
+import { ReportesPdfService } from '../../../../core/services/reportes-pdf.service';
 import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 import { AlertService } from '../../../../core/services/alert.service';
 
@@ -37,7 +37,7 @@ type NucleoDetalleTab = 'resumen' | 'beneficiarios' | 'proyectos' | 'actas';
 export class NucleoDetalleComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private nucleoService = inject(NucleoService);
-  private pdfService = inject(PdfGeneradorNucleoService);
+  private pdfService = inject(ReportesPdfService);
   private alert = inject(AlertService);
   private router = inject(Router);
   filtroBeneficiario = '';
@@ -282,7 +282,7 @@ export class NucleoDetalleComponent implements OnInit {
     if (!this.detalle || this.loadingPdf) return;
     this.loadingPdf = true;
     try {
-      await this.pdfService.generateNucleoReport(this.detalle);
+      await this.pdfService.actor(this.detalle.idNucleo);
     } catch (error) {
       console.error('Error al exportar PDF:', error);
       this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));

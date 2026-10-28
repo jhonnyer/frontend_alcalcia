@@ -100,56 +100,20 @@
               <mat-icon>picture_as_pdf</mat-icon>
               <button type="button" class="report-general-heading-button" (click)="reportGeneralOpen = !reportGeneralOpen" [attr.aria-expanded]="reportGeneralOpen">
                 <h3 id="general-report-title">Informe general</h3>
-                <p>Combina los filtros seleccionados y genera un PDF consolidado.</p>
+                <p>Situación actual y actividad histórica, con filtros y descripciones en cada sección.</p>
               </button>
               <button type="button" class="report-collapse-button" (click)="reportGeneralOpen = !reportGeneralOpen" [attr.aria-label]="reportGeneralOpen ? 'Contraer informe general' : 'Expandir informe general'"><mat-icon>{{ reportGeneralOpen ? 'expand_less' : 'expand_more' }}</mat-icon></button>
             </div>
             @if (reportGeneralOpen) {
-            <p class="mt-3 text-xs text-slate-600">Usa el mismo período seleccionado en el panel de reportes por período.</p>
-            <div class="report-advanced-filters">
-              <div class="report-filter-section">
-                <span class="report-filter-label">Estado del acta</span>
-                <div class="report-filter-options">
-                  @for (state of [{ value: 'E', label: 'Entregado' }, { value: 'A', label: 'Autorizado' }, { value: 'P', label: 'Pendiente' }, { value: 'RC', label: 'Rechazado' }]; track state.value) {
-                    <label class="report-filter-option"><input type="checkbox" [checked]="isReportFilterSelected(reportEstadosActa, state.value)" (change)="toggleReportFilter(reportEstadosActa, state.value)">{{ state.label }}</label>
-                  }
-                </div>
-              </div>
-              <div class="report-filter-section">
-                <span class="report-filter-label">Prioridad</span>
-                <div class="report-filter-options">
-                  @for (priority of [{ value: 'A', label: 'Alta' }, { value: 'M', label: 'Media' }, { value: 'B', label: 'Baja' }]; track priority.value) {
-                    <label class="report-filter-option"><input type="checkbox" [checked]="isReportFilterSelected(reportPrioridades, priority.value)" (change)="toggleReportFilter(reportPrioridades, priority.value)">{{ priority.label }}</label>
-                  }
-                </div>
-              </div>
-              <div class="report-filter-field"><span>Proyecto</span>
-                <app-report-search-select label="Proyecto del informe general" placeholder="Buscar proyecto · todos"
-                  [resetKey]="pdfResetKey" (searchValidChange)="pdfProjectValid = $event"
-                  [options]="projectSearchOptions" [value]="stringId(reportProjectId)" (valueChange)="selectPdfProject($event)" />
-              </div>
-              <div class="report-filter-field"><span>Categoría</span>
-                <app-report-search-select label="Categoría del informe general"
-                  [placeholder]="reportProjectId === null ? 'Selecciona primero un proyecto' : 'Buscar categoría · todas'"
-                  [resetKey]="pdfCategoryResetKey" (searchValidChange)="pdfCategoryValid = $event"
-                  [options]="categorySearchOptions(reportProjectId)" [value]="stringId(reportCategoryId)"
-                  [disabled]="reportProjectId === null" (valueChange)="selectPdfCategory($event)" />
-              </div>
-              <div class="report-filter-field"><span>Responsable</span>
-                <app-report-search-select label="Responsable del informe general" placeholder="Buscar responsable · todos"
-                  [resetKey]="pdfResetKey" (searchValidChange)="pdfResponsibleValid = $event"
-                  [options]="responsibleSearchOptions" [value]="stringId(reportResponsibleId)" (valueChange)="selectPdfResponsible($event)" />
-              </div>
-              <button type="button" class="btn-action-gray report-clear-filters" (click)="clearReportFilters()"><mat-icon>filter_alt_off</mat-icon> Limpiar filtros</button>
-            </div>
+            <p class="mt-3 text-sm text-slate-600">Elige el período, proyecto y demás opciones en una única ventana antes de descargar. Los filtros de Excel son independientes y no se aplican a este PDF.</p>
             <div class="mt-3 flex justify-end">
               <button type="button" class="btn-action-blue inline-flex items-center gap-2" (click)="descargarReporte()" [disabled]="isLoadingPDF">
                 @if (isLoadingPDF) {
                   <mat-progress-spinner diameter="18" mode="indeterminate" color="accent"></mat-progress-spinner>
-                  Generando...
+                  Preparando informe...
                 } @else {
                   <mat-icon>picture_as_pdf</mat-icon>
-                  Generar PDF
+                  Configurar y descargar PDF
                 }
               </button>
             </div>

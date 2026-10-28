@@ -9,15 +9,14 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
-import { finalize, timeout } from 'rxjs';
+import { finalize } from 'rxjs';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { ActasService, FiltroReporteActas } from '../../../../core/services/actas.service';
-import { ResponsibleService } from '../../../../core/services/responsible.service';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
-import { DashboardExcelReport, ReportesService, ReporteFiltroRequest } from '../../../../core/services/reportes.service';
+import { DashboardExcelReport, ReportesService } from '../../../../core/services/reportes.service';
 import { AlertService } from '../../../../core/services/alert.service';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
-import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
+import { ReportesPdfService } from '../../../../core/services/reportes-pdf.service';
 import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 import { mensajeErrorReporteExcel } from '../../../../shared/components/excel/excel-error.utils';
 import { ReportSearchOption, ReportSearchSelectComponent } from '../../../../shared/components/report-search-select/report-search-select.component';
@@ -45,9 +44,8 @@ interface PeriodReportOption {
 export class HomeComponent implements OnInit {
   private pageTitleService = inject(PageTitleService);
   private actasService = inject(ActasService);
-  private responsibleService = inject(ResponsibleService);
   private reportes = inject(ReportesService);
-  private pdfDashboard = inject(PdfGeneradorDashboardService);
+  private pdfDashboard = inject(ReportesPdfService);
   private alert = inject(AlertService);
   private proyectosService = inject(ProyectosService);
   private destroyRef = inject(DestroyRef);
@@ -61,11 +59,6 @@ export class HomeComponent implements OnInit {
   excelCategoryValid = true;
   excelResetKey = 0;
   excelCategoryResetKey = 0;
-  pdfProjectValid = true;
-  pdfCategoryValid = true;
-  pdfResponsibleValid = true;
-  pdfResetKey = 0;
-  pdfCategoryResetKey = 0;
   readonly periodReportOptions: PeriodReportOption[] = [
     { key: 'actas', label: 'Actas', proyecto: true, categoria: true, solicitud: true,
       descripcion: 'Fecha de creación del acta. Categorías de productos y paquetes. Tipo de solicitud busca por parte del texto.' },
@@ -92,14 +85,8 @@ export class HomeComponent implements OnInit {
   reportPeriod: 'ALL' | 'YEAR' | 'MONTH' = 'ALL';
   reportYear = new Date().getFullYear();
   reportMonth = new Date().getMonth() + 1;
-  reportEstadosActa: string[] = [];
-  reportPrioridades: string[] = [];
-  reportProjectId: number | null = null;
-  reportCategoryId: number | null = null;
-  reportResponsibleId: number | null = null;
   reportProjectOptions: Array<{ id: number; nombre: string }> = [];
   reportCategoryOptions: Array<{ id: number; nombre: string; projectId: number }> = [];
-  reportResponsibleOptions: Array<{ id: number; nombre: string }> = [];
   reportGeneralOpen = false;
   reportPeriodOpen = false;
   reportGeneralReportsOpen = false;
@@ -127,14 +114,6 @@ export class HomeComponent implements OnInit {
       },
       error: error => this.filterOptionsError(error)
     });
-    this.responsibleService.getAll().pipe(timeout(45000), takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: responsables => {
-        this.reportResponsibleOptions = (responsables ?? []).map(r => ({
-          id: r.idResponsable, nombre: `${r.primerNombre} ${r.primerApellido}`.trim()
-        }));
-      },
-      error: error => this.filterOptionsError(error)
-    });
   }
 
   private filterOptionsError(error: unknown): void {
@@ -144,9 +123,6 @@ export class HomeComponent implements OnInit {
 
   get projectSearchOptions(): ReportSearchOption[] {
     return this.reportProjectOptions.map(p => ({ value: String(p.id), label: p.nombre }));
-  }
-  get responsibleSearchOptions(): ReportSearchOption[] {
-    return this.reportResponsibleOptions.map(p => ({ value: String(p.id), label: p.nombre }));
   }
   categorySearchOptions(projectId: number | null): ReportSearchOption[] {
     if (projectId === null) return [];
@@ -161,14 +137,6 @@ export class HomeComponent implements OnInit {
     this.excelCategoryResetKey++;
   }
   selectExcelCategory(value: string | null): void { this.excelCategoryId = value == null ? null : Number(value); }
-  selectPdfProject(value: string | null): void {
-    this.reportProjectId = value == null ? null : Number(value);
-    this.reportCategoryId = null;
-    this.pdfCategoryValid = true;
-    this.pdfCategoryResetKey++;
-  }
-  selectPdfCategory(value: string | null): void { this.reportCategoryId = value == null ? null : Number(value); }
-  selectPdfResponsible(value: string | null): void { this.reportResponsibleId = value == null ? null : Number(value); }
 
   selectPeriodReport(value: string | null): void {
     this.selectedPeriodReport = this.periodReportOptions.find(option => option.key === value)?.key ?? null;
@@ -199,20 +167,6 @@ export class HomeComponent implements OnInit {
   get reportPeriodSummary(): string {
     return this.getReportPeriodLabel();
   }
-  clearReportFilters(): void {
-    this.reportEstadosActa = [];
-    this.reportPrioridades = [];
-    this.reportProjectId = this.reportCategoryId = this.reportResponsibleId = null;
-    this.pdfResetKey++;
-    this.pdfCategoryResetKey++;
-    this.pdfProjectValid = this.pdfCategoryValid = this.pdfResponsibleValid = true;
-  }
-  toggleReportFilter(list: string[], value: string): void {
-    const index = list.indexOf(value);
-    if (index >= 0) list.splice(index, 1);
-    else list.push(value);
-  }
-  isReportFilterSelected(list: string[], value: string): boolean { return list.includes(value); }
 
   private getReportDateRange(): { fechaInicio?: string; fechaFin?: string } {
     if (this.reportPeriod === 'ALL') return {};
@@ -226,16 +180,6 @@ export class HomeComponent implements OnInit {
     if (this.reportPeriod === 'YEAR') return `Año ${this.reportYear}`;
     return `${this.reportMonths[this.reportMonth - 1].label} ${this.reportYear}`;
   }
-  private getReportFilterLabel(): string {
-    const parts = [this.getReportPeriodLabel()];
-    if (this.reportEstadosActa.length) parts.push(`Estados: ${this.reportEstadosActa.join(', ')}`);
-    if (this.reportPrioridades.length) parts.push(`Prioridades: ${this.reportPrioridades.join(', ')}`);
-    if (this.reportProjectId) parts.push(`Proyecto: ${this.reportProjectOptions.find(p => p.id === this.reportProjectId)?.nombre}`);
-    if (this.reportCategoryId) parts.push(`Categoría: ${this.reportCategoryOptions.find(c => c.id === this.reportCategoryId)?.nombre}`);
-    if (this.reportResponsibleId) parts.push(`Responsable: ${this.reportResponsibleOptions.find(r => r.id === this.reportResponsibleId)?.nombre}`);
-    return parts.join(' · ');
-  }
-
   downloadPeriodReport(): void {
     if (this.selectedPeriodReport == null || this.downloadingPeriodReport) return;
     if (!this.excelProjectValid || !this.excelCategoryValid) {
@@ -290,30 +234,10 @@ export class HomeComponent implements OnInit {
 
   descargarReporte(): void {
     if (this.isLoadingPDF) return;
-    if (!this.pdfProjectValid || !this.pdfCategoryValid || !this.pdfResponsibleValid) {
-      this.alert.info('Selecciona una opción', 'Elige los filtros de las sugerencias o limpia su búsqueda.');
-      return;
-    }
     this.isLoadingPDF = true;
-    const filtro: ReporteFiltroRequest = {
-      alcance: this.reportPeriod, ...this.getReportDateRange(), estadoActa: [...this.reportEstadosActa],
-      prioridades: [...this.reportPrioridades], idProyecto: this.reportProjectId ?? undefined,
-      idCategoria: this.reportCategoryId ?? undefined, idResponsable: this.reportResponsibleId ?? undefined, incluirActoresSinFecha: true
-    };
-    const label = this.getReportFilterLabel();
-    this.reportes.obtenerDashboardFiltrado(filtro).pipe(timeout(45000), takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: d => {
-        this.pdfDashboard.generateDashboardReport(d, label, { lightweight: true })
-          .catch(error => {
-            console.error('Error al abrir el PDF:', error);
-            this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
-          }).finally(() => this.isLoadingPDF = false);
-      },
-      error: error => {
-        this.isLoadingPDF = false;
-        console.error('Error al generar el PDF:', error);
-        this.alert.error('Operación fallida', 'No se pudo generar el informe general o la consulta tardó demasiado.');
-      }
-    });
+    this.pdfDashboard.dashboard().catch(error => {
+      console.error('Error al generar el PDF:', error);
+      this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
+    }).finally(() => this.isLoadingPDF = false);
   }
 }

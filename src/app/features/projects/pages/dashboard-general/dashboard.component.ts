@@ -16,7 +16,6 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { ReportesService } from '../../../../core/services/reportes.service';
 import { DashboardReport, ResumenProyecto } from '../../../../core/models/reporte-global/reportes.model';
 import { hasChartData, hasDashboardData } from '../../../../core/models/reporte-global/dashboard.utils';
-import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -35,7 +34,6 @@ Chart.register(...registerables, ChartDataLabels);
 })
 export class DashboardComponent implements OnInit {
   private reportes = inject(ReportesService);
-  private pdfService = inject(PdfGeneradorDashboardService);
   private destroyRef = inject(DestroyRef);
   readonly hasChartData = hasChartData;
   readonly hasDashboardData = hasDashboardData;

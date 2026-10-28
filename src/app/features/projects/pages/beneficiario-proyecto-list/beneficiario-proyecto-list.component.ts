@@ -14,7 +14,7 @@ import { defaultColumns } from './beneficiario-proyecto-columns-definitions';
 import { IBeneficiarioProyecto } from '../../../../core/models/beneficiarioProyecto.model';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { PdfBeneficiariosProyectoService } from '../../../../shared/components/pdf/pdf-beneficiarios-proyecto.service';
+import { ReportesPdfService } from '../../../../core/services/reportes-pdf.service';
 import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 import { AlertService } from '../../../../core/services/alert.service';
 import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
@@ -44,7 +44,7 @@ export class BeneficiarioProyectoListComponent implements OnInit, OnDestroy {
   injector = inject(Injector);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
-  private pdfService = inject(PdfBeneficiariosProyectoService);
+  private pdfService = inject(ReportesPdfService);
   private alert = inject(AlertService);
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private pageRequest?: Subscription;
@@ -279,13 +279,13 @@ export class BeneficiarioProyectoListComponent implements OnInit, OnDestroy {
     if (this.isExportingPdf) return;
     const datosExportar = this.filteredData();
     if (!datosExportar || datosExportar.length === 0) {
-      console.warn('No hay datos para exportar');
+      this.alert.info('Sin datos', 'No hay vinculaciones en la página actual para exportar.');
       return;
     }
 
     this.isExportingPdf = true;
     try {
-      await this.pdfService.generarReporte(datosExportar);
+      await this.pdfService.vinculaciones(datosExportar.map(item => item.idBeneficiarioProyecto));
     } catch (error) {
       console.error('Error al exportar beneficiarios por proyecto:', error);
       this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));

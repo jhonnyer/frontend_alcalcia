@@ -13,8 +13,9 @@ import { NucleoDetallado } from '../../../../core/models/nucleo-detallado.model'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { ReportesPdfService } from '../../../../core/services/reportes-pdf.service';
+import { AlertService } from '../../../../core/services/alert.service';
+import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -38,6 +39,8 @@ export class DashboardComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private nucleoService = inject(NucleoService);
   private router = inject(Router);
+  private readonly pdf = inject(ReportesPdfService);
+  private readonly alert = inject(AlertService);
   nucleo?: NucleoDetallado; 
   allData?: NucleoDetallado;
   isLoadingPDF = false;
@@ -400,68 +403,17 @@ export class DashboardComponent implements OnInit {
   }
 
   async exportarPDF() {
-    if (this.isLoadingPDF) return;
-
-    const dashboard = document.querySelector('.dashboard-container') as HTMLElement;
-    if (!dashboard) return;
-
+    if (this.isLoadingPDF || !this.nucleo) return;
     this.isLoadingPDF = true;
-
-    // ✅ Guardar estilos originales para restaurar luego
-    const originalMaxHeight = dashboard.style.maxHeight;
-    const originalOverflow = dashboard.style.overflowY;
-
     try {
-      // 🔓 Quitar límites para capturar todo
-      dashboard.style.maxHeight = 'none';
-      dashboard.style.overflowY = 'visible';
-      dashboard.classList.add('export-pdf');
-
-      // Permite al navegador pintar el estado del boton antes del trabajo pesado.
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => setTimeout(() => resolve(), 0));
-      });
-
-      // 📸 Capturar todo el contenido visible
-      const canvas = await html2canvas(dashboard, {
-        scale: 1.5,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        scrollY: -window.scrollY,
-        windowWidth: dashboard.scrollWidth,
-        windowHeight: dashboard.scrollHeight
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = 210;
-      const pageHeight = 297;
-      const imgProps = pdf.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      // 📁 Nombre del archivo con nombre del núcleo
-      const nombreNucleo = this.nucleo?.nombreNucleo?.trim().replace(/\s+/g, '_') || 'SinNombre';
-      pdf.save(`actorSocial-${nombreNucleo}.pdf`);
+      await this.pdf.actor(this.nucleo.idNucleo, {
+        estadoActa: this.filtroEstadoRapido === 'TODOS' ? [] : [this.filtroEstadoRapido],
+        rangoEdad: this.filtroEdadRapido,
+      }, true);
     } catch (error) {
       console.error('Error al exportar PDF:', error);
+      this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
     } finally {
-      // 🔙 Restaurar estilos originales
-      dashboard.style.maxHeight = originalMaxHeight;
-      dashboard.style.overflowY = originalOverflow;
-      dashboard.classList.remove('export-pdf');
       this.isLoadingPDF = false;
     }
   }

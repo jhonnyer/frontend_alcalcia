@@ -20,7 +20,7 @@ import { DashboardReport, ResumenProyecto } from '../../../../core/models/report
 import { hasChartData, hasDashboardData } from '../../../../core/models/reporte-global/dashboard.utils';
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
-import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
+import { ReportesPdfService } from '../../../../core/services/reportes-pdf.service';
 import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 
 Chart.register(...registerables, ChartDataLabels);
@@ -44,7 +44,7 @@ export class ReportDashboardComponent implements OnInit {
   private reportes = inject(ReportesService);
   private router = inject(Router);
   private pageTitleService = inject(PageTitleService);
-  private pdfService = inject(PdfGeneradorDashboardService);
+  private pdfService = inject(ReportesPdfService);
   private alert = inject(AlertService);
   private destroyRef = inject(DestroyRef);
   readonly hasChartData = hasChartData;
@@ -767,12 +767,24 @@ export class ReportDashboardComponent implements OnInit {
 
   // ========= Exportar PDF =========
   async exportarPDF() {
+    if (this.isLoadingPDF) return;
     const d = this.dashboard();
     if (!d) return;
     this.isLoadingPDF = true;
     try {
-      const periodo = this.hayFiltrosAplicados() ? this.etiquetaFiltro() : 'Todos los registros';
-      await this.pdfService.generateDashboardReport(d, periodo, { lightweight: true });
+      const anio = this.filtroAnio();
+      const mes = this.filtroMes();
+      const filtro: ReporteFiltroRequest = {
+        idProyecto: this.proyectoAplicado() === 'ALL' ? undefined : Number(this.proyectoAplicado()),
+        incluirActoresSinFecha: true,
+      };
+      if (anio !== 'ALL') {
+        const mm = String(mes === 'ALL' ? 1 : mes).padStart(2, '0');
+        const ultimoDia = mes === 'ALL' ? 31 : new Date(anio, mes, 0).getDate();
+        filtro.fechaInicio = `${anio}-${mm}-01`;
+        filtro.fechaFin = `${anio}-${mes === 'ALL' ? '12' : mm}-${String(ultimoDia).padStart(2, '0')}`;
+      }
+      await this.pdfService.dashboard(filtro);
     } catch (error) {
       console.error('Error al exportar PDF:', error);
       this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));

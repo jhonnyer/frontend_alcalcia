@@ -1,142 +1,121 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, inject, signal, ChangeDetectorRef, computed } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, Input, OnInit, computed, inject, signal } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-
+import { finalize } from 'rxjs';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
-
 import { IProyecto, IProyectoCategorias } from '../../../../core/models/proyecto.model';
 import { ICategorias } from '../../../../core/models/categorias.model';
-
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
-import { CategoriasCreateComponent } from '../../../categorias/categorias-create/categorias-create.component';
-import { CategoriasService } from '../../../../core/services/categorias.service';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
-import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
-import { IProductoFk } from '../../../../core/models/products.model';
 import { ReportesPdfService } from '../../../../core/services/reportes-pdf.service';
 import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 import { AlertService } from '../../../../core/services/alert.service';
-
-interface ICategoriaUI extends ICategorias {
-  expanded?: boolean;
-  currentPage?: number;
-  pageSize?: number;
-  filtro?: string;   
-}
+import { CategoriasService } from '../../../../core/services/categorias.service';
+import { CategoriasCreateComponent } from '../../../categorias/categorias-create/categorias-create.component';
+import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
+import { InventoryCreateComponent, InventoryCreateDialogData } from '../../../inventory/pages/inventory-create/inventory-create.component';
+import { IProductoFk } from '../../../../core/models/products.model';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-project-update',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatRadioModule,
-    MatSelectModule,
-    MatIconModule,
-    MatPaginatorModule,
-    MatTableModule,
-    MatInputModule,
-    MatButtonModule,
-    MatTooltipModule,
-    HasRoleDirective
+    CommonModule, ReactiveFormsModule, MatFormFieldModule, MatRadioModule,
+    MatSelectModule, MatIconModule, MatInputModule, MatButtonModule, MatPaginatorModule, HasRoleDirective
   ],
   templateUrl: './project-update.component.html',
   styleUrl: './project-update.component.scss'
 })
 export class ProjectUpdateComponent implements OnInit {
-  constructor(private dialog: MatDialog, private pdfService: ReportesPdfService) {}
-
   @Input() modo: 'crear' | 'editar' = 'crear';
-
   formFamilyCore: FormGroup = new FormGroup({});
-  categorias = signal<ICategoriaUI[]>([]);
-  filtroCategoria = '';
-  filtroProducto = '';
-  displayedColumns: string[] = ['nombreProducto', 'stock', 'fechaIngreso', 'acciones'];
-  // 🔹 Filtro y selección de categoría
-  categoriaSeleccionada = signal<ICategoriaUI | null>(null);
-  categoriaActivaId = signal<number | null>(null);
-  filtroCategorias = signal<string>('');
-  categorySearch = signal('');
-  categorySuggestionsVisible = signal(false);
-  filteredCategoryOptions = computed(() => {
-    const query = this.normalizeSearchText(this.categorySearch());
-    return this.categorias().filter(categoria => {
-      const text = this.normalizeSearchText(`${categoria.idCategoria} ${categoria.nombre} ${categoria.descripcion}`);
-      return !query || text.includes(query);
-    });
+  categorias = signal<ICategorias[]>([]);
+  selectedCategoryId = signal<number | null>(null);
+  selectedCategory = computed(() => this.categorias().find(categoria =>
+    categoria.idCategoria === this.selectedCategoryId()
+  ) ?? null);
+  productFilter = signal('');
+  productPage = signal(0);
+  productPageSize = signal(5);
+  filteredProducts = computed(() => {
+    const filter = this.normalizeSearchText(this.productFilter());
+    return (this.selectedCategory()?.productos ?? []).filter(product =>
+      [product.nombreProducto, product.descripcion, product.fechaIngreso, product.stock]
+        .some(value => this.normalizeSearchText(value).includes(filter))
+    );
   });
-  pageIndex = 0;
-  pageSize = 5;
-  modoCreacion = false;
-  loadingPdf = false; 
+  pagedProducts = computed(() => this.filteredProducts().slice(
+    this.productPage() * this.productPageSize(),
+    (this.productPage() + 1) * this.productPageSize()
+  ));
+  totalProductos = computed(() => this.categorias().reduce((total, categoria) =>
+    total + (categoria.productos?.length ?? 0), 0
+  ));
+  loadingProject = false;
+  refreshingInventory = false;
+  inventoryError = '';
+  projectLoadError = '';
+  saving = false;
+  loadingPdf = false;
+  proyectoId?: string;
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private proyectosService = inject(ProyectosService);
-  private pageTitleService = inject(PageTitleService);
   private categoriasService = inject(CategoriasService);
-  private cdr = inject(ChangeDetectorRef);
+  private pageTitleService = inject(PageTitleService);
   private route = inject(ActivatedRoute);
   private alert = inject(AlertService);
-
-  proyectoId?: string;
+  private dialog = inject(MatDialog);
+  private pdfService = inject(ReportesPdfService);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage("Gestión de Proyecto");
-    this.initFormFamilyCore();
-
-    // 🔹 Detecta el modo desde la ruta
-    this.modo = (this.route.snapshot.data['modo'] as 'crear' | 'editar') || 'crear';
-    this.proyectoId = this.route.snapshot.paramMap.get('id') || undefined;
-
-    if (this.modo === 'editar' && this.proyectoId) {
-      this.getProyectoById();
-    }
-  }
-
-  // 🔹 Inicialización del formulario
-  private initFormFamilyCore(): void {
+    this.pageTitleService.setCurrentPage('Gestión de Proyecto');
     this.formFamilyCore = this.fb.group({
-      nombre: ['', [Validators.required]],
-      tipoProyecto: ['', [Validators.required]],
-      contrato: ['', [Validators.maxLength(100)]],
-      fechaInicio: ['', [Validators.required]],
+      nombre: ['', Validators.required],
+      tipoProyecto: ['', Validators.required],
+      contrato: ['', Validators.maxLength(100)],
+      fechaInicio: ['', Validators.required],
       fechaFin: [''],
-      estado: ['A', [Validators.required]],
-      descripcion: [''],
-      categorias: [[]]
+      estado: ['A', Validators.required],
+      descripcion: ['']
     });
+    this.modo = this.route.snapshot.data['modo'] || 'crear';
+    this.proyectoId = this.route.snapshot.paramMap.get('id') || undefined;
+    if (this.modo === 'editar' && this.proyectoId) this.getProyectoById();
   }
-  
-  private getProyectoById(): void {
+
+  getProyectoById(inventoryOnly = false, preferredCategoryId = this.selectedCategoryId()): void {
     if (!this.proyectoId) {
-      console.warn('⚠️ No se proporcionó un ID de proyecto para cargar.');
+      this.alert.error('Proyecto no disponible', 'No se encontró el identificador del proyecto.');
       return;
     }
-
-    const id = String(this.proyectoId);
-    this.proyectosService.getById(id).subscribe({
+    if (inventoryOnly) {
+      this.refreshingInventory = true;
+      this.inventoryError = '';
+    } else {
+      this.loadingProject = true;
+      this.projectLoadError = '';
+    }
+    this.proyectosService.getById(this.proyectoId).pipe(
+      finalize(() => {
+        this.loadingProject = false;
+        this.refreshingInventory = false;
+      })
+    ).subscribe({
       next: ({ respuesta }) => {
         const { proyecto, categorias } = respuesta;
-
-        this.formFamilyCore.patchValue({
+        if (!inventoryOnly) this.formFamilyCore.patchValue({
           nombre: proyecto.nombre,
           tipoProyecto: proyecto.tipoProyecto?.trim().toUpperCase() || '',
           contrato: proyecto.contrato ?? '',
@@ -145,387 +124,178 @@ export class ProjectUpdateComponent implements OnInit {
           estado: proyecto.estado?.trim().toUpperCase() || '',
           descripcion: proyecto.descripcion
         });
-
-        const categoriasUI = (categorias || []).map(cat => ({
-          ...cat,
-          expanded: false,
-          currentPage: 0,
-          pageSize: 5,
-          filtro: ''
-        }));
-        const categoriaActual = categoriasUI.find(cat => cat.idCategoria === this.categoriaActivaId())
-          ?? categoriasUI[0]
-          ?? null;
-        if (categoriaActual) {
-          categoriaActual.expanded = true;
+        this.categorias.set(categorias ?? []);
+        const categoryId = this.categorias().find(categoria => categoria.idCategoria === preferredCategoryId)?.idCategoria
+          ?? this.categorias()[0]?.idCategoria ?? null;
+        if (categoryId !== this.selectedCategoryId()) {
+          this.productFilter.set('');
+          this.productPage.set(0);
         }
-        this.categorias.set(categoriasUI);
-        this.categoriaActivaId.set(categoriaActual?.idCategoria ?? null);
-        this.categoriaSeleccionada.set(categoriaActual);
-        this.categorySearch.set(categoriaActual ? `#${categoriaActual.idCategoria} - ${categoriaActual.nombre}` : '');
-
-        // para que Material refresque bind de select/radio si llegó tarde
-        this.cdr.detectChanges();
+        this.selectedCategoryId.set(categoryId);
+        this.productPage.set(Math.min(this.productPage(),
+          Math.max(0, Math.ceil(this.filteredProducts().length / this.productPageSize()) - 1)));
       },
-      error: (e) => console.error('Error al cargar proyecto:', e)
+      error: error => {
+        console.error('Error al cargar proyecto:', error);
+        if (inventoryOnly) {
+          this.inventoryError = 'No se pudo actualizar el inventario del proyecto. Reintenta antes de continuar.';
+        } else {
+          this.projectLoadError = 'No se pudo cargar el proyecto. Reintenta antes de editar sus datos.';
+        }
+      }
     });
   }
 
-  // 🔹 Filtra categorías que se muestran actualmente
-  getCategoriasFiltradas(): ICategoriaUI[] {
-    const filtro = this.filtroCategorias().toLowerCase();
-    return this.categorias().filter(cat =>
-      cat.nombre.toLowerCase().includes(filtro)
-    );
-  }
-
-  // 🔹 Cuando el usuario selecciona una categoría del combo
-  onSeleccionarCategoria(categoria: ICategoriaUI): void {
-    this.categoriaSeleccionada.set(categoria);
-    this.categoriaActivaId.set(categoria.idCategoria);
-    categoria.expanded = true;
-  }
-
-  onCategoriaActivaChange(value: number | string | null): void {
-    const idCategoria = value === null || value === '' ? null : Number(value);
-    this.categoriaActivaId.set(idCategoria);
-    this.pageIndex = 0;
-    this.categorias.update(categorias => categorias.map(categoria => ({
-      ...categoria,
-      expanded: categoria.idCategoria === idCategoria,
-      currentPage: 0
-    })));
-    this.categoriaSeleccionada.set(
-      this.categorias().find(categoria => categoria.idCategoria === idCategoria) ?? null
-    );
-    const categoria = this.categoriaSeleccionada();
-    this.categorySearch.set(categoria ? `#${categoria.idCategoria} - ${categoria.nombre}` : '');
-    this.categorySuggestionsVisible.set(false);
-  }
-
-  onCategorySearch(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.categorySearch.set(value);
-    this.categorySuggestionsVisible.set(true);
-    if (this.categoriaActivaId()) {
-      this.categoriaActivaId.set(null);
-      this.categoriaSeleccionada.set(null);
-    }
-  }
-
-  selectCategoryOption(categoria: ICategoriaUI): void {
-    this.onCategoriaActivaChange(categoria.idCategoria);
-  }
-
-  clearCategorySearch(): void {
-    this.categorySearch.set('');
-    this.categoriaActivaId.set(null);
-    this.categoriaSeleccionada.set(null);
-    this.categorySuggestionsVisible.set(false);
-  }
-
-  showCategorySuggestions(): void {
-    this.categorySuggestionsVisible.set(true);
-  }
-
-  hideCategorySuggestions(): void {
-    setTimeout(() => this.categorySuggestionsVisible.set(false), 150);
-  }
-
-
-  // 🔹 Verifica si una categoría está seleccionada
-  isCategoriaSeleccionada(idCategoria: number): boolean {
-    const seleccionadas = this.formFamilyCore.get('categorias')?.value || [];
-    return seleccionadas.some((c: any) => c.idCategoria === idCategoria);
-  }
-
-  // 🔹 Devuelve los productos filtrados + paginados por categoría
-  getPagedData(categoria: any) {
-    if (!categoria.productos) return [];
-
-    const startIndex = (categoria.currentPage || 0) * (categoria.pageSize || 3);
-    const endIndex = startIndex + (categoria.pageSize || 3);
-
-    const filtro = this.normalizeSearchText(categoria.filtro);
-    const filtrados = categoria.productos.filter((p: any) =>
-      this.productMatchesFilter(p, filtro)
-    );
-
-    return filtrados.slice(startIndex, endIndex);
-  }
-
-  clearProductFilter(categoria: ICategoriaUI): void {
-    categoria.filtro = '';
-    categoria.currentPage = 0;
-  }
-
-  onProductFilterChange(categoria: ICategoriaUI): void {
-    categoria.currentPage = 0;
-  }
-
-  getStockBadgeClass(stock: number | null | undefined): string {
-    const value = Number(stock ?? 0);
-    if (value <= 0) return 'bg-red-100 text-red-700 border-red-200';
-    if (value <= 5) return 'bg-amber-100 text-amber-700 border-amber-200';
-    return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-  }
-
-  // 🔹 Actualiza página actual por categoría
-  onPageChange(event: any, categoria: any) {
-    categoria.currentPage = event.pageIndex;
-    categoria.pageSize = event.pageSize;
-  }
-
-  // 🔹 Mostrar/Ocultar productos por categoría
-  toggleProductos(categoria: ICategoriaUI): void {
-    categoria.expanded = !categoria.expanded;
-  }
-
-  // 🔹 Transformar datos antes de enviar al backend
   private getTransformedData(): IProyectoCategorias {
     const fv = this.formFamilyCore.value;
-
-    const categoriasSeleccionadas = this.categorias().map(c => ({
-      idCategoria: Number(c.idCategoria),
-    }));
-
-    // Si estás editando, incluye idProyecto
-    if (this.proyectoId) {
-      return {
-        proyecto: {
-          idProyecto: Number(this.proyectoId),
-          nombre: fv.nombre?.trim(),
-          descripcion: fv.descripcion?.trim(),
-          estado: fv.estado,
-          fechaInicio: fv.fechaInicio,
-          fechaFin: fv.fechaFin,
-          tipoProyecto: fv.tipoProyecto,
-          contrato: fv.contrato?.trim() || null,
-        },
-        categorias: categoriasSeleccionadas,
-      };
-    }
-
-    // Si estás creando, no envíes idProyecto
     return {
       proyecto: {
+        ...(this.proyectoId ? { idProyecto: Number(this.proyectoId) } : {}),
         nombre: fv.nombre?.trim(),
         descripcion: fv.descripcion?.trim(),
         estado: fv.estado,
         fechaInicio: fv.fechaInicio,
         fechaFin: fv.fechaFin,
         tipoProyecto: fv.tipoProyecto,
-        contrato: fv.contrato?.trim() || null,
-        // sin idProyecto
+        contrato: fv.contrato?.trim() || null
       } as IProyecto,
-      categorias: categoriasSeleccionadas,
+      categorias: this.categorias().map(categoria => ({ idCategoria: categoria.idCategoria }))
     };
   }
 
-
-  // 🔹 Guardar cambios
   onSubmit(): void {
+    if (this.saving || this.loadingProject || this.projectLoadError || this.refreshingInventory || this.inventoryError) return;
     if (this.formFamilyCore.invalid) {
-      this.alert.warning('Formulario Inválido','⚠️ Por favor completa los campos requeridos antes de continuar.');
+      this.alert.warning('Formulario inválido', 'Por favor completa los campos requeridos antes de continuar.');
       this.formFamilyCore.markAllAsTouched();
       return;
     }
-
     const dataToSend = this.getTransformedData();
-
+    this.saving = true;
     if (this.modo === 'editar' && this.proyectoId) {
-      this.proyectosService.updateById(this.proyectoId, dataToSend).subscribe({
+      this.proyectosService.updateById(this.proyectoId, dataToSend).pipe(
+        finalize(() => this.saving = false)
+      ).subscribe({
         next: () => {
-          this.alert.success('Operación exitosa','✅ Proyecto actualizado correctamente');
+          this.alert.success('Operación exitosa', 'Proyecto actualizado correctamente');
           this.router.navigate(['projects']);
         },
-        error: (error) => console.error('Error al actualizar:', error)
+        error: error => {
+          console.error('Error al actualizar:', error);
+          this.alert.error('Operación fallida', 'No se pudo actualizar el proyecto. Intenta nuevamente.');
+        }
       });
     } else {
-      this.proyectosService.post(dataToSend).subscribe({
-        next: (response) => {
+      this.proyectosService.post(dataToSend).pipe(
+        finalize(() => this.saving = false)
+      ).subscribe({
+        next: response => {
           const nuevoId = response?.respuesta?.proyecto?.idProyecto;
           if (nuevoId) {
-            this.alert.success('Operación exitosa','✅ Proyecto creado correctamente');
-            // 🟢 Redirigimos al modo edición del nuevo proyecto
+            this.alert.success('Operación exitosa', 'Proyecto creado correctamente');
             this.router.navigate(['projects/update', nuevoId]);
           } else {
-            console.warn('⚠️ El backend no devolvió el idProyecto');
+            console.error('El backend no devolvió el idProyecto');
+            this.alert.warning('Verifica el registro', 'No se recibió el identificador del proyecto. Consulta la lista antes de intentar registrarlo nuevamente.');
             this.router.navigate(['projects']);
           }
         },
-        error: (error) => console.error('Error al crear:', error)
+        error: error => {
+          console.error('Error al crear:', error);
+          this.alert.error('Operación fallida', 'No se pudo crear el proyecto. Intenta nuevamente.');
+        }
       });
     }
   }
 
-
-  // 🔹 Cancelar
   cancelar(): void {
     this.router.navigate(['projects']);
   }
 
-  // 🔹 Longitud total de productos filtrados (para el paginador)
-  getFilteredLength(categoria: any): number {
-    if (!categoria.productos) return 0;
-    const filtro = this.normalizeSearchText(categoria.filtro);
-    return categoria.productos.filter((p: any) =>
-      this.productMatchesFilter(p, filtro)
-    ).length;
-  }
-
-  private normalizeSearchText(value: string | number | null | undefined): string {
-    return String(value ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLocaleLowerCase()
-      .trim();
-  }
-
-  private productMatchesFilter(product: IProductoFk, filter: string): boolean {
-    if (!filter) return true;
-    return [
-      product.nombreProducto,
-      product.descripcion,
-      product.stock,
-      product.fechaIngreso
-    ].some(value => this.normalizeSearchText(value).includes(filter));
-  }
-
   confirmarActualizacion(): void {
+    if (this.saving || this.loadingProject || this.projectLoadError || this.refreshingInventory || this.inventoryError) return;
     if (this.formFamilyCore.invalid) {
-      this.alert.warning('Formulario Inválido','⚠️ Verifica los campos del formulario');
+      this.alert.warning('Formulario inválido', 'Verifica los campos del formulario');
       this.formFamilyCore.markAllAsTouched();
       return;
     }
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+    this.dialog.open(ConfirmDialogComponent, {
       width: '350px',
       data: { mensaje: '¿Deseas guardar los cambios de este proyecto?' }
-    });
-
-    dialogRef.afterClosed().subscribe((confirmado) => {
-      if (confirmado) {
-        this.onSubmit(); // ejecuta la lógica normal de guardado
-      }
+    }).afterClosed().subscribe(confirmado => {
+      if (confirmado) this.onSubmit();
     });
   }
 
-  abrirDialogNuevaCategoria(): void {
-    const dialogRef = this.dialog.open(CategoriasCreateComponent, {
-      width: '500px',
-      maxWidth: 'calc(100vw - 32px)',
-      data: { idProyecto: this.proyectoId },
-      autoFocus: false
-    });
-
-    dialogRef.afterClosed().subscribe((nuevaCategoria) => {
-      if (nuevaCategoria) {
-        // Añadir la categoría recién creada al proyecto actual
-        const categoriaConCamposUI: ICategoriaUI = {
-          ...nuevaCategoria,
-          productos: [],
-          expanded: false,
-          currentPage: 0,
-          pageSize: 3,
-          filtro: ''
-        };
-        
-        this.categorias.update(prev => [...prev, categoriaConCamposUI]);
-        this.onCategoriaActivaChange(nuevaCategoria.idCategoria);
-
-        // Actualizar el formControl 'categorias' (ids)
-        const actual = this.formFamilyCore.get('categorias')?.value || [];
-        this.formFamilyCore.get('categorias')?.setValue([
-          ...actual,
-          { idCategoria: nuevaCategoria.idCategoria }
-        ]);
-      }
-    });
-  }
-
-
-  getCategoriasFiltradasPaginadas(): ICategoriaUI[] {
-    const filtro = this.filtroCategorias().toLowerCase();
-    const categoriaActivaId = this.categoriaActivaId();
-    const filtradas = this.categorias().filter(cat =>
-      (!categoriaActivaId || cat.idCategoria === categoriaActivaId) &&
-      cat.nombre.toLowerCase().includes(filtro)
-    );
-    const start = this.pageIndex * this.pageSize;
-    return filtradas.slice(start, start + this.pageSize);
-  }
-
-  getFilteredLengthGlobal(): number {
-    const filtro = this.filtroCategorias().toLowerCase();
-    const categoriaActivaId = this.categoriaActivaId();
-    return this.categorias().filter(cat =>
-      (!categoriaActivaId || cat.idCategoria === categoriaActivaId) &&
-      cat.nombre.toLowerCase().includes(filtro)
-    ).length;
-  }
-
-  onPageChangeGlobal(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-  }
-
-  trackByCategoriaId(index: number, categoria: ICategoriaUI): number {
-    return categoria.idCategoria;
-  }
-
-  abrirDialogEditarCategoria(categoria: ICategorias): void {
-    const dialogRef = this.dialog.open(CategoriasCreateComponent, {
-      width: '500px',
-      maxWidth: 'calc(100vw - 32px)',
-      data: { 
-        modo: 'editar',
-        categoria,
-        idProyecto: this.proyectoId
-      },
-      disableClose: true,
-      autoFocus: true
-    });
-
-    dialogRef.afterClosed().subscribe((resultado) => {
-      if (resultado) {
-        // Actualizar lista local después de editar
-        this.getProyectoById();
-      }
-    });
-  }
-
-  confirmarEliminacion(categoria: ICategorias): void {
-    if (categoria.productos && categoria.productos.length > 0) {
-      this.alert.warning('Alerta','⚠️ No se puede eliminar la categoría porque tiene productos asociados.');
-      return;
+  async gestionarInventario(idCategoria?: number): Promise<void> {
+    if (this.formFamilyCore.dirty) {
+      const salir = await this.alert.confirm(
+        'Cambios sin guardar',
+        'Los cambios del proyecto no se han guardado. Puedes cancelar para guardarlos antes de abrir el inventario.',
+        'Salir sin guardar',
+        'Seguir editando'
+      );
+      if (!salir) return;
     }
-
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '350px',
-      data: { mensaje: `¿Deseas eliminar la categoría "${categoria.nombre}"?` }
-    });
-
-    dialogRef.afterClosed().subscribe((confirmado) => {
-      if (confirmado) {
-        this.categoriasService.delete(String(categoria.idCategoria)).subscribe({
-          next: () => {
-            this.alert.success('Operación exitosa','✅ Categoría eliminada correctamente.');
-            this.getProyectoById(); // refresca lista
-          },
-          error: (error) => {
-            console.error('❌ Error al eliminar categoría:', error);
-            this.alert.error('Error del servicio','⚠️ No se pudo eliminar la categoría. Intenta nuevamente.');
-          }
-        });
-      }
+    this.router.navigate(['/inventory'], {
+      queryParams: { idProyecto: this.proyectoId, ...(idCategoria ? { idCategoria } : {}) }
     });
   }
 
-  editarProducto(producto: IProductoFk, categoria: ICategorias): void {
-    const idCategoriaActual = categoria.idCategoria; 
-    const dialogRef = this.dialog.open(ProductoModalComponent, {
+  selectCategory(event: Event): void {
+    this.selectedCategoryId.set(Number((event.target as HTMLSelectElement).value) || null);
+    this.productFilter.set('');
+    this.productPage.set(0);
+  }
+
+  filterProducts(value: string): void {
+    this.productFilter.set(value);
+    this.productPage.set(0);
+  }
+
+  changeProductPage(event: PageEvent): void {
+    this.productPage.set(event.pageIndex);
+    this.productPageSize.set(event.pageSize);
+  }
+
+  private normalizeSearchText(value: string | number | null | undefined): string {
+    return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
+  }
+
+  editCategory(categoria?: ICategorias): void {
+    this.dialog.open(CategoriasCreateComponent, {
       width: '500px',
+      maxWidth: 'calc(100vw - 32px)',
+      data: { idProyecto: Number(this.proyectoId), modo: categoria ? 'editar' : 'crear', categoria },
+      autoFocus: false
+    }).afterClosed().subscribe((result: ICategorias | undefined) => {
+      this.pageTitleService.setCurrentPage('Gestión de Proyecto');
+      if (result) this.getProyectoById(true, categoria?.idCategoria ?? result.idCategoria);
+    });
+  }
+
+  addProducts(categoria: ICategorias): void {
+    this.dialog.open<InventoryCreateComponent, InventoryCreateDialogData, boolean>(InventoryCreateComponent, {
+      width: '1100px',
+      maxWidth: 'calc(100vw - 32px)',
+      maxHeight: '90vh',
+      data: {
+        idProyecto: Number(this.proyectoId),
+        idCategoria: categoria.idCategoria,
+        lockContext: true
+      },
+      ariaLabelledBy: 'inventory-create-title',
+      disableClose: true,
+      autoFocus: 'first-tabbable'
+    }).afterClosed().subscribe(saved => {
+      if (saved) this.getProyectoById(true, categoria.idCategoria);
+    });
+  }
+
+  editProduct(categoria: ICategorias, producto: IProductoFk): void {
+    this.dialog.open(ProductoModalComponent, {
+      width: '500px',
+      maxWidth: 'calc(100vw - 32px)',
       data: {
         modo: 'editar',
         idProyecto: Number(this.proyectoId),
@@ -533,66 +303,49 @@ export class ProjectUpdateComponent implements OnInit {
         producto
       },
       autoFocus: false
-    });
-
-    dialogRef.afterClosed().subscribe((ok) => {
-      if (ok) {
-        this.refrescarCategoriaActiva(idCategoriaActual);
-      }
+    }).afterClosed().subscribe(result => {
+      if (result) this.getProyectoById(true, categoria.idCategoria);
     });
   }
-  
-  abrirDialogNuevoProducto(categoria: ICategorias): void {
-    const idCategoriaActual = categoria.idCategoria;
-    const dialogRef = this.dialog.open(ProductoModalComponent, {
-      width: '500px',
-      data: {
-        modo: 'crear',
-        idProyecto: Number(this.proyectoId),
-        idCategoria: categoria.idCategoria
+
+  deleteCategory(categoria: ICategorias): void {
+    this.categoriasService.getById(String(categoria.idCategoria)).subscribe({
+      next: async current => {
+        if (current.productos?.length) {
+          this.alert.warning('Categoría con productos', 'Esta categoría tiene productos asociados y no se puede eliminar. Puedes editar su nombre o descripción.');
+          return;
+        }
+        const confirmed = await this.alert.confirm('Eliminar categoría',
+          `¿Deseas eliminar la categoría "${current.nombre}"?`, 'Eliminar', 'Cancelar');
+        if (!confirmed) return;
+        this.categoriasService.delete(String(current.idCategoria)).subscribe({
+          next: () => {
+            this.alert.success('Operación exitosa', 'Categoría eliminada correctamente.');
+            this.getProyectoById(true);
+          },
+          error: error => {
+            console.error('Error al eliminar categoría:', error);
+            this.alert.error('Operación fallida', 'No se pudo eliminar la categoría. Intenta nuevamente.');
+          }
+        });
       },
-      autoFocus: false
-    });
-
-    dialogRef.afterClosed().subscribe((ok) => {
-    if (ok) {
-        this.refrescarCategoriaActiva(idCategoriaActual);
+      error: error => {
+        console.error('Error al consultar categoría:', error);
+        this.alert.error('Operación fallida', 'No se pudo verificar la categoría. Intenta nuevamente.');
       }
     });
-
-  }
-
-  private refrescarCategoriaActiva(idCategoria: number): void {
-    const categoriaExpandida = this.categorias().find(cat => cat.idCategoria === idCategoria);
-    const paginaActual = categoriaExpandida?.currentPage || 0;
-    const filtroActual = categoriaExpandida?.filtro || '';
-
-    this.getProyectoById();
-
-    setTimeout(() => {
-      const categoriaActualizada = this.categorias().find(cat => cat.idCategoria === idCategoria);
-      if (categoriaActualizada) {
-        categoriaActualizada.expanded = true;
-        categoriaActualizada.currentPage = paginaActual;
-        categoriaActualizada.filtro = filtroActual;
-        this.categoriaActivaId.set(categoriaActualizada.idCategoria);
-        this.categoriaSeleccionada.set(categoriaActualizada);
-      }
-    }, 300);
   }
 
   exportarPdf(): void {
     if (this.loadingPdf) return;
     if (!this.proyectoId) {
-      this.alert.warning('Alerta','⚠️ Primero debes guardar el proyecto antes de exportar.');
+      this.alert.warning('Alerta', 'Primero debes guardar el proyecto antes de exportar.');
       return;
     }
-
     this.loadingPdf = true;
     this.pdfService.proyecto(Number(this.proyectoId)).catch(error => {
       console.error('Error al generar PDF:', error);
       this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
     }).finally(() => this.loadingPdf = false);
   }
-
 }

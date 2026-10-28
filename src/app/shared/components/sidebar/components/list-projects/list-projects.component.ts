@@ -41,9 +41,7 @@ export class ListProjectsComponent implements OnInit {
     {
       title: 'Inventario',
       items: [
-        { label: 'Categorías por proyecto', link: '/categorias'},
-        { label: 'Inventario por proyecto', link: '/inventory'},
-        { label: 'Agregar productos', link: '/inventory/create'}
+        { label: 'Inventario por proyecto', link: '/inventory'}
       ]
     }
   ];

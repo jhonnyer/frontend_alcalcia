@@ -1,18 +1,17 @@
-/* Permitir scroll horizontal en móviles y pantallas pequeñas */
-.overflow-x-auto {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Evita que los botones o tablas se salgan del contenedor */
-table {
-  border-spacing: 0;
-}
-
-.btn-action-green {
-  @apply bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-sm font-medium transition;
-}
-
-/* Evita que el botón se corte o se salga */
-.whitespace-nowrap {
-  white-space: nowrap;
+:host { display: block; min-width: 0; }
+.inventory-create { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 1rem; background: white; }
+.inventory-create-heading { display: flex; align-items: center; gap: .75rem; padding: 1rem 1.25rem; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+.inventory-create-icon { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: .75rem; background: #dbeafe; color: #2563eb; }
+.inventory-create-form { display: flex; flex-direction: column; min-height: 0; }
+.inventory-create-body { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; margin: 0; border: 0; padding: 1.25rem; }
+.inventory-create-footer { display: flex; justify-content: end; gap: .75rem; padding: 1rem 1.25rem; border-top: 1px solid #e2e8f0; background: #f8fafc; }
+.inventory-create-modal { display: flex; flex-direction: column; max-height: 90vh; border: 0; border-radius: 0; }
+.inventory-create-modal .inventory-create-form { overflow: hidden; }
+.inventory-create-modal .inventory-create-body { overflow-y: auto; }
+.inventory-create-heading, .inventory-create-footer { flex-shrink: 0; }
+.overflow-x-auto { -webkit-overflow-scrolling: touch; }
+table { border-spacing: 0; }
+@media (max-width: 600px) {
+  .inventory-create-heading, .inventory-create-body, .inventory-create-footer { padding: .85rem; }
+  .inventory-create-footer > button { flex: 1; }
 }

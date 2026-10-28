@@ -28,6 +28,12 @@ import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.mod
 import { ICategorias } from '../../../../core/models/categorias.model';
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { CategoriaListComponent } from '../../../categorias/categoria-list/categoria-list.component';
+import { CategoriasCreateComponent } from '../../../categorias/categorias-create/categorias-create.component';
+import { InventoryCreateComponent, InventoryCreateDialogData } from '../inventory-create/inventory-create.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { AlertService } from '../../../../core/services/alert.service';
 import { TableFilterToolbarComponent } from '../../../../shared/components/table-filter-toolbar/table-filter-toolbar.component';
@@ -43,7 +49,10 @@ import { ServerPaginationComponent } from '../../../../shared/components/server-
     CdkTableModule, 
     FlexRenderDirective, 
     TableFilterComponent, 
-    MatIconModule
+    MatIconModule,
+    MatTabsModule,
+    MatTooltipModule,
+    CategoriaListComponent
   ],
   templateUrl: './inventory-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,6 +68,9 @@ export class InventoryListComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private alert = inject(AlertService);
+  private dialog = inject(MatDialog);
+  activeTab = signal(0);
+  private projectsLoaded = false;
   filtroActual = '';
 
   data = signal<IProducto[]>([]);
@@ -103,29 +115,93 @@ export class InventoryListComponent implements OnInit {
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Inventario');
-    this.initialProjectId = Number(this.route.snapshot.queryParamMap.get('idProyecto')) || null;
-    this.initialCategoryId = Number(this.route.snapshot.queryParamMap.get('idCategoria')) || null;
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      this.initialProjectId = Number(params.get('idProyecto')) || null;
+      this.initialCategoryId = Number(params.get('idCategoria')) || null;
+      this.activeTab.set(params.get('vista') === 'categorias' ? 1 : 0);
+      if (this.projectsLoaded) this.applyContext();
+    });
     this.getAll();
   }
 
+  private applyContext(refresh = false, autoSelect = false): void {
+    const projectId = this.initialProjectId
+      ?? (autoSelect && this.proyectos().length === 1 ? this.proyectos()[0].proyecto.idProyecto : null);
+    const project = this.proyectos().find(item => item.proyecto.idProyecto === projectId);
+    const category = project?.categorias.find(item => item.idCategoria === this.initialCategoryId);
+    if (this.initialProjectId && !project) {
+      this.alert.warning('Proyecto no disponible', 'El proyecto solicitado no está disponible en el inventario de esta secretaría.');
+    } else if (this.initialCategoryId && !category) {
+      this.alert.warning('Categoría no disponible', 'La categoría solicitada no pertenece al proyecto seleccionado o ya no está disponible.');
+    }
+    if (refresh || this.selectedProjectId() !== (project?.proyecto.idProyecto ?? null)) {
+      this.selectProject(project?.proyecto.idProyecto ?? null, false);
+      this.selectCategory(category?.idCategoria ?? null, false);
+    } else if (this.selectedCategoryId() !== (category?.idCategoria ?? null)) {
+      this.selectCategory(category?.idCategoria ?? null, false);
+    }
+    this.syncContext();
+  }
+
+  private syncContext(): void {
+    const idProyecto = this.selectedProjectId();
+    const idCategoria = this.selectedCategoryId();
+    const vista = this.activeTab() === 1 ? 'categorias' : null;
+    const params = this.route.snapshot.queryParamMap;
+    if (params.get('idProyecto') === (idProyecto === null ? null : String(idProyecto))
+      && params.get('idCategoria') === (idCategoria === null ? null : String(idCategoria))
+      && params.get('vista') === vista) return;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { idProyecto, idCategoria, vista },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  selectTab(index: number): void {
+    this.activeTab.set(index);
+    this.syncContext();
+  }
+
+  openCategoryProducts(context: { idProyecto: number; idCategoria: number }): void {
+    this.selectProject(context.idProyecto, false);
+    this.selectCategory(context.idCategoria, false);
+    this.selectTab(0);
+  }
+
+  createCategory(): void {
+    const idProyecto = this.selectedProjectId();
+    if (!idProyecto) {
+      this.alert.warning('Selecciona un proyecto', 'Selecciona el proyecto al que pertenecerá la nueva categoría.');
+      return;
+    }
+    this.dialog.open(CategoriasCreateComponent, {
+      width: '500px',
+      maxWidth: 'calc(100vw - 32px)',
+      data: { idProyecto },
+      autoFocus: false
+    }).afterClosed().subscribe(result => {
+      this.pageTitleService.setCurrentPage('Inventario');
+      if (result) this.getAll();
+    });
+  }
+
   getAll() {
+    this.productsRequest?.unsubscribe();
+    this.data.set([]);
     this.listLoading.set(true);
     this.loadError.set('');
-    this.proyectosService.getAll().pipe(finalize(() => this.listLoading.set(false))).subscribe({
+    this.proyectosService.getAll().pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.listLoading.set(false))
+    ).subscribe({
       next: response => {
         const proyectos = response.respuesta ?? [];
         this.proyectos.set(proyectos);
-        if (proyectos.length === 1) {
-          this.selectProject(proyectos[0].proyecto.idProyecto);
-          if (this.initialCategoryId) {
-            this.selectCategory(this.initialCategoryId);
-          }
-        } else if (this.initialProjectId) {
-          this.selectProject(this.initialProjectId);
-          if (this.initialCategoryId) {
-            this.selectCategory(this.initialCategoryId);
-          }
-        }
+        const firstLoad = !this.projectsLoaded;
+        this.projectsLoaded = true;
+        this.applyContext(true, firstLoad);
       },
       error: error => {
         console.error("Error al cargar productos:", error);
@@ -141,11 +217,11 @@ export class InventoryListComponent implements OnInit {
   productsLoading = signal(false);
   productsError = signal('');
 
-  selectProject(id: number | string | null): void {
+  selectProject(id: number | string | null, sync = true): void {
     this.productsRequest?.unsubscribe();
     const projectId = id === null || id === '' ? null : Number(id);
     const project = this.proyectos().find(item => item.proyecto.idProyecto === projectId) ?? null;
-    this.selectedProjectId.set(projectId);
+    this.selectedProjectId.set(project?.proyecto.idProyecto ?? null);
     this.selectedProject.set(project);
     this.categories.set(project?.categorias ?? []);
     this.selectedCategoryId.set(null);
@@ -154,21 +230,23 @@ export class InventoryListComponent implements OnInit {
     this.projectSuggestionsVisible.set(false);
     this.data.set([]);
     this.productsError.set('');
+    this.columnFilters.set([]);
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    if (sync) this.syncContext();
   }
 
-  selectCategory(id: number | string | null): void {
+  selectCategory(id: number | string | null, sync = true): void {
     this.productsRequest?.unsubscribe();
     const categoryId = id === null || id === '' ? null : Number(id);
     const category = this.categories().find(item => item.idCategoria === categoryId) ?? null;
-    this.selectedCategoryId.set(categoryId);
+    this.selectedCategoryId.set(category?.idCategoria ?? null);
     this.categorySearch.set(category ? `#${category.idCategoria} - ${category.nombre}` : '');
     this.categorySuggestionsVisible.set(false);
     this.data.set([]);
     this.productsError.set('');
-    if (this.selectedProjectId() && categoryId) {
+    if (this.selectedProjectId() && category) {
       this.productsLoading.set(true);
-      this.productsRequest = this.productosService.getByProjectCategory(this.selectedProjectId()!, categoryId).pipe(
+      this.productsRequest = this.productosService.getByProjectCategory(this.selectedProjectId()!, category.idCategoria).pipe(
         timeout(45000), takeUntilDestroyed(this.destroyRef), finalize(() => this.productsLoading.set(false))
       ).subscribe({
         next: products => this.data.set(products),
@@ -178,25 +256,23 @@ export class InventoryListComponent implements OnInit {
         }
       });
     }
+    this.columnFilters.set([]);
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+    if (sync) this.syncContext();
   }
 
   onProjectSearch(event: Event): void {
-    this.projectSearch.set((event.target as HTMLInputElement).value);
+    const value = (event.target as HTMLInputElement).value;
+    if (this.selectedProjectId()) this.selectProject(null);
+    this.projectSearch.set(value);
     this.projectSuggestionsVisible.set(true);
-    if (this.selectedProjectId()) {
-      this.selectProject(null);
-      this.projectSuggestionsVisible.set(true);
-    }
   }
 
   onCategorySearch(event: Event): void {
-    this.categorySearch.set((event.target as HTMLInputElement).value);
+    const value = (event.target as HTMLInputElement).value;
+    if (this.selectedCategoryId()) this.selectCategory(null);
+    this.categorySearch.set(value);
     this.categorySuggestionsVisible.set(true);
-    if (this.selectedCategoryId()) {
-      this.selectedCategoryId.set(null);
-      this.data.set([]);
-    }
   }
 
   selectProjectOption(item: IProyectoAndCategoriaArray): void {
@@ -347,17 +423,28 @@ export class InventoryListComponent implements OnInit {
   }
 
   update(item: Row<IProducto>) {
-    this.router.navigate(["inventory/update/", item.original.idProducto]);
+    this.router.navigate(["inventory/update/", item.original.idProducto], {
+      queryParams: { idProyecto: this.selectedProjectId(), idCategoria: this.selectedCategoryId() }
+    });
   }
 
   goToCreateProducts(): void {
     const idProyecto = this.selectedProjectId();
     const idCategoria = this.selectedCategoryId();
-    this.router.navigate(['/inventory/create'], {
-      queryParams: {
-        ...(idProyecto ? { idProyecto } : {}),
-        ...(idCategoria ? { idCategoria } : {})
-      }
+    if (!idProyecto || !idCategoria) {
+      this.alert.warning('Selecciona el inventario', 'Selecciona un proyecto y una categoría antes de agregar productos.');
+      return;
+    }
+    this.dialog.open<InventoryCreateComponent, InventoryCreateDialogData, boolean>(InventoryCreateComponent, {
+      width: '1100px',
+      maxWidth: 'calc(100vw - 32px)',
+      maxHeight: '90vh',
+      data: { idProyecto, idCategoria },
+      ariaLabelledBy: 'inventory-create-title',
+      disableClose: true,
+      autoFocus: 'first-tabbable'
+    }).afterClosed().subscribe(saved => {
+      if (saved) this.getAll();
     });
   }
 

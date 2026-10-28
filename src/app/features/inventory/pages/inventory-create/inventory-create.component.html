@@ -1,16 +1,28 @@
-<div class="rounded-2xl border border-gray-200 bg-white p-3 shadow-md sm:p-6">
-  <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" class="flex flex-col gap-6">
+<div class="inventory-create" [class.inventory-create-modal]="modalMode">
+  <header class="inventory-create-heading">
+    <span class="inventory-create-icon"><mat-icon aria-hidden="true">inventory_2</mat-icon></span>
+    <div>
+      <h2 id="inventory-create-title" class="!m-0 !text-lg !font-semibold text-slate-800">Agregar productos</h2>
+      <p class="!mb-0 !mt-1 text-xs text-slate-500">Registra uno o varios productos en la categoría seleccionada. Usa Agregar otra fila para incluir más artículos.</p>
+      <p class="!mb-0 !mt-1 text-xs text-slate-500">Todos los campos son obligatorios. La cantidad inicial debe ser un número entero desde 0.</p>
+      @if (contextLocked) {
+        <p class="!mb-0 !mt-1 text-xs text-slate-500">Los productos se agregarán al proyecto y la categoría seleccionados. Para cambiar de categoría, cierra esta ventana y selecciónala en el proyecto.</p>
+      }
+    </div>
+  </header>
+  <form [formGroup]="formFamilyCore" (ngSubmit)="confirmarGuardar()" class="inventory-create-form">
+  <fieldset class="inventory-create-body" [disabled]="isSaving || isConfirming">
 
     <!-- 🔹 Selección Proyecto y Categoría -->
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div>
         <label class="label-base" for="inventory-project-search">Proyecto</label>
         <div class="relative">
-          <input id="inventory-project-search" class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
-          @if (projectSearch()) {
+          <input id="inventory-project-search" class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [readonly]="contextLocked" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
+          @if (projectSearch() && !contextLocked) {
             <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearProjectFilter()" aria-label="Limpiar proyecto" title="Limpiar proyecto"><mat-icon>close</mat-icon></button>
           }
-          @if (projectSuggestionsVisible() && filteredProjects().length > 0) {
+          @if (!contextLocked && projectSuggestionsVisible() && filteredProjects().length > 0) {
             <div class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
               @for (item of filteredProjects(); track item.proyecto.idProyecto) {
                 <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50" (mousedown)="$event.preventDefault()" (click)="selectProjectOption(item)">
@@ -26,11 +38,11 @@
       <div>
         <label class="label-base" for="inventory-category-search">Categoría</label>
         <div class="relative">
-          <input id="inventory-category-search" class="input-base pr-10" type="text" placeholder="Buscar categoría por nombre o ID" [disabled]="!formFamilyCore.get('idProyecto')?.value" [value]="categorySearch()" (input)="onCategorySearch($event)" (focus)="showCategorySuggestions()" (blur)="hideCategorySuggestions()" autocomplete="off" />
-          @if (categorySearch()) {
+          <input id="inventory-category-search" class="input-base pr-10" type="text" placeholder="Buscar categoría por nombre o ID" [readonly]="contextLocked" [disabled]="!formFamilyCore.get('idProyecto')?.value" [value]="categorySearch()" (input)="onCategorySearch($event)" (focus)="showCategorySuggestions()" (blur)="hideCategorySuggestions()" autocomplete="off" />
+          @if (categorySearch() && !contextLocked) {
             <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearCategoryFilter()" aria-label="Limpiar categoría" title="Limpiar categoría"><mat-icon>close</mat-icon></button>
           }
-          @if (categorySuggestionsVisible() && filteredCategories().length > 0) {
+          @if (!contextLocked && categorySuggestionsVisible() && filteredCategories().length > 0) {
             <div class="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
               @for (category of filteredCategories(); track category.idCategoria) {
                 <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-blue-50" (mousedown)="$event.preventDefault()" (click)="selectCategoryOption(category)">
@@ -60,25 +72,34 @@
           <tbody>
             <tr *ngFor="let producto of productosArray.controls; index as i" [formGroupName]="i">
               <td>
-                <input type="text" formControlName="nombreProducto" class="input-base" placeholder="Ej: Jabón">
-                @if (producto.get('nombreProducto')?.hasError('required') && producto.get('nombreProducto')?.touched) {
+                <input type="text" formControlName="nombreProducto" required class="input-base" placeholder="Ej: Jabón" [attr.aria-label]="'Nombre del producto ' + (i + 1)">
+                @if (producto.get('nombreProducto')?.invalid && producto.get('nombreProducto')?.touched) {
                   <p class="mt-1 text-xs text-red-600">El nombre es obligatorio.</p>
                 }
               </td>
               <td class="text-center">
-                <input type="number" formControlName="stock" class="input-base mx-auto w-24 text-center" min="0">
+                <input type="number" appNonNegativeInteger inputmode="numeric" formControlName="stock" required class="input-base mx-auto w-24 text-center" min="0" step="1" [attr.aria-label]="'Existencias iniciales del producto ' + (i + 1)">
                 @if (producto.get('stock')?.hasError('required') && producto.get('stock')?.touched) {
                   <p class="mt-1 text-xs text-red-600">El stock es obligatorio.</p>
                 }
                 @if (producto.get('stock')?.hasError('min')) {
                   <p class="mt-1 text-xs text-red-600">No puede ser negativo.</p>
                 }
+                @if (producto.get('stock')?.hasError('pattern') && !producto.get('stock')?.hasError('min')) {
+                  <p class="mt-1 text-xs text-red-600">Ingresa una cantidad entera desde 0.</p>
+                }
               </td>
               <td>
-                <input type="text" formControlName="descripcion" class="input-base" placeholder="Descripción...">
+                <input type="text" formControlName="descripcion" required class="input-base" placeholder="Descripción..." [attr.aria-label]="'Descripción del producto ' + (i + 1)">
+                @if (producto.get('descripcion')?.invalid && producto.get('descripcion')?.touched) {
+                  <p class="mt-1 text-xs text-red-600">La descripción es obligatoria.</p>
+                }
               </td>
               <td class="text-center">
-                <input type="date" formControlName="fechaIngreso" class="input-base">
+                <input type="date" formControlName="fechaIngreso" required class="input-base" [attr.aria-label]="'Fecha de ingreso del producto ' + (i + 1)">
+                @if (producto.get('fechaIngreso')?.invalid && producto.get('fechaIngreso')?.touched) {
+                  <p class="mt-1 text-xs text-red-600">La fecha de ingreso es obligatoria.</p>
+                }
               </td>
               <td class="text-center">
                 <button type="button" class="text-sm font-semibold text-red-600 hover:text-red-800"
@@ -90,28 +111,30 @@
         </table>
       </div>
 
-      <div class="mt-3 flex justify-stretch sm:justify-end">
+      <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <span class="text-xs text-slate-500" aria-live="polite">{{ productosArray.length }} productos por registrar</span>
         <button type="button" class="btn-action-green" (click)="addProducto()">
           <mat-icon class="mr-1 text-base">add</mat-icon>
-          Agregar producto
+          Agregar otra fila
         </button>
       </div>
     </div>
+    </fieldset>
 
     <!-- 🔹 Botones finales -->
-    <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4">
-      <button type="button" class="btn-action-gray" (click)="cancelar()">Cancelar</button>
+    <div class="inventory-create-footer">
+      <button type="button" class="btn-action-gray" [disabled]="isSaving || isConfirming" (click)="cancelar()">Cancelar</button>
       <button
         type="button"
         (click)="confirmarGuardar()"
-        [disabled]="formFamilyCore.invalid"
+        [disabled]="formFamilyCore.invalid || isSaving || isConfirming"
         [ngClass]="{
           'bg-blue-600 hover:bg-blue-700 text-white': !formFamilyCore.invalid,
           'bg-gray-300 text-gray-500 cursor-not-allowed': formFamilyCore.invalid
         }"
         class="inline-flex min-h-10 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-all duration-200"
       >
-        Guardar
+        {{ isSaving ? 'Guardando…' : isConfirming ? 'Confirmando…' : 'Guardar productos' }}
       </button>
     </div>
   </form>

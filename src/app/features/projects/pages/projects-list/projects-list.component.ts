@@ -26,6 +26,7 @@ import { IProyectoAndCategoriaArray } from '../../../../core/models/proyecto.mod
 import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -47,7 +48,8 @@ import { HojaEntregasDialogComponent } from '../../components/hoja-entregas-dial
     TableFilterComponent, 
     HasRoleDirective,
     MatCardModule,
-    MatIconModule
+    MatIconModule,
+    MatTooltipModule
   ],
   templateUrl: './projects-list.component.html',
   styles: ``
@@ -299,6 +301,12 @@ export class ProjectsListComponent {
 
   update(item: Row<IProyectoAndCategoriaArray>) {
     this.router.navigate(["projects/update/", item.original.proyecto.idProyecto]);
+  }
+
+  gestionarInventario(item: Row<IProyectoAndCategoriaArray>): void {
+    this.router.navigate(['/inventory'], {
+      queryParams: { idProyecto: item.original.proyecto.idProyecto }
+    });
   }
 
   descargarHojaEntregas(item?: Row<IProyectoAndCategoriaArray>): void {

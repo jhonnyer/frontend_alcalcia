@@ -2,16 +2,18 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { IProducto } from '../../../../core/models/products.model';
 import { AlertService } from '../../../../core/services/alert.service';
+import { finalize } from 'rxjs';
+import { NonNegativeIntegerDirective } from '../../../../shared/directives/non-negative-integer.directive';
 
 @Component({
   selector: 'app-inventory-update',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, NonNegativeIntegerDirective],
   templateUrl: './inventory-update.component.html',
   styleUrl: './inventory-update.component.scss'
 })
@@ -23,8 +25,10 @@ export class InventoryUpdateComponent {
   private pageTitleService = inject(PageTitleService);
   private productosService = inject(ProductosService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private alert = inject(AlertService);
   producto: IProducto | null = null;
+  isSaving = false;
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('Actualizar Producto');
@@ -36,7 +40,7 @@ export class InventoryUpdateComponent {
     this.formFamilyCore = this.fb.group({
       nombre: ['', [Validators.required]],
       descripcion: ['', [Validators.required]],
-      stock: ['', [Validators.required, Validators.min(0)]],
+      stock: [0, [Validators.required, Validators.min(0), Validators.pattern(/^\d+$/)]],
       fechaIngreso: [null]
     });
   }
@@ -49,7 +53,7 @@ export class InventoryUpdateComponent {
           this.formFamilyCore.patchValue({
             nombre: this.producto?.nombre,
             descripcion: this.producto?.descripcion,
-            // stock: this.producto?.stock,
+            stock: 0,
             fechaIngreso: this.producto?.fechaIngreso
           });
         }
@@ -62,6 +66,7 @@ export class InventoryUpdateComponent {
   }
 
   onSubmit(): void {
+    if (this.isSaving) return;
     if (this.formFamilyCore.valid) {
       const dataToSend = {
         nombre: this.formFamilyCore.value.nombre,
@@ -70,10 +75,13 @@ export class InventoryUpdateComponent {
         fechaIngreso: this.formFamilyCore.value.fechaIngreso
       };
 
-      this.productosService.updateById(this.productoId, dataToSend).subscribe({
+      this.isSaving = true;
+      this.productosService.updateById(this.productoId, dataToSend).pipe(
+        finalize(() => this.isSaving = false)
+      ).subscribe({
         next: (response) => {
           this.alert.success('Operación exitosa','Producto actualizado correctamente');
-          this.router.navigate(['/inventory']);
+          this.cancelar();
         },
         error: (error) => {
           console.error('Error:', error);
@@ -87,6 +95,11 @@ export class InventoryUpdateComponent {
   }
 
   cancelar(): void {
-    this.router.navigate(['/inventory']);
+    this.router.navigate(['/inventory'], {
+      queryParams: {
+        idProyecto: this.route.snapshot.queryParamMap.get('idProyecto'),
+        idCategoria: this.route.snapshot.queryParamMap.get('idCategoria')
+      }
+    });
   }
 }

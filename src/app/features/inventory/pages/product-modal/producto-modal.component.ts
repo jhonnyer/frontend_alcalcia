@@ -8,11 +8,19 @@ import { IProductoFk } from '../../../../core/models/products.model';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AlertService } from '../../../../core/services/alert.service';
+import { NonNegativeIntegerDirective } from '../../../../shared/directives/non-negative-integer.directive';
+
+interface ProductoModalData {
+  modo: 'crear' | 'editar';
+  idProyecto: number;
+  idCategoria: number;
+  producto?: IProductoFk;
+}
 
 @Component({
   selector: 'app-producto-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatProgressSpinnerModule],
+  imports: [CommonModule, ReactiveFormsModule, MatProgressSpinnerModule, NonNegativeIntegerDirective],
   templateUrl: './producto-modal.component.html',
   styleUrl:'./producto-modal.component.scss'
 })
@@ -26,6 +34,7 @@ export class ProductoModalComponent implements OnInit {
   idCategoria!: number;
   producto?: IProductoFk; // cuando editas
   isLoading = false;
+  isConfirming = false;
 
   private fb = inject(FormBuilder);
   private productosService = inject(ProductosService);
@@ -33,7 +42,7 @@ export class ProductoModalComponent implements OnInit {
   private dialog = inject(MatDialog);
   private alert = inject(AlertService);
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: any) {}
+  constructor(@Inject(MAT_DIALOG_DATA) public data: ProductoModalData) {}
 
   ngOnInit(): void {
     this.modo       = this.data?.modo ?? 'crear';
@@ -58,10 +67,10 @@ export class ProductoModalComponent implements OnInit {
 
   private initForm(): void {
     this.form = this.fb.group({
-      nombreProducto: ['', [Validators.required, Validators.minLength(3)]],
-      stock:          ['', [Validators.required, Validators.pattern('^[0-9]+$')]],
-      descripcion:    ['', [Validators.required]],
-      fechaIngreso:   [''] // puede ser vacío -> enviaremos null
+      nombreProducto: ['', [Validators.required, Validators.minLength(3), Validators.pattern(/\S/)]],
+      stock:          [0, [Validators.required, Validators.min(0), Validators.pattern(/^\d+$/)]],
+      descripcion:    ['', [Validators.required, Validators.pattern(/\S/)]],
+      fechaIngreso:   ['', this.modo === 'crear' ? [Validators.required] : []]
     });
   }
 
@@ -72,6 +81,7 @@ export class ProductoModalComponent implements OnInit {
   }
 
   guardar(): void {
+    if (this.isLoading || this.isConfirming) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.alert.warning('Formulario Inválido','⚠️ Por favor, completa los campos obligatorios antes de continuar.');
@@ -83,12 +93,14 @@ export class ProductoModalComponent implements OnInit {
         ? '¿Deseas actualizar este producto?'
         : '¿Deseas guardar este nuevo producto?';
 
+    this.isConfirming = true;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '350px',
       data: { mensaje },
     });
 
     dialogRef.afterClosed().subscribe((confirmado) => {
+      this.isConfirming = false;
       if (!confirmado) return; // el usuario canceló
       this.isLoading = true; 
 
@@ -130,7 +142,7 @@ export class ProductoModalComponent implements OnInit {
         }
 
         const updateData = {
-          nombreProducto: String(nombreProducto).trim(),
+          nombre: String(nombreProducto).trim(),
           descripcion: String(descripcion).trim(),
           stock: Number(stock),
           fechaIngreso: fechaIngreso?.trim() ? fechaIngreso : null,

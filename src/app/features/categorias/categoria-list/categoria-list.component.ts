@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, EventEmitter, inject, Input, OnChanges, OnInit, Output, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
 import { CategoriasService } from '../../../core/services/categorias.service';
 import { ProyectosService } from '../../../core/services/proyectos.service';
@@ -28,6 +28,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AlertService } from '../../../core/services/alert.service';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -45,12 +46,17 @@ import { ServerPaginationComponent } from '../../../shared/components/server-pag
     FlexRenderDirective, 
     TableFilterComponent,
     MatIconModule,
-    MatCardModule
+    MatCardModule,
+    MatTooltipModule
   ],
   templateUrl: './categoria-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CategoriaListComponent implements OnInit {
+export class CategoriaListComponent implements OnInit, OnChanges {
+  @Input() inventoryProjects: IProyectoAndCategoriaArray[] | null = null;
+  @Input() projectId: number | null = null;
+  @Output() inventoryChanged = new EventEmitter<void>();
+  @Output() productsRequested = new EventEmitter<{ idProyecto: number; idCategoria: number }>();
   constructor(
     private dialog: MatDialog,
     private sanitizer: DomSanitizer
@@ -108,24 +114,42 @@ export class CategoriaListComponent implements OnInit {
   public readonly sortingState = signal<SortingState>([]);
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Lista de categorías');
-    this.getAll();
+    if (this.inventoryProjects === null) {
+      this.pageTitleService.setCurrentPage('Lista de categorías');
+      this.getAll();
+    }
+  }
+
+  ngOnChanges(): void {
+    if (this.inventoryProjects !== null) {
+      this.setProjects(this.inventoryProjects.filter(item =>
+        this.projectId === null || item.proyecto.idProyecto === this.projectId
+      ));
+      this.clearProjectFilter();
+    }
+  }
+
+  private setProjects(projects: IProyectoAndCategoriaArray[]): void {
+    this.data.set(projects.flatMap(item =>
+      (item.categorias ?? []).map(categoria => ({
+        ...categoria,
+        idProyecto: item.proyecto.idProyecto,
+        nombreProyecto: item.proyecto.nombre,
+        cantidadProductos: categoria.productos?.length ?? 0
+      }))
+    ));
   }
 
   getAll() {
+    if (this.inventoryProjects !== null) {
+      this.inventoryChanged.emit();
+      return;
+    }
     this.listLoading.set(true);
     this.loadError.set('');
     this.proyectosService.getAll().pipe(finalize(() => this.listLoading.set(false))).subscribe({
       next: response => {
-        const rows = (response.respuesta ?? []).flatMap((item: IProyectoAndCategoriaArray) =>
-          (item.categorias ?? []).map(categoria => ({
-            ...categoria,
-            idProyecto: item.proyecto.idProyecto,
-            nombreProyecto: item.proyecto.nombre,
-            cantidadProductos: categoria.productos?.length ?? 0
-          }))
-        );
-        this.data.set(rows);
+        this.setProjects(response.respuesta ?? []);
       },
       error: error => {
         console.error("Error al cargar categorías:", error);
@@ -288,28 +312,33 @@ export class CategoriaListComponent implements OnInit {
     });
   }
 
-  abrirDialogEditarCategoria(categoria: ICategorias): void {
+  abrirDialogEditarCategoria(categoria: ICategorias & { idProyecto?: number }): void {
     const dialogRef = this.dialog.open(CategoriasCreateComponent, {
       width: '500px',
       maxWidth: 'calc(100vw - 32px)',
       data: { 
         modo: 'editar',
-        categoria
+        categoria,
+        idProyecto: categoria.idProyecto
       },
       disableClose: true,
       autoFocus: true
     });
 
     dialogRef.afterClosed().subscribe((resultado) => {
+      if (this.inventoryProjects !== null) this.pageTitleService.setCurrentPage('Inventario');
       if (resultado) {
-        this.data.set([]); // Limpia temporalmente
-        setTimeout(() => this.getAll(), 200); // Recarga con un leve retraso visual
+        this.getAll();
       }
     });
   }
 
   abrirProyecto(idProyecto: number): void {
     this.router.navigate(['/projects/update', idProyecto]);
+  }
+
+  abrirProductos(idProyecto: number, idCategoria: number): void {
+    this.productsRequested.emit({ idProyecto, idCategoria });
   }
 
   sanitizeHtml(content: string): SafeHtml {

@@ -9,20 +9,30 @@ import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { AlertService } from '../../../../core/services/alert.service';
 import { MatIconModule } from '@angular/material/icon';
+import { finalize } from 'rxjs';
+import { NonNegativeIntegerDirective } from '../../../../shared/directives/non-negative-integer.directive';
+
+export interface InventoryCreateDialogData {
+  idProyecto: number;
+  idCategoria: number;
+  lockContext?: boolean;
+}
 
 @Component({
   selector: 'app-inventory-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, NonNegativeIntegerDirective],
   templateUrl: './inventory-create.component.html',
   styleUrl: './inventory-create.component.scss'
 })
 export class InventoryCreateComponent implements OnInit {
   public formFamilyCore: FormGroup = new FormGroup({});
+  isSaving = false;
+  isConfirming = false;
   private fb = inject(FormBuilder);
   private pageTitleService = inject(PageTitleService);
   private proyectosService = inject(ProyectosService);
@@ -30,6 +40,10 @@ export class InventoryCreateComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private dialog = inject(MatDialog);
+  private dialogRef = inject(MatDialogRef<InventoryCreateComponent, boolean>, { optional: true });
+  private dialogData = inject<InventoryCreateDialogData | null>(MAT_DIALOG_DATA, { optional: true });
+  readonly modalMode = this.dialogRef !== null;
+  readonly contextLocked = this.dialogData?.lockContext === true;
   private alert = inject(AlertService);
 
 
@@ -51,10 +65,11 @@ export class InventoryCreateComponent implements OnInit {
   private initialCategoryId: number | null = null;
 
   ngOnInit(): void {
-    this.pageTitleService.setCurrentPage('Agregar producto');
+    if (!this.modalMode) this.pageTitleService.setCurrentPage('Agregar producto');
     this.initFormFamilyCore();
-    this.initialProjectId = Number(this.route.snapshot.queryParamMap.get('idProyecto')) || null;
-    this.initialCategoryId = Number(this.route.snapshot.queryParamMap.get('idCategoria')) || null;
+    this.initialProjectId = this.dialogData?.idProyecto ?? (Number(this.route.snapshot.queryParamMap.get('idProyecto')) || null);
+    this.initialCategoryId = this.dialogData?.idCategoria ?? (Number(this.route.snapshot.queryParamMap.get('idCategoria')) || null);
+    if (this.modalMode) this.addProducto();
     this.loadProyectos();
   }
 
@@ -64,14 +79,19 @@ export class InventoryCreateComponent implements OnInit {
         if (response.estado === 'exito') {
           this.proyectos.set(response.respuesta);
           if (this.initialProjectId) {
-            this.formFamilyCore.get('idProyecto')?.setValue(String(this.initialProjectId));
-            this.onProyectoChange(String(this.initialProjectId));
             const project = this.proyectos().find(item => item.proyecto.idProyecto === this.initialProjectId);
-            this.projectSearch.set(project ? `#${project.proyecto.idProyecto} - ${project.proyecto.nombre}` : '');
+            if (!project) {
+              this.alert.warning('Proyecto no disponible', 'Selecciona un proyecto disponible en esta secretaría para registrar los productos.');
+              return;
+            }
+            this.selectProjectOption(project);
             if (this.initialCategoryId) {
-              this.formFamilyCore.get('idCategoria')?.setValue(String(this.initialCategoryId));
               const category = this.categoriasDisponibles().find(item => item.idCategoria === this.initialCategoryId);
-              this.categorySearch.set(category ? `#${category.idCategoria} - ${category.nombre}` : '');
+              if (category) {
+                this.selectCategoryOption(category);
+              } else {
+                this.alert.warning('Categoría no disponible', 'Selecciona una categoría del proyecto antes de registrar productos.');
+              }
             }
           }
         }
@@ -96,6 +116,7 @@ export class InventoryCreateComponent implements OnInit {
   }
 
   onProyectoChange(idProyecto: string): void {
+    this.categorySearch.set('');
     const proyectoSeleccionado = this.proyectos().find(
       (p) => p.proyecto.idProyecto === Number(idProyecto)
     );
@@ -179,10 +200,10 @@ export class InventoryCreateComponent implements OnInit {
 
   crearProductoForm(): FormGroup {
     return this.fb.group({
-      nombreProducto: ['', Validators.required],
-      stock: [0, [Validators.required, Validators.min(0)]],
-      descripcion: [''],
-      fechaIngreso: [null],
+      nombreProducto: ['', [Validators.required, Validators.pattern(/\S/)]],
+      stock: [0, [Validators.required, Validators.min(0), Validators.pattern(/^\d+$/)]],
+      descripcion: ['', [Validators.required, Validators.pattern(/\S/)]],
+      fechaIngreso: [null, Validators.required],
     });
   }
 
@@ -195,6 +216,7 @@ export class InventoryCreateComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.isSaving) return;
     if (this.formFamilyCore.invalid) {
       this.formFamilyCore.markAllAsTouched();
       this.alert.warning('Formulario inválido','⚠️ Por favor completa todos los campos requeridos.');
@@ -213,10 +235,17 @@ export class InventoryCreateComponent implements OnInit {
       })),
     };
 
-    this.productosService.post(payload).subscribe({
+    this.isSaving = true;
+    this.productosService.post(payload).pipe(
+      finalize(() => this.isSaving = false)
+    ).subscribe({
       next: () => {
         this.alert.success('Operación exitosa','✅ Productos creados correctamente.');
-        this.navigateToInventoryContext(payload.idProyecto, payload.idCategoria);
+        if (this.dialogRef) {
+          this.dialogRef.close(true);
+        } else {
+          this.navigateToInventoryContext(payload.idProyecto, payload.idCategoria);
+        }
       },
       error: (err) => {
         console.error('❌ Error al crear productos:', err);
@@ -226,8 +255,13 @@ export class InventoryCreateComponent implements OnInit {
   }
 
   cancelar(): void {
-    const idProyecto = Number(this.formFamilyCore.get('idProyecto')?.value) || this.initialProjectId;
-    const idCategoria = Number(this.formFamilyCore.get('idCategoria')?.value) || this.initialCategoryId;
+    if (this.isSaving || this.isConfirming) return;
+    if (this.dialogRef) {
+      this.dialogRef.close(false);
+      return;
+    }
+    const idProyecto = Number(this.formFamilyCore.get('idProyecto')?.value) || null;
+    const idCategoria = Number(this.formFamilyCore.get('idCategoria')?.value) || null;
     this.navigateToInventoryContext(idProyecto, idCategoria);
   }
 
@@ -241,18 +275,21 @@ export class InventoryCreateComponent implements OnInit {
   }
 
   confirmarGuardar(): void {
+    if (this.isSaving || this.isConfirming) return;
     if (this.formFamilyCore.invalid) {
       this.formFamilyCore.markAllAsTouched();
-      this.alert.success('Formulario inválido','⚠️ Por favor completa todos los campos requeridos.');
+      this.alert.warning('Formulario inválido','⚠️ Por favor completa todos los campos requeridos.');
       return;
     }
 
+    this.isConfirming = true;
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '350px',
       data: { mensaje: '¿Deseas guardar estos productos en el inventario?' },
     });
 
     dialogRef.afterClosed().subscribe((confirmado) => {
+      this.isConfirming = false;
       if (confirmado) {
         this.onSubmit();
       }

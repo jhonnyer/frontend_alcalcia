@@ -20,13 +20,19 @@
         </div>
 
         <div>
-          <label for="stock" class="label-base">Productos en stock actuales {{producto?.stock}} vas a agregar: </label>
+          <label for="stock" class="label-base">Unidades que vas a agregar</label>
           <input
             formControlName="stock"
             type="number"
+            appNonNegativeInteger
+            inputmode="numeric"
+            min="0"
+            step="1"
             id="stock"
             class="input-base"
-            placeholder="Cantidad en stock">
+            placeholder="0">
+          <p class="mt-1 text-xs text-slate-500">Existencias actuales: {{ producto?.stock ?? 0 }}. Deja 0 para editar los datos sin aumentar existencias.</p>
+          <p class="mt-1 text-xs text-slate-500">Solo cantidades enteras desde 0; no se permiten negativos ni decimales.</p>
 
           @if(formFamilyCore.get('stock')?.hasError('required') && formFamilyCore.get('stock')?.touched) {
             <p class="text-red-500">* Este campo es requerido</p>
@@ -34,6 +40,13 @@
           @if(formFamilyCore.get('stock')?.hasError('min') && formFamilyCore.get('stock')?.touched) {
             <p class="text-red-500">* El stock no puede ser negativo</p>
           }
+          @if(formFamilyCore.get('stock')?.hasError('pattern') && formFamilyCore.get('stock')?.touched) {
+            <p class="text-red-500">* Ingresa un número entero de unidades</p>
+          }
+        </div>
+        <div>
+          <label for="fechaIngreso" class="label-base">Fecha de ingreso</label>
+          <input type="date" id="fechaIngreso" class="input-base" formControlName="fechaIngreso">
         </div>
       </div>
 
@@ -57,14 +70,14 @@
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4">
       <button
         type="button"
-        routerLink="/inventory"
-        class="btn-action-gray" (click)="cancelar()">
+        class="btn-action-gray" [disabled]="isSaving" (click)="cancelar()">
         Cancelar
       </button>
       <button
         type="submit"
+        [disabled]="isSaving || !producto"
         class="btn-action-blue">
-        Actualizar producto
+        {{ isSaving ? 'Guardando…' : 'Actualizar producto' }}
       </button>
     </div>
   </form>

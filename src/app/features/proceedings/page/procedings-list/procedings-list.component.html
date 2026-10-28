@@ -1,4 +1,4 @@
-<section class="min-h-[calc(100vh-6rem)] bg-gray-50 p-6 rounded-xl shadow-inner">
+<section class="min-h-[calc(100vh-6rem)] bg-gray-50 p-3 sm:p-4 rounded-xl shadow-inner">
   @if (loadError()) {
     <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
       <p>{{ loadError() }}</p>
@@ -8,16 +8,16 @@
   <div [hidden]="!!loadError()">
 
   <!-- 🧭 HEADER -->
-  <header class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-    <div>
-      <h1 class="text-2xl font-bold text-blue_primary flex items-center gap-2">
+  <header class="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+    <div class="min-w-0">
+      <h1 class="!m-0 !text-xl !font-semibold !leading-tight text-blue_primary flex items-center gap-2">
         <mat-icon class="text-blue_primary">description</mat-icon>
         Actas
       </h1>
-      <p class="text-sm text-slate-500">Primero se muestran las actas pendientes (recibidas, procesadas y autorizadas), luego las demás.</p>
+      <p class="!mb-0 !mt-1 text-xs text-slate-500">Primero se muestran las actas pendientes (recibidas, procesadas y autorizadas), luego las demás.</p>
     </div>
-    <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
-    <div class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-48">
+    <div class="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-end xl:w-auto">
+    <div class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-40 sm:shrink-0">
       <label for="actas-estado-filter" class="font-semibold">Estado</label>
       <select id="actas-estado-filter" class="input-base" [value]="selectedEstado()" (change)="onEstadoChange($event)">
         @for (estado of estadoOptions; track estado.value) {
@@ -25,7 +25,7 @@
         }
       </select>
     </div>
-    <div class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-96">
+    <div class="flex w-full min-w-0 flex-col gap-1 text-sm text-slate-600 sm:flex-1 xl:w-72 xl:flex-none">
       <span class="font-semibold">Filtrar por proyecto</span>
       <div class="relative">
         <label for="actas-project-search" class="sr-only">Buscar proyecto para filtrar actas</label>

@@ -7,19 +7,22 @@
   }
   <div [hidden]="!!loadError()" [attr.aria-busy]="listLoading()">
   <!-- HEADER -->
-  <header class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-    <div>
-      <h1 class="text-sm font-semibold text-gray-700">📂 Actores Sociales</h1>
-      <p class="text-sm text-slate-500">Familias o viviendas registradas.</p>
+  <header class="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+    <div class="flex min-w-0 items-center gap-3">
+      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><mat-icon aria-hidden="true">groups</mat-icon></span>
+      <div class="min-w-0">
+        <h1 class="!m-0 !text-xl !font-semibold !leading-tight text-slate-800">Actores sociales</h1>
+        <p class="!mb-0 !mt-1 text-xs text-slate-500">Consulta las familias o viviendas y abre sus integrantes, actas y resumen.</p>
+      </div>
     </div>
-    <a routerLink="/nucleo/importacion-masiva" class="btn-action-blue">
+    <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-end xl:w-auto">
+    <a routerLink="/nucleo/importacion-masiva" class="btn-action-blue shrink-0 gap-1 whitespace-nowrap sm:order-last">
       <mat-icon class="mr-1 text-base">upload_file</mat-icon>
       Carga masiva
     </a>
-    <label class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-80">
-      <span class="font-semibold">Filtrar por actor social</span>
+    <div class="flex w-full min-w-0 flex-col gap-1 text-sm text-slate-600 sm:flex-1 xl:w-80 xl:flex-none">
+      <label for="nucleos-search" class="font-semibold">Buscar actor social</label>
       <div class="relative">
-        <label for="nucleos-search" class="sr-only">Buscar actor social</label>
         <input
           id="nucleos-search"
           type="text"
@@ -60,7 +63,8 @@
           </div>
         }
       </div>
-    </label>
+    </div>
+    </div>
   </header>
 
   <!-- TABLA -->

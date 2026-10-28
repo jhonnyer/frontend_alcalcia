@@ -5,7 +5,7 @@
       <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600"><mat-icon>folder</mat-icon></span>
       <div>
         <h1 class="!m-0 !text-xl !font-semibold !leading-tight text-slate-800">Proyectos</h1>
-        <p class="!m-0 text-xs text-slate-500">Gestiona proyectos, categorías y reportes de entregas.</p>
+        <p class="!m-0 text-xs text-slate-500">Administra los datos del proyecto y abre su inventario o sus reportes de entregas.</p>
       </div>
     </div>
     <div class="flex w-full flex-col gap-3 sm:flex-row sm:items-end lg:w-auto">
@@ -107,6 +107,10 @@
                     <!-- Botón editar -->
                     <button type="button" (click)="update(row)" class="text-green-600 hover:text-green-800" matTooltip="Editar proyecto" aria-label="Editar proyecto">
                       <mat-icon>edit</mat-icon>
+                    </button>
+                    <button type="button" (click)="gestionarInventario(row)" class="text-blue-600 hover:text-blue-800"
+                      matTooltip="Gestionar inventario del proyecto" aria-label="Gestionar inventario del proyecto">
+                      <mat-icon>inventory_2</mat-icon>
                     </button>
                     <!-- Hoja de trabajo de entregas -->
                     <button type="button" (click)="descargarHojaEntregas(row)" class="text-emerald-700 hover:text-emerald-900"

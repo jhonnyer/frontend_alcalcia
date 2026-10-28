@@ -3,7 +3,7 @@
 >
   <!-- Header -->
   <div class="p-4 border-b border-gray-200">
-    <h2 class="text-lg font-semibold text-gray-800">
+    <h2 class="!m-0 !text-lg !font-semibold text-gray-800">
       {{ titulo }}
     </h2>
   </div>
@@ -11,6 +11,7 @@
   <!-- Contenido scrollable -->
   <div class="p-6 overflow-y-auto flex-1">
     <form id="product-form" [formGroup]="form" (ngSubmit)="guardar()" class="flex flex-col gap-4">
+      <p *ngIf="modo === 'crear'" class="!m-0 text-xs text-gray-500">Todos los campos son obligatorios. La cantidad inicial debe ser un número entero desde 0.</p>
       <!-- Nombre -->
       <div>
         <label for="product-name" class="block text-sm font-medium text-gray-700 mb-1">
@@ -20,6 +21,7 @@
           id="product-name"
           type="text"
           formControlName="nombreProducto"
+          required
           placeholder="Ej: Paquete de arroz"
           class="input-base"
           [attr.aria-invalid]="form.get('nombreProducto')?.invalid && form.get('nombreProducto')?.touched"
@@ -31,7 +33,7 @@
           "
           class="text-xs text-red-500 mt-1"
         >
-          ⚠️ Campo obligatorio.
+          Ingresa un nombre de al menos 3 caracteres, no solo espacios.
         </p>
       </div>
 
@@ -43,13 +45,18 @@
         <input
           id="product-stock"
           type="number"
+          appNonNegativeInteger
+          inputmode="numeric"
+          min="0"
+          step="1"
           formControlName="stock"
+          required
           class="input-base"
           [placeholder]="modo === 'editar' ? 'Ej: 20' : 'Ej: 100'"
         />
+        <p class="text-xs text-gray-500 mt-1">Solo cantidades enteras desde 0; no se permiten negativos ni decimales.</p>
         <p *ngIf="modo === 'editar'" class="text-xs text-gray-500 mt-1">
-          ➕ Ingrese un número positivo para aumentar el stock actual
-          ({{ producto?.stock || 0 }} unidades actuales).
+          Existencias actuales: {{ producto?.stock || 0 }} unidades. Deja 0 para editar el producto sin aumentar existencias.
         </p>
         <p
           *ngIf="
@@ -57,7 +64,7 @@
           "
           class="text-xs text-red-500 mt-1"
         >
-          ⚠️ Ingresa un número válido.
+          Ingresa una cantidad entera desde 0. No se permiten negativos.
         </p>
       </div>
 
@@ -69,9 +76,13 @@
         <textarea
           id="product-description"
           formControlName="descripcion"
+          required
           rows="2"
           class="input-base"
         ></textarea>
+        <p *ngIf="form.get('descripcion')?.touched && form.get('descripcion')?.invalid" class="text-xs text-red-500 mt-1">
+          La descripción es obligatoria y no puede contener solo espacios.
+        </p>
       </div>
 
       <!-- Fecha ingreso -->
@@ -83,8 +94,12 @@
           id="product-date"
           type="date"
           formControlName="fechaIngreso"
+          [required]="modo === 'crear'"
           class="input-base"
         />
+        <p *ngIf="form.get('fechaIngreso')?.touched && form.get('fechaIngreso')?.invalid" class="text-xs text-red-500 mt-1">
+          La fecha de ingreso es obligatoria.
+        </p>
       </div>
     </form>
   </div>
@@ -96,6 +111,7 @@
     <button
       type="button"
       (click)="cancelar()"
+      [disabled]="isLoading || isConfirming"
       class="px-4 py-2 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
     >
       Cancelar
@@ -103,7 +119,7 @@
     <button
       type="submit"
       form="product-form"
-      [disabled]="form.invalid || isLoading"
+      [disabled]="form.invalid || isLoading || isConfirming"
       [ngClass]="{
         'bg-blue-600 hover:bg-blue-700 text-white': modo === 'crear' && !form.invalid,
         'bg-green-600 hover:bg-green-700 text-white': modo === 'editar' && !form.invalid,
@@ -112,7 +128,7 @@
       class="px-4 py-2 text-sm rounded-md transition-all duration-200"
     >
       <ng-container *ngIf="!isLoading; else loadingTpl">
-        {{ modo === 'editar' ? 'Actualizar' : 'Guardar' }}
+        {{ isConfirming ? 'Confirmando…' : modo === 'editar' ? 'Actualizar' : 'Guardar' }}
       </ng-container>
       <ng-template #loadingTpl>
         <mat-spinner diameter="20" color="accent"></mat-spinner>
@@ -129,4 +145,3 @@
 >
   <mat-spinner diameter="40" color="primary"></mat-spinner>
 </div>
-

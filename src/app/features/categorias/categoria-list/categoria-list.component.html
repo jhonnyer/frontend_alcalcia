@@ -1,4 +1,4 @@
-<section class="min-h-[calc(100vh-6rem)] scrollbar-custom">
+<section class="scrollbar-custom">
   @if (listLoading()) { <p role="status" class="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Cargando categorías…</p> }
   @if (loadError()) {
     <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
@@ -11,9 +11,10 @@
     <!-- HEADER -->
     <div class="flex flex-col gap-3 p-4 border-b border-gray-200 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <h1 class="text-xl font-semibold text-blue_primary">Categorías por proyecto</h1>
-        <p class="text-sm text-slate-500">Revisa a qué proyecto pertenece cada categoría y cuántos productos contiene.</p>
+        <h2 class="!m-0 !text-base !font-semibold text-blue_primary">Categorías {{ projectId ? 'del proyecto' : 'por proyecto' }}</h2>
+        <p class="!mb-0 !mt-1 text-sm text-slate-500">Organiza las categorías y abre sus productos. Solo se pueden eliminar categorías sin productos.</p>
       </div>
+      @if (inventoryProjects === null) {
       <div class="flex w-full flex-col gap-1 text-sm text-slate-600 lg:w-96">
         <span class="font-semibold">Filtrar por proyecto</span>
         <div class="relative">
@@ -42,6 +43,7 @@
         </div>
         <span class="text-xs text-slate-500">{{ dataTable.getRowCount() }} categorías visibles</span>
       </div>
+      }
     </div>
 
     <!-- TABLA -->
@@ -97,10 +99,19 @@
                       <button
                         type="button"
                         (click)="abrirDialogEditarCategoria(row.original)"
-                        class="text-green-600 hover:text-green-800 transition"
-                        matTooltip="Editar categoría"
+                        class="inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-xs font-semibold text-green-700 hover:bg-green-50"
+                        matTooltip="Cambiar nombre y descripción sin eliminar productos"
+                        [attr.aria-label]="'Editar nombre y descripción de ' + row.original.nombre"
                       >
                         <mat-icon>edit</mat-icon>
+                        Editar nombre
+                      </button>
+
+                      <button type="button" class="text-blue-600 hover:text-blue-800"
+                        *ngIf="row.original.idProyecto"
+                        (click)="abrirProductos(row.original.idProyecto, row.original.idCategoria)"
+                        matTooltip="Ver productos de esta categoría" aria-label="Ver productos de esta categoría">
+                        <mat-icon>inventory_2</mat-icon>
                       </button>
 
                       <button
@@ -119,6 +130,7 @@
                         (click)="delete(row)"
                         class="text-red-600 hover:text-red-800 transition"
                         matTooltip="Eliminar categoría"
+                        aria-label="Eliminar categoría"
                         *ngIf="!row.original.productos?.length"
                       >
                         <mat-icon>delete</mat-icon>

@@ -1,4 +1,4 @@
-<section class="min-h-[calc(100vh-6rem)] scrollbar-custom bg-gray-50 p-6 rounded-xl shadow-inner">
+<section class="min-h-[calc(100vh-6rem)] scrollbar-custom bg-gray-50 p-3 sm:p-5 rounded-xl shadow-inner">
   @if (listLoading()) { <p role="status" class="mb-4 rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Cargando proyectos del inventario…</p> }
   @if (loadError()) {
     <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
@@ -16,27 +16,44 @@
 
   <!-- 🧭 HEADER -->
   <header class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-    <h1 class="text-2xl font-bold text-blue_primary flex items-center gap-2">
+    <div>
+    <h1 class="!m-0 !text-xl !font-bold text-blue_primary flex items-center gap-2">
       <mat-icon class="text-blue_primary">inventory_2</mat-icon>
-      Productos
+      Inventario por proyecto
     </h1>
+    <p class="!mb-0 !mt-1 text-sm text-slate-500">Gestiona las categorías y los productos en un solo lugar.</p>
+    </div>
+    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+    <button type="button" class="btn-action-gray disabled:cursor-not-allowed disabled:opacity-50"
+      [disabled]="!selectedProjectId() || listLoading() || !!loadError()" (click)="createCategory()">
+      <mat-icon>create_new_folder</mat-icon>
+      Nueva categoría
+    </button>
+    @if (activeTab() === 0) {
     <button
       type="button"
       class="btn-action-blue w-full disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-      [disabled]="!selectedProjectId() || !selectedCategoryId()"
+      [disabled]="!selectedProjectId() || !selectedCategoryId() || listLoading() || !!loadError()"
       (click)="goToCreateProducts()"
     >
       <mat-icon class="text-base">add_circle</mat-icon>
       Agregar productos a esta categoría
     </button>
+    }
+    </div>
   </header>
+
+  <div class="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-relaxed text-slate-700">
+    <p class="!m-0"><strong>Para comenzar:</strong> selecciona el proyecto. Si aún no tiene categorías, pulsa <strong>Nueva categoría</strong> para crear un grupo, por ejemplo, Alimentos o Herramientas. Después selecciona esa categoría en <strong>Productos</strong> y agrega los artículos.</p>
+    <p class="!mb-0 !mt-1">Para cambiar el nombre o la descripción de una categoría, abre la pestaña <strong>Categorías</strong> y pulsa <strong>Editar nombre</strong>. El cambio conserva sus productos y existencias; solo puedes eliminar categorías vacías.</p>
+  </div>
 
   <div class="mb-5 rounded-xl border border-slate-200 bg-white shadow-sm">
     <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-2">
       <div class="flex items-center gap-2 text-xs text-slate-600">
         <mat-icon class="!h-5 !w-5 text-[20px] text-slate-400" aria-hidden="true">category</mat-icon>
         <span class="font-semibold text-slate-700">Selección de inventario</span>
-        <span class="hidden sm:inline">· elige el proyecto y la categoría a consultar</span>
+        <span class="hidden sm:inline">· el proyecto se aplica a ambas pestañas</span>
       </div>
       <button
         type="button"
@@ -49,11 +66,11 @@
         Cambiar selección
       </button>
     </div>
-    <div class="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 p-4" [class.md:grid-cols-2]="activeTab() === 0">
     <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
       Proyecto
       <div class="relative">
-        <input class="input-base pr-10" type="text" placeholder="Buscar proyecto por nombre o ID" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
+        <input class="input-base pr-10" type="text" aria-label="Proyecto del inventario" placeholder="Buscar proyecto por nombre o ID" [disabled]="listLoading() || !!loadError()" [value]="projectSearch()" (input)="onProjectSearch($event)" (focus)="showProjectSuggestions()" (blur)="hideProjectSuggestions()" autocomplete="off" />
         @if (projectSearch()) {
           <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearProjectFilter()" aria-label="Limpiar proyecto" title="Limpiar proyecto">
             <mat-icon>close</mat-icon>
@@ -71,10 +88,11 @@
         }
       </div>
     </label>
+    @if (activeTab() === 0) {
     <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
       Categoría
       <div class="relative">
-        <input class="input-base pr-10" type="text" placeholder="Buscar categoría por nombre o ID" [disabled]="!selectedProjectId()" [value]="categorySearch()" (input)="onCategorySearch($event)" (focus)="showCategorySuggestions()" (blur)="hideCategorySuggestions()" autocomplete="off" />
+        <input class="input-base pr-10" type="text" aria-label="Categoría del inventario" placeholder="Buscar categoría por nombre o ID" [disabled]="!selectedProjectId() || listLoading() || !!loadError()" [value]="categorySearch()" (input)="onCategorySearch($event)" (focus)="showCategorySuggestions()" (blur)="hideCategorySuggestions()" autocomplete="off" />
         @if (categorySearch()) {
           <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearCategoryFilter()" aria-label="Limpiar categoría" title="Limpiar categoría">
             <mat-icon>close</mat-icon>
@@ -92,9 +110,14 @@
         }
       </div>
     </label>
+    }
     </div>
   </div>
 
+  <mat-tab-group [selectedIndex]="activeTab()" (selectedIndexChange)="selectTab($event)" animationDuration="0ms">
+  <mat-tab label="Productos">
+  <ng-template matTabContent>
+  <div class="pt-4">
   <!-- 📊 TABLA -->
   @if (selectedProjectId() && selectedCategoryId()) {
   <div class="table-shell">
@@ -148,7 +171,8 @@
                     <button
                       type="button"
                       (click)="update(row)"
-                      matTooltip="Editar producto"
+                      matTooltip="Editar producto o agregar existencias"
+                      [attr.aria-label]="'Editar producto ' + row.original.nombre"
                       class="text-green-600 hover:text-green-800 transition"
                     >
                       <mat-icon>edit</mat-icon>
@@ -173,7 +197,7 @@
         @if (dataTable.getRowModel().rows.length === 0) {
           <tr>
             <td colspan="100%" class="text-center py-8 text-gray-500 italic">
-              {{ productsLoading() ? 'Cargando productos…' : productsError() ? 'La consulta no está disponible. Usa Reintentar.' : 'No hay productos registrados en esta categoría.' }}
+              {{ productsLoading() ? 'Cargando productos…' : productsError() ? 'La consulta no está disponible. Usa Reintentar.' : data().length > 0 ? 'No hay productos que coincidan con los filtros. Limpia los filtros para ver todos.' : 'No hay productos registrados en esta categoría.' }}
             </td>
           </tr>
         }
@@ -185,9 +209,23 @@
     [totalElements]="dataTable.getRowCount()" [pageSize]="dataTable.getState().pagination.pageSize" [pageSizes]="sizePage()"
     (pageChange)="dataTable.setPageIndex($event)" (pageSizeChange)="onChangeValueSizePageSelect($event)" />
   } @else {
-    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
-      {{ listLoading() ? 'Cargando proyectos…' : loadError() ? 'No se pudo consultar el inventario. Usa Reintentar.' : proyectos().length === 0 ? 'Aún no hay proyectos disponibles para consultar inventario en esta secretaría.' : 'Selecciona un proyecto y una categoría para consultar sus productos.' }}
+    <div class="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
+      {{ listLoading() ? 'Cargando proyectos…' : loadError() ? 'No se pudo consultar el inventario. Usa Reintentar.' : proyectos().length === 0 ? 'Aún no hay proyectos disponibles para consultar inventario en esta secretaría.' : selectedProjectId() && categories().length === 0 ? 'Este proyecto aún no tiene categorías. Usa Nueva categoría para comenzar.' : 'Selecciona un proyecto y una categoría para consultar sus productos.' }}
     </div>
   }
+  </div>
+  </ng-template>
+  </mat-tab>
+  <mat-tab label="Categorías">
+  <ng-template matTabContent>
+    @if (!listLoading() && !loadError()) {
+      <div class="pt-4">
+        <app-categoria-list [inventoryProjects]="proyectos()" [projectId]="selectedProjectId()"
+          (inventoryChanged)="getAll()" (productsRequested)="openCategoryProducts($event)" />
+      </div>
+    }
+  </ng-template>
+  </mat-tab>
+  </mat-tab-group>
 
 </section>

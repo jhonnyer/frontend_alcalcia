@@ -89,7 +89,8 @@ section {
   @apply col-span-full grid gap-3 border-t border-slate-200 pt-3 sm:grid-cols-2 xl:grid-cols-3;
 }
 
-.report-general-panel {
+.report-general-panel,
+.report-group-title {
   @apply col-span-full rounded-xl border border-blue-100 bg-blue-50/40 p-3;
 }
 
@@ -169,11 +170,7 @@ section {
 }
 
 .report-group-title {
-  @apply col-span-full grid gap-2 border-b border-slate-200 pb-2 pt-1 text-slate-700 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] sm:items-center;
-}
-
-.report-group-title-filtered {
-  @apply sm:grid-cols-[auto_minmax(0,1fr)_auto];
+  @apply grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 text-slate-700;
 }
 
 .report-period-title {
@@ -193,7 +190,7 @@ section {
 }
 
 .report-group-title h3 {
-  @apply text-sm font-semibold;
+  @apply text-base font-semibold text-slate-800;
 }
 
 .report-group-icon {
@@ -220,10 +217,6 @@ section {
 .report-group-title-general,
 .report-card-general {
   order: 2;
-}
-
-.report-group-title-general {
-  @apply mt-4;
 }
 
 .report-group-toggle {

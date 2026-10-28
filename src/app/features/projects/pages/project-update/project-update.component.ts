@@ -17,6 +17,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
 import { CategoriasCreateComponent } from '../../../categorias/categorias-create/categorias-create.component';
@@ -50,6 +52,8 @@ interface ICategoriaUI extends ICategorias {
     MatPaginatorModule,
     MatTableModule,
     MatInputModule,
+    MatButtonModule,
+    MatTooltipModule,
     HasRoleDirective
   ],
   templateUrl: './project-update.component.html',

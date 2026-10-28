@@ -1,183 +1,53 @@
-<section id="contenedor-reporte" class="min-h-[calc(100vh-6rem)] p-4 bg-gray-50 rounded-xl shadow-sm space-y-4">
-  <!-- 🔍 Controles de zoom -->
-  <div class="flex justify-end items-center gap-2 mb-3 text-gray-600 select-none">
-    <button mat-icon-button (click)="decreaseZoom()" [disabled]="zoomLevel() <= MIN_ZOOM">
-      <mat-icon>zoom_out</mat-icon>
-    </button>
-    <span class="text-sm w-10 text-center">{{ (zoomLevel() * 100) | number:'1.0-0' }}%</span>
-    <button mat-icon-button (click)="increaseZoom()" [disabled]="zoomLevel() >= MAX_ZOOM">
-      <mat-icon>zoom_in</mat-icon>
-    </button>
-    <button mat-icon-button (click)="resetZoom()" matTooltip="Restablecer">
-      <mat-icon>refresh</mat-icon>
-    </button>
-  </div> 
-  <ng-container *ngIf="dashboard() as d; else loading">
-      @if (!hasDashboardData(d)) {
-        <div role="status" class="rounded-xl border border-blue-200 bg-blue-50 p-5 text-slate-700">
-          <div class="flex items-center gap-2 text-base font-semibold text-blue-900"><mat-icon>info</mat-icon>Aún no hay datos en esta secretaría</div>
-          <p class="mt-2 text-sm">Las estadísticas aparecerán cuando se registren beneficiarios, proyectos, actas o entregas. Puedes continuar usando los demás módulos.</p>
-        </div>
-      }
-      <!-- KPIs -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="kpi">
-          <mat-icon>groups</mat-icon>
-          <div>
-            <div class="label">Beneficiarios</div>
-            <div class="value">{{ d.resumenGeneral?.totalBeneficiarios ?? 0 }}</div>
-          </div>
-        </div>
-        <div class="kpi">
-          <mat-icon>folder</mat-icon>
-          <div>
-            <div class="label">Proyectos</div>
-            <div class="value">{{ d.resumenGeneral?.totalProyectos ?? 0 }}</div>
-          </div>
-        </div>
-        <div class="kpi">
-          <mat-icon>checklist</mat-icon>
-          <div>
-            <div class="label">Actas</div>
-            <div class="value">{{ d.resumenGeneral?.totalActas ?? 0 }}</div>
-          </div>
-        </div>
-        <div class="kpi">
-          <mat-icon>inventory_2</mat-icon>
-          <div>
-            <div class="label">Prod. entregados</div>
-            <div class="value">{{ d.resumenGeneral?.totalProductosEntregados ?? 0 }}</div>
-          </div>
-        </div>
+<section class="dashboard-overview" aria-label="Resumen de gestión de la secretaría">
+  <header class="overview-heading">
+    <div>
+      <span class="overview-eyebrow">Vista general</span>
+      <h2 class="!m-0 !text-xl !font-bold !leading-tight">Resumen de gestión</h2>
+      <p>Personas, proyectos y ayudas de tu secretaría, de un vistazo.</p>
+    </div>
+    <span class="overview-period"><mat-icon aria-hidden="true">history</mat-icon>Todo el historial</span>
+  </header>
+  @if (dashboard(); as d) {
+    @if (!hasDashboardData(d)) {
+      <div role="status" class="notice">
+        <strong>Aún no hay datos en esta secretaría</strong>
+        <p>Las estadísticas aparecerán cuando se registren beneficiarios, proyectos, actas o entregas. Puedes continuar usando los demás módulos.</p>
       </div>
-
-      <!-- 🔹 Contenido escalable -->
-      <!-- Gráficas -->
-      <div *ngIf="hasDashboardData(d)" class="grid grid-cols-1 lg:grid-cols-2 gap-4" [style.transform]="'scale(' + zoomLevel() + ')'">
-          <!-- Población vulnerable -->
-          <mat-card class="p-3">
-              <div class="text-sm font-semibold mb-2">Población vulnerable</div>
-              <div class="chart-container" *ngIf="hasChartData(chartPVData); else noChartData">
-              <canvas baseChart
-                      [type]="chartPVType"
-                      [data]="chartPVData"
-                      [options]="chartPVOptions"></canvas>
-              </div>
-              <ng-container *ngIf="d.poblacionVulnerable as pv; else pv0">
-                  <div class="text-[11px] text-gray-500 mt-2">Total: {{ pv.total }}</div>
-              </ng-container>
-              <ng-template #pv0>
-                  <div class="text-[11px] text-gray-500 mt-2">Total: 0</div>
-              </ng-template>
-          </mat-card>
-
-          <!-- Actas por mes / estado -->
-          <mat-card class="p-3 border border-gray-200">
-            <div class="flex justify-between items-start mb-3">
-                <div class="text-sm font-semibold">Actas por mes / estado</div>
-
-                <!-- 🔹 Filtros Año / Mes -->
-                <div class="flex items-center gap-3">
-                <!-- Filtro Año -->
-                <mat-form-field appearance="outline" class="filter-field w-[130px]" floatLabel="auto">
-                    <mat-icon matPrefix>event</mat-icon>
-                    <mat-select [value]="filtroAnio()" (selectionChange)="onChangeAnio($event.value)">
-                    <mat-option value="ALL">Año</mat-option>
-                    <mat-option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</mat-option>
-                    </mat-select>
-                    <button
-                    matSuffix
-                    mat-icon-button
-                    *ngIf="filtroAnio() !== 'ALL'"
-                    (click)="onChangeAnio('ALL')"
-                    aria-label="Limpiar año">
-                    <mat-icon>close</mat-icon>
-                    </button>
-                </mat-form-field>
-
-                <!-- Filtro Mes -->
-                <mat-form-field appearance="outline" class="filter-field w-[130px]" floatLabel="auto">
-                    <mat-icon matPrefix>calendar_month</mat-icon>
-                    <mat-select [value]="filtroMes()" (selectionChange)="onChangeMes($event.value)">
-                    <mat-option value="ALL">Mes</mat-option>
-                    <mat-option *ngFor="let mes of mesesDisponibles" [value]="mes.numero">
-                        {{ mes.nombre }}
-                    </mat-option>
-                    </mat-select>
-                    <button
-                    matSuffix
-                    mat-icon-button
-                    *ngIf="filtroMes() !== 'ALL'"
-                    (click)="onChangeMes('ALL')"
-                    aria-label="Limpiar mes">
-                    <mat-icon>close</mat-icon>
-                    </button>
-                </mat-form-field>
-                </div>
-            </div>
-
-            <!-- Gráfico -->
-            <div class="chart-container" *ngIf="hasChartData(chartActasData); else noChartData">
-            <canvas
-                baseChart
-                [type]="chartActasType"
-                [data]="chartActasData"
-                [options]="chartActasOptions">
-            </canvas>
-            </div>
-        </mat-card>
-
-          <!-- Distribución por edad -->
-          <mat-card class="p-3">
-              <div class="text-sm font-semibold mb-2">Beneficiarios por edad</div>
-              <div class="chart-container" *ngIf="hasChartData(chartEdadData); else noChartData">
-              <canvas baseChart
-                      [type]="chartEdadType"
-                      [data]="chartEdadData"
-                      [options]="chartEdadOptions"></canvas>
-              </div>
-
-              <!-- Leyenda compacta con colores y rangos -->
-              <div class="edad-chips mt-2">
-                  <span class="edad-chip" *ngFor="let b of EDAD_BUCKETS; let i = index">
-                  <span class="dot" [style.background]="EDAD_COLORS[i]"></span>
-                  </span>
-              </div>
-          </mat-card>
-
-
-          <!-- Top productos entregados -->
-          <mat-card class="p-3">
-              <div class="text-sm font-semibold mb-2">Top productos entregados</div>
-              <div class="chart-container" *ngIf="hasChartData(chartProdData); else noChartData">
-              <canvas baseChart
-                      [type]="chartProdType"
-                      [data]="chartProdData"
-                      [options]="chartProdOptions"></canvas>
-              </div>
-          </mat-card>
-      </div>
-    </ng-container>
-
-    <ng-template #loading>
-      <mat-card class="p-6">
-        @if (loadError()) {
-          <div role="alert" class="space-y-3 text-sm text-slate-700">
-            <h2 class="font-semibold text-red-700">No se pudo cargar el dashboard</h2>
-            <p>{{ loadError() }}</p>
-            <button type="button" class="btn-action-blue" (click)="loadDashboard()">Reintentar</button>
-          </div>
-        } @else {
-        <p role="status" class="mb-3 text-sm text-slate-600">Cargando estadísticas…</p>
-        <div class="animate-pulse space-y-3">
-          <div class="h-4 bg-gray-200 rounded w-1/3"></div>
-          <div class="h-4 bg-gray-200 rounded w-2/3"></div>
-          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-        </div>
-        }
-      </mat-card>
-    </ng-template>
-    <ng-template #noChartData>
-      <div role="status" class="flex min-h-32 items-center justify-center rounded-lg bg-slate-50 p-4 text-center text-sm text-slate-500">No hay datos para esta gráfica con la selección actual.</div>
-    </ng-template>
+    }
+    <div class="overview-kpis grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <article class="overview-kpi overview-kpi-people">
+        <div class="overview-kpi-top"><span>Beneficiarios</span><mat-icon aria-hidden="true">groups</mat-icon></div>
+        <strong class="block text-3xl font-bold">{{ d.resumenGeneral?.totalBeneficiarios ?? 0 | number }}</strong>
+        <span class="overview-kpi-caption">Personas registradas</span>
+      </article>
+      <article class="overview-kpi overview-kpi-projects">
+        <div class="overview-kpi-top"><span>Proyectos</span><mat-icon aria-hidden="true">folder_open</mat-icon></div>
+        <strong class="block text-3xl font-bold">{{ d.resumenGeneral?.totalProyectos ?? 0 | number }}</strong>
+        <span class="overview-kpi-caption">Proyectos registrados</span>
+      </article>
+      <article class="overview-kpi overview-kpi-actas">
+        <div class="overview-kpi-top"><span>Actas</span><mat-icon aria-hidden="true">assignment</mat-icon></div>
+        <strong class="block text-3xl font-bold">{{ d.resumenGeneral?.totalActas ?? 0 | number }}</strong>
+        <span class="overview-kpi-caption">Solicitudes registradas</span>
+      </article>
+      <article class="overview-kpi overview-kpi-products">
+        <div class="overview-kpi-top"><span>Productos entregados</span><mat-icon aria-hidden="true">inventory_2</mat-icon></div>
+        <strong class="block text-3xl font-bold">{{ d.resumenGeneral?.totalProductosEntregados ?? 0 | number }}</strong>
+        <span class="overview-kpi-caption">Unidades, no personas</span>
+      </article>
+    </div>
+    <details class="overview-guide">
+      <summary><mat-icon aria-hidden="true">info_outline</mat-icon>Cómo leer este tablero</summary>
+      <p>Las tarjetas resumen los registros de la secretaría. Los filtros dentro de cada gráfica solo cambian esa visualización: no modifican estas tarjetas ni los reportes PDF o Excel. Personas, actas y unidades son medidas distintas; no deben sumarse entre sí.</p>
+    </details>
+    @if (hasDashboardData(d)) { <app-dashboard-charts [dashboard]="d" /> }
+  } @else if (loadError()) {
+    <div role="alert" class="notice error">
+      <h3>No se pudo cargar el dashboard</h3>
+      <p>{{ loadError() }}</p>
+      <button type="button" class="btn-action-blue" (click)="loadDashboard()" [disabled]="loading()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="notice" role="status">Cargando estadísticas…</div>
+  }
 </section>

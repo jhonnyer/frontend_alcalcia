@@ -8,22 +8,18 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatExpansionModule } from '@angular/material/expansion';
-
-import { BaseChartDirective } from 'ng2-charts';
-import { Chart, registerables, ChartConfiguration, ChartType, ChartData, ChartOptions } from 'chart.js';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { ReportesService, ReporteFiltroRequest } from '../../../../core/services/reportes.service';
 import { AlertService } from '../../../../core/services/alert.service';
 import { finalize } from 'rxjs';
 import { DashboardReport, ResumenProyecto } from '../../../../core/models/reporte-global/reportes.model';
-import { hasChartData, hasDashboardData } from '../../../../core/models/reporte-global/dashboard.utils';
+import { dashboardYears, hasDashboardData } from '../../../../core/models/reporte-global/dashboard.utils';
+import { DashboardChartsComponent } from '../../../../shared/components/dashboard-charts/dashboard-charts.component';
 import { Router } from '@angular/router';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { ReportesPdfService } from '../../../../core/services/reportes-pdf.service';
 import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
-
-Chart.register(...registerables, ChartDataLabels);
 
 type ProjectDetailSection = 'categorias' | 'productos' | 'actas' | 'beneficiarios';
 
@@ -34,8 +30,8 @@ type ProjectDetailSection = 'categorias' | 'productos' | 'actas' | 'beneficiario
     CommonModule,
     MatCardModule, MatIconModule, MatButtonModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatExpansionModule,
-    BaseChartDirective
+    MatExpansionModule, MatTabsModule,
+    DashboardChartsComponent
   ],
   templateUrl: './report-dashboard.component.html',
   styleUrl: './report-dashboard.component.scss'
@@ -47,7 +43,6 @@ export class ReportDashboardComponent implements OnInit {
   private pdfService = inject(ReportesPdfService);
   private alert = inject(AlertService);
   private destroyRef = inject(DestroyRef);
-  readonly hasChartData = hasChartData;
   readonly hasDashboardData = hasDashboardData;
   loadError = signal('');
 
@@ -129,33 +124,6 @@ export class ReportDashboardComponent implements OnInit {
     { nombre: 'Diciembre', numero: 12 }
   ];
 
-  // Nuevo doughnut para edades
-  chartEdadType: 'doughnut' = 'doughnut'; 
-  chartEdadData: ChartData<'doughnut'> = { labels: [], datasets: [] };
-  chartEdadOptions: ChartOptions<'doughnut'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '55%',
-    plugins: {
-        legend: {
-        position: 'bottom',
-        labels: { usePointStyle: true, pointStyle: 'circle' }
-        },
-        tooltip: { filter: (ctx) => Number(ctx.raw) > 0 },
-        datalabels: {
-        display: (ctx) => (ctx.dataset.data[ctx.dataIndex] as number) > 0,
-        formatter: (value: number, ctx: any) => {
-            const data = ctx.chart.data.datasets?.[0].data as number[];
-            const total = data.reduce((a,b)=>a+(Number(b)||0),0);
-            if (!total) return '';
-            return `${Math.round((Number(value)/total)*100)}%`;
-        },
-        color: '#fff',
-        font: { weight: 'bold', size: 12 }
-        }
-    }
-  };
-
   private readonly MAX_VISIBLES = 8;
 
   // === Paginación por categoría ===
@@ -181,114 +149,6 @@ export class ReportDashboardComponent implements OnInit {
   });
   isLoadingPDF = false;
 
-  // ========= Gráficas =========
-  // Pie: Población vulnerable
-  chartPVType: ChartType = 'pie';
-  chartPVData: ChartConfiguration['data'] = { labels: [], datasets: [] };
-  chartPVOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom' },
-      datalabels: {
-        color: '#fff',
-        font: { weight: 'bold' },
-        formatter: (value: number, ctx: any) => {
-          const t = (ctx.chart.data.datasets?.[0].data as number[]).reduce((a,b)=>a+b,0);
-          return t ? `${((value/t)*100).toFixed(1)}%` : '0%';
-        }
-      }
-    }
-  };
-
-  // Barras: Actas por mes/estado
-  chartActasType: ChartType = 'bar';
-  chartActasData: ChartConfiguration['data'] = { labels: [], datasets: [] };
-  chartActasOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          usePointStyle: true,
-          pointStyle: 'circle',
-          font: { size: 10 }
-        }
-      },
-      tooltip: { enabled: true }
-    },
-    scales: {
-      x: {
-        ticks: {
-          autoSkip: false,
-          maxRotation: 60,
-          minRotation: 45,
-          font: { size: 10 }
-        },
-        grid: {
-          display: false
-        }
-      },
-      y: {
-        beginAtZero: true,
-        min: 0,
-        max: 12,              // Límite superior del eje Y
-        ticks: {
-          stepSize: 2,        // Intervalo de 2 en 2
-          font: { size: 10 },
-          color: '#666'
-        },
-        grid: {
-          color: '#e5e7eb'    // Gris suave de fondo
-        }
-      }
-    },
-    layout: {
-      padding: { top: 5, right: 10, bottom: 5, left: 0 }
-    }
-  };
-
-
-  // Barras horizontales: Top productos
-  chartProdType: ChartType = 'bar';
-  chartProdData: ChartConfiguration['data'] = { labels: [], datasets: [] };
-  chartProdOptions: ChartConfiguration['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    plugins: { legend: { display: false } },
-    scales: { x: { beginAtZero: true } }
-  };
-
-  // Definición de buckets y sus rangos
-    EDAD_BUCKETS = [
-    'Primera infancia', // 0–5
-    'Infancia',         // 6–12
-    'Adolescencia',     // 13–17
-    'Joven',            // 18–28
-    'Adulto',           // 29–59
-    'Adulto mayor'      // 60+
-    ] as const;
-
-    EDAD_RANGOS: Record<string, string> = {
-    'Primera infancia': '0–5',
-    'Infancia': '6–12',
-    'Adolescencia': '13–17',
-    'Joven': '18–28',
-    'Adulto': '29–59',
-    'Adulto mayor': '60+'
-    };
-
-    public readonly EDAD_COLORS = [
-    '#60a5fa', 
-    '#75ee50ff', 
-    '#278ac4ff', 
-    '#150abbff', 
-    '#e08712ff', 
-    '#f13131ff'
-    ];
-
     ngOnInit(): void {
         this.pageTitleService.setCurrentPage('Dashboard Proyectos');
         this.loadDashboard();
@@ -307,15 +167,7 @@ export class ReportDashboardComponent implements OnInit {
             );
             this.categoriasDisponibles = Array.from(setCats).sort((a,b)=>a.localeCompare(b));
 
-            // años únicos tomados de fechas de proyectos
-            const years = new Set<number>();
-            for (const p of d.proyectosResumen ?? []) {
-                if (p.fechaInicio) years.add(new Date(p.fechaInicio).getFullYear());
-                if (p.fechaFin)    years.add(new Date(p.fechaFin).getFullYear());
-            }
-            this.aniosDisponibles = Array.from(years).sort((a,b)=>a-b);
-
-            this.buildCharts(d);
+            this.aniosDisponibles = dashboardYears(d);
           },
           error: error => {
             console.error('Error al cargar el dashboard de proyectos:', error);
@@ -329,104 +181,6 @@ export class ReportDashboardComponent implements OnInit {
         const end   = Date.parse(`${year}-12-31`);
         return { start, end };
     }
-    
-
-  private buildChartPoblacionVulnerable(d: DashboardReport) {
-    const pv = d.poblacionVulnerable;
-    const labels = ['Discapacidad','Víctimas','Menores','Mujeres','LGBTI'];
-    const data = [
-      pv?.discapacidad ?? 0,
-      pv?.victimas ?? 0,
-      pv?.menoresEdad ?? pv?.menores ?? 0,
-      pv?.mujeres ?? 0,
-      pv?.lgbti ?? 0
-    ];
-    this.chartPVData = {
-      labels,
-      datasets: [{ data, backgroundColor: ['#10b981','#f59e0b','#3b82f6','#8b5cf6','#ef4444'] }]
-    };
-  }
-
-  private buildChartActasPorMes(d: DashboardReport) {
-    const porMes = d.actasPorMes ?? [];
-    const selectedYear = this.filtroAnio();
-    const selectedMonth = this.filtroMes();
-
-    const filteredPorMes = porMes.filter(x =>
-      (selectedYear === 'ALL' || x.anio === selectedYear) &&
-      (selectedMonth === 'ALL' || x.mes === selectedMonth)
-    );
-
-    const labelsMes = Array.from(
-      new Set(filteredPorMes.map(x => `${x.anio}-${String(x.mes).padStart(2, '0')}`))
-    ).sort();
-
-    const visibleLabels = labelsMes.length > 5 ? labelsMes.slice(-5) : labelsMes;
-
-    const etiquetasLegibles = visibleLabels.map(l => {
-      const [anio, mes] = l.split('-');
-      const date = new Date(Number(anio), Number(mes) - 1);
-      const shortMonth = date.toLocaleString('es-ES', { month: 'short' });
-      return `${shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1)}-${anio.slice(-2)}`;
-    });
-
-    const estados = Array.from(new Set(filteredPorMes.map(x => x.estado))).sort();
-    const datasets = estados.map(est => {
-      const datos = visibleLabels.map(l => {
-        const it = filteredPorMes.find(x =>
-          `${x.anio}-${String(x.mes).padStart(2, '0')}` === l && x.estado === est
-        );
-        return it?.total ?? 0;
-      });
-      return { label: est, data: datos };
-    });
-
-    this.chartActasData = { labels: etiquetasLegibles, datasets };
-  }
-
-  private buildChartProductos(d: DashboardReport) {
-    const prods = (d.productosEntregados ?? [])
-      .slice()
-      .sort((a,b)=> b.totalEntregado - a.totalEntregado)
-      .slice(0, 10);
-    this.chartProdData = {
-      labels: prods.map(p => p.producto),
-      datasets: [{ label: 'Entregados', data: prods.map(p => p.totalEntregado), backgroundColor: '#e7da8eff' }]
-    };
-  }
-
-  private buildChartEdad(d: DashboardReport) {
-    const de = d.distribucionEdad ?? [];
-    const mapEdad = new Map<string, number>();
-    for (const it of de) mapEdad.set(it.rangoEdad, Number(it.total) || 0);
-
-    const edadLabels = this.EDAD_BUCKETS.map(b => `${b} (${this.EDAD_RANGOS[b]})`);
-    const edadData = this.EDAD_BUCKETS.map(b => mapEdad.get(b) ?? 0);
-
-    this.chartEdadData = {
-      labels: edadLabels,
-      datasets: [{ data: edadData, backgroundColor: this.EDAD_COLORS }]
-    };
-  }
-
-  private buildCharts(d: DashboardReport) {
-    this.buildChartPoblacionVulnerable(d);
-    this.buildChartActasPorMes(d);
-    this.buildChartProductos(d);
-    this.buildChartEdad(d);
-  }
-
-  onChangeAnio(anio: 'ALL' | number) {
-    this.filtroAnio.set(anio); // actualiza el signal
-    const d = this.dashboard();
-    if (d) this.buildChartActasPorMes(d);
-  }
-
-  onChangeMes(mes: 'ALL' | number) {
-    this.filtroMes.set(mes);
-    const d = this.dashboard();
-    if (d) this.buildChartActasPorMes(d);
-  }
 
   // ========= Proyectos filtrados =========
   proyectosFiltrados = computed<ResumenProyecto[]>(() => {
@@ -607,6 +361,7 @@ export class ReportDashboardComponent implements OnInit {
   onSelMesEvt(event: Event) { this.selMes.set(this.valorSel(event)); }
 
   aplicarFiltros() {
+    if (this.aplicandoFiltros()) return;
     const proyecto = this.selProyecto();
     const anio = this.selAnio();
     const mes = this.selMes();
@@ -642,7 +397,6 @@ export class ReportDashboardComponent implements OnInit {
         this.filtroAnio.set(anio);
         this.filtroMes.set(mes);
         this.dashboard.set(d);
-        this.buildCharts(d);
       },
       error: error => {
         console.error('Error al aplicar filtros del reporte:', error);
@@ -652,6 +406,7 @@ export class ReportDashboardComponent implements OnInit {
   }
 
   limpiarFiltros() {
+    if (this.aplicandoFiltros()) return;
     this.selProyecto.set('ALL');
     this.selAnio.set('ALL');
     this.selMes.set('ALL');
@@ -661,7 +416,6 @@ export class ReportDashboardComponent implements OnInit {
     const base = this.baseDashboard();
     if (base) {
       this.dashboard.set(base);
-      this.buildCharts(base);
     }
   }
 
@@ -907,22 +661,5 @@ export class ReportDashboardComponent implements OnInit {
 
   cerrar() {
     this.router.navigate(['/projects']);
-  }
-
-  zoomLevel = signal(1); // 1 = 100%
-  readonly MIN_ZOOM = 0.7;
-  readonly MAX_ZOOM = 1.5;
-  readonly STEP_ZOOM = 0.05;
-
-  increaseZoom() {
-    this.zoomLevel.update(z => Math.min(this.MAX_ZOOM, parseFloat((z + this.STEP_ZOOM).toFixed(2))));
-  }
-
-  decreaseZoom() {
-    this.zoomLevel.update(z => Math.max(this.MIN_ZOOM, parseFloat((z - this.STEP_ZOOM).toFixed(2))));
-  }
-
-  resetZoom() {
-    this.zoomLevel.set(1);
   }
 }

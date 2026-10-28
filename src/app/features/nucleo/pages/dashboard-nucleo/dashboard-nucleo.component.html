@@ -59,11 +59,36 @@
   <!-- === BLOQUE DE KPIs === -->
   <section class="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
     <div class="mb-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-600">Filtros rápidos</h3>
+      <h3 class="text-sm font-semibold uppercase tracking-wide text-slate-600">Opciones de consulta</h3>
       <button type="button" class="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50" (click)="clearQuickFilters()">
         Limpiar filtros
       </button>
     </div>
+    <p class="mb-4 text-xs leading-relaxed text-slate-500">El período y el estado filtran únicamente las actas. La edad solo filtra las personas y su gráfica. Los proyectos activos se cuentan una sola vez, aunque tengan varias asignaciones. Los datos personales son los registrados hoy, no una reconstrucción del pasado.</p>
+    <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <label class="period-field">Fecha de las actas
+        <select class="input-base" [(ngModel)]="fechaActa" (ngModelChange)="cambiarFechaActa()">
+          <option value="CREACION">Creación de la solicitud</option>
+          <option value="ENTREGA">Entrega registrada</option>
+        </select>
+      </label>
+      <label class="period-field">Año de las actas
+        <select class="input-base" [(ngModel)]="filtroAnio" (ngModelChange)="cambiarPeriodo()">
+          <option [ngValue]="null">Todos los años</option>
+          <option *ngFor="let anio of aniosActas" [ngValue]="anio">{{ anio }}</option>
+        </select>
+      </label>
+      <label class="period-field">Mes de las actas
+        <select class="input-base" [(ngModel)]="filtroMes" (ngModelChange)="cambiarPeriodo()" [disabled]="filtroAnio === null">
+          <option [ngValue]="null">Todos los meses</option>
+          <option *ngFor="let mes of meses; let i = index" [ngValue]="i + 1">{{ mes }}</option>
+        </select>
+      </label>
+    </div>
+    <p class="mb-4 text-xs font-medium text-slate-600" aria-live="polite">
+      Actas: {{ filtroAnio ?? 'sin límite de años' }}{{ filtroMes === null ? '' : ' · ' + meses[filtroMes - 1] }} · fecha de {{ fechaActa === 'ENTREGA' ? 'entrega' : 'creación' }}.
+      @if (fechaActa === 'ENTREGA' && filtroAnio !== null) { Se excluyen actas sin fecha de entrega. }
+    </p>
 
     <div class="mb-3 flex flex-wrap items-center gap-2" *ngIf="hasEstadoFilter || hasEdadFilter">
       <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Filtros activos:</span>
@@ -95,6 +120,7 @@
             type="button"
             class="quick-chip"
             [class.quick-chip-active]="filtroEstadoRapido === 'TODOS'"
+            [attr.aria-pressed]="filtroEstadoRapido === 'TODOS'"
             (click)="onEstadoRapidoChange('TODOS')"
           >
             Todas
@@ -104,6 +130,7 @@
             type="button"
             class="quick-chip"
             [class.quick-chip-active]="filtroEstadoRapido === estado"
+            [attr.aria-pressed]="filtroEstadoRapido === estado"
             (click)="onEstadoRapidoChange(estado)"
           >
             {{ estadoLabels[estado] }}
@@ -125,7 +152,7 @@
     </div>
   </section>
 
-  <div class="kpi-container grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+  <div class="kpi-container">
     <button
       type="button"
       class="kpi-card-btn"
@@ -178,66 +205,69 @@
       </mat-card>
     </button>
 
-    <mat-card class="p-4 text-center shadow-sm border border-gray-200">
-      <div class="text-sm text-gray-500">Cobertura entrega</div>
-      <div class="text-3xl font-bold text-sky-700">{{ coberturaActasEntregadas }}%</div>
-      <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
-        <div class="h-full rounded-full bg-sky-600" [style.width.%]="coberturaActasEntregadas"></div>
+    <mat-card class="delivery-summary p-4 text-center shadow-sm border border-gray-200">
+      <div class="text-sm text-gray-500">Porcentaje entregado</div>
+      <div class="text-3xl font-bold text-sky-700">{{ totalActas ? porcentajeActasEntregadas + '%' : 'No aplica' }}</div>
+      <div aria-hidden="true" class="delivery-progress mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
+        <div class="h-full rounded-full bg-sky-600" [style.width.%]="porcentajeActasEntregadas"></div>
       </div>
     </mat-card>
   </div>
+  <details class="kpi-explanation">
+    <summary>¿Qué significa el porcentaje entregado?</summary>
+    <p>Compara las actas entregadas con todas las actas que cumplen los filtros elegidos. No mide qué porcentaje de personas recibió ayudas. Si filtras solo por estado Entregado, el resultado será 100 %. Sin actas consultadas, el porcentaje no aplica.</p>
+  </details>
 
-  <!-- 🔍 Controles de zoom -->
-    <div class="flex justify-end items-center gap-2 mb-3 text-gray-600 select-none">
-        <button mat-icon-button (click)="decreaseZoom()" [disabled]="zoomLevel() <= MIN_ZOOM">
-        <mat-icon>zoom_out</mat-icon>
-        </button>
-        <span class="text-sm w-10 text-center">{{ (zoomLevel() * 100) | number:'1.0-0' }}%</span>
-        <button mat-icon-button (click)="increaseZoom()" [disabled]="zoomLevel() >= MAX_ZOOM">
-        <mat-icon>zoom_in</mat-icon>
-        </button>
-        <button mat-icon-button (click)="resetZoom()" matTooltip="Restablecer">
-        <mat-icon>refresh</mat-icon>
-        </button>
-    </div> 
   <!-- === BLOQUE DE GRÁFICAS === -->
-  <div class="charts-container grid grid-cols-1 md:grid-cols-2 gap-6" [style.transform]="'scale(' + zoomLevel() + ')'">
+  <div class="charts-container grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- === Gráfica de Actas === -->
-    <mat-card class="p-4 flex flex-col justify-center items-center text-center">
+    <mat-card class="p-4">
       <h3 class="text-lg font-semibold mb-3 text-gray-700">Actas por estado</h3>
+      <p class="mb-3 text-xs leading-relaxed text-slate-500">Estado actual de las actas que cumplen la consulta. Pulsa una porción o utiliza los botones de estado para filtrar.</p>
 
       <!-- Si hay actas -->
             <ng-container *ngIf="totalActas > 0; else noActas">
-        <canvas #chartActas baseChart 
+        <div class="chart-frame"><canvas baseChart role="img" aria-label="Actas por estado. Cifras disponibles debajo de la gráfica."
                 [type]="chartActasType" 
                 [data]="chartActasData" 
           [options]="chartActasOptions"
           (chartClick)="onActasChartClick($event)">
-        </canvas>
+        </canvas></div>
       </ng-container>
 
       <!-- Si no hay actas -->
       <ng-template #noActas>
         <div class="flex flex-col items-center justify-center py-8 px-4 text-gray-500">
           <mat-icon color="warn" class="!text-5xl mb-2">inventory_2</mat-icon>
-          <p class="text-lg font-semibold text-gray-700">Sin actas registradas</p>
-          <p class="text-sm text-gray-500">Este actor social no tiene actas asociadas actualmente.</p>
+          <p class="text-lg font-semibold text-gray-700">Sin actas para esta consulta</p>
+          <p class="text-sm text-gray-500">Revisa o limpia el período y el estado antes de concluir que no hay actas.</p>
         </div>
       </ng-template>
+      <details class="chart-values"><summary>Ver cifras</summary>
+        <table><thead><tr><th>Estado</th><th>Actas</th></tr></thead><tbody>
+          <tr *ngFor="let estado of estadoOrden; let i = index"><td>{{ estadoLabels[estado] }}</td><td>{{ chartActasData.datasets[0].data[i] }}</td></tr>
+        </tbody></table>
+      </details>
     </mat-card>
 
     <!-- === Gráfica de Beneficiarios === -->
     <mat-card class="p-4">
       <h3 class="text-lg font-semibold mb-3 text-gray-700">Beneficiarios por rango de edad</h3>
-      <canvas *ngIf="totalBeneficiarios > 0; else noBeneficiarios" #chartBenef baseChart
+      <p class="mb-3 text-xs leading-relaxed text-slate-500">Personas registradas en el actor, con el filtro de edad elegido. Las edades ausentes se muestran por separado; no se cuentan como niños de cero años.</p>
+      <div class="chart-frame" *ngIf="totalBeneficiarios > 0; else noBeneficiarios"><canvas baseChart role="img" aria-label="Beneficiarios por edad. Cifras disponibles debajo de la gráfica."
               [type]="chartBenefType" 
               [data]="chartBenefData" 
               [options]="chartBenefOptions"
               (chartClick)="onBenefChartClick($event)">
-      </canvas>
+      </canvas></div>
       <ng-template #noBeneficiarios>
         <p role="status" class="py-8 text-center text-sm text-gray-500">No hay beneficiarios para mostrar con los filtros actuales.</p>
       </ng-template>
+      <details class="chart-values"><summary>Ver cifras</summary>
+        <table><thead><tr><th>Edad</th><th>Personas</th></tr></thead><tbody>
+          <tr *ngFor="let edad of chartBenefData.labels; let i = index"><td>{{ edad }}</td><td>{{ chartBenefData.datasets[0].data[i] }}</td></tr>
+        </tbody></table>
+      </details>
     </mat-card>
 
   </div>

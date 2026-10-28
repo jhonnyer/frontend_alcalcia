@@ -1,5 +1,5 @@
 <!-- 🔹 CONTENEDOR PRINCIPAL CON SCROLL GLOBAL -->
-<div class="h-[90vh] overflow-y-auto rounded-xl bg-gray-100 p-3 shadow-inner scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 sm:p-4">
+<div class="project-editor h-[90vh] overflow-y-auto rounded-xl bg-gray-100 p-3 shadow-inner scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100 sm:p-4">
 
   <!-- 🔹 FORMULARIO DEL PROYECTO -->
   <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" class="space-y-4">
@@ -8,11 +8,12 @@
 
       <!-- 🔹 Encabezado -->
       <div class="mb-4 flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex-1">
-          <h2 class="text-lg font-bold text-gray-800 sm:text-xl">
+        <div class="project-heading flex-1">
+          <span class="project-eyebrow">Datos del proyecto</span>
+          <h2 class="!m-0 !text-xl !font-bold !leading-tight text-gray-800">
             {{ modo === 'crear' ? 'Registrar Proyecto' : 'Actualizar Proyecto' }}
           </h2>
-          <p class="text-xs text-gray-600 sm:text-sm">
+          <p class="!mb-0 !mt-1 text-xs text-gray-600">
             {{ modo === 'crear' ? 'Completa los datos para crear un nuevo proyecto' : 'Actualiza los datos del proyecto seleccionado' }}
           </p>
         </div>
@@ -61,11 +62,12 @@
       </div>
 
       <!-- 🔹 Campos en filas organizadas -->
+      <p class="project-form-help">Los campos con * son obligatorios. Guarda los cambios de estos datos con el botón superior.</p>
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
         <!-- Nombre -->
         <mat-form-field appearance="fill" class="w-full">
-          <mat-label>* Nombre del Proyecto</mat-label>
+          <mat-label>Nombre del Proyecto</mat-label>
           <input matInput formControlName="nombre" placeholder="Ej: Proyecto de Salud" />
           <mat-icon matSuffix>assignment</mat-icon>
           <mat-error *ngIf="formFamilyCore.get('nombre')?.hasError('required') && formFamilyCore.get('nombre')?.touched">
@@ -75,7 +77,7 @@
 
         <!-- Tipo Proyecto -->
         <mat-form-field appearance="fill" class="w-full">
-          <mat-label>* Tipo de Proyecto</mat-label>
+          <mat-label>Tipo de Proyecto</mat-label>
           <mat-select formControlName="tipoProyecto">
             <mat-option value="M">Municipal</mat-option>
             <mat-option value="D">Departamental</mat-option>
@@ -97,7 +99,7 @@
         </mat-form-field>
 
         <!-- Estado -->
-        <div class="flex flex-col justify-center" *hasRole="['ADMIN']">
+        <div class="project-state flex flex-col justify-center" *hasRole="['ADMIN']">
           <label class="text-gray-700 font-medium text-sm mb-1">Estado</label>
           <mat-radio-group formControlName="estado" class="flex flex-wrap gap-4">
             <mat-radio-button value="A" color="primary">Activo</mat-radio-button>
@@ -137,7 +139,7 @@
           <mat-label>Descripción</mat-label>
           <textarea
             matInput
-            rows="1"
+            rows="3"
             formControlName="descripcion"
             placeholder="Describe brevemente el propósito o alcance del proyecto...">
           </textarea>
@@ -150,9 +152,12 @@
 
   <!-- 🔹 SECCIÓN DE CATEGORÍAS Y PRODUCTOS -->
   <div *ngIf="modo === 'editar'; else mensajeCreacion" class="mt-5 rounded-xl border bg-white p-4 shadow-sm sm:p-5">
-    <div class="mb-3">
-      <h2 class="text-lg font-bold text-gray-800 sm:text-xl">Categorías y productos</h2>
-      <p class="text-sm text-slate-500">Selecciona una categoría para revisar y administrar sus productos.</p>
+    <div class="category-section-heading mb-3">
+      <span class="category-section-icon"><mat-icon aria-hidden="true">category</mat-icon></span>
+      <div>
+        <h2 class="!m-0 !text-base !font-semibold !leading-tight text-gray-800">Categorías y productos</h2>
+        <p class="!mb-0 !mt-1 text-xs text-slate-500">Selecciona una categoría para revisar y administrar sus productos.</p>
+      </div>
     </div>
         <!-- 🔹 Encabezado de Categorías -->
     <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -225,6 +230,7 @@
               mat-icon-button
               class="text-blue-600 hover:bg-blue-50 transition-colors duration-200"
               (click)="abrirDialogEditarCategoria(categoria)"
+              [attr.aria-label]="'Editar categoría ' + categoria.nombre"
               matTooltip="Editar categoría"
             >
               <mat-icon>edit</mat-icon>
@@ -236,6 +242,7 @@
               color="warn"
               class="text-red-600 hover:bg-red-50 transition-colors duration-200"
               (click)="confirmarEliminacion(categoria)"
+              [attr.aria-label]="'Eliminar categoría ' + categoria.nombre"
               matTooltip="Eliminar categoría"
             >
               <mat-icon>delete</mat-icon>
@@ -246,7 +253,9 @@
               mat-icon-button
               class="text-gray-600 hover:bg-gray-100 transition-colors duration-200"
               (click)="toggleProductos(categoria)"
-              matTooltip="Ver productos"
+              [attr.aria-expanded]="categoria.expanded"
+              [attr.aria-label]="(categoria.expanded ? 'Ocultar productos de ' : 'Ver productos de ') + categoria.nombre"
+              [matTooltip]="categoria.expanded ? 'Ocultar productos' : 'Ver productos'"
             >
               <mat-icon>{{ categoria.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
             </button>
@@ -260,32 +269,36 @@
           <div *ngIf="categoria.productos?.length; else noProductos">
 
             <!-- Cabecera de productos: buscador + botón añadir -->
-            <div class="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div class="product-toolbar">
 
               <!-- Buscador -->
-              <div class="relative w-full md:w-[320px]">
-                <input
-                  [(ngModel)]="categoria.filtro"
-                  (ngModelChange)="onProductFilterChange(categoria)"
-                  placeholder="Buscar por producto, descripción, stock o fecha..."
-                  class="input-base pl-10 pr-10"
-                />
-                <mat-icon
-                  class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-base"
-                >
-                  search
-                </mat-icon>
-                @if (categoria.filtro) {
-                  <button
-                    type="button"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-100"
-                    (click)="clearProductFilter(categoria)"
-                    aria-label="Limpiar búsqueda de productos"
-                    title="Limpiar búsqueda"
-                  >
-                    <mat-icon>close</mat-icon>
-                  </button>
-                }
+              <div class="product-search-field">
+                <label [for]="'product-search-' + categoria.idCategoria">Buscar en esta categoría</label>
+                <div class="product-search-control">
+                  <mat-icon aria-hidden="true">search</mat-icon>
+                  <input
+                    #productSearchInput
+                    [id]="'product-search-' + categoria.idCategoria"
+                    [attr.aria-describedby]="'product-search-help-' + categoria.idCategoria"
+                    type="text"
+                    [(ngModel)]="categoria.filtro"
+                    (ngModelChange)="onProductFilterChange(categoria)"
+                    (keydown.escape)="clearProductFilter(categoria)"
+                    placeholder="Nombre, descripción, stock o fecha"
+                    autocomplete="off"
+                  />
+                  @if (categoria.filtro) {
+                    <button
+                      type="button"
+                      (click)="clearProductFilter(categoria); productSearchInput.focus()"
+                      aria-label="Limpiar búsqueda de productos"
+                      matTooltip="Limpiar búsqueda"
+                    >
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  }
+                </div>
+                <span class="product-search-help" [id]="'product-search-help-' + categoria.idCategoria">Busca entre todos los productos de la categoría, no solo los de esta página.</span>
               </div>
 
               <!-- Botón Añadir Producto -->
@@ -293,14 +306,17 @@
                 mat-flat-button
                 color="primary"
                 (click)="abrirDialogNuevoProducto(categoria)"
-                class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white 
-                      font-medium rounded-lg shadow-sm transition-all duration-200 transform hover:scale-[1.03]"
+                class="product-add-button"
               >
                 <mat-icon class="text-white text-base">add_circle</mat-icon>
                 <span>Añadir Producto</span>
               </button>
 
             </div>
+            <p class="product-result-count" role="status" aria-live="polite">
+              {{ getFilteredLength(categoria) }} de {{ categoria.productos?.length || 0 }} productos
+              @if (categoria.filtro) { <span> · Búsqueda: «{{ categoria.filtro }}»</span> }
+            </p>
 
             <!-- Tabla de productos -->
             <div class="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -348,6 +364,7 @@
                       <button
                         mat-icon-button
                         matTooltip="Editar producto"
+                        [attr.aria-label]="'Editar producto ' + product.nombreProducto"
                         (click)="editarProducto(product, categoria)"
                         class="hover:bg-blue-50"
                       >
@@ -360,12 +377,21 @@
                 <!-- Filas -->
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                <tr *matNoDataRow>
+                  <td [attr.colspan]="displayedColumns.length" class="product-no-results">
+                    <mat-icon aria-hidden="true">search_off</mat-icon>
+                    <strong>No hay productos que coincidan con la búsqueda.</strong>
+                    <span>Prueba con otro nombre o limpia el filtro para ver todos los productos de esta categoría.</span>
+                    <button type="button" class="btn-action-gray" (click)="clearProductFilter(categoria); productSearchInput.focus()">Limpiar búsqueda</button>
+                  </td>
+                </tr>
               </table>
             </div>
 
             <!-- Paginador -->
-            <div class="flex justify-center mt-3">
+            <div class="product-paginator" *ngIf="getFilteredLength(categoria) > 0">
               <mat-paginator
+                [attr.aria-label]="'Paginación de productos de ' + categoria.nombre"
                 [pageSizeOptions]="[3, 5, 10]"
                 [length]="getFilteredLength(categoria)"
                 [pageSize]="categoria.pageSize || 3"

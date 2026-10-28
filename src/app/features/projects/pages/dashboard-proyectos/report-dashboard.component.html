@@ -32,11 +32,13 @@
     }
     <!-- Filtros del reporte (afectan KPIs, gráficas, listado y PDF) -->
     <mat-card class="p-3 border border-gray-200">
+      <h2 class="!mb-1 !text-base !font-semibold">Alcance de la consulta</h2>
+      <p class="mb-3 text-xs leading-relaxed text-slate-500">Proyecto y período se aplican juntos a las cifras y gráficas. Las actas se consultan por fecha de creación; proyectos y asignaciones, por sus fechas de vigencia. El período no reconstruye cómo estaba la población en una fecha pasada.</p>
       <div class="flex flex-col gap-3 lg:flex-row lg:items-end">
         <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <label class="block">
             <span class="label-base">Proyecto</span>
-            <select class="input-base" (change)="onSelProyecto($event)">
+            <select class="input-base" (change)="onSelProyecto($event)" [disabled]="aplicandoFiltros()">
               <option value="ALL" [selected]="selProyecto() === 'ALL'">Todos los proyectos</option>
               <option *ngFor="let p of proyectosOpciones()" [value]="p.id" [selected]="selProyecto() === p.id">{{ p.nombre }}</option>
             </select>
@@ -44,7 +46,7 @@
 
           <label class="block">
             <span class="label-base">Año</span>
-            <select class="input-base" (change)="onSelAnioEvt($event)">
+            <select class="input-base" (change)="onSelAnioEvt($event)" [disabled]="aplicandoFiltros()">
               <option value="ALL" [selected]="selAnio() === 'ALL'">Todos los años</option>
               <option *ngFor="let y of aniosDisponibles" [value]="y" [selected]="selAnio() === y">{{ y }}</option>
             </select>
@@ -52,7 +54,7 @@
 
           <label class="block">
             <span class="label-base">Mes</span>
-            <select class="input-base" (change)="onSelMesEvt($event)" [disabled]="selAnio() === 'ALL'">
+            <select class="input-base" (change)="onSelMesEvt($event)" [disabled]="selAnio() === 'ALL' || aplicandoFiltros()">
               <option value="ALL" [selected]="selMes() === 'ALL'">Todos los meses</option>
               <option *ngFor="let m of mesesDisponibles" [value]="m.numero" [selected]="selMes() === m.numero">{{ m.nombre }}</option>
             </select>
@@ -70,7 +72,7 @@
             <mat-icon class="mr-1 text-base">filter_alt_off</mat-icon>
             Limpiar
           </button>
-          <button type="button" class="btn-action-green" [disabled]="isLoadingPDF" (click)="exportarPDF()">
+          <button type="button" class="btn-action-green" [disabled]="isLoadingPDF || aplicandoFiltros()" (click)="exportarPDF()">
             <mat-icon class="mr-1 text-base">picture_as_pdf</mat-icon>
             {{ isLoadingPDF ? 'Generando…' : 'Exportar PDF' }}
           </button>
@@ -80,13 +82,19 @@
       <div class="mt-3 flex items-center gap-1.5 border-t border-gray-100 pt-3 text-xs text-gray-500">
         <mat-icon class="!h-4 !w-4 !text-base text-gray-400">info</mat-icon>
         @if (hayFiltrosAplicados()) {
-          Mostrando: <strong class="text-gray-700">{{ etiquetaFiltro() }}</strong>. El PDF se genera con este filtro.
+          Mostrando: <strong class="text-gray-700">{{ etiquetaFiltro() }}</strong>. Puedes revisar estas opciones en la ventana del PDF.
         } @else {
-          Mostrando todos los registros. El PDF se genera con todo el período.
+          Mostrando todos los registros. El PDF tiene su propia ventana de configuración.
         }
       </div>
+      @if (filtrosPendientes()) { <p role="status" class="mt-2 text-xs font-medium text-amber-800">Tienes cambios sin aplicar. Las cifras siguen mostrando la última consulta aplicada.</p> }
     </mat-card>
 
+    <mat-tab-group class="dashboard-tabs" animationDuration="0ms" [preserveContent]="true">
+      <mat-tab>
+        <ng-template mat-tab-label><mat-icon class="mr-2">bar_chart</mat-icon>Resumen visual</ng-template>
+        <ng-template matTabContent>
+          <div class="dashboard-tab-content">
     <!-- KPIs -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div class="kpi">
@@ -119,89 +127,19 @@
       </div>
     </div>
 
-    <!-- 🔍 Controles de zoom -->
-    <div class="flex justify-end items-center gap-2 mb-3 text-gray-600 select-none">
-        <button mat-icon-button (click)="decreaseZoom()" [disabled]="zoomLevel() <= MIN_ZOOM">
-        <mat-icon>zoom_out</mat-icon>
-        </button>
-        <span class="text-sm w-10 text-center">{{ (zoomLevel() * 100) | number:'1.0-0' }}%</span>
-        <button mat-icon-button (click)="increaseZoom()" [disabled]="zoomLevel() >= MAX_ZOOM">
-        <mat-icon>zoom_in</mat-icon>
-        </button>
-        <button mat-icon-button (click)="resetZoom()" matTooltip="Restablecer">
-        <mat-icon>refresh</mat-icon>
-        </button>
-    </div> 
-    <!-- Gráficas -->
-    <div *ngIf="hasDashboardData(d)" class="grid grid-cols-1 lg:grid-cols-2 gap-4" [style.transform]="'scale(' + zoomLevel() + ')'">
-        <!-- Población vulnerable -->
-        <mat-card class="p-3">
-            <div class="text-sm font-semibold mb-2">Población vulnerable</div>
-            <div class="chart-container" *ngIf="hasChartData(chartPVData); else noChartData">
-            <canvas baseChart
-                    [type]="chartPVType"
-                    [data]="chartPVData"
-                    [options]="chartPVOptions"></canvas>
-            </div>
-            <ng-container *ngIf="d.poblacionVulnerable as pv; else pv0">
-                <div class="text-[11px] text-gray-500 mt-2">Total: {{ pv.total }}</div>
-            </ng-container>
-            <ng-template #pv0>
-                <div class="text-[11px] text-gray-500 mt-2">Total: 0</div>
-            </ng-template>
-        </mat-card>
-
-        <!-- Actas por mes / estado -->
-        <mat-card class="p-3 border border-gray-200">
-            <div class="flex justify-between items-start mb-3">
-                <div class="text-sm font-semibold">Actas por mes / estado</div>
-            </div>
-
-            <!-- Gráfico -->
-            <div class="chart-container" *ngIf="hasChartData(chartActasData); else noChartData">
-            <canvas
-                baseChart
-                [type]="chartActasType"
-                [data]="chartActasData"
-                [options]="chartActasOptions">
-            </canvas>
-            </div>
-        </mat-card>
-
-
-        <!-- Distribución por edad -->
-        <mat-card class="p-3">
-            <div class="text-sm font-semibold mb-2">Beneficiarios por edad</div>
-            <div class="chart-container" *ngIf="hasChartData(chartEdadData); else noChartData">
-            <canvas baseChart
-                    [type]="chartEdadType"
-                    [data]="chartEdadData"
-                    [options]="chartEdadOptions"></canvas>
-            </div>
-
-            <!-- Leyenda compacta con colores y rangos -->
-            <div class="edad-chips mt-2">
-                <span class="edad-chip" *ngFor="let b of EDAD_BUCKETS; let i = index">
-                <span class="dot" [style.background]="EDAD_COLORS[i]"></span>
-                </span>
-            </div>
-        </mat-card>
-
-
-        <!-- Top productos entregados -->
-        <mat-card class="p-3">
-            <div class="text-sm font-semibold mb-2">Top productos entregados</div>
-            <div class="chart-container" *ngIf="hasChartData(chartProdData); else noChartData">
-            <canvas baseChart
-                    [type]="chartProdType"
-                    [data]="chartProdData"
-                    [options]="chartProdOptions"></canvas>
-            </div>
-        </mat-card>
-    </div>
+    @if (hasDashboardData(d)) { <app-dashboard-charts [dashboard]="d" /> }
+          </div>
+        </ng-template>
+      </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label><mat-icon class="mr-2">folder_open</mat-icon>Detalle de proyectos</ng-template>
+        <ng-template matTabContent>
+          <div class="dashboard-tab-content">
 
     <!-- Filtros de la lista de proyectos -->
     <mat-card class="p-3 border border-gray-200">
+      <h2 class="!mb-1 !text-base !font-semibold">Buscar en el listado de proyectos</h2>
+      <p class="mb-3 text-xs text-slate-500">Estos controles solo organizan el listado inferior; no cambian las cifras ni las gráficas.</p>
       <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <label class="block">
                 <span class="label-base">Buscar proyecto</span>
@@ -487,6 +425,10 @@
       }
     </mat-card>
 
+          </div>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
   </ng-container>
 
   <ng-template #loading>
@@ -506,8 +448,5 @@
       </div>
       }
     </mat-card>
-  </ng-template>
-  <ng-template #noChartData>
-    <div role="status" class="flex min-h-32 items-center justify-center rounded-lg bg-slate-50 p-4 text-center text-sm text-slate-500">No hay datos para esta gráfica con la selección actual.</div>
   </ng-template>
 </section>

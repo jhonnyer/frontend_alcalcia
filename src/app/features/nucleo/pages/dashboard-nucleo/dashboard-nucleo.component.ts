@@ -1,13 +1,15 @@
-import { Component, OnInit, inject, ElementRef, ViewChild, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { finalize, timeout } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
-import { Chart, registerables, ChartConfiguration, ChartType } from 'chart.js';
+import { Chart, registerables, ChartData, ChartOptions } from 'chart.js';
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { NucleoDetallado } from '../../../../core/models/nucleo-detallado.model';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -28,6 +30,7 @@ Chart.register(...registerables, ChartDataLabels);
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatButtonModule,
     FormsModule,
     BaseChartDirective
   ],
@@ -41,12 +44,10 @@ export class DashboardComponent implements OnInit {
   private router = inject(Router);
   private readonly pdf = inject(ReportesPdfService);
   private readonly alert = inject(AlertService);
+  private readonly destroyRef = inject(DestroyRef);
   nucleo?: NucleoDetallado; 
   allData?: NucleoDetallado;
   isLoadingPDF = false;
-
-  @ViewChild('chartActas', { static: false }) chartActas!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('chartBenef', { static: false }) chartBenef!: ElementRef<HTMLCanvasElement>;
 
   loading = true;
 
@@ -58,6 +59,10 @@ export class DashboardComponent implements OnInit {
   actasEntregadas = 0;
   filtroEstadoRapido = 'TODOS';
   filtroEdadRapido = 'TODOS';
+  filtroAnio: number | null = null;
+  filtroMes: number | null = null;
+  fechaActa: 'CREACION' | 'ENTREGA' = 'CREACION';
+  readonly meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
   // Mapeo de estados
   readonly estadoLabels: Record<string, string> = {
@@ -72,8 +77,8 @@ export class DashboardComponent implements OnInit {
   readonly rangoEdadLabels = ['0-12', '13-17', '18-29', '30-59', '60+'];
 
   // Gráfica: Actas por estado
-  chartActasType: ChartType = 'pie';
-  chartActasData: ChartConfiguration['data'] = {
+  chartActasType = 'doughnut' as const;
+  chartActasData: ChartData<'doughnut'> = {
     labels: Object.values(this.estadoLabels),
     datasets: [{
       data: [0, 0, 0, 0, 0],
@@ -83,70 +88,21 @@ export class DashboardComponent implements OnInit {
     }]
   };
   
-  chartActasOptions: ChartConfiguration['options'] = {
+  chartActasOptions: ChartOptions<'doughnut'> = {
     responsive: true,
-    layout: { padding: { bottom: 30 } },
+    maintainAspectRatio: false,
+    cutout: '58%',
     plugins: {
-        legend: {
-        position: 'bottom',
-        fullSize: true,
-        align: 'center',
-        maxWidth: 500,
-        labels: {
-            usePointStyle: true,
-            pointStyle: 'circle',
-            textAlign: 'left',
-            boxWidth: 14,
-            padding: 18,
-            font: { size: 13, family: 'sans-serif'},
-            color: '#374151',
-            // ✅ versión tipada y segura
-            generateLabels: (chart: any) => {
-                const dataset = chart.data.datasets?.[0];
-                const bgColors: string[] = (dataset?.backgroundColor as string[]) || [];
-                const labels: string[] = (chart.data.labels as string[]) || [];
-                const data: number[] = (dataset?.data as number[]) || [];
-
-                return labels.map((label: string, i: number) => ({
-                    text: label,
-                    fillStyle: bgColors[i] || '#ccc',
-                    strokeStyle: bgColors[i] || '#ccc',
-                    lineWidth: 0,
-                    hidden: false, 
-                    index: i
-                }));
-            }
-        }
-        },
-        datalabels: {
-        color: '#fff',
-        font: { weight: 'bold' },
-        formatter: (value: number, ctx: any) => {
-            const total = (ctx.chart.data.datasets?.[0].data as number[]).reduce(
-            (a, b) => a + b,
-            0
-            );
-          if (!total) return '0%';
-            const porcentaje = ((value / total) * 100).toFixed(1);
-            return `${porcentaje}%`;
-        }
-        },
-        tooltip: {
-        callbacks: {
-            label: (context: any) => {
-            const label = context.label || '';
-            const value = context.raw || 0;
-            return `${label}: ${value}`;
-            }
-        }
-        }
+      legend: { position: 'bottom', labels: { usePointStyle: true, padding: 14, boxWidth: 10 } },
+      datalabels: { display: false },
+      tooltip: { callbacks: { label: context => `${context.label}: ${context.raw} actas` } }
     }
-    };
+  };
 
 
   // Gráfica: Beneficiarios por rango de edad
-  chartBenefType: ChartType = 'bar';
-  chartBenefData: ChartConfiguration['data'] = {
+  chartBenefType = 'bar' as const;
+  chartBenefData: ChartData<'bar'> = {
     labels: ['0-12', '13-17', '18-29', '30-59', '60+'],
     datasets: [{
       label: 'Beneficiarios',
@@ -155,9 +111,11 @@ export class DashboardComponent implements OnInit {
     }]
   };
 
-  chartBenefOptions: ChartConfiguration['options'] = {
+  chartBenefOptions: ChartOptions<'bar'> = {
     responsive: true,
-    scales: { y: { beginAtZero: true } }
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, datalabels: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } }
   };
 
   ngOnInit() {
@@ -171,18 +129,23 @@ export class DashboardComponent implements OnInit {
     this.loading = true;
     this.loadError = '';
     const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (!Number.isInteger(id) || id <= 0) {
+      this.loadError = 'El identificador del actor social no es válido.';
+      this.loading = false;
+      return;
+    }
 
     // Intentar leer el núcleo desde el estado de navegación
     const nav = this.router.getCurrentNavigation();
-    this.nucleo = nav?.extras.state?.['nucleo'] ?? history.state['nucleo'];
+    this.nucleo = nav?.extras.state?.['nucleo'] ?? history.state?.['nucleo'];
 
     // Si vino por navegación, usamos esa data y evitamos request duplicado.
-    if (this.nucleo) {
+    if (this.nucleo?.idNucleo === id) {
       this.aplicarDatosDashboard(this.nucleo);
       this.loading = false;
     } else {
       this.nucleoService.obtenerDetalleNucleo(id).pipe(
-        timeout(45000), finalize(() => this.loading = false)
+        timeout(45000), takeUntilDestroyed(this.destroyRef), finalize(() => this.loading = false)
       ).subscribe({
         next: ({ respuesta }) => {
           if (!respuesta) {
@@ -226,6 +189,8 @@ export class DashboardComponent implements OnInit {
   clearQuickFilters(): void {
     this.filtroEstadoRapido = 'TODOS';
     this.filtroEdadRapido = 'TODOS';
+    this.filtroAnio = this.filtroMes = null;
+    this.fechaActa = 'CREACION';
     this.recalcularDashboard();
   }
 
@@ -239,26 +204,20 @@ export class DashboardComponent implements OnInit {
     this.recalcularDashboard();
   }
 
-  onActasChartClick(event: any): void {
-    const points = event?.active ?? [];
-    if (!points.length) return;
-
-    const index = points[0]?.index;
-    if (index === undefined || index === null) return;
+  onActasChartClick(event: { active?: object[] }): void {
+    const index = this.indiceGrafica(event);
+    if (index === undefined) return;
 
     const estado = this.estadoOrden[index] ?? 'TODOS';
     this.filtroEstadoRapido = this.filtroEstadoRapido === estado ? 'TODOS' : estado;
     this.recalcularDashboard();
   }
 
-  onBenefChartClick(event: any): void {
-    const points = event?.active ?? [];
-    if (!points.length) return;
-
-    const index = points[0]?.index;
-    if (index === undefined || index === null) return;
-
-    const rango = this.rangoEdadLabels[index] ?? 'TODOS';
+  onBenefChartClick(event: { active?: object[] }): void {
+    const index = this.indiceGrafica(event);
+    if (index === undefined) return;
+    const rango = this.rangoEdadLabels[index];
+    if (!rango) return;
     this.filtroEdadRapido = this.filtroEdadRapido === rango ? 'TODOS' : rango;
     this.recalcularDashboard();
   }
@@ -288,7 +247,7 @@ export class DashboardComponent implements OnInit {
 
   isKpiActive(target: 'overview' | 'beneficiarios' | 'actas' | 'actasEntregadas'): boolean {
     if (target === 'overview') {
-      return this.filtroEstadoRapido === 'TODOS' && this.filtroEdadRapido === 'TODOS';
+      return this.filtroEstadoRapido === 'TODOS' && this.filtroEdadRapido === 'TODOS' && this.filtroAnio === null;
     }
 
     if (target === 'beneficiarios') {
@@ -302,7 +261,7 @@ export class DashboardComponent implements OnInit {
     return this.filtroEstadoRapido === 'E';
   }
 
-  get coberturaActasEntregadas(): number {
+  get porcentajeActasEntregadas(): number {
     if (!this.totalActas) return 0;
     return Math.round((this.actasEntregadas / this.totalActas) * 100);
   }
@@ -329,7 +288,8 @@ export class DashboardComponent implements OnInit {
     // KPIs
     this.totalNucleos = 1;
     this.totalBeneficiarios = beneficiariosFiltrados.length;
-    this.proyectosActivos = this.allData.beneficiariosProyecto.filter(p => p.esBeneficiarioActivo).length;
+    this.proyectosActivos = new Set(this.allData.beneficiariosProyecto
+      .filter(p => p.esBeneficiarioActivo && p.estadoProyecto === 'A').map(p => p.idProyecto)).size;
     this.totalActas = actasFiltradas.length;
     this.actasEntregadas = actasFiltradas.filter(a => a.estado === 'E').length;
 
@@ -346,9 +306,9 @@ export class DashboardComponent implements OnInit {
     };
 
     // === Gráfica: Beneficiarios por rango de edad ===
-    const edades = beneficiariosFiltrados.map(b => b.edad ?? 0);
+    const edades = beneficiariosFiltrados.map(b => b.edad);
     this.chartBenefData = {
-      labels: ['0-12', '13-17', '18-29', '30-59', '60+'],
+      labels: ['0-12', '13-17', '18-29', '30-59', '60+', 'Sin edad registrada'],
       datasets: [{
         label: 'Beneficiarios',
         data: this.bucketEdades(edades),
@@ -358,14 +318,19 @@ export class DashboardComponent implements OnInit {
   }
 
   private getActasFiltradas(actas: NucleoDetallado['actas']) {
-    if (this.filtroEstadoRapido === 'TODOS') return actas;
-    return actas.filter((acta) => acta.estado === this.filtroEstadoRapido);
+    return actas.filter(acta => {
+      if (this.filtroEstadoRapido !== 'TODOS' && acta.estado !== this.filtroEstadoRapido) return false;
+      if (this.filtroAnio === null) return true;
+      const fecha = this.fechaActa === 'ENTREGA' ? acta.fechaEntrega : acta.fechaCreacion;
+      return fecha?.slice(0, 4) === String(this.filtroAnio)
+        && (this.filtroMes === null || Number(fecha.slice(5, 7)) === this.filtroMes);
+    });
   }
 
   private getBeneficiariosFiltrados(beneficiarios: NucleoDetallado['beneficiariosNucleo']) {
     switch (this.filtroEdadRapido) {
       case '0-12':
-        return beneficiarios.filter((b) => (b.edad ?? 0) <= 12);
+        return beneficiarios.filter((b) => b.edad != null && b.edad >= 0 && b.edad <= 12);
       case '13-17':
         return beneficiarios.filter((b) => (b.edad ?? 0) >= 13 && (b.edad ?? 0) <= 17);
       case '18-29':
@@ -386,10 +351,11 @@ export class DashboardComponent implements OnInit {
     }, {} as Record<string, number>);
   }
 
-  private bucketEdades(edades: number[]) {
-    const b = [0, 0, 0, 0, 0];
+  private bucketEdades(edades: Array<number | undefined>) {
+    const b = [0, 0, 0, 0, 0, 0];
     for (const e of edades) {
-      if (e <= 12) b[0]++;
+      if (e == null || !Number.isFinite(e) || e < 0) b[5]++;
+      else if (e <= 12) b[0]++;
       else if (e <= 17) b[1]++;
       else if (e <= 29) b[2]++;
       else if (e <= 59) b[3]++;
@@ -409,6 +375,8 @@ export class DashboardComponent implements OnInit {
       await this.pdf.actor(this.nucleo.idNucleo, {
         estadoActa: this.filtroEstadoRapido === 'TODOS' ? [] : [this.filtroEstadoRapido],
         rangoEdad: this.filtroEdadRapido,
+        ...this.periodoActas(),
+        fechaActa: this.fechaActa,
       }, true);
     } catch (error) {
       console.error('Error al exportar PDF:', error);
@@ -418,21 +386,40 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  zoomLevel = signal(1); // 1 = 100%
-    readonly MIN_ZOOM = 0.7;
-    readonly MAX_ZOOM = 1.5;
-    readonly STEP_ZOOM = 0.05;
-  
-  increaseZoom() {
-    this.zoomLevel.update(z => Math.min(this.MAX_ZOOM, parseFloat((z + this.STEP_ZOOM).toFixed(2))));
+  get aniosActas(): number[] {
+    const fechas = (this.allData?.actas ?? []).map(acta =>
+      this.fechaActa === 'ENTREGA' ? acta.fechaEntrega : acta.fechaCreacion);
+    return [...new Set(fechas.filter((fecha): fecha is string => !!fecha)
+      .map(fecha => Number(fecha.slice(0, 4))).filter(Number.isInteger))].sort((a, b) => b - a);
   }
-  
-  decreaseZoom() {
-    this.zoomLevel.update(z => Math.max(this.MIN_ZOOM, parseFloat((z - this.STEP_ZOOM).toFixed(2))));
+
+  cambiarPeriodo(): void {
+    if (this.filtroAnio === null) this.filtroMes = null;
+    this.recalcularDashboard();
   }
-  
-  resetZoom() {
-    this.zoomLevel.set(1);
+
+  cambiarFechaActa(): void {
+    if (this.filtroAnio !== null && !this.aniosActas.includes(this.filtroAnio)) {
+      this.filtroAnio = this.filtroMes = null;
+    }
+    this.recalcularDashboard();
+  }
+
+  private periodoActas(): { alcance: string; fechaInicio?: string; fechaFin?: string } {
+    if (this.filtroAnio === null) return { alcance: 'ALL' };
+    const mes = this.filtroMes;
+    const mm = String(mes ?? 1).padStart(2, '0');
+    const ultimoDia = mes === null ? 31 : new Date(this.filtroAnio, mes, 0).getDate();
+    return {
+      alcance: mes === null ? 'YEAR' : 'MONTH',
+      fechaInicio: `${this.filtroAnio}-${mm}-01`,
+      fechaFin: `${this.filtroAnio}-${mes === null ? '12' : mm}-${ultimoDia}`
+    };
+  }
+
+  private indiceGrafica(event: { active?: object[] }): number | undefined {
+    const punto = event.active?.[0];
+    return punto && 'index' in punto && typeof punto.index === 'number' ? punto.index : undefined;
   }
 
 }

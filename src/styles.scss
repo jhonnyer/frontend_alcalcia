@@ -3,6 +3,38 @@
 @tailwind utilities;
 @import '@angular/cdk/overlay-prebuilt.css';
 
+.report-search-panel.mat-mdc-autocomplete-panel {
+  max-height: min(320px, 45vh);
+  padding: 4px 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  background: white;
+  box-shadow: 0 10px 24px rgb(15 23 42 / 15%);
+
+  .mat-mdc-option {
+    height: auto;
+    min-height: 36px;
+    padding: 6px 12px;
+    align-items: center;
+  }
+
+  .mdc-list-item__primary-text {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+    font-size: 14px;
+  }
+
+  .mat-mdc-option-active,
+  .mat-mdc-option:hover {
+    background: #eff6ff;
+  }
+
+  .mat-mdc-option.mdc-list-item--selected {
+    background: #dbeafe;
+  }
+}
+
 
 .input-base {
   @apply w-full min-h-10 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500;

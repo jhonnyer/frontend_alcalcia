@@ -1,86 +1,92 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { PageTitleService } from '../../../../core/services/pageTitle.service';
-import { RouterLink } from '@angular/router';
-import { ActasService } from '../../../../core/services/actas.service';
-import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
-import { CategoriasService } from '../../../../core/services/categorias.service';
-import { ResponsibleService } from '../../../../core/services/responsible.service';
-import { ProductosService } from '../../../../core/services/productos.service';
-import { NucleoService } from '../../../../core/services/nucleo.service';
-import * as XLSX from 'xlsx';
-
-import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
-import { ReportesService, ReporteFiltroRequest } from '../../../../core/services/reportes.service';
-import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
-import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
-import { DashboardComponent } from '../../../projects/pages/dashboard-general/dashboard.component';
-import { AlertService } from '../../../../core/services/alert.service';
+import { finalize, timeout } from 'rxjs';
+import { PageTitleService } from '../../../../core/services/pageTitle.service';
+import { ActasService, FiltroReporteActas } from '../../../../core/services/actas.service';
+import { ResponsibleService } from '../../../../core/services/responsible.service';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
-import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
-import { INucleo, INucleoUpdate } from '../../../../core/models/nucleo.model';
-import { ExcelGeneradorReportesService } from '../../../../shared/components/excel/excel-generador-reportes.service';
-import { ExcelInstitucionalService, excelErrorMessage, nombreCompletoExcel } from '../../../../shared/components/excel/excel-institucional.service';
-import { firstValueFrom, forkJoin, timeout } from 'rxjs';
+import { DashboardExcelReport, ReportesService, ReporteFiltroRequest } from '../../../../core/services/reportes.service';
+import { AlertService } from '../../../../core/services/alert.service';
+import { HasRoleDirective } from '../../../../core/directives/has-role/has-role-directive.directive';
+import { PdfGeneradorDashboardService } from '../../../../shared/components/pdf/pdf-generador-dashboard.service';
+import { pdfErrorMessage } from '../../../../shared/components/pdf/pdf-export.utils';
+import { mensajeErrorReporteExcel } from '../../../../shared/components/excel/excel-error.utils';
+import { ReportSearchOption, ReportSearchSelectComponent } from '../../../../shared/components/report-search-select/report-search-select.component';
+import { DashboardComponent } from '../../../projects/pages/dashboard-general/dashboard.component';
 
-type ReportKeys =
-  | 'global'
-  | 'productProject'
-  | 'beneficiarios'
-  | 'categorias'
-  | 'responsables'
-  | 'nucleos'
-  | 'actas'
-  | 'productos'
-  | 'proyectos'
-  | 'beneficiariosProyecto'
-  | 'reportGeneral';
-  
+type ReportKeys = DashboardExcelReport | 'productProject' | 'actas';
+type PeriodReportKey = Extract<ReportKeys, 'actas' | 'proyectos' | 'productProject' | 'productos' | 'beneficiariosProyecto' | 'reportGeneral'>;
+interface PeriodReportOption {
+  key: PeriodReportKey;
+  label: string;
+  proyecto: boolean;
+  categoria: boolean;
+  solicitud: boolean;
+  descripcion: string;
+}
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    RouterLink, 
-    HasRoleDirective,
-    CommonModule,
-    FormsModule,
-    MatMenuModule,
-    MatDividerModule,
-    MatIconModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    MatTabsModule,
-    DashboardComponent
-  ],
+  imports: [RouterLink, HasRoleDirective, CommonModule, FormsModule, MatMenuModule, MatDividerModule,
+    MatIconModule, MatButtonModule, MatProgressSpinnerModule, MatTabsModule, DashboardComponent, ReportSearchSelectComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit{
+export class HomeComponent implements OnInit {
   private pageTitleService = inject(PageTitleService);
   private actasService = inject(ActasService);
-  private beneficiaryService = inject(BeneficiaryService);
-  private categoriasService = inject(CategoriasService);
   private responsibleService = inject(ResponsibleService);
-  private productosService = inject(ProductosService);
-  private nucleoService = inject(NucleoService);
   private reportes = inject(ReportesService);
   private pdfDashboard = inject(PdfGeneradorDashboardService);
   private alert = inject(AlertService);
-  private proyectosService= inject(ProyectosService);
-  private beneficiarioProyectoService= inject(BeneficiarioProyectoService);
-  private excelReportes = inject(ExcelGeneradorReportesService);
-  private excelInstitucional = inject(ExcelInstitucionalService);
+  private proyectosService = inject(ProyectosService);
   private destroyRef = inject(DestroyRef);
+
   reportOptionsError = '';
+  selectedPeriodReport: PeriodReportKey | null = 'actas';
+  excelProjectId: number | null = null;
+  excelCategoryId: number | null = null;
+  excelTipoSolicitud = '';
+  excelProjectValid = true;
+  excelCategoryValid = true;
+  excelResetKey = 0;
+  excelCategoryResetKey = 0;
+  pdfProjectValid = true;
+  pdfCategoryValid = true;
+  pdfResponsibleValid = true;
+  pdfResetKey = 0;
+  pdfCategoryResetKey = 0;
+  readonly periodReportOptions: PeriodReportOption[] = [
+    { key: 'actas', label: 'Actas', proyecto: true, categoria: true, solicitud: true,
+      descripcion: 'Fecha de creación del acta. Categorías de productos y paquetes. Tipo de solicitud busca por parte del texto.' },
+    { key: 'proyectos', label: 'Proyectos', proyecto: true, categoria: true, solicitud: false,
+      descripcion: 'Proyectos vigentes durante el período. La categoría filtra proyectos que la tienen asociada.' },
+    { key: 'productProject', label: 'Productos por Proyecto', proyecto: true, categoria: true, solicitud: false,
+      descripcion: 'Proyectos vigentes y productos ingresados en el período. Relación proyecto–categoría–producto.' },
+    { key: 'productos', label: 'Productos', proyecto: true, categoria: true, solicitud: false,
+      descripcion: 'Fecha de ingreso del producto. Proyecto y categoría según su asociación en inventario.' },
+    { key: 'beneficiariosProyecto', label: 'Beneficiarios por Proyecto', proyecto: true, categoria: false, solicitud: false,
+      descripcion: 'Vigencia de la vinculación al proyecto. No aplica categoría ni tipo de solicitud.' },
+    { key: 'reportGeneral', label: 'Reporte Global (mixto)', proyecto: false, categoria: false, solicitud: false,
+      descripcion: 'Ocho hojas con distintas fechas operativas. Solo aplica período. Actores sociales completos sin filtro temporal.' }
+  ];
+  readonly reportSearchOptions = this.periodReportOptions.map(option => ({ value: option.key, label: option.label }));
+  get periodReportOption(): PeriodReportOption | undefined {
+    return this.periodReportOptions.find(option => option.key === this.selectedPeriodReport);
+  }
+  get downloadingPeriodReport(): boolean {
+    return this.periodReportOptions.some(option => this.isLoadingReport[option.key]);
+  }
 
   isLoadingPDF = false;
   reportPeriod: 'ALL' | 'YEAR' | 'MONTH' = 'ALL';
@@ -92,47 +98,17 @@ export class HomeComponent implements OnInit{
   reportCategoryId: number | null = null;
   reportResponsibleId: number | null = null;
   reportProjectOptions: Array<{ id: number; nombre: string }> = [];
-  reportCategoryOptions: Array<{ id: number; nombre: string; projectId?: number }> = [];
+  reportCategoryOptions: Array<{ id: number; nombre: string; projectId: number }> = [];
   reportResponsibleOptions: Array<{ id: number; nombre: string }> = [];
-  reportFilteredProjects: Array<{ id: number; nombre: string }> = [];
-  reportFilteredCategories: Array<{ id: number; nombre: string; projectId?: number }> = [];
-  reportFilteredResponsibles: Array<{ id: number; nombre: string }> = [];
-  reportProjectSearch = '';
-  reportCategorySearch = '';
-  reportResponsibleSearch = '';
   reportGeneralOpen = false;
   reportPeriodOpen = false;
   reportGeneralReportsOpen = false;
-  reportYears = Array.from({ length: 5 }, (_, index) => new Date().getFullYear() - index);
-  reportMonths = [
-    { value: 1, label: 'Enero' },
-    { value: 2, label: 'Febrero' },
-    { value: 3, label: 'Marzo' },
-    { value: 4, label: 'Abril' },
-    { value: 5, label: 'Mayo' },
-    { value: 6, label: 'Junio' },
-    { value: 7, label: 'Julio' },
-    { value: 8, label: 'Agosto' },
-    { value: 9, label: 'Septiembre' },
-    { value: 10, label: 'Octubre' },
-    { value: 11, label: 'Noviembre' },
-    { value: 12, label: 'Diciembre' }
-  ];
-  nucleoId = 1;     // ejemplo: luego puedes asignar dinámicamente
-  proyectoId = 1;   // idem
-  // 🔹 Nuevo objeto para controlar el estado de cada botón
+  readonly reportYears = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+  readonly reportMonths = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre',
+    'Octubre', 'Noviembre', 'Diciembre'].map((label, i) => ({ value: i + 1, label }));
   isLoadingReport: Record<ReportKeys, boolean> = {
-    global: false,
-    productProject: false,
-    beneficiarios: false,
-    categorias: false,
-    responsables: false,
-    nucleos: false,
-    actas: false,
-    productos: false,
-    proyectos: false,
-    beneficiariosProyecto: false,
-    reportGeneral: false
+    productProject: false, beneficiarios: false, categorias: false, responsables: false, nucleos: false,
+    actas: false, productos: false, proyectos: false, beneficiariosProyecto: false, reportGeneral: false
   };
 
   ngOnInit(): void {
@@ -143,144 +119,162 @@ export class HomeComponent implements OnInit{
   private loadReportFilterOptions(): void {
     this.proyectosService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: response => {
-      const projects = response.respuesta ?? [];
-      this.reportProjectOptions = projects.map(item => ({
-        id: item.proyecto.idProyecto,
-        nombre: item.proyecto.nombre
-      }));
-      this.reportFilteredProjects = [...this.reportProjectOptions];
-      this.reportCategoryOptions = projects.flatMap(item => (item.categorias ?? []).map(category => ({
-        id: category.idCategoria,
-        nombre: category.nombre,
-        projectId: item.proyecto.idProyecto
-      }))).filter((category, index, categories) =>
-        categories.findIndex(item => item.id === category.id && item.projectId === category.projectId) === index);
-      this.updateReportCategoryOptions();
+        const projects = response.respuesta ?? [];
+        this.reportProjectOptions = projects.map(item => ({ id: item.proyecto.idProyecto, nombre: item.proyecto.nombre }));
+        this.reportCategoryOptions = projects.flatMap(item => (item.categorias ?? []).map(category => ({
+          id: category.idCategoria, nombre: category.nombre, projectId: item.proyecto.idProyecto
+        })));
       },
-      error: error => {
-        console.error('Error al cargar proyectos para los filtros de reportes:', error);
-        this.reportOptionsError = 'No se pudieron cargar algunas opciones de los filtros. Recarga la página para reintentar.';
-      }
+      error: error => this.filterOptionsError(error)
     });
     this.responsibleService.getAll().pipe(timeout(45000), takeUntilDestroyed(this.destroyRef)).subscribe({
       next: responsables => {
-      this.reportResponsibleOptions = (responsables ?? []).map(responsable => ({
-        id: responsable.idResponsable,
-        nombre: `${responsable.primerNombre} ${responsable.primerApellido}`.trim()
-      }));
-      this.reportFilteredResponsibles = [...this.reportResponsibleOptions];
+        this.reportResponsibleOptions = (responsables ?? []).map(r => ({
+          id: r.idResponsable, nombre: `${r.primerNombre} ${r.primerApellido}`.trim()
+        }));
       },
-      error: error => {
-        console.error('Error al cargar responsables para los filtros de reportes:', error);
-        this.reportOptionsError = 'No se pudieron cargar algunas opciones de los filtros. Recarga la página para reintentar.';
-      }
+      error: error => this.filterOptionsError(error)
     });
   }
 
-  searchReportProjects(value: string): void {
-    this.reportProjectSearch = value;
-    const query = value.trim().toLowerCase();
-    this.reportFilteredProjects = this.reportProjectOptions.filter(project =>
-      !query || `${project.id} ${project.nombre}`.toLowerCase().includes(query));
-    const selected = this.reportProjectOptions.find(project => `${project.id} - ${project.nombre}` === value);
-    this.reportProjectId = selected?.id ?? null;
+  private filterOptionsError(error: unknown): void {
+    console.error('Error al cargar filtros de reportes:', error);
+    this.reportOptionsError = 'No se pudieron cargar algunas opciones de los filtros. Recarga la página para reintentar.';
+  }
+
+  get projectSearchOptions(): ReportSearchOption[] {
+    return this.reportProjectOptions.map(p => ({ value: String(p.id), label: p.nombre }));
+  }
+  get responsibleSearchOptions(): ReportSearchOption[] {
+    return this.reportResponsibleOptions.map(p => ({ value: String(p.id), label: p.nombre }));
+  }
+  categorySearchOptions(projectId: number | null): ReportSearchOption[] {
+    if (projectId === null) return [];
+    const categorias = this.reportCategoryOptions.filter(c => c.projectId === projectId);
+    return [...new Map(categorias.map(c => [c.id, { value: String(c.id), label: c.nombre }])).values()];
+  }
+  stringId(id: number | null): string | null { return id == null ? null : String(id); }
+  selectExcelProject(value: string | null): void {
+    this.excelProjectId = value == null ? null : Number(value);
+    this.excelCategoryId = null;
+    this.excelCategoryValid = true;
+    this.excelCategoryResetKey++;
+  }
+  selectExcelCategory(value: string | null): void { this.excelCategoryId = value == null ? null : Number(value); }
+  selectPdfProject(value: string | null): void {
+    this.reportProjectId = value == null ? null : Number(value);
     this.reportCategoryId = null;
-    this.reportCategorySearch = '';
-    this.updateReportCategoryOptions();
+    this.pdfCategoryValid = true;
+    this.pdfCategoryResetKey++;
   }
+  selectPdfCategory(value: string | null): void { this.reportCategoryId = value == null ? null : Number(value); }
+  selectPdfResponsible(value: string | null): void { this.reportResponsibleId = value == null ? null : Number(value); }
 
-  searchReportCategories(value: string): void {
-    this.reportCategorySearch = value;
-    const query = value.trim().toLowerCase();
-    this.reportFilteredCategories = this.reportCategoryOptions.filter(category =>
-      (!this.reportProjectId || category.projectId === this.reportProjectId) &&
-      (!query || `${category.id} ${category.nombre}`.toLowerCase().includes(query)));
-    const selected = this.reportFilteredCategories.find(category => `${category.id} - ${category.nombre}` === value);
-    this.reportCategoryId = selected?.id ?? null;
+  selectPeriodReport(value: string | null): void {
+    this.selectedPeriodReport = this.periodReportOptions.find(option => option.key === value)?.key ?? null;
+    if (this.selectedPeriodReport == null) return;
+    const option = this.periodReportOption;
+    if (!option?.proyecto) {
+      this.selectExcelProject(null);
+      this.excelProjectValid = true;
+      this.excelResetKey++;
+    }
+    if (!option?.categoria) {
+      this.excelCategoryId = null;
+      this.excelCategoryValid = true;
+      this.excelCategoryResetKey++;
+    }
+    if (!option?.solicitud) this.excelTipoSolicitud = '';
   }
-
-  searchReportResponsibles(value: string): void {
-    this.reportResponsibleSearch = value;
-    const query = value.trim().toLowerCase();
-    this.reportFilteredResponsibles = this.reportResponsibleOptions.filter(responsible =>
-      !query || `${responsible.id} ${responsible.nombre}`.toLowerCase().includes(query));
-    const selected = this.reportResponsibleOptions.find(responsible => `${responsible.id} - ${responsible.nombre}` === value);
-    this.reportResponsibleId = selected?.id ?? null;
+  clearExcelFilters(): void {
+    const hoy = new Date();
+    this.reportPeriod = 'ALL';
+    this.reportYear = hoy.getFullYear();
+    this.reportMonth = hoy.getMonth() + 1;
+    this.selectExcelProject(null);
+    this.excelTipoSolicitud = '';
+    this.excelResetKey++;
+    this.excelProjectValid = this.excelCategoryValid = true;
   }
-
-  clearReportProjectSearch(): void {
-    this.searchReportProjects('');
+  get reportPeriodSummary(): string {
+    return this.getReportPeriodLabel();
   }
-
-  clearReportCategorySearch(): void {
-    this.reportCategorySearch = '';
-    this.reportCategoryId = null;
-    this.updateReportCategoryOptions();
+  clearReportFilters(): void {
+    this.reportEstadosActa = [];
+    this.reportPrioridades = [];
+    this.reportProjectId = this.reportCategoryId = this.reportResponsibleId = null;
+    this.pdfResetKey++;
+    this.pdfCategoryResetKey++;
+    this.pdfProjectValid = this.pdfCategoryValid = this.pdfResponsibleValid = true;
   }
-
-  clearReportResponsibleSearch(): void {
-    this.searchReportResponsibles('');
-  }
-
-  private updateReportCategoryOptions(): void {
-    this.reportFilteredCategories = this.reportCategoryOptions.filter(category =>
-      !this.reportProjectId || category.projectId === this.reportProjectId);
-  }
-
   toggleReportFilter(list: string[], value: string): void {
     const index = list.indexOf(value);
     if (index >= 0) list.splice(index, 1);
     else list.push(value);
   }
-
-  isReportFilterSelected(list: string[], value: string): boolean {
-    return list.includes(value);
-  }
-
-  clearReportFilters(): void {
-    this.reportEstadosActa = [];
-    this.reportPrioridades = [];
-    this.reportProjectId = null;
-    this.reportCategoryId = null;
-    this.reportResponsibleId = null;
-    this.reportProjectSearch = '';
-    this.reportCategorySearch = '';
-    this.reportResponsibleSearch = '';
-    this.updateReportCategoryOptions();
-  }
-
-  private getFormattedDate(): string {
-    const today = new Date();
-    return today.toISOString().split('T')[0]; // Retorna YYYY-MM-DD
-  }
+  isReportFilterSelected(list: string[], value: string): boolean { return list.includes(value); }
 
   private getReportDateRange(): { fechaInicio?: string; fechaFin?: string } {
     if (this.reportPeriod === 'ALL') return {};
+    if (this.reportPeriod === 'YEAR') return { fechaInicio: `${this.reportYear}-01-01`, fechaFin: `${this.reportYear}-12-31` };
+    const month = String(this.reportMonth).padStart(2, '0');
+    return { fechaInicio: `${this.reportYear}-${month}-01`,
+      fechaFin: `${this.reportYear}-${month}-${new Date(this.reportYear, this.reportMonth, 0).getDate()}` };
+  }
+  private getReportPeriodLabel(): string {
+    if (this.reportPeriod === 'ALL') return 'Todos los registros';
+    if (this.reportPeriod === 'YEAR') return `Año ${this.reportYear}`;
+    return `${this.reportMonths[this.reportMonth - 1].label} ${this.reportYear}`;
+  }
+  private getReportFilterLabel(): string {
+    const parts = [this.getReportPeriodLabel()];
+    if (this.reportEstadosActa.length) parts.push(`Estados: ${this.reportEstadosActa.join(', ')}`);
+    if (this.reportPrioridades.length) parts.push(`Prioridades: ${this.reportPrioridades.join(', ')}`);
+    if (this.reportProjectId) parts.push(`Proyecto: ${this.reportProjectOptions.find(p => p.id === this.reportProjectId)?.nombre}`);
+    if (this.reportCategoryId) parts.push(`Categoría: ${this.reportCategoryOptions.find(c => c.id === this.reportCategoryId)?.nombre}`);
+    if (this.reportResponsibleId) parts.push(`Responsable: ${this.reportResponsibleOptions.find(r => r.id === this.reportResponsibleId)?.nombre}`);
+    return parts.join(' · ');
+  }
 
-    if (this.reportPeriod === 'YEAR') {
-      return {
-        fechaInicio: `${this.reportYear}-01-01`,
-        fechaFin: `${this.reportYear}-12-31`
-      };
+  downloadPeriodReport(): void {
+    if (this.selectedPeriodReport == null || this.downloadingPeriodReport) return;
+    if (!this.excelProjectValid || !this.excelCategoryValid) {
+      this.alert.info('Selecciona una opción', 'Elige el proyecto y la categoría de las sugerencias o limpia su búsqueda.');
+      return;
     }
+    this.downloadExcel(this.selectedPeriodReport);
+  }
+  downloadBeneficiarios(): void { this.downloadExcel('beneficiarios'); }
+  downloadCategorias(): void { this.downloadExcel('categorias'); }
+  downloadResponsables(): void { this.downloadExcel('responsables'); }
+  downloadNucleos(): void { this.downloadExcel('nucleos'); }
 
-    const lastDay = new Date(this.reportYear, this.reportMonth, 0).getDate();
-    return {
-      fechaInicio: `${this.reportYear}-${String(this.reportMonth).padStart(2, '0')}-01`,
-      fechaFin: `${this.reportYear}-${String(this.reportMonth).padStart(2, '0')}-${lastDay}`
+  private downloadExcel(reporte: ReportKeys): void {
+    if (this.isLoadingReport[reporte]) return;
+    const option = this.periodReportOptions.find(item => item.key === reporte);
+    const range = option ? this.getReportDateRange() : {};
+    const filtro: FiltroReporteActas = {
+      idProyecto: option?.proyecto ? this.excelProjectId ?? undefined : undefined,
+      idCategoria: option?.categoria ? this.excelCategoryId ?? undefined : undefined,
+      tipoSolicitud: option?.solicitud ? this.excelTipoSolicitud.trim() || undefined : undefined
     };
-  }
-
-  private isDateInRange(value: string | null | undefined, fechaInicio?: string, fechaFin?: string): boolean {
-    if (!fechaInicio || !fechaFin) return true;
-    if (!value) return false;
-    return value >= fechaInicio && value <= fechaFin;
-  }
-
-  private overlapsRange(start: string | null | undefined, end: string | null | undefined, fechaInicio?: string, fechaFin?: string): boolean {
-    if (!fechaInicio || !fechaFin) return true;
-    if (!start) return false;
-    return start <= fechaFin && (!end || end >= fechaInicio);
+    const request = reporte === 'actas' ? this.actasService.getExcelActas(range.fechaInicio, range.fechaFin, filtro)
+      : reporte === 'productProject' ? this.actasService.getExcelProductosProyecto(range.fechaInicio, range.fechaFin, filtro)
+      : this.reportes.descargarExcel(reporte, { ...range, idProyecto: filtro.idProyecto, idCategoria: filtro.idCategoria });
+    const nombresGenerales: Partial<Record<ReportKeys, string>> = { beneficiarios: 'Beneficiarios', categorias: 'Categorías',
+      responsables: 'Usuarios', nucleos: 'Actores sociales' };
+    const nombre = option?.label ?? nombresGenerales[reporte] ?? reporte;
+    const filename = `${nombre} - ${option ? this.getReportPeriodLabel() : 'General'} - ${new Date().toISOString().slice(0, 10)}.xlsx`;
+    this.isLoadingReport[reporte] = true;
+    request.pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.isLoadingReport[reporte] = false)).subscribe({
+      next: blob => this.downloadBlob(blob, filename),
+      error: async error => {
+        console.error('Error al descargar reporte Excel:', error);
+        const mensaje = await mensajeErrorReporteExcel(error);
+        if (mensaje === 'No hay registros para los filtros seleccionados.') this.alert.info('Sin datos', mensaje);
+        else this.alert.error('Operación fallida', mensaje);
+      }
+    });
   }
 
   private downloadBlob(blob: Blob, filename: string): void {
@@ -290,610 +284,36 @@ export class HomeComponent implements OnInit{
     link.download = filename;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     window.URL.revokeObjectURL(url);
   }
 
-  private getReportPeriodLabel(): string {
-    if (this.reportPeriod === 'ALL') return 'Todos los registros';
-    if (this.reportPeriod === 'YEAR') return `Año ${this.reportYear}`;
-    return `${this.reportMonths.find(month => month.value === this.reportMonth)?.label} ${this.reportYear}`;
-  }
-
-  private getReportFilterLabel(): string {
-    const parts = [this.getReportPeriodLabel()];
-    if (this.reportEstadosActa.length) parts.push(`Estados: ${this.reportEstadosActa.join(', ')}`);
-    if (this.reportPrioridades.length) parts.push(`Prioridades: ${this.reportPrioridades.join(', ')}`);
-    if (this.reportProjectId) parts.push(`Proyecto: ${this.reportProjectOptions.find(p => p.id === this.reportProjectId)?.nombre ?? this.reportProjectId}`);
-    if (this.reportCategoryId) parts.push(`Categoría: ${this.reportCategoryOptions.find(c => c.id === this.reportCategoryId)?.nombre ?? this.reportCategoryId}`);
-    if (this.reportResponsibleId) parts.push(`Responsable: ${this.reportResponsibleOptions.find(r => r.id === this.reportResponsibleId)?.nombre ?? this.reportResponsibleId}`);
-    return parts.join(' · ');
-  }
-
-  downloadGlobalReport() {
-    const { fechaInicio, fechaFin } = this.getReportDateRange();
-    this.isLoadingReport.global = true;
-    this.actasService.getExcelActas(fechaInicio, fechaFin).subscribe({
-      next: (blob: Blob) => {
-        this.downloadBlob(blob, `Actas por proyecto ${this.getFormattedDate()}.xlsx`);
-        this.isLoadingReport.global = false;
-      },
-      error: error => {
-        this.isLoadingReport.global = false;
-        console.error('Error al descargar el Excel:', error);
-        this.alert.error('Operacion fallida','Error al descargar el archivo Excel');
-      }
-    });
-  }
-
-  private async guardarExcel(workbook: XLSX.WorkBook, fileName: string, report: ReportKeys): Promise<void> {
-    try {
-      await this.excelInstitucional.guardar(workbook, fileName);
-    } catch (error) {
-      console.error('Error al generar el Excel institucional:', error);
-      this.alert.error('No se pudo exportar el Excel', excelErrorMessage(error));
-    } finally {
-      this.isLoadingReport[report] = false;
+  descargarReporte(): void {
+    if (this.isLoadingPDF) return;
+    if (!this.pdfProjectValid || !this.pdfCategoryValid || !this.pdfResponsibleValid) {
+      this.alert.info('Selecciona una opción', 'Elige los filtros de las sugerencias o limpia su búsqueda.');
+      return;
     }
-  }
-
-  downloadProductProjectReport() {
-    const { fechaInicio, fechaFin } = this.getReportDateRange();
-    this.isLoadingReport.productProject = true;
-    this.actasService.getExcelProductosProyecto(fechaInicio, fechaFin).subscribe({
-      next: (blob: Blob) => {
-        // Crear URL del blob
-        const url = window.URL.createObjectURL(blob);
-
-        // Crear elemento a temporal
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Productos por proyecto ${this.getFormattedDate()}.xlsx`;
-
-        // Simular click para descargar
-        document.body.appendChild(link);
-        link.click();
-
-        // Limpieza
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        this.isLoadingReport.productProject = false;  
+    this.isLoadingPDF = true;
+    const filtro: ReporteFiltroRequest = {
+      alcance: this.reportPeriod, ...this.getReportDateRange(), estadoActa: [...this.reportEstadosActa],
+      prioridades: [...this.reportPrioridades], idProyecto: this.reportProjectId ?? undefined,
+      idCategoria: this.reportCategoryId ?? undefined, idResponsable: this.reportResponsibleId ?? undefined, incluirActoresSinFecha: true
+    };
+    const label = this.getReportFilterLabel();
+    this.reportes.obtenerDashboardFiltrado(filtro).pipe(timeout(45000), takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: d => {
+        this.pdfDashboard.generateDashboardReport(d, label, { lightweight: true })
+          .catch(error => {
+            console.error('Error al abrir el PDF:', error);
+            this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(error));
+          }).finally(() => this.isLoadingPDF = false);
       },
       error: error => {
-        this.isLoadingReport.productProject = false;
-        console.error('Error al descargar el Excel:', error);
-        this.alert.error('Operación fallida','Error al descargar el archivo Excel');
+        this.isLoadingPDF = false;
+        console.error('Error al generar el PDF:', error);
+        this.alert.error('Operación fallida', 'No se pudo generar el informe general o la consulta tardó demasiado.');
       }
     });
   }
-
-  downloadBeneficiarios() {
-    this.isLoadingReport.beneficiarios = true;
-    this.beneficiaryService.getAll().subscribe({
-      next: (beneficiarios) => {
-        // Preparar los datos para el Excel
-        const data = beneficiarios.map(b => ({
-          'ID': b.idBeneficiario,
-          'Primer Nombre': b.primerNombre,
-          'Segundo Nombre': b.segundoNombre,
-          'Primer Apellido': b.primerApellido,
-          'Segundo Apellido': b.segundoApellido,
-          'Sexo': b.sexo,
-          'Género': b.genero,
-          'Etnia': b.etnia,
-          'Edad': b.edad,
-          'Víctima Conflicto': b.victimaConflicto ? 'Sí' : 'No',
-          'Tipo Documento': b.tipoDocumento,
-          'Número Documento': b.numeroDocumento,
-          'Fecha Nacimiento': b.fechaNacimiento,
-          'Teléfono': b.telefono,
-          'Email': b.email,
-          'Estado': b.esVivo ? 'Vivo' : 'Fallecido',
-          'Actor Social': b.nombreNucleo
-        }));
-
-        // Crear el libro de Excel
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Beneficiarios');
-
-        // Generar el archivo
-        void this.guardarExcel(workbook, `Beneficiarios ${this.getFormattedDate()}.xlsx`, 'beneficiarios');
-      },
-      error: (error) => {
-        this.isLoadingReport.beneficiarios = false;
-        console.error('Error al obtener beneficiarios:', error);
-        this.alert.error('Operación fallida','Error al descargar la información de beneficiarios');
-      }
-    });
-  }
-
-  downloadCategorias() {
-    this.isLoadingReport.categorias = true;
-    this.categoriasService.getAll().subscribe({
-      next: (categorias) => {
-        // Preparar los datos para el Excel con encabezados en español
-        const data = categorias.map(cat => ({
-          'ID': cat.idCategoria,
-          'Nombre': cat.nombre,
-          'Descripción': cat.descripcion
-        }));
-
-        // Crear el libro de Excel
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Categorías');
-
-        // Ajustar el ancho de las columnas
-        const wscols = [
-          { wch: 10 }, // ID
-          { wch: 20 }, // Nombre
-          { wch: 40 }  // Descripción
-        ];
-        worksheet['!cols'] = wscols;
-
-        // Generar el archivo
-        void this.guardarExcel(workbook, `Categorias ${this.getFormattedDate()}.xlsx`, 'categorias');
-      },
-      error: (error) => {
-        this.isLoadingReport.categorias = false;
-        console.error('Error al obtener categorías:', error);
-        this.alert.error('Operación fallida','Error al descargar la información de categorías');
-      }
-    });
-  }
-
-  downloadActas() {
-    this.isLoadingReport.actas = true;
-    const { fechaInicio, fechaFin } = this.getReportDateRange();
-    this.actasService.getExcelActas(fechaInicio, fechaFin).subscribe({
-      next: (blob: Blob) => {
-        this.downloadBlob(blob, `Actas ${this.getFormattedDate()}.xlsx`);
-        this.isLoadingReport.actas = false;
-      },
-      error: (error) => {
-        this.isLoadingReport.actas = false;
-        console.error('Error al obtener actas:', error);
-        this.alert.error('Operación fallida','Error al descargar la información de actas');
-      }
-    });
-  }
-
-  /* Legacy local export kept below for reference during report migration.
-  downloadActasLegacy() {
-    this.isLoadingReport.actas = true;
-    this.actasService.getAll().subscribe({
-      next: (actas) => {
-        // Preparar los datos para el Excel con formato más plano
-        const data = actas.map(acta => ({
-          'ID Acta': acta.idActa,
-          'Fecha Creación': acta.fechaCreacion,
-          'Estado': acta.estado,
-          'Fecha Entrega': acta.fechaEntrega || '',
-          // Datos del beneficiario
-          'Beneficiario - Nombres': `${acta.beneficiario.primerNombre} ${acta.beneficiario.segundoNombre || ''}`,
-          'Beneficiario - Apellidos': `${acta.beneficiario.primerApellido} ${acta.beneficiario.segundoApellido || ''}`,
-          'Beneficiario - Documento': `${acta.beneficiario.tipoDocumento} ${acta.beneficiario.numeroDocumento}`,
-          'Beneficiario - Teléfono': acta.beneficiario.telefono,
-          'Beneficiario - Dirección': acta.beneficiario.direccionNucleo,
-          'Beneficiario - Barrio': acta.beneficiario.barrio,
-          'Beneficiario - Zona': acta.beneficiario.zona,
-          // Datos del proyecto
-          'Proyecto': acta.proyecto.nombre,
-          // 'Tipo Proyecto': acta.proyecto.tipoProyecto,
-          // Datos del responsable
-          'Responsable': `${acta.responsable.primerNombre} ${acta.responsable.primerApellido}`,
-          'Cargo Responsable': acta.responsable.cargo,
-          'Área Responsable': acta.responsable.area,
-          // Datos del acta
-          'Ubicación Entrega': acta.ubicacionEntrega,
-          'Prioridad': acta.prioridad,
-          'Tipo Solicitud': acta.tipoSolicitud,
-          'Responsable Visita': acta.responsableVisita,
-          'Observaciones': acta.observaciones
-        }));
-
-        // Crear el libro de Excel
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Actas');
-
-        // Ajustar el ancho de las columnas
-        const wscols = [
-          { wch: 10 },  // ID
-          { wch: 12 },  // Fecha Creación
-          { wch: 10 },  // Estado
-          { wch: 12 },  // Fecha Entrega
-          { wch: 25 },  // Beneficiario Nombres
-          { wch: 25 },  // Beneficiario Apellidos
-          { wch: 20 },  // Documento
-          { wch: 15 },  // Teléfono
-          { wch: 30 },  // Dirección
-          { wch: 20 },  // Barrio
-          { wch: 15 },  // Zona
-          { wch: 30 },  // Proyecto
-          { wch: 15 },  // Tipo Proyecto
-          { wch: 25 },  // Responsable
-          { wch: 20 },  // Cargo
-          { wch: 20 },  // Área
-          { wch: 30 },  // Ubicación Entrega
-          { wch: 10 },  // Prioridad
-          // { wch: 20 },  // Tipo Solicitud
-          { wch: 25 },  // Responsable Visita
-          { wch: 40 },  // Observaciones
-          { wch: 50 },  // Productos
-          { wch: 50 }   // Paquetes
-        ];
-        worksheet['!cols'] = wscols;
-
-        // Generar y descargar el archivo
-        XLSX.writeFile(workbook, `Actas ${this.getFormattedDate()}.xlsx`);
-        this.isLoadingReport.actas = false;
-      },
-      error: (error) => {
-        this.isLoadingReport.actas = false;
-        console.error('Error al obtener actas:', error);
-        this.alert.error('Operación fallida','Error al descargar la información de actas');
-      }
-    });
-  }
-  */
-
-  downloadResponsables() {
-    this.isLoadingReport.responsables = true;
-    this.responsibleService.getAll().subscribe({
-      next: (responsables) => {
-        // Preparar los datos para el Excel
-        const data = responsables.map(resp => ({
-          'ID': resp.idResponsable,
-          'Nombres': `${resp.primerNombre} ${resp.segundoNombre || ''}`.trim(),
-          'Apellidos': `${resp.primerApellido} ${resp.segundoApellido || ''}`.trim(),
-          'Cargo': resp.cargo,
-          'Área': resp.area,
-          'Teléfono': resp.telefono,
-          'Email': resp.email,
-          'Tipo Documento': resp.tipoIdentificacion,
-          'Número Documento': resp.numeroIdentificacion,
-          'Usuario': resp.usuario,
-          'Perfil Usuario': resp.perfilUsuario,
-          'Estado': resp.estado === 'A' ? 'Activo' : 'Inactivo'
-        }));
-
-        // Crear el libro de Excel
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Usuarios');
-
-        // Ajustar el ancho de las columnas
-        const wscols = [
-          { wch: 8 },   // ID
-          { wch: 25 },  // Nombres
-          { wch: 25 },  // Apellidos
-          { wch: 20 },  // Cargo
-          { wch: 20 },  // Área
-          { wch: 15 },  // Teléfono
-          { wch: 30 },  // Email
-          { wch: 15 },  // Tipo Documento
-          { wch: 20 },  // Número Documento
-          { wch: 15 },  // Usuario
-          { wch: 15 },  // Perfil Usuario
-          { wch: 10 }   // Estado
-        ];
-        worksheet['!cols'] = wscols;
-
-        // Generar el archivo
-        void this.guardarExcel(workbook, `Usuarios del sistema ${this.getFormattedDate()}.xlsx`, 'responsables');
-      },
-      error: (error) => {
-        this.isLoadingReport.responsables = false;
-        console.error('Error al obtener usuarios:', error);
-        this.alert.error('Operación fallida','Error al descargar la información de los usuarios');
-      }
-    });
-  }
-
-  downloadProductos() {
-    this.isLoadingReport.productos = true;
-    const { fechaInicio, fechaFin } = this.getReportDateRange();
-    this.productosService.getAll().subscribe({
-      next: (productos) => {
-        const filteredProductos = productos.filter(producto =>
-          this.isDateInRange(producto.fechaIngreso, fechaInicio, fechaFin));
-        // Preparar los datos para el Excel
-        const data = filteredProductos.map(prod => ({
-          'ID': prod.idProducto,
-          'Nombre': prod.nombre,
-          'Descripción': prod.descripcion,
-          'Stock': prod.stock,
-          'Fecha Ingreso': prod.fechaIngreso || 'No registrada'
-        }));
-
-        // Crear el libro de Excel
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Productos');
-
-        // Ajustar el ancho de las columnas
-        const wscols = [
-          { wch: 8 },   // ID
-          { wch: 30 },  // Nombre
-          { wch: 40 },  // Descripción
-          { wch: 10 },  // Stock
-          { wch: 20 }   // Fecha Ingreso
-        ];
-        worksheet['!cols'] = wscols;
-
-        // Generar el archivo
-        void this.guardarExcel(workbook, `Productos ${this.getFormattedDate()}.xlsx`, 'productos');
-      },
-      error: (error) => {
-        this.isLoadingReport.productos = false;
-        console.error('Error al obtener productos:', error);
-        this.alert.error('Operación fallida','Error al descargar la información de productos');
-      }
-    });
-  }
-
-  downloadNucleos() {
-    this.isLoadingReport.nucleos = true;
-    this.nucleoService.getSimpleAll().subscribe({
-      next: (nucleos: INucleoUpdate[]) => {
-        const data: any[] = [];
-
-        nucleos.forEach((nucleo) => {
-          if (nucleo.beneficiarios && nucleo.beneficiarios.length > 0) {
-            // 🔹 Una fila por beneficiario
-            nucleo.beneficiarios.forEach((b) => {
-              data.push({
-                'ID Actor': nucleo.idNucleo,
-                'Actor Social': nucleo.nombreNucleo,
-                'Dirección': nucleo.direccion,
-                'Número de Integrantes': nucleo.numeroIntegrantes,
-                'Zona': nucleo.nombreZona || '—',
-                'Barrio / Vereda': nucleo.nombreBarrio || '—',
-                'Beneficiario': nombreCompletoExcel(b),
-                'Tipo Documento': b.tipoDocumento || '—',
-                'Número Documento': b.numeroDocumento || '—',
-                'Edad': b.edad ?? '—',
-                'Sexo': b.sexo || '—',
-                'Teléfono': b.telefono || '—',
-                'Email': b.email || '—'
-              });
-            });
-          } else {
-            // 🔹 Actores sin beneficiarios
-            data.push({
-              'ID Actor Social': nucleo.idNucleo,
-              'Nombre Actor Social': nucleo.nombreNucleo,
-              'Dirección': nucleo.direccion,
-              'Número de Integrantes': nucleo.numeroIntegrantes,
-              'Zona': nucleo.nombreZona || '—',
-              'Barrio / Vereda': nucleo.nombreBarrio || '—',
-              'Beneficiario': 'Sin beneficiarios registrados',
-              'Tipo Documento': '—',
-              'Número Documento': '—',
-              'Edad': '—',
-              'Sexo': '—',
-              'Teléfono': '—',
-              'Email': '—'
-            });
-          }
-        });
-
-        // 📘 Crear hoja Excel
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Actores y Beneficiarios');
-
-        // 📏 Ajustar columnas
-        worksheet['!cols'] = [
-          { wch: 10 },  // ID Actor Social
-          { wch: 25 },  // Nombre Actor Social
-          { wch: 35 },  // Dirección
-          { wch: 20 },  // Nº Integrantes
-          { wch: 25 },  // Zona
-          { wch: 25 },  // Barrio
-          { wch: 35 },  // Beneficiario
-          { wch: 18 },  // Tipo Documento
-          { wch: 20 },  // Número Documento
-          { wch: 8 },   // Edad
-          { wch: 10 },  // Sexo
-          { wch: 15 },  // Teléfono
-          { wch: 25 }   // Email
-        ];
-
-        // 📅 Generar archivo
-        const fecha = new Date().toISOString().split('T')[0];
-        void this.guardarExcel(workbook, `Reporte_Actores_Sociales_${fecha}.xlsx`, 'nucleos');
-      },
-      error: (error) => {
-        this.isLoadingReport.nucleos = false;
-        console.error('Error al obtener actores sociales:', error);
-        this.alert.error(
-          'Operación fallida',
-          'Error al descargar la información de los actores sociales.'
-        );
-      }
-    });
-  }
-
-
-  descargarReporte() {
-    this.isLoadingPDF = true;
-    const { fechaInicio, fechaFin } = this.getReportDateRange();
-    const filtro: ReporteFiltroRequest = {
-      alcance: this.reportPeriod,
-      fechaInicio,
-      fechaFin,
-      estadoActa: this.reportEstadosActa,
-      prioridades: this.reportPrioridades,
-      idProyecto: this.reportProjectId ?? undefined,
-      idCategoria: this.reportCategoryId ?? undefined,
-      idResponsable: this.reportResponsibleId ?? undefined,
-      incluirActoresSinFecha: true
-    };
-    this.reportes.obtenerDashboardFiltrado(filtro).pipe(timeout(45000)).subscribe(d => {
-      this.pdfDashboard.generateDashboardReport(d, this.getReportFilterLabel(), { lightweight: true })
-        .catch((err) => {
-          console.error('Error al abrir el PDF:', err);
-          this.alert.error('No se pudo exportar el PDF', pdfErrorMessage(err));
-        })
-        .finally(() => this.isLoadingPDF = false);
-    }, error => {
-      this.isLoadingPDF = false;
-      console.error('Error al generar el PDF:', error);
-      this.alert.error('Operación fallida', 'No se pudo generar el informe general o la consulta tardó demasiado.');
-    });
-  }
-
-  downloadProyectos() {
-    this.isLoadingReport.proyectos = true;
-    const { fechaInicio, fechaFin } = this.getReportDateRange();
-    this.proyectosService.getAll().subscribe({
-      next: (response) => {
-        const proyectos = response.respuesta
-          .map(p => p.proyecto)
-          .filter(proyecto => this.overlapsRange(proyecto.fechaInicio, proyecto.fechaFin, fechaInicio, fechaFin));
-
-        const data = proyectos.map(p => ({
-          'ID Proyecto': p.idProyecto,
-          'Nombre': p.nombre,
-          'Descripción': p.descripcion || '—',
-          'Estado': p.estado === 'A' ? 'Activo' : 'Inactivo',
-          'Tipo Proyecto': p.tipoProyecto === 'M' ? 'Municipal' : p.tipoProyecto === 'D' ? 'Departamental' : p.tipoProyecto || '—',
-          'Fecha Inicio': p.fechaInicio,
-          'Fecha Fin': p.fechaFin || '—'
-        }));
-
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Proyectos');
-
-        worksheet['!cols'] = [
-          { wch: 10 },
-          { wch: 25 },
-          { wch: 40 },
-          { wch: 15 },
-          { wch: 25 },
-          { wch: 15 },
-          { wch: 15 }
-        ];
-
-        void this.guardarExcel(workbook, `Proyectos_${this.getFormattedDate()}.xlsx`, 'proyectos');
-      },
-      error: (error) => {
-        this.isLoadingReport.proyectos = false;
-        console.error('Error al obtener proyectos:', error);
-        this.alert.error('Operación fallida','Error al descargar el reporte de proyectos');
-      }
-    });
-  }
-
-  downloadBeneficiariosPorProyecto() {
-    this.isLoadingReport.beneficiariosProyecto = true;
-    const { fechaInicio, fechaFin } = this.getReportDateRange();
-
-    this.beneficiarioProyectoService.getAll().subscribe({
-      next: (response) => {
-        const beneficiariosProyecto = response.filter(relacion =>
-          this.overlapsRange(relacion.fechaInicio, relacion.fechaFin, fechaInicio, fechaFin));
-
-        if (!beneficiariosProyecto || beneficiariosProyecto.length === 0) {
-          this.alert.info('Sin datos', 'No se encontraron beneficiarios asignados a proyectos.');
-          this.isLoadingReport.beneficiariosProyecto = false;
-          return;
-        }
-
-        const data = beneficiariosProyecto.map(bp => ({
-          'ID Relación': bp.idBeneficiarioProyecto,
-          'Proyecto': bp.nombreProyecto,
-          'Estado Proyecto': bp.estadoProyecto === 'A' ? 'Activo' : 'Inactivo',
-          'Beneficiario': bp.nombreCompleto,
-          'Edad': bp.edadBeneficiario,
-          'Documento': bp.numDocumentoBeneficiario,
-          'Actor Social': bp.nombreNucleo || '—',
-          'Barrio / Vereda': bp.nombreBarrio || '—',
-          'Beneficiario Activo': bp.esBeneficiarioActivo ? 'Sí' : 'No',
-          'Fecha Inicio': bp.fechaInicio || '—',
-          'Fecha Fin': bp.fechaFin || '—',
-          'Observaciones': bp.observaciones || '—'
-        }));
-
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Beneficiarios_Proyecto');
-
-        worksheet['!cols'] = [
-          { wch: 12 }, // ID
-          { wch: 25 }, // Proyecto
-          { wch: 15 }, // Estado Proyecto
-          { wch: 30 }, // Beneficiario
-          { wch: 8 },  // Edad
-          { wch: 20 }, // Documento
-          { wch: 20 }, // Actor Social
-          { wch: 20 }, // Barrio
-          { wch: 8 },  // Activo
-          { wch: 15 }, // Fecha Inicio
-          { wch: 15 }, // Fecha Fin
-          { wch: 40 }  // Observaciones
-        ];
-
-        // generar archivo
-        void this.guardarExcel(workbook, `Beneficiarios_por_Proyecto_${this.getFormattedDate()}.xlsx`, 'beneficiariosProyecto');
-      },
-      error: (error) => {
-        this.isLoadingReport.beneficiariosProyecto = false;
-        console.error('Error al obtener beneficiarios por proyecto:', error);
-        this.alert.error('Operación fallida','Error al descargar el reporte de beneficiarios por proyecto');
-      }
-    });
-  }
-
-  downloadReporteExcelCompleto() {
-    this.isLoadingReport.reportGeneral = true;
-    const { fechaInicio, fechaFin } = this.getReportDateRange();
-
-    forkJoin({
-      proyectosResp: this.proyectosService.getAll(),
-      dashboard: this.beneficiarioProyectoService.getAll(),
-      actas: this.actasService.getAll(),
-      nucleos: this.nucleoService.getSimpleAll(),
-      productos: this.productosService.getAll()
-    }).subscribe({
-      next: async ({ proyectosResp, dashboard, actas, nucleos, productos }) => {
-        // Adaptación de estructuras
-        const proyectosData = (proyectosResp?.respuesta ?? []).filter(item =>
-          this.overlapsRange(item.proyecto.fechaInicio, item.proyecto.fechaFin, fechaInicio, fechaFin));
-        const beneficiariosProyecto = (dashboard ?? []).filter(relacion =>
-          this.overlapsRange(relacion.fechaInicio, relacion.fechaFin, fechaInicio, fechaFin));
-        const actasData = (actas ?? []).filter(acta =>
-          this.isDateInRange(acta.fechaCreacion, fechaInicio, fechaFin));
-        const nucleosData = nucleos ?? [];
-        const productosData = (productos ?? []).filter(producto =>
-          this.isDateInRange(producto.fechaIngreso, fechaInicio, fechaFin));
-
-        // Generar Excel integral
-        try {
-          await this.excelReportes.generarExcelIntegral(
-            beneficiariosProyecto,
-            actasData,
-            nucleosData,
-            productosData,
-            proyectosData
-          );
-        } catch (error) {
-          console.error('Error al generar el Excel integral:', error);
-          this.alert.error('No se pudo exportar el Excel', excelErrorMessage(error));
-        } finally {
-          this.isLoadingReport.reportGeneral = false;
-        }
-      },
-      error: (error) => {
-        console.error('Error al generar reporte global:', error);
-        this.alert.error('Operación fallida', 'Error al descargar el reporte integral.');
-        this.isLoadingReport.reportGeneral = false;
-      }
-    });
-  }
-
 }

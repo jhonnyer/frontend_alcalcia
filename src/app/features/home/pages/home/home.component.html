@@ -85,41 +85,12 @@
           <div class="report-group-title report-group-title-filtered">
             <mat-icon class="report-group-icon report-group-icon-filtered">date_range</mat-icon>
             <button type="button" class="report-group-heading report-group-toggle" (click)="reportPeriodOpen = !reportPeriodOpen" [attr.aria-expanded]="reportPeriodOpen">
-              <h3>Reportes por período</h3>
-              <p>El período filtra actas, proyectos, productos y relaciones con fecha operativa.</p>
+              <h3 id="period-report-title" class="report-period-title">
+                <span>Reportes por período</span>
+                <span class="report-period-title-detail">Filtros del reporte</span>
+              </h3>
+              <p>Selecciona el reporte. El período y los demás filtros se aplican juntos al descargar el Excel.</p>
             </button>
-            @if (reportPeriodOpen) {
-            <div class="report-period-controls">
-              <label class="report-period-field">
-                <span>Alcance</span>
-                <select [(ngModel)]="reportPeriod" class="select-base" aria-label="Alcance temporal del reporte">
-                  <option value="ALL">Todos</option>
-                  <option value="YEAR">Año</option>
-                  <option value="MONTH">Mes</option>
-                </select>
-              </label>
-              @if (reportPeriod !== 'ALL') {
-                <label class="report-period-field">
-                  <span>Año</span>
-                  <select [(ngModel)]="reportYear" class="select-base">
-                    @for (year of reportYears; track year) {
-                      <option [ngValue]="year">{{ year }}</option>
-                    }
-                  </select>
-                </label>
-              }
-              @if (reportPeriod === 'MONTH') {
-                <label class="report-period-field">
-                  <span>Mes</span>
-                  <select [(ngModel)]="reportMonth" class="select-base">
-                    @for (month of reportMonths; track month.value) {
-                      <option [ngValue]="month.value">{{ month.label }}</option>
-                    }
-                  </select>
-                </label>
-              }
-            </div>
-            }
             <button type="button" class="report-collapse-button" (click)="reportPeriodOpen = !reportPeriodOpen" [attr.aria-label]="reportPeriodOpen ? 'Contraer reportes por período' : 'Expandir reportes por período'" [attr.aria-expanded]="reportPeriodOpen">
               <mat-icon>{{ reportPeriodOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
             </button>
@@ -131,18 +102,10 @@
                 <h3 id="general-report-title">Informe general</h3>
                 <p>Combina los filtros seleccionados y genera un PDF consolidado.</p>
               </button>
-              <button type="button" class="btn-action-blue report-pdf-button" (click)="descargarReporte()" [disabled]="isLoadingPDF">
-                @if (isLoadingPDF) {
-                  <mat-progress-spinner diameter="18" mode="indeterminate" color="accent"></mat-progress-spinner>
-                  Generando...
-                } @else {
-                  <mat-icon>picture_as_pdf</mat-icon>
-                  Generar PDF
-                }
-              </button>
               <button type="button" class="report-collapse-button" (click)="reportGeneralOpen = !reportGeneralOpen" [attr.aria-label]="reportGeneralOpen ? 'Contraer informe general' : 'Expandir informe general'"><mat-icon>{{ reportGeneralOpen ? 'expand_less' : 'expand_more' }}</mat-icon></button>
             </div>
             @if (reportGeneralOpen) {
+            <p class="mt-3 text-xs text-slate-600">Usa el mismo período seleccionado en el panel de reportes por período.</p>
             <div class="report-advanced-filters">
               <div class="report-filter-section">
                 <span class="report-filter-label">Estado del acta</span>
@@ -160,46 +123,38 @@
                   }
                 </div>
               </div>
-              <label class="report-filter-field"><span>Proyecto</span><div class="report-search-control"><input class="input-base report-filter-select" list="report-project-options" [value]="reportProjectSearch" (input)="searchReportProjects($any($event.target).value)" placeholder="Buscar proyecto" aria-label="Buscar proyecto"><button type="button" *ngIf="reportProjectSearch" class="report-search-clear" (click)="clearReportProjectSearch()" aria-label="Limpiar proyecto">close</button></div><datalist id="report-project-options">@for (project of reportFilteredProjects; track project.id) {<option [value]="project.id + ' - ' + project.nombre"></option>}</datalist></label>
-              <label class="report-filter-field"><span>Categoría</span><div class="report-search-control"><input class="input-base report-filter-select" list="report-category-options" [value]="reportCategorySearch" (input)="searchReportCategories($any($event.target).value)" placeholder="Buscar categoría" aria-label="Buscar categoría" [disabled]="!reportProjectId || reportFilteredCategories.length === 0"><button type="button" *ngIf="reportCategorySearch" class="report-search-clear" (click)="clearReportCategorySearch()" aria-label="Limpiar categoría">close</button></div><datalist id="report-category-options">@for (category of reportFilteredCategories; track category.id) {<option [value]="category.id + ' - ' + category.nombre"></option>}</datalist></label>
-              <label class="report-filter-field"><span>Responsable</span><div class="report-search-control"><input class="input-base report-filter-select" list="report-responsible-options" [value]="reportResponsibleSearch" (input)="searchReportResponsibles($any($event.target).value)" placeholder="Buscar responsable" aria-label="Buscar responsable"><button type="button" *ngIf="reportResponsibleSearch" class="report-search-clear" (click)="clearReportResponsibleSearch()" aria-label="Limpiar responsable">close</button></div><datalist id="report-responsible-options">@for (responsible of reportFilteredResponsibles; track responsible.id) {<option [value]="responsible.id + ' - ' + responsible.nombre"></option>}</datalist></label>
+              <div class="report-filter-field"><span>Proyecto</span>
+                <app-report-search-select label="Proyecto del informe general" placeholder="Buscar proyecto · todos"
+                  [resetKey]="pdfResetKey" (searchValidChange)="pdfProjectValid = $event"
+                  [options]="projectSearchOptions" [value]="stringId(reportProjectId)" (valueChange)="selectPdfProject($event)" />
+              </div>
+              <div class="report-filter-field"><span>Categoría</span>
+                <app-report-search-select label="Categoría del informe general"
+                  [placeholder]="reportProjectId === null ? 'Selecciona primero un proyecto' : 'Buscar categoría · todas'"
+                  [resetKey]="pdfCategoryResetKey" (searchValidChange)="pdfCategoryValid = $event"
+                  [options]="categorySearchOptions(reportProjectId)" [value]="stringId(reportCategoryId)"
+                  [disabled]="reportProjectId === null" (valueChange)="selectPdfCategory($event)" />
+              </div>
+              <div class="report-filter-field"><span>Responsable</span>
+                <app-report-search-select label="Responsable del informe general" placeholder="Buscar responsable · todos"
+                  [resetKey]="pdfResetKey" (searchValidChange)="pdfResponsibleValid = $event"
+                  [options]="responsibleSearchOptions" [value]="stringId(reportResponsibleId)" (valueChange)="selectPdfResponsible($event)" />
+              </div>
               <button type="button" class="btn-action-gray report-clear-filters" (click)="clearReportFilters()"><mat-icon>filter_alt_off</mat-icon> Limpiar filtros</button>
+            </div>
+            <div class="mt-3 flex justify-end">
+              <button type="button" class="btn-action-blue inline-flex items-center gap-2" (click)="descargarReporte()" [disabled]="isLoadingPDF">
+                @if (isLoadingPDF) {
+                  <mat-progress-spinner diameter="18" mode="indeterminate" color="accent"></mat-progress-spinner>
+                  Generando...
+                } @else {
+                  <mat-icon>picture_as_pdf</mat-icon>
+                  Generar PDF
+                }
+              </button>
             </div>
             }
           </section>
-          <!-- Proyectos -->
-            <button type="button" (click)="downloadProyectos()"
-              class="report-card report-card-filtered text-left"
-              [disabled]="isLoadingReport.proyectos"
-              [class.opacity-60]="isLoadingReport.proyectos">
-            <div class="report-icon-box bg-gradient-to-tr from-blue-600 to-blue-400 shadow-blue-500/40">
-              <div *ngIf="isLoadingReport.proyectos; else iconProyectos" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
-              </div>
-              <ng-template #iconProyectos><mat-icon class="report-icon">work_outline</mat-icon></ng-template>
-            </div>
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">
-                @if(isLoadingReport.proyectos){ Generando... }@else{ Proyectos }
-              </p>
-            </div>
-          </button>
-
-          <!-- Productos Proyectos -->
-            <button type="button" (click)="downloadProductProjectReport()"
-              class="report-card report-card-filtered text-left"
-              [disabled]="isLoadingReport.productProject"
-              [class.opacity-60]="isLoadingReport.productProject">
-            <div class="report-icon-box bg-gradient-to-tr from-sky-600 to-blue-400 shadow-blue-500/40">
-              <div *ngIf="isLoadingReport.productProject; else iconProyectos" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
-              </div>
-              <ng-template #iconProyectos><mat-icon class="report-icon">workspaces</mat-icon></ng-template>
-            </div>
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.productProject){ Generando... }@else{ Productos por Proyecto }</p>
-            </div>
-          </button>
 
           <!-- Núcleos -->
           <button type="button" class="report-group-title report-group-title-general report-group-toggle" (click)="reportGeneralReportsOpen = !reportGeneralReportsOpen" [attr.aria-expanded]="reportGeneralReportsOpen">
@@ -225,71 +180,100 @@
             </div>
           </button>
 
-          <!-- Productos -->
-            <button type="button" (click)="downloadProductos()"
-              class="report-card report-card-filtered text-left"
-              [disabled]="isLoadingReport.productos"
-              [class.opacity-60]="isLoadingReport.productos">
-            <div class="report-icon-box bg-gradient-to-tr from-green-600 to-green-400 shadow-green-500/40">
-              <div *ngIf="isLoadingReport.productos; else iconProd" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
+          <section class="report-general-panel report-card-filtered" aria-labelledby="period-report-title">
+            <div class="report-advanced-filters report-period-filters">
+              <div class="report-filter-field sm:col-span-2 xl:col-span-3">
+                <span>Reporte</span>
+                <app-report-search-select label="Tipo de reporte" placeholder="Escribe para buscar un reporte"
+                  [options]="reportSearchOptions" [value]="selectedPeriodReport" [disabled]="downloadingPeriodReport"
+                  (valueChange)="selectPeriodReport($event)" />
               </div>
-              <ng-template #iconProd><mat-icon class="report-icon">inventory_2</mat-icon></ng-template>
+              <fieldset class="report-period-controls">
+                <legend class="report-filter-label">Período del reporte</legend>
+                <div class="report-period-summary" aria-live="polite">
+                  <mat-icon aria-hidden="true">date_range</mat-icon>
+                  <span>{{ reportPeriodSummary }}</span>
+                </div>
+                <div class="report-period-grid">
+                  <label class="report-filter-field">
+                    <span>Alcance</span>
+                    <select [(ngModel)]="reportPeriod" class="input-base" [disabled]="downloadingPeriodReport">
+                      <option value="ALL">Todos los registros</option>
+                      <option value="YEAR">Por año</option>
+                      <option value="MONTH">Por mes</option>
+                    </select>
+                  </label>
+                  @if (reportPeriod !== 'ALL') {
+                    <label class="report-filter-field">
+                      <span>Año</span>
+                      <select [(ngModel)]="reportYear" class="input-base" [disabled]="downloadingPeriodReport">
+                        @for (year of reportYears; track year) {
+                          <option [ngValue]="year">{{ year }}</option>
+                        }
+                      </select>
+                    </label>
+                  }
+                  @if (reportPeriod === 'MONTH') {
+                    <label class="report-filter-field">
+                      <span>Mes</span>
+                      <select [(ngModel)]="reportMonth" class="input-base" [disabled]="downloadingPeriodReport">
+                        @for (month of reportMonths; track month.value) {
+                          <option [ngValue]="month.value">{{ month.label }}</option>
+                        }
+                      </select>
+                    </label>
+                  }
+                </div>
+                <p class="report-period-hint">Se combina con los filtros de abajo. Sin límite de fechas al elegir “Todos los registros”.</p>
+              </fieldset>
+              @if (periodReportOption?.proyecto) {
+                <div class="report-filter-field">
+                  <span>Proyecto</span>
+                  <app-report-search-select label="Proyecto" placeholder="Buscar proyecto · todos" [options]="projectSearchOptions"
+                    [resetKey]="excelResetKey" (searchValidChange)="excelProjectValid = $event"
+                    [value]="stringId(excelProjectId)" [disabled]="downloadingPeriodReport" (valueChange)="selectExcelProject($event)" />
+                </div>
+              }
+              @if (periodReportOption?.categoria) {
+                <div class="report-filter-field">
+                  <span>Categoría</span>
+                  <app-report-search-select label="Categoría"
+                    [placeholder]="excelProjectId === null ? 'Selecciona primero un proyecto' : 'Buscar categoría · todas'"
+                    [resetKey]="excelCategoryResetKey" (searchValidChange)="excelCategoryValid = $event"
+                    [options]="categorySearchOptions(excelProjectId)" [value]="stringId(excelCategoryId)"
+                    [disabled]="downloadingPeriodReport || excelProjectId === null" (valueChange)="selectExcelCategory($event)" />
+                </div>
+              }
+              @if (periodReportOption?.solicitud) {
+                <label class="report-filter-field">
+                  <span>Tipo de solicitud</span>
+                  <div class="report-search-control">
+                    <input class="input-base report-filter-select" [(ngModel)]="excelTipoSolicitud" maxlength="200"
+                      placeholder="Ej: Alimentación" [disabled]="downloadingPeriodReport">
+                    <button type="button" *ngIf="excelTipoSolicitud" class="report-search-clear" (click)="excelTipoSolicitud = ''" aria-label="Limpiar tipo de solicitud" title="Limpiar tipo de solicitud" [disabled]="downloadingPeriodReport"><mat-icon aria-hidden="true">close</mat-icon></button>
+                  </div>
+                </label>
+              }
             </div>
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.productos){ Generando... }@else{ Productos }</p>
+            <div class="report-filter-explanation" aria-live="polite">
+              <mat-icon aria-hidden="true">info_outline</mat-icon>
+              <p>{{ periodReportOption?.descripcion || 'Selecciona un reporte de las sugerencias para continuar.' }}</p>
             </div>
-          </button>
-
-          <!-- Actas -->
-            <button type="button" (click)="downloadActas()"
-              class="report-card report-card-filtered text-left"
-              [disabled]="isLoadingReport.actas"
-              [class.opacity-60]="isLoadingReport.actas">
-            <div class="report-icon-box bg-gradient-to-tr from-indigo-600 to-blue-400 shadow-blue-500/40">
-              <div *ngIf="isLoadingReport.actas; else iconActas" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
-              </div>
-              <ng-template #iconActas><mat-icon class="report-icon">description</mat-icon></ng-template>
+            <div class="report-filter-actions">
+              <button type="button" class="btn-action-gray inline-flex items-center justify-center gap-2" (click)="clearExcelFilters()" [disabled]="downloadingPeriodReport"
+                title="Restablecer período, proyecto, categoría y tipo de solicitud; conservar el reporte seleccionado">
+                <mat-icon aria-hidden="true">filter_alt_off</mat-icon> Limpiar filtros
+              </button>
+              <button type="button" class="btn-action-blue inline-flex items-center justify-center gap-2" (click)="downloadPeriodReport()" [disabled]="downloadingPeriodReport || !selectedPeriodReport">
+                @if (downloadingPeriodReport) {
+                  <mat-progress-spinner diameter="18" mode="indeterminate" color="accent"></mat-progress-spinner>
+                  Generando...
+                } @else {
+                  <mat-icon>download</mat-icon> Descargar Excel
+                }
+              </button>
             </div>
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.actas){ Generando... }@else{ Actas }</p>
-            </div>
-          </button>
-
-          <!-- 🌐 Reporte Global -->
-            <button type="button" (click)="downloadGlobalReport()"
-              class="report-card report-card-filtered text-left"
-              [disabled]="isLoadingReport.global"
-              [class.opacity-60]="isLoadingReport.global">
-            <div class="report-icon-box bg-gradient-to-tr from-blue-600 to-blue-400 shadow-blue-500/40">
-              <div *ngIf="isLoadingReport.global; else iconGlobal" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
-              </div>
-              <ng-template #iconGlobal><mat-icon class="report-icon">language</mat-icon></ng-template>
-            </div>
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">@if(isLoadingReport.global){ Generando... }@else{ Actas por Proyecto }</p>
-            </div>
-          </button>
-
-                    <!-- Beneficiarios por Proyecto -->
-            <button type="button" (click)="downloadBeneficiariosPorProyecto()"
-              class="report-card report-card-filtered text-left"
-              [disabled]="isLoadingReport.beneficiariosProyecto"
-              [class.opacity-60]="isLoadingReport.beneficiariosProyecto">
-            <div class="report-icon-box bg-gradient-to-tr from-orange-600 to-orange-400 shadow-orange-500/40">
-              <div *ngIf="isLoadingReport.beneficiariosProyecto; else iconBP" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
-              </div>
-              <ng-template #iconBP><mat-icon class="report-icon">assignment_ind</mat-icon></ng-template>
-            </div>
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">
-                @if(isLoadingReport.beneficiariosProyecto){ Generando... }@else{ Beneficiarios por Proyecto }
-              </p>
-            </div>
-          </button>
+          </section>
           
           <!-- Beneficiarios -->
             <button type="button" (click)="downloadBeneficiarios()"
@@ -323,28 +307,6 @@
             </div>
           </button>
 
-          <!-- Reporte global -->
-          <button type="button"
-            (click)="downloadReporteExcelCompleto()"
-            class="report-card report-card-filtered text-left"
-            [disabled]="isLoadingReport.reportGeneral"
-            [class.opacity-60]="isLoadingReport.reportGeneral">
-
-            <div class="report-icon-box bg-gradient-to-tr from-cyan-600 to-cyan-400 shadow-cyan-500/40">
-              <div *ngIf="isLoadingReport.reportGeneral; else iconReportGlobal" class="loading-icon">
-                <mat-progress-spinner diameter="26" mode="indeterminate" color="accent"></mat-progress-spinner>
-              </div>
-              <ng-template #iconReportGlobal>
-                <mat-icon class="report-icon">insert_chart_outlined</mat-icon>
-              </ng-template>
-            </div>
-
-            <div class="p-4 text-right">
-              <p class="text-sm text-blue-gray-600">
-                @if(isLoadingReport.reportGeneral){ Generando... }@else{ Reporte Global (mixto) }
-              </p>
-            </div>
-          </button>
 
           <!-- Usuarios -->
             <button type="button" (click)="downloadResponsables()"

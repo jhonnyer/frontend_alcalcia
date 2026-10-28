@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, shareReplay, timeout } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { checkToken } from '../interceptors/token-interceptor.interceptor';
@@ -17,6 +17,9 @@ export interface ReporteFiltroRequest {
   idResponsable?: number;
   incluirActoresSinFecha?: boolean;
 }
+
+export type DashboardExcelReport = 'beneficiarios' | 'categorias' | 'responsables' | 'nucleos'
+  | 'proyectos' | 'productos' | 'beneficiariosProyecto' | 'reportGeneral';
 
 @Injectable({ providedIn: 'root' })
 export class ReportesService {
@@ -50,6 +53,14 @@ export class ReportesService {
     return this.http
       .post<DashboardReport>(`${this.EP}/filtrado`, filtro, { context: checkToken() })
       .pipe(timeout(45000), map(d => this.normalizeDashboard(d)));
+  }
+
+  descargarExcel(reporte: DashboardExcelReport, filtro: Pick<ReporteFiltroRequest, 'fechaInicio' | 'fechaFin' | 'idProyecto' | 'idCategoria'>): Observable<Blob> {
+    let params = new HttpParams().set('reporte', reporte);
+    for (const [key, value] of Object.entries(filtro)) {
+      if (value != null) params = params.set(key, value);
+    }
+    return this.http.get(`${this.URL}/reportes/excel`, { params, responseType: 'blob', context: checkToken() });
   }
 
   // ---- Selectores (derivados del mismo dashboard) ----

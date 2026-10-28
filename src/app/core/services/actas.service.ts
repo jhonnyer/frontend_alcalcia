@@ -28,6 +28,12 @@ export interface ActasPagedFilters extends TableColumnFilters {
   fechaFin?: string;
 }
 
+export interface FiltroReporteActas {
+  idProyecto?: number;
+  idCategoria?: number;
+  tipoSolicitud?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -146,11 +152,14 @@ export class ActasService {
     return date.toISOString().split('T')[0]; // Extraemos solo la parte de la fecha
   }
 
-  getExcelActas(fechaInicio?: string, fechaFin?: string): Observable<Blob> {
+  getExcelActas(fechaInicio?: string, fechaFin?: string, filtro: FiltroReporteActas = {}): Observable<Blob> {
     let params = new HttpParams();
     if (fechaInicio && fechaFin) {
       params = params.set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
     }
+    if (filtro.idProyecto != null) params = params.set('idProyecto', filtro.idProyecto);
+    if (filtro.idCategoria != null) params = params.set('idCategoria', filtro.idCategoria);
+    if (filtro.tipoSolicitud?.trim()) params = params.set('tipoSolicitud', filtro.tipoSolicitud.trim());
 
     return this.http.get(`${this.URL}/actas/excel`, {
       params,
@@ -159,12 +168,14 @@ export class ActasService {
     });
   }
 
-  getExcelProductosProyecto(fechaInicio?: string, fechaFin?: string): Observable<Blob> {
+  getExcelProductosProyecto(fechaInicio?: string, fechaFin?: string, filtro: Pick<FiltroReporteActas, 'idProyecto' | 'idCategoria'> = {}): Observable<Blob> {
     let params = new HttpParams();
     if (fechaInicio && fechaFin) {
       params = params.set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
     }
 
+    if (filtro.idProyecto != null) params = params.set('idProyecto', filtro.idProyecto);
+    if (filtro.idCategoria != null) params = params.set('idCategoria', filtro.idCategoria);
     return this.http.get(`${this.URL}/proyectos/producto-excel`, {
       params,
       responseType: 'blob',

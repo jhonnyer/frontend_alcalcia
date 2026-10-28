@@ -1,16 +1,15 @@
-<section class="mx-auto max-w-5xl space-y-5 rounded-2xl bg-slate-50 p-3 sm:p-6" aria-labelledby="assignment-title">
+<section class="assignment-page mx-auto max-w-4xl space-y-4 p-3 sm:p-4" aria-labelledby="assignment-title">
   <header class="flex items-start gap-3">
-    <span class="hidden rounded-xl bg-blue-100 p-3 text-blue-700 sm:inline-flex"><mat-icon aria-hidden="true">person_add</mat-icon></span>
-    <div>
-      <h1 id="assignment-title" class="text-xl font-bold text-slate-800 sm:text-2xl">Asignar beneficiario a proyecto</h1>
-      <p class="mt-1 text-sm text-slate-600">Verifica el documento del beneficiario y selecciona un proyecto activo.</p>
-      <p class="mt-2 text-xs text-slate-500"><span class="font-bold text-red-600">*</span> Campos obligatorios</p>
+    <span class="inline-flex shrink-0 rounded-lg bg-blue-100 p-2 text-blue-700"><mat-icon aria-hidden="true">person_add</mat-icon></span>
+    <div class="min-w-0">
+      <h1 id="assignment-title" class="!m-0 !text-xl !leading-tight !font-semibold text-slate-800">Asignar beneficiario a proyecto</h1>
+      <p class="!mb-0 !mt-1 text-sm text-slate-600">Verifica el documento y selecciona el proyecto que recibirá al beneficiario.</p>
     </div>
   </header>
 
-  <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="beneficiary-title">
-    <h2 id="beneficiary-title" class="mb-4 flex items-center gap-2 font-semibold text-slate-800">
-      <span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-sm text-blue-700">1</span>
+  <section class="rounded-xl border border-slate-200 bg-white p-4" aria-labelledby="beneficiary-title">
+    <h2 id="beneficiary-title" class="!mb-3 !mt-0 !text-sm !leading-6 flex items-center gap-2 !font-semibold text-slate-800">
+      <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs text-blue-700">1</span>
       Verificar beneficiario
     </h2>
     <label for="buscarBeneficiario" class="label-base"><span class="text-red-600">*</span> Número de documento</label>
@@ -24,7 +23,7 @@
           (click)="searchBeneficiario.setValue('')">Limpiar</button>
       }
     </div>
-    <p id="beneficiary-search-help" class="mt-2 text-xs text-slate-500">Entre 3 y 40 caracteres. Se permiten letras, números, guiones y espacios. La búsqueda es automática.</p>
+    <p id="beneficiary-search-help" class="!mb-0 !mt-1 text-xs text-slate-500">Búsqueda automática con el documento completo (3 a 40 caracteres: letras, números, guiones o espacios).</p>
     @if (searchBeneficiario.invalid && searchBeneficiario.touched) {
       <p role="alert" class="mt-2 text-sm text-red-600">Ingresa un documento válido de 3 a 40 caracteres.</p>
     }
@@ -39,11 +38,11 @@
       </div>
     } @else {
       @if (beneficiario(); as person) {
-      <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
-        <p role="status" class="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-800">
+      <div class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">
+        <p role="status" class="!mb-2 flex items-center gap-2 text-sm font-semibold text-emerald-800">
           <mat-icon aria-hidden="true">check_circle</mat-icon> Beneficiario verificado
         </p>
-        <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+        <dl class="!m-0 grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
           <div class="min-w-0"><dt class="font-semibold text-slate-600">Nombres</dt><dd class="mt-1 break-words text-slate-800">{{ person.primerNombre }} {{ person.segundoNombre }}</dd></div>
           <div class="min-w-0"><dt class="font-semibold text-slate-600">Apellidos</dt><dd class="mt-1 break-words text-slate-800">{{ person.primerApellido }} {{ person.segundoApellido }}</dd></div>
           <div><dt class="font-semibold text-slate-600">Tipo de documento</dt><dd class="mt-1 text-slate-800">{{ person.tipoDocumento }}</dd></div>
@@ -51,15 +50,15 @@
         </dl>
       </div>
     } @else {
-      <p class="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-500">Busca un beneficiario registrado para habilitar la asignación.</p>
+      <p class="!mb-0 !mt-2 text-xs text-slate-500">Al encontrar el beneficiario, aquí podrás confirmar sus datos.</p>
       }
     }
   </section>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5" [attr.aria-busy]="saving()">
-    <section class="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5" aria-labelledby="project-title">
-      <h2 id="project-title" class="flex items-center gap-2 font-semibold text-slate-800">
-        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-50 text-sm text-blue-700">2</span>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-3" [attr.aria-busy]="saving()">
+    <section class="space-y-3 rounded-xl border border-slate-200 bg-white p-4" aria-labelledby="project-title">
+      <h2 id="project-title" class="!m-0 !text-sm !leading-6 flex items-center gap-2 !font-semibold text-slate-800">
+        <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs text-blue-700">2</span>
         Datos de la asignación
       </h2>
       <div>
@@ -88,7 +87,7 @@
             </div>
           }
         </div>
-        <p id="project-help" class="mt-2 text-xs text-slate-500">Selecciona un resultado de la lista; escribir el nombre no selecciona el proyecto.</p>
+        <p id="project-help" class="!mb-0 !mt-1 text-xs text-slate-500">Elige un proyecto de los resultados; escribir su nombre no lo selecciona.</p>
         @if (loadingProjects()) { <p role="status" class="mt-2 text-sm text-blue-700">Cargando proyectos...</p> }
         @if (projectError()) {
           <div role="alert" class="mt-2 text-sm text-red-700">{{ projectError() }}
@@ -103,12 +102,12 @@
       </div>
       <div>
         <label for="observaciones" class="label-base">Observaciones <span class="font-normal text-slate-400">(opcional)</span></label>
-        <textarea id="observaciones" formControlName="observaciones" rows="3" class="input-base mt-1 resize-y" placeholder="Agrega información relevante sobre la asignación"></textarea>
+        <textarea id="observaciones" formControlName="observaciones" rows="2" class="input-base mt-1 resize-y" placeholder="Agrega información relevante sobre la asignación"></textarea>
       </div>
     </section>
-    <footer class="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-      <p class="text-xs text-slate-500">{{ saving() ? 'Guardando asignación...' : 'Guardar se habilita al verificar el beneficiario y seleccionar un proyecto válido.' }}</p>
-      <div class="flex flex-col gap-2 sm:flex-row">
+    <footer class="flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between">
+      <p class="!m-0 text-xs text-slate-500">{{ saving() ? 'Guardando asignación...' : '* Documento y proyecto obligatorios. Verifica ambos para guardar.' }}</p>
+      <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
         <button type="button" (click)="cancel()" class="btn-action-gray w-full sm:w-auto" [disabled]="saving()">Cancelar</button>
         <button type="submit" class="btn-action-blue w-full gap-2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto" [disabled]="!canSave">
           <mat-icon aria-hidden="true">{{ saving() ? 'hourglass_top' : 'save' }}</mat-icon>

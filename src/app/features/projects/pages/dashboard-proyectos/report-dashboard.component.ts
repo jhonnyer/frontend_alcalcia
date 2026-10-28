@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,7 +12,8 @@ import { MatTabsModule } from '@angular/material/tabs';
 
 import { ReportesService, ReporteFiltroRequest } from '../../../../core/services/reportes.service';
 import { AlertService } from '../../../../core/services/alert.service';
-import { finalize } from 'rxjs';
+import { Subject, finalize, takeUntil, timeout } from 'rxjs';
+import { dashboardLoadError } from '../../../../shared/components/dashboard-charts/dashboard-load.utils';
 import { DashboardReport, ResumenProyecto } from '../../../../core/models/reporte-global/reportes.model';
 import { dashboardYears, hasDashboardData } from '../../../../core/models/reporte-global/dashboard.utils';
 import { DashboardChartsComponent } from '../../../../shared/components/dashboard-charts/dashboard-charts.component';
@@ -45,6 +46,24 @@ export class ReportDashboardComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   readonly hasDashboardData = hasDashboardData;
   loadError = signal('');
+  loadingDashboard = signal(false);
+  filterError = signal('');
+  private readonly cancelLoad = new Subject<void>();
+
+  @HostListener('window:offline')
+  onOffline(): void {
+    const loading = this.loadingDashboard();
+    const filtering = this.aplicandoFiltros();
+    this.cancelLoad.next();
+    if (loading) this.loadError.set('Se perdió la conexión. Puedes seguir navegando; reintenta cuando tengas señal.');
+    if (filtering) this.filterError.set('Se perdió la conexión. Se conserva la última consulta aplicada. Reintenta cuando tengas señal.');
+  }
+
+  @HostListener('window:online')
+  onOnline(): void {
+    if (this.loadError()) this.loadDashboard();
+    else if (this.filterError()) this.aplicarFiltros();
+  }
 
   // Dashboard sin filtrar (para opciones de filtro y para restaurar)
   baseDashboard = signal<DashboardReport | null>(null);
@@ -155,8 +174,17 @@ export class ReportDashboardComponent implements OnInit {
     }
 
     loadDashboard(): void {
+        if (this.loadingDashboard() || this.aplicandoFiltros()) return;
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          this.loadError.set('No hay conexión a internet. Puedes seguir navegando; las estadísticas se reintentarán cuando vuelva la conexión.');
+          return;
+        }
+        this.loadingDashboard.set(true);
         this.loadError.set('');
-        this.reportes.obtenerDashboard().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+        this.reportes.obtenerDashboard().pipe(
+          timeout(15000), takeUntil(this.cancelLoad), takeUntilDestroyed(this.destroyRef),
+          finalize(() => this.loadingDashboard.set(false))
+        ).subscribe({
           next: d => {
             this.baseDashboard.set(d);
             this.dashboard.set(d);
@@ -171,7 +199,7 @@ export class ReportDashboardComponent implements OnInit {
           },
           error: error => {
             console.error('Error al cargar el dashboard de proyectos:', error);
-            this.loadError.set('No se pudo cargar la información. La consulta falló o tardó demasiado. Puedes reintentar o volver a Proyectos.');
+            this.loadError.set(dashboardLoadError(error));
           }
         });
     }
@@ -361,7 +389,7 @@ export class ReportDashboardComponent implements OnInit {
   onSelMesEvt(event: Event) { this.selMes.set(this.valorSel(event)); }
 
   aplicarFiltros() {
-    if (this.aplicandoFiltros()) return;
+    if (this.aplicandoFiltros() || this.loadingDashboard()) return;
     const proyecto = this.selProyecto();
     const anio = this.selAnio();
     const mes = this.selMes();
@@ -372,6 +400,10 @@ export class ReportDashboardComponent implements OnInit {
     }
     if (mes !== 'ALL' && anio === 'ALL') {
       this.alert.warning('Selecciona un año', 'Para filtrar por mes debes elegir también el año.');
+      return;
+    }
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.filterError.set('No hay conexión. Se conserva la última consulta aplicada. Reintenta cuando tengas señal.');
       return;
     }
 
@@ -388,7 +420,10 @@ export class ReportDashboardComponent implements OnInit {
     }
 
     this.aplicandoFiltros.set(true);
+    this.filterError.set('');
     this.reportes.obtenerDashboardFiltrado(filtro).pipe(
+      timeout(15000),
+      takeUntil(this.cancelLoad),
       takeUntilDestroyed(this.destroyRef),
       finalize(() => this.aplicandoFiltros.set(false))
     ).subscribe({
@@ -400,13 +435,14 @@ export class ReportDashboardComponent implements OnInit {
       },
       error: error => {
         console.error('Error al aplicar filtros del reporte:', error);
-        this.alert.error('No se pudo aplicar el filtro', 'La consulta falló o tardó demasiado. Inténtalo de nuevo.');
+        this.filterError.set(`${dashboardLoadError(error)} Se conserva la última consulta aplicada.`);
       },
     });
   }
 
   limpiarFiltros() {
     if (this.aplicandoFiltros()) return;
+    this.filterError.set('');
     this.selProyecto.set('ALL');
     this.selAnio.set('ALL');
     this.selMes.set('ALL');

@@ -3,7 +3,7 @@ import { Component, Input, OnChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { Chart, ChartData, ChartOptions, registerables } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
+import { DashboardChartComponent } from './dashboard-chart.component';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { DashboardReport } from '../../../core/models/reporte-global/reportes.model';
 import { hasChartData } from '../../../core/models/reporte-global/dashboard.utils';
@@ -26,7 +26,7 @@ interface FilaGrafica {
 @Component({
   selector: 'app-dashboard-charts',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, BaseChartDirective],
+  imports: [CommonModule, FormsModule, MatIconModule, DashboardChartComponent],
   templateUrl: './dashboard-charts.component.html',
   styleUrl: './dashboard-charts.component.scss'
 })
@@ -60,6 +60,8 @@ export class DashboardChartsComponent implements OnChanges {
   readonly barrasOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
+    devicePixelRatio: Math.min(globalThis.devicePixelRatio || 1, 2),
     indexAxis: 'y',
     plugins: {
       legend: { display: false },
@@ -78,6 +80,8 @@ export class DashboardChartsComponent implements OnChanges {
   readonly actasOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
+    devicePixelRatio: Math.min(globalThis.devicePixelRatio || 1, 2),
     plugins: {
       legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 10 } },
       datalabels: { display: false },

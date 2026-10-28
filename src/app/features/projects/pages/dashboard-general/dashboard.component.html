@@ -43,11 +43,14 @@
     @if (hasDashboardData(d)) { <app-dashboard-charts [dashboard]="d" /> }
   } @else if (loadError()) {
     <div role="alert" class="notice error">
-      <h3>No se pudo cargar el dashboard</h3>
+      <h3 class="!m-0 !text-base !font-semibold">Estadísticas no disponibles</h3>
       <p>{{ loadError() }}</p>
       <button type="button" class="btn-action-blue" (click)="loadDashboard()" [disabled]="loading()">Reintentar</button>
     </div>
   } @else {
-    <div class="notice" role="status">Cargando estadísticas…</div>
+    <div class="notice" role="status">
+      Cargando estadísticas…
+      <p>Si la conexión o el servidor no responden en 15 segundos, podrás reintentar. Puedes usar el menú mientras tanto.</p>
+    </div>
   }
 </section>

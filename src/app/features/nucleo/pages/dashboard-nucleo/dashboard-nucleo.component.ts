@@ -1,14 +1,15 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { finalize, timeout } from 'rxjs';
+import { Subject, finalize, takeUntil, timeout } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
-import { BaseChartDirective } from 'ng2-charts';
+import { DashboardChartComponent } from '../../../../shared/components/dashboard-charts/dashboard-chart.component';
+import { dashboardLoadError } from '../../../../shared/components/dashboard-charts/dashboard-load.utils';
 import { Chart, registerables, ChartData, ChartOptions } from 'chart.js';
 import { NucleoService } from '../../../../core/services/nucleo.service';
 import { NucleoDetallado } from '../../../../core/models/nucleo-detallado.model';
@@ -32,7 +33,7 @@ Chart.register(...registerables, ChartDataLabels);
     MatTooltipModule,
     MatButtonModule,
     FormsModule,
-    BaseChartDirective
+    DashboardChartComponent
   ],
   templateUrl: './dashboard-nucleo.component.html',
   styleUrl: './dashboard-nucleo.component.scss'
@@ -49,7 +50,22 @@ export class DashboardComponent implements OnInit {
   allData?: NucleoDetallado;
   isLoadingPDF = false;
 
-  loading = true;
+  loading = false;
+  private readonly cancelLoad = new Subject<void>();
+  private retryOnConnection = false;
+
+  @HostListener('window:offline')
+  onOffline(): void {
+    if (!this.loading) return;
+    this.cancelLoad.next();
+    this.retryOnConnection = true;
+    this.loadError = 'Se perdió la conexión. Puedes seguir navegando; reintenta cuando tengas señal.';
+  }
+
+  @HostListener('window:online')
+  onOnline(): void {
+    if (this.retryOnConnection) this.loadData();
+  }
 
   // KPIs
   proyectosActivos = 0;
@@ -91,6 +107,8 @@ export class DashboardComponent implements OnInit {
   chartActasOptions: ChartOptions<'doughnut'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
+    devicePixelRatio: Math.min(globalThis.devicePixelRatio || 1, 2),
     cutout: '58%',
     plugins: {
       legend: { position: 'bottom', labels: { usePointStyle: true, padding: 14, boxWidth: 10 } },
@@ -114,6 +132,8 @@ export class DashboardComponent implements OnInit {
   chartBenefOptions: ChartOptions<'bar'> = {
     responsive: true,
     maintainAspectRatio: false,
+    animation: false,
+    devicePixelRatio: Math.min(globalThis.devicePixelRatio || 1, 2),
     plugins: { legend: { display: false }, datalabels: { display: false } },
     scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } }
   };
@@ -126,8 +146,10 @@ export class DashboardComponent implements OnInit {
   loadError = '';
 
   loadData(): void {
+    if (this.loading) return;
     this.loading = true;
     this.loadError = '';
+    this.retryOnConnection = false;
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!Number.isInteger(id) || id <= 0) {
       this.loadError = 'El identificador del actor social no es válido.';
@@ -144,8 +166,14 @@ export class DashboardComponent implements OnInit {
       this.aplicarDatosDashboard(this.nucleo);
       this.loading = false;
     } else {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        this.loading = false;
+        this.retryOnConnection = true;
+        this.loadError = 'No hay conexión a internet. Puedes seguir navegando; las estadísticas se reintentarán cuando vuelva la conexión.';
+        return;
+      }
       this.nucleoService.obtenerDetalleNucleo(id).pipe(
-        timeout(45000), takeUntilDestroyed(this.destroyRef), finalize(() => this.loading = false)
+        timeout(15000), takeUntil(this.cancelLoad), takeUntilDestroyed(this.destroyRef), finalize(() => this.loading = false)
       ).subscribe({
         next: ({ respuesta }) => {
           if (!respuesta) {
@@ -157,7 +185,8 @@ export class DashboardComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error cargando actor social', err);
-          this.loadError = 'No se pudo cargar el dashboard del actor social. La consulta falló o tardó demasiado.';
+          this.retryOnConnection = true;
+          this.loadError = dashboardLoadError(err);
           this.loading = false;
         }
       });

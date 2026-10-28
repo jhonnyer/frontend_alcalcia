@@ -9,7 +9,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
-import { finalize } from 'rxjs';
+import { finalize, timeout } from 'rxjs';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { ActasService, FiltroReporteActas } from '../../../../core/services/actas.service';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
@@ -51,6 +51,8 @@ export class HomeComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   reportOptionsError = '';
+  private reportOptionsRequested = false;
+  loadingReportOptions = false;
   selectedPeriodReport: PeriodReportKey | null = 'actas';
   excelProjectId: number | null = null;
   excelCategoryId: number | null = null;
@@ -100,11 +102,23 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.pageTitleService.setCurrentPage('SISTEMA INTEGRAL DE PROYECTOS Y DONACIONES MUNICIPALES');
+  }
+
+  onTabChange(index: number): void {
+    if (index !== 2 || this.reportOptionsRequested) return;
+    this.reportOptionsRequested = true;
     this.loadReportFilterOptions();
   }
 
-  private loadReportFilterOptions(): void {
-    this.proyectosService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+  loadReportFilterOptions(): void {
+    if (this.loadingReportOptions) return;
+    this.loadingReportOptions = true;
+    this.reportOptionsError = '';
+    this.proyectosService.getAll().pipe(
+      timeout(15000),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.loadingReportOptions = false)
+    ).subscribe({
       next: response => {
         const projects = response.respuesta ?? [];
         this.reportProjectOptions = projects.map(item => ({ id: item.proyecto.idProyecto, nombre: item.proyecto.nombre }));
@@ -118,7 +132,7 @@ export class HomeComponent implements OnInit {
 
   private filterOptionsError(error: unknown): void {
     console.error('Error al cargar filtros de reportes:', error);
-    this.reportOptionsError = 'No se pudieron cargar algunas opciones de los filtros. Recarga la página para reintentar.';
+    this.reportOptionsError = 'No se pudieron cargar los filtros. Revisa la conexión y vuelve a intentar.';
   }
 
   get projectSearchOptions(): ReportSearchOption[] {

@@ -4,7 +4,7 @@
     <p class="chart-help">Personas por característica. Los grupos pueden coincidir: no sumes las barras.</p>
     <p class="chart-total">Personas en la consulta: {{ totalPersonas | number }}</p>
     @if (hasChartData(poblacionData)) {
-      <div class="chart-frame"><canvas baseChart type="bar" [data]="poblacionData" [options]="barrasOptions" role="img" aria-label="Comparación de personas por característica. Cifras disponibles en Ver cifras."></canvas></div>
+      <div class="chart-frame"><app-dashboard-chart [data]="poblacionData" [options]="barrasOptions" description="Comparación de personas por característica. Cifras disponibles en Ver cifras." /></div>
     } @else { <p class="empty" role="status">No hay características registradas para esta consulta.</p> }
     <details><summary>Ver cifras</summary><table><thead><tr><th>Característica</th><th>Personas</th></tr></thead><tbody>
       @for (fila of poblacion; track fila.nombre) { <tr><td>{{ fila.nombre }}</td><td>{{ fila.cantidad | number }}</td></tr> }
@@ -24,7 +24,7 @@
     @if (hasChartData(actasData)) {
       @if (periodos.length > 6) { <p class="chart-help">Desplázate horizontalmente para consultar todos los meses.</p> }
       <div class="chart-scroll" tabindex="0" role="region" aria-label="Gráfica mensual con desplazamiento horizontal">
-        <div class="chart-frame" [style.min-width.px]="periodos.length * 72"><canvas baseChart type="bar" [data]="actasData" [options]="actasOptions" role="img" aria-label="Actas mensuales por estado. Cifras disponibles en Ver cifras."></canvas></div>
+        <div class="chart-frame" [style.min-width.px]="periodos.length * 72"><app-dashboard-chart [data]="actasData" [options]="actasOptions" description="Actas mensuales por estado. Cifras disponibles en Ver cifras." /></div>
       </div>
     } @else { <p class="empty" role="status">No hay actas con las opciones elegidas. Cambia o limpia los filtros de la gráfica.</p> }
     <details><summary>Ver cifras</summary><div class="table-scroll"><table><thead><tr><th>Mes</th><th>Estado actual</th><th>Actas</th></tr></thead><tbody>
@@ -36,7 +36,7 @@
     <div class="chart-heading"><span class="chart-heading-icon"><mat-icon aria-hidden="true">diversity_3</mat-icon></span><h3>Personas por grupo de edad</h3></div>
     <p class="chart-help">Una persona por grupo, según su edad registrada. Estas cifras no acreditan una entrega.</p>
     @if (hasChartData(edadesData)) {
-      <div class="chart-frame" [style.height.px]="edades.length > 7 ? edades.length * 38 + 45 : 280"><canvas baseChart type="bar" [data]="edadesData" [options]="barrasOptions" role="img" aria-label="Personas por edad. Cifras disponibles en Ver cifras."></canvas></div>
+      <div class="chart-frame" [style.height.px]="edades.length > 7 ? edades.length * 38 + 45 : 280"><app-dashboard-chart [data]="edadesData" [options]="barrasOptions" description="Personas por edad. Cifras disponibles en Ver cifras." /></div>
     } @else { <p class="empty" role="status">No hay edades registradas para esta consulta.</p> }
     <details><summary>Ver cifras</summary><table><thead><tr><th>Grupo de edad</th><th>Personas</th></tr></thead><tbody>
       @for (fila of edades; track $index) { <tr><td>{{ fila.nombre }}</td><td>{{ fila.cantidad | number }}</td></tr> }
@@ -54,7 +54,7 @@
     <p class="chart-total" aria-live="polite">{{ productos.length }} de {{ productosCoincidentes }} productos coincidentes</p>
     @if (hasChartData(productosData)) {
       <div class="products-scroll" tabindex="0" role="region" aria-label="Productos con desplazamiento vertical">
-        <div class="chart-frame" [style.height.px]="productos.length * 38 + 45"><canvas baseChart type="bar" [data]="productosData" [options]="barrasOptions" role="img" aria-label="Unidades por producto. Nombres completos y cifras disponibles en Ver cifras."></canvas></div>
+        <div class="chart-frame" [style.height.px]="productos.length * 38 + 45"><app-dashboard-chart [data]="productosData" [options]="barrasOptions" description="Unidades por producto. Nombres completos y cifras disponibles en Ver cifras." /></div>
       </div>
     } @else { <p class="empty" role="status">No hay unidades para mostrar con esta búsqueda.</p> }
     <details><summary>Ver cifras y nombres completos</summary><div class="table-scroll"><table><thead><tr><th>Producto</th><th>Unidades</th></tr></thead><tbody>

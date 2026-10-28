@@ -1,6 +1,6 @@
 <section class="relative flex min-h-[calc(100vh-6rem)] flex-col overflow-x-hidden scrollbar-custom px-3 pb-8 sm:px-5">
   <!-- 🔹 Grupo de pestañas -->
-  <mat-tab-group animationDuration="400ms" mat-stretch-tabs>
+  <mat-tab-group animationDuration="400ms" mat-stretch-tabs (selectedIndexChange)="onTabChange($event)">
 
     <!-- 🧭 Pestaña Dashboard -->
     <mat-tab>
@@ -72,7 +72,10 @@
 
       <!-- 🧱 Bloques de reportes con scroll horizontal y vertical -->
       @if (reportOptionsError) {
-        <div role="alert" class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{{ reportOptionsError }}</div>
+        <div role="alert" class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          {{ reportOptionsError }}
+          <button type="button" class="ml-2 font-semibold underline" (click)="loadReportFilterOptions()" [disabled]="loadingReportOptions">Reintentar filtros</button>
+        </div>
       }
       <div class="reportes-wrapper pb-4">
         <div

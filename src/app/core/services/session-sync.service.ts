@@ -7,6 +7,7 @@ import { EMPTY, catchError, exhaustMap, filter, fromEvent, merge, tap, timer, ti
 import { AlertService } from './alert.service';
 import { AuthService } from './auth.service';
 import { TokenService } from './token.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({ providedIn: 'root' })
 export class SessionSyncService {
@@ -16,6 +17,7 @@ export class SessionSyncService {
   private readonly alert = inject(AlertService);
   private readonly document = inject(DOCUMENT);
   private readonly location = inject(Location);
+  private readonly snackBar = inject(MatSnackBar);
 
   monitor(destroyRef: DestroyRef): void {
     let connectionWarningShown = false;
@@ -26,6 +28,7 @@ export class SessionSyncService {
       timer(0, 60000),
       fromEvent(this.document, 'visibilitychange'),
       fromEvent(this.document.defaultView ?? this.document, 'focus'),
+      fromEvent(this.document.defaultView ?? this.document, 'online'),
       this.router.events.pipe(filter(event => event instanceof NavigationEnd))
     ).pipe(
       filter(() => this.document.visibilityState !== 'hidden'
@@ -57,7 +60,7 @@ export class SessionSyncService {
               void this.router.navigate(['/auth']);
             } else if (!connectionWarningShown) {
               connectionWarningShown = true;
-              this.alert.warning('No se pudieron verificar los permisos', 'Comprueba la conexión. Se reintentará automáticamente.');
+              this.snackBar.open('No se pudo verificar la sesión. Revisa la conexión; se reintentará automáticamente.', 'Cerrar', { duration: 8000 });
             }
             return EMPTY;
           })

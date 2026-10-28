@@ -4,11 +4,15 @@
     <div role="alert" class="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800">
       <p>{{ loadError }}</p>
       <button type="button" class="btn-action-blue mt-3" (click)="loadData()" [disabled]="loading">Reintentar</button>
+      <button type="button" class="btn-action-gray mt-3 ml-2" (click)="volver()">Volver</button>
     </div>
   }
 
-  <div *ngIf="loading" class="flex h-[55vh] items-center justify-center">
-    <mat-spinner diameter="52"></mat-spinner>
+  <div *ngIf="loading" class="flex min-h-40 flex-col items-center justify-center gap-3 p-4" role="status">
+    <mat-spinner diameter="36"></mat-spinner>
+    <p class="!m-0 text-sm text-slate-600">Cargando estadísticas…</p>
+    <p class="!m-0 text-xs text-slate-500">Espera máxima de 15 segundos. Puedes usar el menú mientras tanto.</p>
+    <button type="button" class="btn-action-gray" (click)="volver()">Volver</button>
   </div>
 
   <div *ngIf="!loading && !loadError">
@@ -227,12 +231,12 @@
 
       <!-- Si hay actas -->
             <ng-container *ngIf="totalActas > 0; else noActas">
-        <div class="chart-frame"><canvas baseChart role="img" aria-label="Actas por estado. Cifras disponibles debajo de la gráfica."
+        <div class="chart-frame"><app-dashboard-chart description="Actas por estado. Cifras disponibles debajo de la gráfica."
                 [type]="chartActasType" 
                 [data]="chartActasData" 
           [options]="chartActasOptions"
-          (chartClick)="onActasChartClick($event)">
-        </canvas></div>
+          (chartClick)="onActasChartClick($event)"
+        /></div>
       </ng-container>
 
       <!-- Si no hay actas -->
@@ -254,12 +258,12 @@
     <mat-card class="p-4">
       <h3 class="text-lg font-semibold mb-3 text-gray-700">Beneficiarios por rango de edad</h3>
       <p class="mb-3 text-xs leading-relaxed text-slate-500">Personas registradas en el actor, con el filtro de edad elegido. Las edades ausentes se muestran por separado; no se cuentan como niños de cero años.</p>
-      <div class="chart-frame" *ngIf="totalBeneficiarios > 0; else noBeneficiarios"><canvas baseChart role="img" aria-label="Beneficiarios por edad. Cifras disponibles debajo de la gráfica."
+      <div class="chart-frame" *ngIf="totalBeneficiarios > 0; else noBeneficiarios"><app-dashboard-chart description="Beneficiarios por edad. Cifras disponibles debajo de la gráfica."
               [type]="chartBenefType" 
               [data]="chartBenefData" 
               [options]="chartBenefOptions"
-              (chartClick)="onBenefChartClick($event)">
-      </canvas></div>
+              (chartClick)="onBenefChartClick($event)"
+      /></div>
       <ng-template #noBeneficiarios>
         <p role="status" class="py-8 text-center text-sm text-gray-500">No hay beneficiarios para mostrar con los filtros actuales.</p>
       </ng-template>

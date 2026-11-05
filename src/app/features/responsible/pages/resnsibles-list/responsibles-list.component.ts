@@ -76,7 +76,7 @@ export class ResponsiblesListComponent {
   getAll() {
     this.listLoading.set(true);
     this.loadError.set('');
-    this.responsibleService.getAll().pipe(
+    this.responsibleService.getForManagement().pipe(
       timeout(45000), finalize(() => this.listLoading.set(false))
     ).subscribe({
       next: response => {
@@ -98,6 +98,12 @@ export class ResponsiblesListComponent {
 
   clearAllFilters(): void {
     this.columnFilters.set([]);
+    this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
+  }
+
+  onSelectFilterChange(column: Column<IResponsable>, event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    column.setFilterValue(value || undefined);
     this.paginationState.update(state => ({ ...state, pageIndex: 0 }));
   }
 

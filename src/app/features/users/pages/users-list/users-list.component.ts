@@ -88,6 +88,7 @@ export class UsersListComponent implements OnInit {
   loadErrors = signal<string[]>([]);
   secretariaSearch = signal('');
   usuarioSearch = signal('');
+  usuarioEstadoFilter = signal<'' | 'A' | 'I'>('');
   creatingSecretary = signal(false);
   secretaryModalOpen = signal(false);
   activeSecretaryName = signal('');
@@ -154,8 +155,10 @@ export class UsersListComponent implements OnInit {
 
   filteredResponsables = computed(() => {
     const query = this.normalizeSearchText(this.usuarioSearch());
+    const estado = this.usuarioEstadoFilter();
     return this.responsables().filter(responsable => {
-      const text = this.normalizeSearchText(`${responsable.idResponsable} ${responsable.primerNombre} ${responsable.segundoNombre} ${responsable.primerApellido} ${responsable.segundoApellido} ${responsable.usuario} ${responsable.numeroIdentificacion} ${responsable.perfilUsuario} ${responsable.estado}`);
+      if (estado && responsable.estado !== estado) return false;
+      const text = this.normalizeSearchText(`${responsable.idResponsable} ${responsable.primerNombre} ${responsable.segundoNombre} ${responsable.primerApellido} ${responsable.segundoApellido} ${responsable.usuario} ${responsable.numeroIdentificacion} ${responsable.email}`);
       return !query || text.includes(query);
     });
   });
@@ -466,6 +469,11 @@ export class UsersListComponent implements OnInit {
 
   updateUsuarioSearch(event: Event): void {
     this.usuarioSearch.set((event.target as HTMLInputElement).value);
+    this.usuarioPageIndex.set(0);
+  }
+
+  updateUsuarioEstadoFilter(event: Event): void {
+    this.usuarioEstadoFilter.set((event.target as HTMLSelectElement).value as '' | 'A' | 'I');
     this.usuarioPageIndex.set(0);
   }
 

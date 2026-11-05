@@ -413,12 +413,18 @@
 				@if (hasSecretaryContext) {
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
 					<div class="relative w-full sm:w-72">
-						<label for="usuario-search" class="sr-only">Buscar responsable</label>
-						<input id="usuario-search" class="input-base pr-10" type="text" placeholder="Buscar responsable" [value]="usuarioSearch()" (input)="updateUsuarioSearch($event)" />
+						<label for="usuario-search" class="sr-only">Buscar por nombre, cédula o usuario</label>
+						<input id="usuario-search" class="input-base pr-10" type="text" placeholder="Nombre, cédula o usuario" [value]="usuarioSearch()" (input)="updateUsuarioSearch($event)" />
 						@if (usuarioSearch()) {
 							<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100" (click)="clearUsuarioSearch()" aria-label="Limpiar búsqueda de responsables"><mat-icon>close</mat-icon></button>
 						}
 					</div>
+					<label for="usuario-estado" class="sr-only">Filtrar por estado de vinculación</label>
+					<select id="usuario-estado" class="select-base w-full sm:w-36" [value]="usuarioEstadoFilter()" (change)="updateUsuarioEstadoFilter($event)">
+						<option value="">Todos</option>
+						<option value="A">Activos</option>
+						<option value="I">Inactivos</option>
+					</select>
 					@if (!isSuperAdmin()) {
 					<button type="button" class="btn-action-blue w-full sm:w-auto" (click)="goToNewUser()">
 						<mat-icon class="text-base">person_add</mat-icon>
@@ -448,6 +454,7 @@
 								<tr>
 									<th class="px-3 py-2 text-left">ID</th>
 									<th class="px-3 py-2 text-left">Nombre</th>
+									<th class="px-3 py-2 text-left">Cédula</th>
 									<th class="px-3 py-2 text-left">Usuario</th>
 									<th class="px-3 py-2 text-left">Correo</th>
 									<th class="px-3 py-2 text-left">Teléfono</th>
@@ -462,6 +469,7 @@
 									<tr class="border-t border-slate-100 hover:bg-blue-50/40">
 										<td class="px-3 py-2 font-semibold text-slate-700">#{{ responsable.idResponsable }}</td>
 										<td class="px-3 py-2">{{ responsable.primerNombre }} {{ responsable.primerApellido }}</td>
+										<td class="px-3 py-2">{{ responsable.numeroIdentificacion || '—' }}</td>
 										<td class="px-3 py-2">{{ responsable.usuario }}</td>
 										<td class="px-3 py-2">{{ responsable.email }}</td>
 										<td class="px-3 py-2">{{ responsable.telefono }}</td>

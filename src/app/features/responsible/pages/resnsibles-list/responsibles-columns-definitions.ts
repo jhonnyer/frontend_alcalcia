@@ -98,16 +98,22 @@ export const defaultColumns: ColumnDef<IResponsable>[] = [
       return `<span class="${color}">${valor}</span>`;
     },
     header: 'Estado de vinculación',
-    filterFn: 'includesString',
-    meta: { filterVariant: 'text' },
+    filterFn: 'equalsString',
+    meta: { filterVariant: 'select' },
   },
   {
     id: 'estadoCuenta',
     accessorFn: (r) => r.estadoCuenta ? estadoLabel[r.estadoCuenta] : 'No disponible',
-    cell: (info) => info.getValue(),
+    cell: (info) => {
+      const valor = info.getValue() as string;
+      const color = valor === 'Activo'
+        ? 'text-green-600 font-semibold'
+        : valor === 'Inactivo' ? 'text-red-600 font-semibold' : 'text-slate-500';
+      return `<span class="${color}">${valor}</span>`;
+    },
     header: 'Estado de cuenta',
-    filterFn: 'includesString',
-    meta: { filterVariant: 'text' },
+    filterFn: 'equalsString',
+    meta: { filterVariant: 'select' },
   },
   {
     id: 'acciones',

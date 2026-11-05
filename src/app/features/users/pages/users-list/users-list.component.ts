@@ -255,7 +255,7 @@ export class UsersListComponent implements OnInit {
         this.loadErrors.update(errors => [...errors, 'No se pudieron cargar las secretarías.']);
       }
     });
-    if (this.hasSecretaryContext) this.responsibleService.getAll().pipe(timeout(45000), finalize(finish)).subscribe({
+    if (this.hasSecretaryContext) this.responsibleService.getForManagement().pipe(timeout(45000), finalize(finish)).subscribe({
       next: responsables => {
         this.responsables.set(responsables);
       },

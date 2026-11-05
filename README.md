@@ -64,3 +64,14 @@ Para recompilar automaticamente al modificar archivos:
 ```powershell
 npm run watch
 ```
+
+## Gestion de usuarios
+
+En `/users`, la tabla incluye las vinculaciones activas e inactivas de la
+secretaria seleccionada. Un administrador puede editar un usuario inactivo,
+cambiar su estado a Activo y guardar para reactivarlo.
+
+Esta vista y el formulario usan `/responsables/gestion` y
+`/responsables/gestion/{id}`; requieren actualizar tambien el backend.
+Los selectores operativos siguen usando `/responsables/list`, que excluye
+las vinculaciones inactivas. No se requiere migracion de base de datos.

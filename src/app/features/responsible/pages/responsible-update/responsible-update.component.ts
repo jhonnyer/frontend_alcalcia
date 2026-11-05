@@ -146,7 +146,7 @@ export class ResponsibleUpdateComponent implements OnInit {
     if (!this.responsableId) return;
     this.loading = true;
     this.loadError = false;
-    this.responsibleService.getByParams(this.responsableId.toString()).pipe(
+    this.responsibleService.getByIdForManagement(this.responsableId).pipe(
       finalize(() => this.loading = false)
     ).subscribe({
       next: (response) => this.initResponsable(response),

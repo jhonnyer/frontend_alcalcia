@@ -17,6 +17,14 @@ export class ResponsibleService {
     return this.http.get<IResponsable[]>(`${this.URL}/responsables/list`, { context: checkToken() });
   }
 
+  getForManagement(): Observable<IResponsable[]> {
+    return this.http.get<IResponsable[]>(`${this.URL}/responsables/gestion`, { context: checkToken() });
+  }
+
+  getByIdForManagement(idResponsable: number): Observable<IResponsable> {
+    return this.http.get<IResponsable>(`${this.URL}/responsables/gestion/${idResponsable}`, { context: checkToken() });
+  }
+
   getSupportSuperAdmin(): Observable<ISoporteSuperAdmin> {
     return this.http.get<ISoporteSuperAdmin>(`${this.URL}/responsables/soporte-superadmin`, { context: checkToken() });
   }

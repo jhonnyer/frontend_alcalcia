@@ -35,7 +35,9 @@ export class ListProjectsComponent implements OnInit {
       title: 'Beneficiarios',
       items: [
         { label: 'Asignar beneficiario', link: '/projects/add-beneficiary/create'},
-        { label: 'Beneficiarios por proyecto', link: '/projects/add-beneficiary/list'}
+        { label: 'Beneficiarios por proyecto', link: '/projects/add-beneficiary/list'},
+        { label: 'Carga beneficiarios x proyecto', link: '/projects/add-beneficiary/importacion-masiva'},
+        { label: 'Gestionar cargas de beneficiarios', link: '/projects/add-beneficiary/importacion-masiva/gestionar'}
       ]
     },
     {

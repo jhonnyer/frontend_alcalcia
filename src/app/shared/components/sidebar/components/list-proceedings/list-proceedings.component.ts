@@ -25,6 +25,8 @@ export class ListProceedingsComponent {
   menuItems = [
     { label: 'Registrar acta', link: 'proceedings/register'},
     { label: 'Listado de actas', link: 'proceedings'},
+    { label: 'Carga masiva de actas', link: '/proceedings/importacion-masiva'},
+    { label: 'Gestionar cargas de actas', link: '/proceedings/importacion-masiva/gestionar'},
   ];
 
   toggleMenu() {

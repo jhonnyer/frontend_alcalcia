@@ -45,7 +45,8 @@
               "raf",
               "canvg",
               "core-js",
-              "sweetalert2"
+              "sweetalert2",
+              "file-saver"
             ]
           },
           "configurations": {

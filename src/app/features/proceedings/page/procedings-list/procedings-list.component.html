@@ -8,7 +8,8 @@
   <div [hidden]="!!loadError()">
 
   <!-- 🧭 HEADER -->
-  <header class="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+  <header class="mb-4 flex flex-col gap-3">
+    <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
     <div class="min-w-0">
       <h1 class="!m-0 !text-xl !font-semibold !leading-tight text-blue_primary flex items-center gap-2">
         <mat-icon class="text-blue_primary">description</mat-icon>
@@ -16,7 +17,16 @@
       </h1>
       <p class="!mb-0 !mt-1 text-xs text-slate-500">Primero se muestran las actas pendientes (recibidas, procesadas y autorizadas), luego las demás.</p>
     </div>
-    <div class="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-end xl:w-auto">
+    <div class="grid w-full gap-2 sm:flex sm:flex-wrap xl:w-auto">
+    <a routerLink="/proceedings/importacion-masiva" class="btn-action-blue justify-center">
+      <mat-icon>upload_file</mat-icon> Carga masiva
+    </a>
+    <a routerLink="/proceedings/importacion-masiva/gestionar" class="btn-action-gray justify-center">
+      <mat-icon>history</mat-icon> Gestionar cargas
+    </a>
+    </div>
+    </div>
+    <div class="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-end">
     <div class="flex w-full flex-col gap-1 text-sm text-slate-600 sm:w-40 sm:shrink-0">
       <label for="actas-estado-filter" class="font-semibold">Estado</label>
       <select id="actas-estado-filter" class="input-base" [value]="selectedEstado()" (change)="onEstadoChange($event)">
@@ -25,7 +35,7 @@
         }
       </select>
     </div>
-    <div class="flex w-full min-w-0 flex-col gap-1 text-sm text-slate-600 sm:flex-1 xl:w-72 xl:flex-none">
+    <div class="flex w-full min-w-0 flex-col gap-1 text-sm text-slate-600 sm:max-w-md sm:flex-1">
       <span class="font-semibold">Filtrar por proyecto</span>
       <div class="relative">
         <label for="actas-project-search" class="sr-only">Buscar proyecto para filtrar actas</label>

@@ -1,0 +1,241 @@
+<section class="min-h-full min-w-0 max-w-full space-y-4 bg-slate-50 p-3 sm:p-6">
+  <header class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <div class="min-w-0">
+      <a [routerLink]="volver" class="text-sm font-semibold text-blue-700">Volver al listado</a>
+      <h1 class="!mb-2 !mt-2 !text-xl !font-semibold !leading-tight text-slate-900">{{ titulo }}</h1>
+    </div>
+    <div class="grid w-full gap-2 sm:flex sm:flex-wrap xl:w-auto xl:shrink-0">
+      <a [routerLink]="rutaGestion" class="btn-action-gray justify-center"><mat-icon>history</mat-icon> Gestionar cargas</a>
+      <button type="button" class="btn-action-gray justify-center" (click)="descargarPlantilla()" [disabled]="descargando() || ocupado()">
+        <mat-icon>download</mat-icon> {{ descargando() ? 'Generando...' : 'Descargar plantilla' }}
+      </button>
+    </div>
+  </header>
+
+  @if (errorCarga()) {
+    <div role="alert" class="rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      {{ errorCarga() }}
+      @if (!preparado()) {
+        <button type="button" class="btn-action-gray ml-2" (click)="cargarDatos()" [disabled]="ocupado()">Reintentar</button>
+      }
+    </div>
+  }
+  <section class="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+    <p class="text-sm text-slate-600">
+      Excel .xlsx · Hasta 5000 filas y 10 MB. Beneficiarios previamente registrados en esta secretaría.
+    </p>
+    @if (esActas) {
+      <p class="rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
+        Una fila por producto. Repite Grupo Acta para agruparlos. Se crean en Recibido, sin descontar inventario.
+      </p>
+    } @else {
+      <p class="rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
+        No se permiten asignaciones ya existentes.
+      </p>
+    }
+    <details class="text-xs text-slate-600">
+      <summary class="cursor-pointer font-semibold">Ver instrucciones</summary>
+      <ul class="mt-2 list-disc space-y-1 pl-5">
+        <li>En el archivo compartido de núcleos, completa DETALLE_ACTAS: una fila por producto y el documento del beneficiario. No repitas sus datos familiares.</li>
+        <li>También puedes usar la plantilla específica de esta carga, en la hoja CARGA_ACTORES. Si existe DETALLE_ACTAS, se lee esa hoja.</li>
+        @if (esActas) {
+          <li>Grupo Acta es una clave elegida por ti (ejemplo: SOL-001), no el consecutivo oficial. Repite el grupo y los datos generales para sus productos; usa una clave nueva para otra acta.</li>
+          <li>Fecha Solicitud es opcional: vacía usa la fecha del servidor al confirmar. Para indicar otra fecha usa AAAA-MM-DD, por ejemplo 2026-11-05. Consulta la hoja EJEMPLO_ACTAS.</li>
+          <li>El beneficiario debe tener una asociación activa al proyecto. No se reserva inventario.</li>
+        } @else {
+          <li>Columnas: Numero Documento, Proyecto y Observaciones.</li>
+          <li>En DETALLE_ACTAS se agrupan documento y proyecto; los productos, cantidades y observaciones del acta se ignoran.</li>
+          <li>Filas del mismo beneficiario y proyecto se agrupan con iguales observaciones.</li>
+          <li>No se reactivan asignaciones existentes automáticamente.</li>
+        }
+      </ul>
+    </details>
+    <label class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2 text-center text-sm font-semibold text-white sm:w-fit">
+      <mat-icon>upload_file</mat-icon> Seleccionar Excel para una nueva carga
+      <input type="file" class="sr-only" accept=".xlsx" (change)="seleccionarArchivo($event)" [disabled]="ocupado() || !preparado()" />
+    </label>
+    @if (ocupado()) { <p role="status" class="text-sm font-semibold text-blue-700">Procesando, espera antes de salir...</p> }
+  </section>
+
+  @if (resultado(); as r) {
+    <section class="min-w-0 space-y-3 rounded-xl border border-slate-200 bg-white p-3 sm:p-4">
+      <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div class="min-w-0">
+          <h2 class="!m-0 break-words !text-base !font-semibold">{{ r.nombreArchivo }} — {{ r.estado }}</h2>
+          <p class="text-sm text-slate-600">
+            {{ filas().length }} filas · {{ r.totalOperaciones }} {{ esActas ? 'actas' : 'asociaciones' }} ·
+            {{ r.errores.length }} errores · versión {{ r.versionDatos }}
+          </p>
+          <p class="text-xs text-slate-500">Hoja de origen: {{ r.filas.at(0)?.hojaOrigen || 'CARGA_ACTORES' }}. Los números de fila corresponden a esta hoja.</p>
+          <p class="text-xs text-slate-500">La carga pendiente vence el {{ r.fechaExpiracion | date:'dd/MM/yyyy HH:mm' }}.</p>
+        </div>
+        @if (r.estado === 'VALIDADA') {
+          <div class="grid w-full gap-2 sm:flex sm:flex-wrap xl:w-auto xl:shrink-0">
+            <button type="button" class="btn-action-gray" (click)="validar()" [disabled]="!editable() || validando() || !filas().length">
+              Guardar correcciones y validar
+            </button>
+            <button type="button" class="btn-action-blue" (click)="confirmar()" [disabled]="!puedeConfirmar()">Confirmar carga</button>
+          </div>
+        }
+      </div>
+      <div role="status" aria-live="polite" class="flex min-h-8 items-center gap-2 text-xs text-slate-600">
+        @if (validando()) {
+          <mat-icon class="animate-spin !text-base" aria-hidden="true">sync</mat-icon>
+          <span>Validando cambios…</span>
+        } @else if (modificado()) {
+          <span class="text-amber-800">Cambios pendientes de validación.</span>
+        } @else {
+          <span>Validación actualizada.</span>
+        }
+      </div>
+      @if (r.errores.length) {
+        <section aria-label="Resumen de errores" class="rounded-lg border border-red-200 bg-red-50 p-3 text-red-900">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="!m-0 !text-sm !font-bold !leading-tight">Errores que deben corregirse ({{ r.errores.length }})</h3>
+            <button type="button" class="text-xs font-semibold underline" (click)="filtrarErrores(true)">Ver filas con errores</button>
+          </div>
+          <ul class="mt-2 max-h-40 space-y-1 overflow-auto text-xs">
+            @for (error of resumenErrores(); track $index) {
+              <li>
+                <strong>{{ error.filas.length ? (error.filas.length === 1 ? 'Fila ' : 'Filas ') + error.filas.join(', ') : 'General' }} · {{ error.campo }}:</strong>
+                {{ error.mensaje }} <span>({{ error.total }})</span>
+                @if (error.documentos.length) {
+                  <span class="ml-1">
+                    {{ error.documentos.length === 1 ? 'Documento:' : 'Documentos:' }}
+                    @for (documento of error.documentos; track documento) {
+                      <button type="button" class="mr-1 font-semibold underline"
+                        [attr.aria-label]="'Buscar documento ' + documento" (click)="buscar(documento)">{{ documento }}</button>
+                    }
+                  </span>
+                }
+              </li>
+            }
+          </ul>
+        </section>
+      }
+      @if (r.estado === 'CONFIRMADA') {
+        <section aria-label="Resumen de la carga confirmada" class="space-y-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">
+          <p role="status" class="!m-0">
+            Carga confirmada. {{ esActas ? 'Actas creadas' : 'Registros creados' }}: {{ r.idsCreados.length }}.
+          </p>
+          @if (esActas) {
+            <p class="!m-0 text-xs">Consulta el acta creada junto a cada fila. Las filas del mismo grupo abren la misma acta.</p>
+          }
+        </section>
+      }
+      <div class="flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap sm:items-center">
+        <input aria-label="Buscar en la carga" class="input-base w-full sm:max-w-sm" placeholder="Buscar documento, proyecto o grupo"
+          [ngModel]="filtro()" (ngModelChange)="buscar($event)" />
+        <label><input type="checkbox" [ngModel]="soloErrores()" (ngModelChange)="filtrarErrores($event)" /> Solo filas con errores</label>
+      </div>
+      @if (esActas) {
+        <div class="w-full space-y-2 sm:max-w-lg">
+          <label class="block text-sm font-semibold text-slate-700" for="carga-responsable">Responsable para todas las actas</label>
+          <select id="carga-responsable" class="select-base w-full"
+            [ngModel]="responsableId()" (ngModelChange)="cambiarResponsable($event)"
+            [disabled]="!editable() || !preparado()">
+            <option [ngValue]="null">Selecciona un responsable activo</option>
+            @for (responsable of responsables(); track responsable.idResponsable) {
+              <option [ngValue]="responsable.idResponsable">{{ responsable.primerNombre }} {{ responsable.primerApellido }}</option>
+            }
+          </select>
+        </div>
+      }
+      <div class="max-h-[65vh] max-w-full overflow-auto rounded-lg border border-slate-200" role="region" aria-label="Filas de la carga" tabindex="0">
+        <table class="table-compact">
+          <thead>
+            <tr>
+              <th>Fila</th>
+              @if (esActas && r.estado === 'CONFIRMADA') { <th>Acta creada</th> }
+              @for (columna of columnas; track columna.campo) { <th class="min-w-40">{{ columna.titulo }}</th> }
+              <th>Errores</th>
+              @if (r.estado === 'VALIDADA') { <th>Acciones</th> }
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of filasPagina(); track item.index) {
+              <tr>
+                <td>{{ item.fila.numeroFila }}</td>
+                @if (esActas && r.estado === 'CONFIRMADA') {
+                  <td class="whitespace-nowrap">
+                    @if (actaCreada(item.fila); as idActa) {
+                      <a [routerLink]="['/proceedings/update', idActa]"
+                        target="_blank" rel="noopener noreferrer"
+                        title="Abrir acta en otra pestaña"
+                        class="inline-flex min-h-9 items-center rounded-md border border-emerald-300 px-2 py-1 text-xs font-semibold text-emerald-800 underline hover:bg-emerald-50"
+                        [attr.aria-label]="'Ver acta ' + idActa + ', grupo ' + item.fila.referenciaActa + ' (abre en otra pestaña)'">Ver acta #{{ idActa }} ↗</a>
+                    } @else {
+                      <span class="text-xs text-slate-600">Acta no disponible</span>
+                    }
+                  </td>
+                }
+                @for (columna of columnas; track columna.campo) {
+                  <td>
+                    @if (esCatalogo(columna.campo)) {
+                      <select class="w-full min-w-48 rounded border bg-white p-1.5 text-xs"
+                        [class.border-red-500]="errorCampo(item.fila.numeroFila, columna.campo)"
+                        [attr.aria-label]="columna.titulo + ', fila ' + item.fila.numeroFila"
+                        [attr.aria-invalid]="errorCampo(item.fila.numeroFila, columna.campo)"
+                        [ngModel]="item.fila[columna.campo]"
+                        (ngModelChange)="cambiar(item.index, columna.campo, $event)"
+                        [disabled]="!editable()">
+                        <option value="">Selecciona {{ columna.titulo.toLowerCase() }}</option>
+                        @if (item.fila[columna.campo] && !valorEnCatalogo(columna.campo, item.fila)) {
+                          <option [value]="item.fila[columna.campo]" disabled>{{ item.fila[columna.campo] }} (valor del archivo)</option>
+                        }
+                        @for (opcion of opciones(columna.campo, item.fila); track opcion.id) {
+                          <option [value]="etiquetaOpcion(opcion)">{{ etiquetaOpcion(opcion) }}</option>
+                        } @empty {
+                          <option value="" disabled>No hay opciones disponibles</option>
+                        }
+                      </select>
+                    } @else {
+                      @if (columna.campo === 'prioridad') {
+                        <select class="w-full min-w-40 rounded border bg-white p-1.5 text-xs"
+                          [class.border-red-500]="errorCampo(item.fila.numeroFila, columna.campo)"
+                          [attr.aria-label]="'Prioridad, fila ' + item.fila.numeroFila"
+                          [attr.aria-invalid]="errorCampo(item.fila.numeroFila, columna.campo)"
+                          [ngModel]="valorPrioridad(item.fila.prioridad)"
+                          (ngModelChange)="cambiar(item.index, columna.campo, $event)"
+                          [disabled]="!editable()">
+                          <option value="">Selecciona prioridad</option>
+                          @if (item.fila.prioridad && !['A', 'M', 'B'].includes(valorPrioridad(item.fila.prioridad))) {
+                            <option [value]="valorPrioridad(item.fila.prioridad)" disabled>{{ item.fila.prioridad }} (no válida)</option>
+                          }
+                          @for (prioridad of prioridades; track prioridad.valor) {
+                            <option [value]="prioridad.valor">{{ prioridad.texto }}</option>
+                          }
+                        </select>
+                      } @else {
+                    <input class="w-full min-w-40 rounded border bg-white p-1.5 text-xs"
+                      [type]="columna.campo === 'fechaSolicitud' ? 'date' : 'text'"
+                      [class.border-red-500]="errorCampo(item.fila.numeroFila, columna.campo)"
+                      [attr.aria-label]="columna.titulo + ', fila ' + item.fila.numeroFila"
+                      [attr.aria-invalid]="errorCampo(item.fila.numeroFila, columna.campo)"
+                      [ngModel]="item.fila[columna.campo]"
+                      (ngModelChange)="cambiar(item.index, columna.campo, $event)"
+                      [disabled]="!editable()" />
+                      }
+                    }
+                  </td>
+                }
+                <td class="min-w-72 text-xs text-red-700">
+                  @for (error of erroresFila(item.fila.numeroFila); track $index) { <p>{{ error.campo }}: {{ error.mensaje }}</p> }
+                </td>
+                @if (r.estado === 'VALIDADA') {
+                  <td><button type="button" class="text-red-700 disabled:text-slate-400" (click)="quitar(item.index)" [disabled]="!editable()" [attr.aria-label]="'Quitar fila ' + item.fila.numeroFila"><mat-icon>delete</mat-icon></button></td>
+                }
+              </tr>
+            } @empty { <tr><td [attr.colspan]="columnas.length + 2 + (r.estado === 'VALIDADA' || (esActas && r.estado === 'CONFIRMADA') ? 1 : 0)">No hay filas para mostrar.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+      <div class="flex flex-wrap items-center justify-center gap-3 text-sm sm:justify-end">
+        <button type="button" class="btn-action-gray" (click)="pagina.set(pagina() - 1)" [disabled]="pagina() <= 0">Anterior</button>
+        <span>{{ filasPagina().length }} de {{ filtradas().length }} filas · Página {{ pagina() + 1 }} de {{ paginas() }}</span>
+        <button type="button" class="btn-action-gray" (click)="pagina.set(pagina() + 1)" [disabled]="pagina() >= paginas() - 1">Siguiente</button>
+      </div>
+    </section>
+  }
+
+</section>

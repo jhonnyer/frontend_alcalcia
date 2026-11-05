@@ -7,6 +7,9 @@ import { BeneficiarioProyectoUpdateComponent } from "./pages/beneficiario-proyec
 import { ReportDashboardComponent } from "./pages/dashboard-proyectos/report-dashboard.component";
 import { ImportacionProyectosComponent } from "./pages/importacion-proyectos/importacion-proyectos.component";
 import { GestionarCargasProyectosComponent } from "./pages/gestionar-cargas-proyectos/gestionar-cargas-proyectos.component";
+import { ImportacionOperativaComponent } from "../imports/importacion-operativa.component";
+import { GestionarCargasOperativasComponent } from "../imports/gestionar-cargas-operativas.component";
+import { secretaryContextGuard } from "../../core/guards/secretary-context.guard";
 
 export const PROJECTS_ROUTES: Routes = [
   {
@@ -22,6 +25,19 @@ export const PROJECTS_ROUTES: Routes = [
     path: 'update/:id',
     component: ProjectUpdateComponent,
     data: { modo: 'editar' }
+  },
+  {
+    path: 'add-beneficiary/importacion-masiva/gestionar',
+    component: GestionarCargasOperativasComponent,
+    canActivate: [secretaryContextGuard],
+    data: { tipoImportacion: 'ASOCIACIONES' }
+  },
+  {
+    path: 'add-beneficiary/importacion-masiva',
+    component: ImportacionOperativaComponent,
+    canActivate: [secretaryContextGuard],
+    canDeactivate: [(c: ImportacionOperativaComponent) => c.puedeSalir()],
+    data: { tipoImportacion: 'ASOCIACIONES' }
   },
   {
     path: 'add-beneficiary/create',

@@ -7,9 +7,20 @@
   }
   <div [hidden]="!!loadError()">
   <!-- 🔹 HEADER -->
-  <header class="flex flex-wrap justify-between items-end gap-3 mb-4">
+  <header class="mb-4 flex flex-col gap-3">
+    <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
     <h1 class="!m-0 !text-xl !font-semibold !leading-tight text-gray-800">Beneficiarios en proyectos</h1>
+    <div class="grid w-full gap-2 sm:flex sm:flex-wrap xl:w-auto">
+    <a routerLink="/projects/add-beneficiary/importacion-masiva" class="btn-action-blue justify-center">
+      <mat-icon>upload_file</mat-icon> Carga masiva
+    </a>
+    <a routerLink="/projects/add-beneficiary/importacion-masiva/gestionar" class="btn-action-gray justify-center">
+      <mat-icon>history</mat-icon> Gestionar cargas
+    </a>
+    </div>
+    </div>
 
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div class="flex w-full flex-col gap-1 text-sm text-slate-600 lg:w-96">
       <span class="font-semibold">Filtrar por proyecto</span>
       <div class="relative">
@@ -37,6 +48,7 @@
       <mat-icon>picture_as_pdf</mat-icon>
       {{ isExportingPdf ? 'Generando PDF' : 'Exportar PDF' }}
     </button>
+    </div>
   </header>
 
   <!-- 🔹 TABLA -->

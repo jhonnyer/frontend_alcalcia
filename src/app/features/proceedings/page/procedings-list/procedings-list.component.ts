@@ -5,7 +5,7 @@ import { ServerPaginationComponent } from '../../../../shared/components/server-
 import { toColumnFilters, TableColumnFilters } from '../../../../core/models/table-column-filters';
 import { ChangeDetectionStrategy, Component, computed, inject, Injector, OnInit, signal } from '@angular/core';
 import { CdkTableModule } from '@angular/cdk/table';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ActasService } from '../../../../core/services/actas.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import {
@@ -34,6 +34,7 @@ import { TableFilterToolbarComponent } from '../../../../shared/components/table
   selector: 'app-procedings-list',
   standalone: true,
   imports: [
+    RouterLink,
     TableFilterToolbarComponent,
     CommonModule,
     CdkTableModule,

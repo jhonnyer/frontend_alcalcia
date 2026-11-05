@@ -1,0 +1,74 @@
+<section class="min-h-full min-w-0 max-w-full space-y-4 bg-slate-50 p-3 sm:p-6">
+  <header class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+    <div class="min-w-0">
+      <a [routerLink]="volver" class="text-sm font-semibold text-blue-700">Volver al listado</a>
+      <h1 class="!mb-2 !mt-2 !text-xl !font-semibold !leading-tight text-slate-900">{{ titulo }}</h1>
+      <p class="text-sm text-slate-600">Consulta tus cargas de esta secretaría, continúa pendientes y revisa el historial.</p>
+    </div>
+    <div class="grid w-full gap-2 sm:flex sm:flex-wrap xl:w-auto xl:shrink-0">
+      <a [routerLink]="rutaCarga" class="btn-action-blue justify-center"><mat-icon>upload_file</mat-icon> Nueva carga masiva</a>
+      <button type="button" class="btn-action-gray justify-center" (click)="cargar()" [disabled]="cargando() || eliminando() !== null">
+        <mat-icon>refresh</mat-icon> Actualizar
+      </button>
+    </div>
+  </header>
+  @if (errorCarga()) {
+    <div role="alert" class="rounded-lg bg-red-50 p-4 text-sm text-red-800">
+      {{ errorCarga() }}
+      <button type="button" class="btn-action-gray ml-2" (click)="cargar()" [disabled]="cargando() || eliminando() !== null">Reintentar</button>
+    </div>
+  }
+  <section class="min-w-0 space-y-4 rounded-xl border border-slate-200 bg-white p-3 sm:p-4">
+    <div class="flex flex-wrap gap-2 border-b border-slate-200" role="tablist" aria-label="Estado de las cargas">
+      <button type="button" role="tab" class="flex-1 px-3 py-3 text-sm font-semibold sm:flex-none"
+        [class.text-blue-700]="pestana() === 'pendientes'" [attr.aria-selected]="pestana() === 'pendientes'"
+        (click)="cambiarPestana('pendientes')">Pendientes ({{ pendientes().length }})</button>
+      <button type="button" role="tab" class="flex-1 px-3 py-3 text-sm font-semibold sm:flex-none"
+        [class.text-blue-700]="pestana() === 'historial'" [attr.aria-selected]="pestana() === 'historial'"
+        (click)="cambiarPestana('historial')">Historial ({{ historico().length }})</button>
+    </div>
+    <p class="text-sm text-slate-600">
+      Las cargas pendientes pueden corregirse y confirmarse durante 24 horas.
+      El historial incluye las confirmadas y las expiradas; las confirmadas no se pueden eliminar.
+    </p>
+    <input class="input-base w-full sm:max-w-md" aria-label="Buscar cargas" placeholder="Buscar por archivo, estado o identificador"
+      [ngModel]="filtro()" (ngModelChange)="buscar($event)" />
+    @if (cargando()) {
+      <p role="status" class="text-sm text-blue-700">Consultando cargas...</p>
+    } @else {
+      <div class="max-w-full overflow-auto">
+        <table class="tabla-cargas table-compact w-full md:min-w-[720px]">
+          <thead><tr><th>Archivo</th><th>Estado</th><th>Creación</th><th>Confirmación</th><th>Filas</th><th>Operaciones</th><th>Acciones</th></tr></thead>
+          <tbody>
+            @for (carga of filasPagina(); track carga.id) {
+              <tr>
+                <td data-label="Archivo" class="break-words">{{ carga.nombreArchivo }}</td><td data-label="Estado">{{ carga.estado }}</td>
+                <td data-label="Creación">{{ carga.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td data-label="Confirmación">{{ carga.fechaConfirmacion ? (carga.fechaConfirmacion | date:'dd/MM/yyyy HH:mm') : 'Sin confirmar' }}</td>
+                <td data-label="Filas">{{ carga.totalFilas }}</td><td data-label="Operaciones">{{ carga.totalOperaciones }}</td>
+                <td data-label="Acciones" class="whitespace-nowrap">
+                  <div class="flex flex-nowrap items-center gap-2">
+                  @if (eliminando() === null) {
+                    <a class="btn-action-gray !min-h-8 !px-2 !py-1 !text-xs" [routerLink]="rutaCarga" [queryParams]="{ importacionId: carga.id }">
+                      {{ carga.estado === 'VALIDADA' ? 'Continuar' : 'Ver detalle' }}
+                    </a>
+                  }
+                  @if (carga.estado !== 'CONFIRMADA') {
+                    <button type="button" class="btn-action-gray !min-h-8 !px-2 !py-1 !text-xs !text-red-700 disabled:!text-slate-400" (click)="eliminar(carga)"
+                      [disabled]="eliminando() !== null">{{ eliminando() === carga.id ? 'Eliminando...' : 'Eliminar' }}</button>
+                  }
+                  </div>
+                </td>
+              </tr>
+            } @empty { <tr><td colspan="7">No hay cargas para mostrar.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+      <div class="flex flex-wrap items-center justify-center gap-3 text-sm sm:justify-end">
+        <button type="button" class="btn-action-gray" (click)="pagina.set(paginaActual() - 1)" [disabled]="paginaActual() <= 0">Anterior</button>
+        <span>{{ filasPagina().length }} de {{ filtradas().length }} cargas · Página {{ paginaActual() + 1 }} de {{ paginas() }}</span>
+        <button type="button" class="btn-action-gray" (click)="pagina.set(paginaActual() + 1)" [disabled]="paginaActual() >= paginas() - 1">Siguiente</button>
+      </div>
+    }
+  </section>
+</section>

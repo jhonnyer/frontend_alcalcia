@@ -2,7 +2,7 @@
   class="
     scrollbar-custom bg-gradient-to-br from-gray-800 to-gray-900
     fixed z-[60] my-4 ml-4 h-[calc(100dvh-32px)] overscroll-contain
-    rounded-xl shadow-lg overflow-y-auto select-none
+    rounded-xl shadow-lg overflow-hidden select-none flex flex-col
     transition-transform duration-300 ease-in-out transform-gpu will-change-transform
   "
   [ngClass]="{
@@ -17,7 +17,7 @@
 
   <!-- Header -->
   <div
-    class="sticky top-0 z-10 border-b border-white/20 
+    class="relative shrink-0 z-10 border-b border-white/20
           flex items-center justify-between 
           px-14 xl:px-4 py-3 bg-gradient-to-br from-gray-800 to-gray-900"
   >
@@ -70,7 +70,7 @@
 
 
   <!-- Menú -->
-  <div class="m-3 space-y-1 pt-1">
+  <div #menu class="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-1">
     <a routerLink="/mi-perfil" routerLinkActive="bg-white/20"
        class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white hover:bg-white/10"
        [attr.title]="collapsed ? 'Mi perfil' : null">
@@ -78,7 +78,7 @@
       @if (!collapsed) { <span>Mi perfil</span> }
     </a>
     @if (isSuperAdmin) {
-      <app-list-nucleo [collapsed]="collapsed" />
+      <app-list-nucleo #menuSection [collapsed]="collapsed" [menuReset]="menuReset()" />
       <a routerLink="/users" routerLinkActive="bg-white/20"
         class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-white hover:bg-white/10"
         [attr.title]="collapsed ? 'Panel administrativo' : null">
@@ -99,23 +99,32 @@
       </a>
     } @else {
     <app-list-home [collapsed]="collapsed" />
-    <app-list-nucleo [collapsed]="collapsed" />
-    <app-list-projects [collapsed]="collapsed" />
-    <app-list-proceedings [collapsed]="collapsed" />
-    <app-list-responsible [collapsed]="collapsed" />
+    <app-list-nucleo #menuSection [collapsed]="collapsed" [menuReset]="menuReset()" />
+    <app-list-projects #menuSection [collapsed]="collapsed" [menuReset]="menuReset()" />
+    <app-list-proceedings #menuSection [collapsed]="collapsed" [menuReset]="menuReset()" />
+    <app-list-responsible #menuSection [collapsed]="collapsed" [menuReset]="menuReset()" />
     }
   </div>
 
   <!-- Cerrar sesión -->
-  <div class="sticky bottom-0 mt-4 border-t border-white/20 bg-gray-900 p-3">
+  <div class="flex shrink-0 items-center gap-1 border-t border-white/20 bg-gray-900 p-3">
     <button
       type="button"
       (click)="logout()"
-      class="w-full flex items-center gap-4 px-4 py-3 text-xs rounded-lg font-bold text-white
+      class="min-w-0 flex-1 flex items-center gap-3 px-3 py-3 text-xs rounded-lg font-bold text-white
              hover:bg-white/10 transition-colors duration-200"
+      [attr.aria-label]="collapsed ? 'Cerrar sesión' : null"
+      title="Cerrar sesión"
     >
       <mat-icon>logout</mat-icon>
-      Cerrar sesión
+      @if (!collapsed) { <span>Cerrar sesión</span> }
     </button>
+    @if (!collapsed && hayMenusDesplegados) {
+      <button type="button" (click)="recogerMenus(menu)"
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white/70 hover:bg-white/10 hover:text-white"
+        title="Recoger todos los menús" aria-label="Recoger todos los menús">
+        <mat-icon aria-hidden="true">unfold_less</mat-icon>
+      </button>
+    }
   </div>
 </aside>

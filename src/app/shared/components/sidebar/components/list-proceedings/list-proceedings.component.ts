@@ -22,6 +22,9 @@ export class ListProceedingsComponent {
   ) {}
   activeMenu: boolean = false;
   @Input() collapsed = false;
+  @Input() set menuReset(value: number) {
+    this.activeMenu = false;
+  }
   menuItems = [
     { label: 'Registrar acta', link: 'proceedings/register'},
     { label: 'Listado de actas', link: 'proceedings'},

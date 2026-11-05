@@ -28,6 +28,9 @@ export class ListResponsibleComponent implements OnInit {
 
   activeMenu: boolean = false;
   @Input() collapsed = false;
+  @Input() set menuReset(value: number) {
+    this.activeMenu = false;
+  }
   menuGroups = [
     {
       title: 'Administración',

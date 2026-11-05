@@ -78,6 +78,10 @@ las vinculaciones inactivas. No se requiere migracion de base de datos.
 
 ## Cargas masivas y plantillas por proceso
 
+El menu lateral mantiene sus acciones inferiores visibles mientras se desplazan
+las opciones. El icono Recoger todos los menus, junto a Cerrar sesion, aparece
+solo con secciones desplegadas; las cierra y vuelve al inicio del menu.
+
 La asignacion manual a proyectos y las cargas operativas incluyen Consultar
 beneficiarios, que abre el listado existente en otra pestana para buscar y
 copiar el documento sin perder el formulario ni las correcciones de la carga.

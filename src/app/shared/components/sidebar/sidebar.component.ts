@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, signal, SimpleChanges } from '@angular/core';
+import { afterNextRender, Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, QueryList, signal, SimpleChanges, ViewChildren } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, merge, of, Subject, switchMap, timeout } from 'rxjs';
@@ -44,6 +44,25 @@ export class SidebarComponent implements OnInit {
   readonly institutionError = signal('');
   readonly institutionLogo = signal('');
   readonly logoError = signal(false);
+  readonly menuReset = signal(0);
+  private readonly menuReady = signal(false);
+  @ViewChildren('menuSection') private menuSections?: QueryList<
+    ListNucleoComponent | ListProjectsComponent | ListProceedingsComponent | ListResponsibleComponent
+  >;
+
+  constructor() {
+    afterNextRender(() => this.menuReady.set(true));
+  }
+
+  get hayMenusDesplegados(): boolean {
+    return this.menuReady() && (this.menuSections?.some(section => section.activeMenu) ?? false);
+  }
+
+  recogerMenus(menu: HTMLElement): void {
+    this.menuSections?.forEach(section => section.activeMenu = false);
+    this.menuReset.update(value => value + 1);
+    menu.scrollTop = 0;
+  }
 
   private releaseLogo(): void {
     const url = this.institutionLogo();

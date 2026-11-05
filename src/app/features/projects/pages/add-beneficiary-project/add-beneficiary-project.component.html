@@ -22,6 +22,11 @@
         <button type="button" class="btn-action-gray w-full sm:w-auto" [disabled]="saving()"
           (click)="searchBeneficiario.setValue('')">Limpiar</button>
       }
+      <a routerLink="/beneficary" target="_blank" rel="noopener noreferrer"
+        class="btn-action-gray w-full gap-1 !text-xs sm:w-auto"
+        aria-label="Consultar beneficiarios (abre en otra pestaña)">
+        Consultar beneficiarios <mat-icon aria-hidden="true">open_in_new</mat-icon>
+      </a>
     </div>
     <p id="beneficiary-search-help" class="!mb-0 !mt-1 text-xs text-slate-500">Búsqueda automática con el documento completo (3 a 40 caracteres: letras, números, guiones o espacios).</p>
     @if (searchBeneficiario.invalid && searchBeneficiario.touched) {

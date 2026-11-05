@@ -4,7 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BeneficiarioProyectoService } from '../../../../core/services/beneficiarioProyecto.service';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { BeneficiaryService } from '../../../../core/services/beneficiary.service';
 import { IBeneficiarioUnique } from '../../../../core/models/beneficiary.models';
@@ -17,7 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-add-beneficiary-project',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, RouterLink],
   templateUrl: './add-beneficiary-project.component.html',
   styleUrl: './add-beneficiary-project.component.scss',
 })

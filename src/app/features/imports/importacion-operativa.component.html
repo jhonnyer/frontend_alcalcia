@@ -50,10 +50,17 @@
         }
       </ul>
     </details>
-    <label class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2 text-center text-sm font-semibold text-white sm:w-fit">
-      <mat-icon>upload_file</mat-icon> Seleccionar Excel para una nueva carga
-      <input type="file" class="sr-only" accept=".xlsx" (change)="seleccionarArchivo($event)" [disabled]="ocupado() || !preparado()" />
-    </label>
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <label class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2 text-center text-sm font-semibold text-white sm:w-auto">
+        <mat-icon>upload_file</mat-icon> Seleccionar Excel para una nueva carga
+        <input type="file" class="sr-only" accept=".xlsx" (change)="seleccionarArchivo($event)" [disabled]="ocupado() || !preparado()" />
+      </label>
+      <a routerLink="/beneficary" target="_blank" rel="noopener noreferrer"
+        class="btn-action-gray w-full gap-1 !text-xs sm:w-auto"
+        aria-label="Consultar beneficiarios (abre en otra pestaña)">
+        Consultar beneficiarios <mat-icon aria-hidden="true">open_in_new</mat-icon>
+      </a>
+    </div>
     @if (ocupado()) { <p role="status" class="text-sm font-semibold text-blue-700">Procesando, espera antes de salir...</p> }
   </section>
 

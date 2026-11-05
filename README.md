@@ -78,6 +78,10 @@ las vinculaciones inactivas. No se requiere migracion de base de datos.
 
 ## Cargas masivas y plantillas por proceso
 
+La asignacion manual a proyectos y las cargas operativas incluyen Consultar
+beneficiarios, que abre el listado existente en otra pestana para buscar y
+copiar el documento sin perder el formulario ni las correcciones de la carga.
+
 1. Descargar la plantilla compartida desde la carga de nucleos. CARGA_ACTORES
    conserva exactamente sus 20 columnas y una fila por beneficiario.
    DETALLE_ACTAS contiene Grupo Acta, Numero Documento, Proyecto, Categoria,

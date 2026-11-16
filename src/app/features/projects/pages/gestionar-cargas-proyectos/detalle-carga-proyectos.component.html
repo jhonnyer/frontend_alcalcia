@@ -1,0 +1,119 @@
+<section class="detalle-carga min-h-full min-w-0 max-w-full bg-slate-50 p-4 sm:p-6">
+  <header class="mx-auto min-w-0 max-w-[1600px]">
+    <a routerLink="/projects/importacion-masiva/gestionar" class="mb-2 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">
+      <mat-icon class="text-base">arrow_back</mat-icon>Volver a gestionar cargas
+    </a>
+    <h1 class="detalle-titulo text-slate-900">Detalle de carga confirmada</h1>
+    <p class="mt-1 text-sm text-slate-600">Solo lectura. Muestra el contenido guardado al confirmar, no el inventario actual.</p>
+  </header>
+
+  <main class="mx-auto mt-5 min-w-0 max-w-[1600px] space-y-4">
+    @if (cargando()) {
+      <p role="status" class="rounded-xl bg-blue-50 p-5 text-sm text-blue-800">Consultando detalle...</p>
+    } @else if (errorCarga()) {
+      <div role="alert" class="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">
+        <p>{{ errorCarga() }}</p>
+        <button type="button" class="btn-action-gray mt-3" (click)="cargarDetalle()">Reintentar</button>
+      </div>
+    } @else {
+      @if (detalle(); as d) {
+      <section class="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div class="min-w-0 flex-1">
+            <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Archivo importado</p>
+            <h2 class="detalle-archivo text-slate-900">{{ d.carga.nombreArchivo }}</h2>
+          </div>
+          <span class="max-w-full self-start rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 sm:shrink-0">Confirmada · Solo lectura</span>
+        </div>
+        <dl class="detalle-metadatos mt-4 grid gap-3 border-t border-slate-100 pt-4 text-sm sm:grid-cols-3">
+          <div class="min-w-0"><dt class="text-xs text-slate-500">Operación</dt><dd class="mt-1 font-medium text-slate-800">{{ esActualizacion() ? 'Actualizar datos / sumar stock' : esInventario() ? 'Agregar inventario' : 'Crear proyectos' }}</dd></div>
+          <div class="min-w-0"><dt class="text-xs text-slate-500">Usuario</dt><dd class="mt-1 font-medium text-slate-800">{{ d.carga.usuario }}</dd></div>
+          <div class="min-w-0"><dt class="text-xs text-slate-500">Confirmación</dt><dd class="mt-1 font-medium text-slate-800">{{ d.carga.fechaConfirmacion | date:'yyyy-MM-dd HH:mm' }}</dd></div>
+        </dl>
+        <dl class="mt-4 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+          <div class="detalle-total"><dt>Filas</dt><dd>{{ d.carga.totalFilas }}</dd></div>
+          <div class="detalle-total"><dt>Proyectos</dt><dd>{{ d.carga.totalProyectos }}</dd></div>
+          <div class="detalle-total"><dt>Categorías</dt><dd>{{ d.carga.totalCategorias }}</dd></div>
+          <div class="detalle-total"><dt>Productos</dt><dd>{{ d.carga.totalProductos }}</dd></div>
+        </dl>
+        <div class="mt-4 min-w-0 border-t border-slate-100 pt-3">
+          <p class="text-xs font-medium text-slate-500">Proyectos involucrados</p>
+          <p class="detalle-proyectos mt-1 text-sm text-slate-700">{{ d.carga.proyectosCreados || '—' }}</p>
+        </div>
+      </section>
+
+      @if (!d.contenidoDisponible) {
+        <p role="status" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          Esta carga antigua no conserva el detalle de sus filas. Solo está disponible el resumen del historial.
+        </p>
+      } @else {
+        <label class="flex w-full min-w-0 max-w-md flex-col gap-1 text-sm font-semibold text-slate-700">
+          Buscar en las filas registradas
+          <input class="input-base" placeholder="Proyecto, categoría o producto" [value]="filtro()" (input)="cambiarFiltro($event)" />
+        </label>
+        @if (esActualizacion()) {
+          <p class="text-xs text-slate-600">Stock previo es el valor registrado antes de la entrada. Cantidad agregada corresponde a esta carga; un producto repetido se sumó una sola vez.</p>
+        }
+        <p id="detalle-scroll-ayuda" class="text-xs text-slate-500 md:hidden">Desliza la tabla horizontalmente para ver todas las columnas.</p>
+        <div role="region" aria-label="Filas registradas en la carga confirmada" aria-describedby="detalle-scroll-ayuda" tabindex="0"
+          class="min-w-0 max-w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500">
+          <table class="detalle-tabla w-full text-left text-xs" [ngClass]="esInventario() ? 'min-w-[800px]' : 'min-w-[1300px]'">
+            <caption class="sr-only">Filas registradas en la carga confirmada</caption>
+            <thead class="bg-slate-100 text-slate-700">
+              <tr>
+                <th class="p-3">Fila</th><th class="p-3">Proyecto</th>
+                @if (!esInventario()) {
+                  <th class="p-3">Descripción proyecto</th><th class="p-3">Tipo</th>
+                  <th class="p-3">Inicio</th><th class="p-3">Fin</th><th class="p-3">Contrato</th>
+                }
+                <th class="p-3">Categoría</th>
+                @if (esInventario()) { <th class="p-3">Descripción categoría</th> }
+                <th class="p-3">Producto</th><th class="p-3">Descripción producto</th>
+                @if (esActualizacion()) {
+                  <th class="p-3">Stock previo</th><th class="p-3">Cantidad agregada</th>
+                } @else {
+                  <th class="p-3">Stock inicial</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of pagina(); track $index) {
+                <tr class="border-t border-slate-100 align-top">
+                  <td class="p-3" data-label="Fila"><span>{{ f.numeroFila ?? '—' }}</span></td>
+                  <td class="p-3" data-label="Proyecto"><span>{{ f.proyecto ?? '—' }}</span></td>
+                  @if (!esInventario()) {
+                    <td class="p-3" data-label="Descripción proyecto"><span>{{ f.descripcionProyecto ?? '—' }}</span></td>
+                    <td class="p-3" data-label="Tipo"><span>{{ f.tipoProyecto ?? '—' }}</span></td>
+                    <td class="p-3" data-label="Inicio"><span>{{ f.fechaInicio ?? '—' }}</span></td>
+                    <td class="p-3" data-label="Fin"><span>{{ f.fechaFin ?? '—' }}</span></td>
+                    <td class="p-3" data-label="Contrato"><span>{{ f.contrato ?? '—' }}</span></td>
+                  }
+                  <td class="p-3" data-label="Categoría"><span>{{ f.categoria ?? '—' }}</span></td>
+                  @if (esInventario()) {
+                    <td class="p-3" data-label="Descripción categoría"><span>{{ f.descripcionCategoria ?? '—' }}</span></td>
+                  }
+                  <td class="p-3" data-label="Producto"><span>{{ f.producto ?? '—' }}</span></td>
+                  <td class="p-3" data-label="Descripción producto"><span>{{ f.descripcionProducto ?? '—' }}</span></td>
+                  @if (esActualizacion()) {
+                    <td class="p-3" data-label="Stock previo"><span>{{ f.stockActual ?? '—' }}</span></td>
+                    <td class="p-3" data-label="Cantidad agregada"><span>{{ f.cantidadAgregar ?? '—' }}</span></td>
+                  } @else {
+                    <td class="p-3" data-label="Stock inicial"><span>{{ f.stock ?? '—' }}</span></td>
+                  }
+                </tr>
+              } @empty {
+                <tr><td class="detalle-vacio p-6 text-center text-slate-500" [attr.colspan]="esInventario() ? (esActualizacion() ? 8 : 7) : 11">
+                  {{ filtro().trim() ? 'No hay filas que coincidan con la búsqueda.' : 'No hay filas registradas.' }}
+                </td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <app-server-pagination [pageIndex]="paginaActual()" [totalPages]="totalPaginas()"
+          [totalElements]="filtradas().length" [pageSize]="tamanoPagina()" [pageSizes]="opcionesPagina"
+          (pageChange)="paginaActual.set($event)" (pageSizeChange)="cambiarTamano($event)" />
+      }
+      }
+    }
+  </main>
+</section>

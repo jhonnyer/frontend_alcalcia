@@ -89,3 +89,15 @@ export interface ApiImportacionProyectosHistorialResponse {
   mensaje: string;
   estado: string;
 }
+
+export interface ImportacionProyectosDetalle {
+  carga: ImportacionProyectosHistorica;
+  filas: ImportacionProyectoFila[];
+  contenidoDisponible: boolean;
+}
+
+export interface ApiImportacionProyectosDetalleResponse {
+  respuesta: ImportacionProyectosDetalle;
+  mensaje: string;
+  estado: string;
+}

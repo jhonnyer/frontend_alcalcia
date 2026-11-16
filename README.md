@@ -121,6 +121,11 @@ pestana no elimina filas ni limita lo que se guarda o confirma.
 Gestionar cargas consulta el historial paginado desde el servidor (15 filas
 iniciales, con selector de 10 a 100), permite ir a una pagina y buscar por
 archivo, usuario o proyecto en todas las cargas, no solo en la pagina visible.
+Las cargas confirmadas ofrecen **Ver detalle**, de solo lectura, con el contenido
+guardado al confirmar (no el inventario actual), busqueda y 5 filas por pagina
+inicialmente; al superar 5 filas se habilita la siguiente pagina. El selector
+permite 5, 10, 25, 50 o 100. Las cargas antiguas sin filas guardadas muestran un
+aviso y su resumen; no se reconstruyen con datos actuales.
 Antes de confirmar se valida de nuevo y se solicita aprobacion con un resumen;
 la carga se guarda y confirma por ID/version para no repetir entradas de stock
 ante un reintento. Una carga confirmada no se puede editar.

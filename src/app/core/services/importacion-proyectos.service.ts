@@ -9,6 +9,7 @@ import {
   ImportacionProyectosFilasRequest,
   ContextoImportacionInventario,
   ApiImportacionProyectosBorradorResponse,
+  ApiImportacionProyectosDetalleResponse,
 } from '../models/importacion-proyectos.model';
 
 @Injectable({ providedIn: 'root' })
@@ -54,6 +55,10 @@ export class ImportacionProyectosService {
 
   obtenerBorrador(id: number): Observable<ApiImportacionProyectosBorradorResponse> {
     return this.http.get<ApiImportacionProyectosBorradorResponse>(`${this.url}/borradores/${id}`, { context: checkToken() });
+  }
+
+  obtenerDetalle(id: number): Observable<ApiImportacionProyectosDetalleResponse> {
+    return this.http.get<ApiImportacionProyectosDetalleResponse>(`${this.url}/historial/${id}`, { context: checkToken() });
   }
 
   confirmarBorrador(id: number, versionDatos: number): Observable<ApiImportacionProyectosResponse> {

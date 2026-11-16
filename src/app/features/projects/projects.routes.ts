@@ -7,6 +7,7 @@ import { BeneficiarioProyectoUpdateComponent } from "./pages/beneficiario-proyec
 import { ReportDashboardComponent } from "./pages/dashboard-proyectos/report-dashboard.component";
 import { ImportacionProyectosComponent } from "./pages/importacion-proyectos/importacion-proyectos.component";
 import { GestionarCargasProyectosComponent } from "./pages/gestionar-cargas-proyectos/gestionar-cargas-proyectos.component";
+import { DetalleCargaProyectosComponent } from "./pages/gestionar-cargas-proyectos/detalle-carga-proyectos.component";
 import { ImportacionOperativaComponent } from "../imports/importacion-operativa.component";
 import { GestionarCargasOperativasComponent } from "../imports/gestionar-cargas-operativas.component";
 import { secretaryContextGuard } from "../../core/guards/secretary-context.guard";
@@ -68,4 +69,5 @@ export const PROJECTS_ROUTES: Routes = [
   { path: 'dashboard', component: ReportDashboardComponent },
   { path: 'importacion-masiva', component: ImportacionProyectosComponent, canDeactivate: [(c: ImportacionProyectosComponent) => c.puedeSalir()] },
   { path: 'importacion-masiva/gestionar', component: GestionarCargasProyectosComponent },
+  { path: 'importacion-masiva/gestionar/:id', component: DetalleCargaProyectosComponent, canActivate: [secretaryContextGuard] },
 ]

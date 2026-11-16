@@ -1,0 +1,56 @@
+:host {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.detalle-carga .detalle-titulo {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+
+.detalle-carga .detalle-archivo {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.detalle-metadatos dd,
+.detalle-proyectos,
+.detalle-tabla td {
+  overflow-wrap: anywhere;
+}
+
+.detalle-total {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid #f1f5f9;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+}
+
+.detalle-total dt {
+  color: #64748b;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.detalle-total dd {
+  margin: 0.25rem 0 0;
+  color: #0f172a;
+  font-size: 1.125rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+  .detalle-carga .detalle-titulo {
+    font-size: 1.5rem;
+  }
+}
+

@@ -76,6 +76,60 @@ Esta vista y el formulario usan `/responsables/gestion` y
 Los selectores operativos siguen usando `/responsables/list`, que excluye
 las vinculaciones inactivas. No se requiere migracion de base de datos.
 
+## Cargas de inventario desde un proyecto
+
+En **Actualizar Proyecto > Inventario del proyecto** hay dos accesos que
+reutilizan la vista previa, las correcciones y la confirmacion de cargas:
+
+- **Cargar categorias y productos**: plantilla con Categoria, Descripcion
+  Categoria, Producto, Descripcion Producto y Stock (cantidad inicial).
+  Una fila por producto; una categoria existente se reconoce por nombre dentro
+  del proyecto y se reutiliza sin modificarla. Los productos deben ser nuevos.
+  Si la categoria ya existe, su descripcion puede quedar vacia y se conserva
+  la descripcion registrada.
+  La hoja CATEGORIAS_EXISTENTES permite consultar los nombres actuales.
+- **Actualizar datos y agregar stock**: descarga los datos actuales del
+  proyecto, con referencias y versiones ocultas. Permite renombrar categorias
+  y productos y editar sus descripciones. Stock Actual esta bloqueado en Excel
+  y es de solo lectura en la vista previa; se consulta de nuevo al validar.
+  Cantidad a Agregar inicia en 0 y solo acepta enteros no negativos:
+  se suma al stock vigente, nunca lo reemplaza ni resta. No cambia codigos,
+  fechas ni asociaciones. Una descripcion vacia la borra; omitir una fila no elimina
+  ni inactiva datos. En la vista previa, editar una categoria aplica el cambio
+  a todas sus filas. Las salidas se realizan por actas.
+
+Ambas plantillas usan INVENTARIO_PROYECTO, pertenecen al proyecto y secretaria
+de origen y admiten hasta 5000 filas y 10 MB. No se modifican datos compartidos
+con otros proyectos; las referencias ajenas y los nombres duplicados se rechazan.
+Si los nombres o descripciones cambiaron desde la descarga, se requiere una
+plantilla actualizada; los movimientos de stock no invalidan la plantilla.
+La confirmacion es transaccional, regresa al proyecto y queda en Gestionar
+cargas, distinguiendo creacion de proyectos, adicion de inventario y
+actualizacion de datos/entradas de stock. La vista de inventario incluye
+Volver al proyecto (o Volver a proyectos si no hay uno seleccionado).
+
+Las tres cargas permiten **Guardar borrador**, incluso con errores. Los
+borradores se conservan en el servidor y su autor puede retomarlos desde
+**Gestionar cargas > Continuar**. Se avisa al salir con cambios sin guardar.
+Las vistas de carga de proyectos y de inventario tienen pestanas **Todas las
+filas** y **Errores**. La segunda muestra solo las filas afectadas, con sus
+mensajes y campos editables, busqueda y paginacion desde 5 filas por pagina
+(10 inicialmente); los errores generales del
+archivo se muestran aparte. Al validar con errores se abre esta pestana.
+Despues de corregir, **Validar cambios** actualiza los errores; cambiar de
+pestana no elimina filas ni limita lo que se guarda o confirma.
+Gestionar cargas consulta el historial paginado desde el servidor (15 filas
+iniciales, con selector de 10 a 100), permite ir a una pagina y buscar por
+archivo, usuario o proyecto en todas las cargas, no solo en la pagina visible.
+Antes de confirmar se valida de nuevo y se solicita aprobacion con un resumen;
+la carga se guarda y confirma por ID/version para no repetir entradas de stock
+ante un reintento. Una carga confirmada no se puede editar.
+
+Esta version requiere actualizar el backend y aplicar una sola vez
+`doc\BaseDatos\migraciones\V019__borradores_cargas_proyectos.sql` en el repositorio
+backend, con copia de seguridad, base de datos seleccionada y backend detenido.
+La migracion amplia el historial existente y no modifica las existencias.
+
 ## Cargas masivas y plantillas por proceso
 
 El menu lateral mantiene sus acciones inferiores visibles mientras se desplazan

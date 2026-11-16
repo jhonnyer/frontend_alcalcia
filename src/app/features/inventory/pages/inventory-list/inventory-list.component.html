@@ -17,6 +17,11 @@
   <!-- 🧭 HEADER -->
   <header class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
     <div>
+    <a class="mb-2 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:text-blue-900"
+      [routerLink]="selectedProjectId() ? ['/projects/update', selectedProjectId()] : ['/projects']">
+      <mat-icon class="text-base">arrow_back</mat-icon>
+      {{ selectedProjectId() ? 'Volver al proyecto' : 'Volver a proyectos' }}
+    </a>
     <h1 class="!m-0 !text-xl !font-bold text-blue_primary flex items-center gap-2">
       <mat-icon class="text-blue_primary">inventory_2</mat-icon>
       Inventario por proyecto

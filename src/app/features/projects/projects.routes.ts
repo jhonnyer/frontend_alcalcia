@@ -27,6 +27,20 @@ export const PROJECTS_ROUTES: Routes = [
     data: { modo: 'editar' }
   },
   {
+    path: ':id/inventario/importar',
+    component: ImportacionProyectosComponent,
+    canActivate: [secretaryContextGuard],
+    canDeactivate: [(c: ImportacionProyectosComponent) => c.puedeSalir()],
+    data: { actualizarInventario: false }
+  },
+  {
+    path: ':id/inventario/actualizar',
+    component: ImportacionProyectosComponent,
+    canActivate: [secretaryContextGuard],
+    canDeactivate: [(c: ImportacionProyectosComponent) => c.puedeSalir()],
+    data: { actualizarInventario: true }
+  },
+  {
     path: 'add-beneficiary/importacion-masiva/gestionar',
     component: GestionarCargasOperativasComponent,
     canActivate: [secretaryContextGuard],

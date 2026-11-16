@@ -7,6 +7,8 @@ import {
   ApiImportacionProyectosHistorialResponse,
   ApiImportacionProyectosResponse,
   ImportacionProyectosFilasRequest,
+  ContextoImportacionInventario,
+  ApiImportacionProyectosBorradorResponse,
 } from '../models/importacion-proyectos.model';
 
 @Injectable({ providedIn: 'root' })
@@ -14,12 +16,12 @@ export class ImportacionProyectosService {
   private readonly http = inject(HttpClient);
   private readonly url = `${environment.URL_API}/importaciones-masivas/proyectos`;
 
-  descargarPlantilla(): Observable<Blob> {
-    return this.http.get(`${this.url}/plantilla`, { context: checkToken(), responseType: 'blob' });
+  descargarPlantilla(contexto?: ContextoImportacionInventario): Observable<Blob> {
+    return this.http.get(this.endpoint('plantilla', contexto), { context: checkToken(), responseType: 'blob' });
   }
 
-  simular(archivo: File): Observable<ApiImportacionProyectosResponse> {
-    return this.http.post<ApiImportacionProyectosResponse>(`${this.url}/simular`, this.formData(archivo), {
+  simular(archivo: File, contexto?: ContextoImportacionInventario): Observable<ApiImportacionProyectosResponse> {
+    return this.http.post<ApiImportacionProyectosResponse>(this.endpoint('simular', contexto), this.formData(archivo), {
       context: checkToken(),
     });
   }
@@ -30,16 +32,38 @@ export class ImportacionProyectosService {
     });
   }
 
-  simularFilas(request: ImportacionProyectosFilasRequest): Observable<ApiImportacionProyectosResponse> {
-    return this.http.post<ApiImportacionProyectosResponse>(`${this.url}/simular-filas`, request, { context: checkToken() });
+  simularFilas(request: ImportacionProyectosFilasRequest, contexto?: ContextoImportacionInventario): Observable<ApiImportacionProyectosResponse> {
+    return this.http.post<ApiImportacionProyectosResponse>(this.endpoint('simular-filas', contexto), request, { context: checkToken() });
   }
 
-  confirmarFilas(request: ImportacionProyectosFilasRequest): Observable<ApiImportacionProyectosResponse> {
-    return this.http.post<ApiImportacionProyectosResponse>(`${this.url}/confirmar-filas`, request, { context: checkToken() });
+  confirmarFilas(request: ImportacionProyectosFilasRequest, contexto?: ContextoImportacionInventario): Observable<ApiImportacionProyectosResponse> {
+    return this.http.post<ApiImportacionProyectosResponse>(this.endpoint('confirmar-filas', contexto), request, { context: checkToken() });
   }
 
-  historial(): Observable<ApiImportacionProyectosHistorialResponse> {
-    return this.http.get<ApiImportacionProyectosHistorialResponse>(`${this.url}/historial`, { context: checkToken() });
+  historial(page: number, size: number, busqueda: string): Observable<ApiImportacionProyectosHistorialResponse> {
+    return this.http.get<ApiImportacionProyectosHistorialResponse>(`${this.url}/historial`, {
+      context: checkToken(), params: { page, size, busqueda }
+    });
+  }
+
+  guardarBorrador(request: ImportacionProyectosFilasRequest, id: number | null): Observable<ApiImportacionProyectosBorradorResponse> {
+    return id === null
+      ? this.http.post<ApiImportacionProyectosBorradorResponse>(`${this.url}/borradores`, request, { context: checkToken() })
+      : this.http.put<ApiImportacionProyectosBorradorResponse>(`${this.url}/borradores/${id}`, request, { context: checkToken() });
+  }
+
+  obtenerBorrador(id: number): Observable<ApiImportacionProyectosBorradorResponse> {
+    return this.http.get<ApiImportacionProyectosBorradorResponse>(`${this.url}/borradores/${id}`, { context: checkToken() });
+  }
+
+  confirmarBorrador(id: number, versionDatos: number): Observable<ApiImportacionProyectosResponse> {
+    return this.http.post<ApiImportacionProyectosResponse>(`${this.url}/borradores/${id}/confirmar`, { versionDatos }, { context: checkToken() });
+  }
+
+  private endpoint(accion: string, contexto?: ContextoImportacionInventario): string {
+    return contexto
+      ? `${this.url}/${contexto.idProyecto}/inventario/${accion}?actualizar=${contexto.actualizar}`
+      : `${this.url}/${accion}`;
   }
 
   private formData(archivo: File): FormData {

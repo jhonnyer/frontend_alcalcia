@@ -117,6 +117,16 @@
           <p>Selecciona o crea una categoría para agrupar productos similares, como Alimentos o Herramientas. Puedes editar su nombre sin eliminar productos. Cada ventana guarda sus propios cambios; el botón Guardar superior corresponde a los datos del proyecto.</p>
         </details>
       </div>
+      @if (!saving && !refreshingInventory && !inventoryError) {
+        <div class="mb-4 flex flex-wrap gap-2">
+          <button type="button" class="btn-action-blue" (click)="abrirCargaInventario(false)">
+            <mat-icon class="mr-1 text-base">upload_file</mat-icon> Cargar categorías y productos
+          </button>
+          <button type="button" class="btn-action-gray" (click)="abrirCargaInventario(true)">
+            <mat-icon class="mr-1 text-base">edit_note</mat-icon> Actualizar datos y agregar stock
+          </button>
+        </div>
+      }
       @if (inventoryError) {
         <div role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">
           <p>{{ inventoryError }}</p>

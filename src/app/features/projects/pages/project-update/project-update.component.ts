@@ -228,18 +228,26 @@ export class ProjectUpdateComponent implements OnInit {
   }
 
   async gestionarInventario(idCategoria?: number): Promise<void> {
-    if (this.formFamilyCore.dirty) {
-      const salir = await this.alert.confirm(
-        'Cambios sin guardar',
-        'Los cambios del proyecto no se han guardado. Puedes cancelar para guardarlos antes de abrir el inventario.',
-        'Salir sin guardar',
-        'Seguir editando'
-      );
-      if (!salir) return;
-    }
+    if (!await this.confirmarSalidaInventario()) return;
     this.router.navigate(['/inventory'], {
       queryParams: { idProyecto: this.proyectoId, ...(idCategoria ? { idCategoria } : {}) }
     });
+  }
+
+  async abrirCargaInventario(actualizar: boolean): Promise<void> {
+    if (this.saving || this.refreshingInventory) return;
+    if (!await this.confirmarSalidaInventario()) return;
+    this.router.navigate(['/projects', this.proyectoId, 'inventario', actualizar ? 'actualizar' : 'importar']);
+  }
+
+  private confirmarSalidaInventario(): boolean | Promise<boolean> {
+    if (!this.formFamilyCore.dirty) return true;
+    return this.alert.confirm(
+      'Cambios sin guardar',
+      'Los cambios del proyecto no se han guardado. Puedes cancelar para guardarlos antes de continuar con el inventario.',
+      'Salir sin guardar',
+      'Seguir editando'
+    );
   }
 
   selectCategory(event: Event): void {

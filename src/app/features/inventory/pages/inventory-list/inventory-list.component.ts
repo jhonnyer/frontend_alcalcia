@@ -3,7 +3,7 @@ import { finalize, Subscription, timeout } from 'rxjs';
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CdkTableModule } from '@angular/cdk/table';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductosService } from '../../../../core/services/productos.service';
 import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
@@ -46,6 +46,7 @@ import { ServerPaginationComponent } from '../../../../shared/components/server-
     TableFilterToolbarComponent,
     ServerPaginationComponent,
     CommonModule, 
+    RouterLink,
     CdkTableModule, 
     FlexRenderDirective, 
     TableFilterComponent, 

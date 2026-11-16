@@ -1,4 +1,36 @@
-<div class="project-editor h-[90vh] overflow-y-auto rounded-xl p-3 shadow-inner sm:p-4">
+<div class="project-editor min-w-0 max-w-full rounded-xl p-3 sm:p-4">
+  <header class="project-page-header">
+    <div class="project-heading">
+      <button type="button" mat-button class="project-back" [disabled]="saving" (click)="cancelar()">
+        <mat-icon>arrow_back</mat-icon> Proyectos
+      </button>
+      <h1 class="project-page-title">{{ modo === 'crear' ? 'Registrar proyecto' : (formFamilyCore.get('nombre')?.value || 'Gestión del proyecto') }}</h1>
+      @if (formFamilyCore.dirty) {
+        <button type="button" class="project-pending" (click)="activeTab.set(0)">Datos del proyecto sin guardar · Revisar</button>
+      }
+    </div>
+    @if (modo === 'editar') {
+      <div class="project-page-actions">
+        @if (!loadingProject && !projectLoadError) {
+          <span class="project-status" [class.project-status-inactive]="formFamilyCore.get('estado')?.value === 'I'">
+            {{ formFamilyCore.get('estado')?.value === 'A' ? 'Activo' : formFamilyCore.get('estado')?.value === 'I' ? 'Inactivo' : 'Sin estado' }}
+          </span>
+        }
+        <button type="button" mat-stroked-button [matMenuTriggerFor]="accionesProyecto"
+          [disabled]="loadingProject || !!projectLoadError || saving">
+          <mat-icon>more_horiz</mat-icon>{{ loadingPdf ? 'Generando PDF…' : 'Más acciones' }}
+        </button>
+        <mat-menu #accionesProyecto="matMenu">
+          <button type="button" mat-menu-item [disabled]="loadingPdf || loadingProject || !!projectLoadError || saving" (click)="exportarPdf()">
+            <mat-icon>picture_as_pdf</mat-icon><span>Exportar PDF</span>
+          </button>
+          <button type="button" mat-menu-item [disabled]="saving || refreshingInventory" (click)="gestionarInventario()">
+            <mat-icon>open_in_new</mat-icon><span>Ver inventario completo</span>
+          </button>
+        </mat-menu>
+      </div>
+    }
+  </header>
   @if (loadingProject) {
     <p role="status" class="rounded-lg bg-blue-50 p-4 text-sm text-blue-900">Cargando proyecto…</p>
   }
@@ -8,181 +40,174 @@
       <button type="button" class="btn-action-blue" (click)="getProyectoById()">Reintentar</button>
     </div>
   }
+  @if (inventoryError) {
+    <div role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">
+      <p>{{ inventoryError }}</p>
+      <button type="button" class="btn-action-blue" (click)="getProyectoById(true)" [disabled]="refreshingInventory">Reintentar</button>
+    </div>
+  }
+  @if (refreshingInventory) { <p role="status" class="text-sm text-blue-700">Actualizando categorías y productos…</p> }
+
+  @if (modo === 'editar') {
+    <mat-tab-group class="project-tabs" animationDuration="0ms" [preserveContent]="true"
+      [selectedIndex]="activeTab()" (selectedIndexChange)="activeTab.set($event)">
+      <mat-tab label="Datos del proyecto">
+        <ng-template matTabContent><ng-container [ngTemplateOutlet]="datosProyecto" /></ng-template>
+      </mat-tab>
+      <mat-tab label="Inventario" [disabled]="loadingProject || !!projectLoadError || saving">
+        <ng-template matTabContent><ng-container [ngTemplateOutlet]="inventarioProyecto" /></ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  } @else {
+    <ng-container [ngTemplateOutlet]="datosProyecto" />
+  }
+
+  <ng-template #datosProyecto>
   <form [formGroup]="formFamilyCore" (ngSubmit)="onSubmit()" class="space-y-4">
-    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-      <div class="mb-4 flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="project-heading flex-1">
-          <span class="project-eyebrow">Datos del proyecto</span>
-          <h2 class="!m-0 !text-xl !font-bold !leading-tight text-gray-800">
-            {{ modo === 'crear' ? 'Registrar Proyecto' : 'Actualizar Proyecto' }}
-          </h2>
-          <p class="!mb-0 !mt-1 text-xs text-gray-600">
-            {{ modo === 'crear' ? 'Completa los datos para crear un nuevo proyecto' : 'Actualiza los datos del proyecto seleccionado' }}
+    <div class="project-panel rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+      <p class="project-form-help">Los campos con * son obligatorios.</p>
+      <fieldset class="m-0 min-w-0 border-0 p-0" [disabled]="loadingProject || !!projectLoadError || saving">
+      <div class="project-form-grid">
+        <div class="project-field-wide">
+          <label for="project-name" class="label-base">Nombre del proyecto *</label>
+          <input id="project-name" formControlName="nombre" class="input-base" placeholder="Ej: Proyecto de Salud" required
+            [attr.aria-invalid]="formFamilyCore.get('nombre')?.invalid && formFamilyCore.get('nombre')?.touched"
+            aria-describedby="project-name-error" />
+          <p id="project-name-error" class="project-field-error" *ngIf="formFamilyCore.get('nombre')?.hasError('required') && formFamilyCore.get('nombre')?.touched">
+            El nombre del proyecto es obligatorio.
           </p>
         </div>
-        <div class="flex w-full flex-wrap gap-3 sm:w-auto sm:justify-end">
-          <button type="button" mat-flat-button color="primary"
-            [disabled]="formFamilyCore.invalid || loadingProject || !!projectLoadError || saving || refreshingInventory || !!inventoryError"
-            (click)="confirmarActualizacion()">
-            <mat-icon>save</mat-icon>
-            {{ saving ? 'Guardando…' : 'Guardar' }}
-          </button>
-          <button *ngIf="modo === 'editar'" type="button" mat-stroked-button
-            [disabled]="loadingPdf || loadingProject || !!projectLoadError" (click)="exportarPdf()">
-            <mat-icon>picture_as_pdf</mat-icon>
-            {{ loadingPdf ? 'Generando PDF' : 'Exportar PDF' }}
-          </button>
-          <button type="button" mat-stroked-button [disabled]="saving" (click)="cancelar()">
-            <mat-icon>close</mat-icon> Cancelar
-          </button>
-        </div>
-      </div>
-      <p class="project-form-help">Los campos con * son obligatorios. Guarda estos datos con el botón superior; las categorías y los productos se guardan desde sus propias ventanas.</p>
-      <fieldset class="m-0 min-w-0 border-0 p-0" [disabled]="loadingProject || !!projectLoadError || saving">
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <mat-form-field appearance="fill" class="w-full">
-          <mat-label>Nombre del Proyecto</mat-label>
-          <input matInput formControlName="nombre" placeholder="Ej: Proyecto de Salud" />
-          <mat-icon matSuffix>assignment</mat-icon>
-          <mat-error *ngIf="formFamilyCore.get('nombre')?.hasError('required') && formFamilyCore.get('nombre')?.touched">
-            El nombre del proyecto es obligatorio.
-          </mat-error>
-        </mat-form-field>
-        <mat-form-field appearance="fill" class="w-full">
-          <mat-label>Tipo de Proyecto</mat-label>
-          <mat-select formControlName="tipoProyecto">
-            <mat-option value="M">Municipal</mat-option>
-            <mat-option value="D">Departamental</mat-option>
-          </mat-select>
-          <mat-error *ngIf="formFamilyCore.get('tipoProyecto')?.hasError('required') && formFamilyCore.get('tipoProyecto')?.touched">
+        <div>
+          <label for="project-type" class="label-base">Tipo de proyecto *</label>
+          <select id="project-type" formControlName="tipoProyecto" class="input-base" required
+            [attr.aria-invalid]="formFamilyCore.get('tipoProyecto')?.invalid && formFamilyCore.get('tipoProyecto')?.touched"
+            aria-describedby="project-type-error">
+            <option value="" disabled>Selecciona un tipo</option>
+            <option value="M">Municipal</option>
+            <option value="D">Departamental</option>
+          </select>
+          <p id="project-type-error" class="project-field-error" *ngIf="formFamilyCore.get('tipoProyecto')?.hasError('required') && formFamilyCore.get('tipoProyecto')?.touched">
             Debes seleccionar un tipo de proyecto.
-          </mat-error>
-        </mat-form-field>
-        <mat-form-field appearance="fill" class="w-full">
-          <mat-label>Número de contrato</mat-label>
-          <input matInput formControlName="contrato" maxlength="100" placeholder="Ej: CD-045-2026" />
-          <mat-icon matSuffix>description</mat-icon>
-          <mat-hint>Opcional. Si lo indicas, el acta lo menciona junto al proyecto.</mat-hint>
-          <mat-error *ngIf="formFamilyCore.get('contrato')?.hasError('maxlength')">Máximo 100 caracteres.</mat-error>
-        </mat-form-field>
-        <div class="project-state flex flex-col justify-center" *hasRole="['ADMIN']">
-          <span class="mb-1 text-sm font-medium text-gray-700">Estado</span>
+          </p>
+        </div>
+        <div>
+          <label for="project-contract" class="label-base">Número de contrato</label>
+          <input id="project-contract" formControlName="contrato" class="input-base" maxlength="100" placeholder="Ej: CD-045-2026"
+            [attr.aria-invalid]="formFamilyCore.get('contrato')?.invalid && formFamilyCore.get('contrato')?.touched"
+            aria-describedby="project-contract-hint project-contract-error" />
+          <p id="project-contract-hint" class="project-field-hint">Opcional. Se incluirá en las actas.</p>
+          <p id="project-contract-error" class="project-field-error" *ngIf="formFamilyCore.get('contrato')?.hasError('maxlength')">Máximo 100 caracteres.</p>
+        </div>
+        <div>
+          <label for="fechaInicio" class="label-base">Fecha de inicio *</label>
+          <input type="date" id="fechaInicio" formControlName="fechaInicio" class="input-base" required
+            [attr.aria-invalid]="formFamilyCore.get('fechaInicio')?.invalid && formFamilyCore.get('fechaInicio')?.touched"
+            aria-describedby="project-start-error" />
+          <p id="project-start-error" class="project-field-error" *ngIf="formFamilyCore.get('fechaInicio')?.hasError('required') && formFamilyCore.get('fechaInicio')?.touched">
+            La fecha de inicio es obligatoria.
+          </p>
+        </div>
+        <div>
+          <label for="fechaFin" class="label-base">Fecha de fin</label>
+          <input type="date" id="fechaFin" formControlName="fechaFin" class="input-base" />
+        </div>
+        <div class="project-field-wide">
+          <label for="project-description" class="label-base">Descripción</label>
+          <textarea id="project-description" rows="3" formControlName="descripcion" class="input-base" placeholder="Propósito o alcance del proyecto"></textarea>
+        </div>
+        <div class="project-state project-field-wide" *hasRole="['ADMIN']">
+          <span class="text-sm font-medium text-gray-700">Estado del proyecto</span>
           <mat-radio-group formControlName="estado" aria-label="Estado del proyecto" class="flex flex-wrap gap-4">
             <mat-radio-button value="A" color="primary">Activo</mat-radio-button>
             <mat-radio-button value="I" color="warn">Inactivo</mat-radio-button>
           </mat-radio-group>
         </div>
-        <div class="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-2">
-          <div>
-            <label for="fechaInicio" class="label-base mb-1 block">* Fecha de inicio</label>
-            <input type="date" id="fechaInicio" formControlName="fechaInicio" class="input-base" />
-            <p *ngIf="formFamilyCore.get('fechaInicio')?.hasError('required') && formFamilyCore.get('fechaInicio')?.touched" class="mt-1 text-xs text-red-500">
-              La fecha de inicio es obligatoria.
-            </p>
-          </div>
-          <div>
-            <label for="fechaFin" class="label-base mb-1 block">Fecha de fin</label>
-            <input type="date" id="fechaFin" formControlName="fechaFin" class="input-base" />
-          </div>
-        </div>
-        <mat-form-field appearance="fill" class="col-span-1 sm:col-span-2 lg:col-span-3">
-          <mat-label>Descripción</mat-label>
-          <textarea matInput rows="3" formControlName="descripcion" placeholder="Describe brevemente el propósito o alcance del proyecto..."></textarea>
-          <mat-icon matSuffix>notes</mat-icon>
-        </mat-form-field>
       </div>
       </fieldset>
+      <div class="project-form-footer">
+        <p class="!m-0 text-xs text-slate-500">{{ modo === 'crear' ? 'Después de guardar podrás registrar el inventario.' : 'Solo se guardan los datos generales de esta pestaña.' }}</p>
+        <button type="button" mat-flat-button color="primary"
+          [disabled]="formFamilyCore.invalid || loadingProject || !!projectLoadError || saving || refreshingInventory || !!inventoryError"
+          (click)="confirmarActualizacion()">
+          <mat-icon>save</mat-icon>
+          {{ saving ? 'Guardando…' : modo === 'crear' ? 'Registrar proyecto' : 'Guardar datos del proyecto' }}
+        </button>
+      </div>
     </div>
   </form>
+  </ng-template>
 
+  <ng-template #inventarioProyecto>
   @if (modo === 'editar' && !loadingProject && !projectLoadError) {
-    <section class="project-inventory mt-5 rounded-xl border bg-white p-4 shadow-sm sm:p-5" aria-labelledby="project-inventory-title">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex items-center gap-3">
-          <span class="inventory-summary-icon"><mat-icon aria-hidden="true">inventory_2</mat-icon></span>
-          <div>
-            <h2 id="project-inventory-title" class="!m-0 !text-base !font-semibold text-gray-800">Inventario del proyecto</h2>
-            <p class="!mb-0 !mt-1 text-xs text-slate-500">Organiza las categorías y registra sus productos sin salir del proyecto.</p>
-          </div>
+    <section class="project-inventory project-panel rounded-xl border bg-white p-4 shadow-sm sm:p-5" aria-labelledby="project-inventory-title">
+      <div class="inventory-header">
+        <div class="min-w-0">
+          <h2 id="project-inventory-title" class="!m-0 !text-base !font-semibold text-gray-800">Categorías y productos</h2>
+          <p class="!mb-0 !mt-1 text-xs text-slate-500">{{ categorias().length }} categorías · {{ totalProductos() }} productos registrados</p>
         </div>
-        <button type="button" mat-stroked-button [disabled]="saving || refreshingInventory" (click)="gestionarInventario()">
-          <mat-icon>open_in_new</mat-icon> Gestionar inventario
+        <button type="button" mat-stroked-button [matMenuTriggerFor]="accionesCarga"
+          [disabled]="saving || refreshingInventory || !!inventoryError">
+          <mat-icon>upload_file</mat-icon> Cargas Excel
         </button>
-      </div>
-      <div class="inventory-overview">
-        <span><strong>{{ categorias().length }}</strong> categorías</span>
-        <span><strong>{{ totalProductos() }}</strong> productos registrados</span>
-        <details class="inventory-help">
-          <summary>Cómo gestionar este inventario</summary>
-          <p>Selecciona o crea una categoría para agrupar productos similares, como Alimentos o Herramientas. Puedes editar su nombre sin eliminar productos. Cada ventana guarda sus propios cambios; el botón Guardar superior corresponde a los datos del proyecto.</p>
-        </details>
-      </div>
-      @if (!saving && !refreshingInventory && !inventoryError) {
-        <div class="mb-4 flex flex-wrap gap-2">
-          <button type="button" class="btn-action-blue" (click)="abrirCargaInventario(false)">
-            <mat-icon class="mr-1 text-base">upload_file</mat-icon> Cargar categorías y productos
+        <mat-menu #accionesCarga="matMenu">
+          <button type="button" mat-menu-item [disabled]="saving || refreshingInventory || !!inventoryError" (click)="abrirCargaInventario(false)">
+            <mat-icon>upload_file</mat-icon><span>Cargar categorías y productos</span>
           </button>
-          <button type="button" class="btn-action-gray" (click)="abrirCargaInventario(true)">
-            <mat-icon class="mr-1 text-base">edit_note</mat-icon> Actualizar datos y agregar stock
+          <button type="button" mat-menu-item [disabled]="saving || refreshingInventory || !!inventoryError" (click)="abrirCargaInventario(true)">
+            <mat-icon>edit_note</mat-icon><span>Actualizar datos y agregar stock</span>
           </button>
-        </div>
-      }
-      @if (inventoryError) {
-        <div role="alert" class="mb-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">
-          <p>{{ inventoryError }}</p>
-          <button type="button" class="btn-action-blue" (click)="getProyectoById(true)" [disabled]="refreshingInventory">Reintentar</button>
-        </div>
-      }
-      @if (refreshingInventory) { <p role="status" class="text-sm text-blue-700">Actualizando categorías y productos…</p> }
+        </mat-menu>
+      </div>
       <div class="inventory-category-panel">
-      <div class="inventory-category-selection">
-        <div class="min-w-0 flex-1">
-          <label for="project-category" class="label-base">1. Selecciona la categoría</label>
-          <select id="project-category" class="input-base"
-            [disabled]="saving || refreshingInventory || !!inventoryError || !categorias().length" (change)="selectCategory($event)">
-            @if (!categorias().length) { <option value="">Aún no hay categorías</option> }
-            @for (categoria of categorias(); track categoria.idCategoria) {
-              <option [value]="categoria.idCategoria" [selected]="categoria.idCategoria === selectedCategoryId()">{{ categoria.nombre }} ({{ categoria.productos?.length ?? 0 }} productos)</option>
-            }
-          </select>
-        </div>
-        <button type="button" mat-flat-button color="primary" [disabled]="saving || refreshingInventory || !!inventoryError" (click)="editCategory()">
-          <mat-icon>create_new_folder</mat-icon> Nueva categoría
-        </button>
-      </div>
-      @if (selectedCategory(); as categoria) {
-        <div class="inventory-category-details">
-          <p class="!m-0 min-w-0 text-xs text-slate-600 break-words">{{ categoria.descripcion || 'Sin descripción de la categoría.' }}</p>
-          <div class="inventory-category-actions">
-            <button type="button" mat-button [disabled]="saving || refreshingInventory || !!inventoryError" (click)="editCategory(categoria)"
-              aria-label="Editar nombre y descripción de la categoría">
-              <mat-icon>edit</mat-icon> Editar categoría
-            </button>
-            <button type="button" mat-button color="warn"
-              [title]="categoria.productos?.length ? 'Solo se pueden eliminar categorías sin productos' : 'Eliminar categoría vacía'"
-              [disabled]="saving || refreshingInventory || !!inventoryError || !!categoria.productos?.length" (click)="deleteCategory(categoria)">
-              <mat-icon>delete</mat-icon> Eliminar
-            </button>
+        <div class="inventory-category-selection">
+          <div class="min-w-0">
+            <label for="project-category" class="label-base">Categoría</label>
+            <select id="project-category" class="input-base"
+              [disabled]="saving || refreshingInventory || !!inventoryError || !categorias().length" (change)="selectCategory($event)">
+              @if (!categorias().length) { <option value="">Aún no hay categorías</option> }
+              @for (categoria of categorias(); track categoria.idCategoria) {
+                <option [value]="categoria.idCategoria" [selected]="categoria.idCategoria === selectedCategoryId()">{{ categoria.nombre }} ({{ categoria.productos?.length ?? 0 }} productos)</option>
+              }
+            </select>
           </div>
+          <button type="button" mat-stroked-button [disabled]="saving || refreshingInventory || !!inventoryError" (click)="editCategory()">
+            <mat-icon>create_new_folder</mat-icon> Nueva categoría
+          </button>
+          @if (selectedCategory(); as categoria) {
+            <div>
+              <button type="button" mat-icon-button [matMenuTriggerFor]="accionesCategoria"
+                [disabled]="saving || refreshingInventory || !!inventoryError" [attr.aria-label]="'Opciones de la categoría ' + categoria.nombre">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #accionesCategoria="matMenu">
+                <button type="button" mat-menu-item [disabled]="saving || refreshingInventory || !!inventoryError" (click)="editCategory(categoria)">
+                  <mat-icon>edit</mat-icon><span>Editar categoría</span>
+                </button>
+                <button type="button" mat-menu-item
+                  [title]="categoria.productos?.length ? 'Solo se pueden eliminar categorías sin productos' : 'Eliminar categoría vacía'"
+                  [disabled]="saving || refreshingInventory || !!inventoryError || !!categoria.productos?.length" (click)="deleteCategory(categoria)">
+                  <mat-icon>delete</mat-icon><span>Eliminar categoría vacía</span>
+                </button>
+              </mat-menu>
+            </div>
+          }
         </div>
-      }
+        @if (selectedCategory()?.descripcion; as descripcion) {
+          <p class="inventory-category-description">{{ descripcion }}</p>
+        }
       </div>
       @if (selectedCategory(); as categoria) {
         <div class="inventory-products-heading">
-          <div>
-            <h3 class="!m-0 !text-sm !font-semibold text-slate-800">2. Productos de la categoría</h3>
-            <p class="!mb-0 !mt-1 text-xs text-slate-500">Consulta las existencias, registra artículos o edita sus datos.</p>
-          </div>
-          <button type="button" mat-flat-button color="primary" [disabled]="saving || refreshingInventory || !!inventoryError" (click)="addProducts(categoria)">
-            <mat-icon>add</mat-icon> Agregar productos
-          </button>
+          <h3 class="!m-0 !text-sm !font-semibold text-slate-800">Productos</h3>
+          <p id="project-product-count" aria-live="polite" class="!m-0 text-xs text-slate-500">{{ filteredProducts().length }} de {{ categoria.productos?.length ?? 0 }} productos</p>
         </div>
         <div class="project-product-toolbar">
           <div class="project-product-search">
             <label for="project-product-search" class="sr-only">Buscar productos de esta categoría</label>
             <div class="project-product-control">
               <mat-icon aria-hidden="true">search</mat-icon>
-              <input #productSearch id="project-product-search" type="search" placeholder="Nombre, descripción, existencias o fecha"
+              <input #productSearch id="project-product-search" type="search" placeholder="Buscar productos en esta categoría"
+                title="Busca por nombre, descripción, existencias o fecha"
                 [value]="productFilter()" (input)="filterProducts(productSearch.value)"
                 (keydown.escape)="filterProducts('')" aria-describedby="project-product-count">
               @if (productFilter()) {
@@ -190,10 +215,13 @@
               }
             </div>
           </div>
-          <p id="project-product-count" aria-live="polite" class="!m-0 text-xs text-slate-500">{{ filteredProducts().length }} de {{ categoria.productos?.length ?? 0 }} productos</p>
+          <button type="button" mat-flat-button color="primary" [disabled]="saving || refreshingInventory || !!inventoryError" (click)="addProducts(categoria)">
+            <mat-icon>add</mat-icon> Agregar productos
+          </button>
         </div>
+        <p class="project-table-hint"><mat-icon aria-hidden="true">swipe</mat-icon> Desliza la tabla para ver todas las columnas.</p>
         <div class="project-product-table table-shell">
-          <div class="table-scroll">
+          <div class="table-scroll" tabindex="0" role="region" [attr.aria-label]="'Productos de ' + categoria.nombre">
             <table class="table-compact">
               <caption class="sr-only">Productos de {{ categoria.nombre }}</caption>
               <thead><tr><th scope="col">Producto</th><th scope="col">Existencias</th><th scope="col">Fecha de ingreso</th><th scope="col">Acciones</th></tr></thead>
@@ -218,17 +246,19 @@
           </div>
         </div>
         @if (filteredProducts().length > 0) {
-          <mat-paginator [length]="filteredProducts().length" [pageIndex]="productPage()" [pageSize]="productPageSize()"
-            [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons aria-label="Paginación de productos del proyecto"
-            (page)="changeProductPage($event)" />
+          <app-server-pagination [totalElements]="filteredProducts().length" [pageIndex]="productPage()"
+            [pageSize]="productPageSize()" [totalPages]="productTotalPages()" [pageSizes]="productPageSizes"
+            [disabled]="saving || refreshingInventory || !!inventoryError"
+            (pageChange)="changeProductPage($event)" (pageSizeChange)="changeProductPageSize($event)" />
         }
       } @else {
         <p class="!mb-0 !mt-3 text-sm text-slate-500">Usa Nueva categoría para crear el primer grupo de productos de este proyecto.</p>
       }
+      <details class="inventory-help">
+        <summary>Ayuda para gestionar el inventario</summary>
+        <p>Selecciona o crea una categoría para agrupar sus productos. Las ventanas de categorías y productos guardan sus propios cambios. Para registrar varios artículos desde Excel, usa Cargas Excel. Los datos generales se guardan desde Datos del proyecto.</p>
+      </details>
     </section>
-  } @else if (modo === 'crear') {
-    <p class="mt-5 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
-      Primero guarda los datos del proyecto. Enseguida podrás agregar aquí sus categorías y productos, como parte del registro.
-    </p>
   }
+  </ng-template>
 </div>

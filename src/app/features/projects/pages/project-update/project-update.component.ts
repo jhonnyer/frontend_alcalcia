@@ -7,11 +7,8 @@ import { ProyectosService } from '../../../../core/services/proyectos.service';
 import { PageTitleService } from '../../../../core/services/pageTitle.service';
 import { IProyecto, IProyectoCategorias } from '../../../../core/models/proyecto.model';
 import { ICategorias } from '../../../../core/models/categorias.model';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../nucleo/components/confirm-accion-dialog/confirm-dialog.component';
@@ -24,20 +21,23 @@ import { CategoriasCreateComponent } from '../../../categorias/categorias-create
 import { ProductoModalComponent } from '../../../inventory/pages/product-modal/producto-modal.component';
 import { InventoryCreateComponent, InventoryCreateDialogData } from '../../../inventory/pages/inventory-create/inventory-create.component';
 import { IProductoFk } from '../../../../core/models/products.model';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatMenuModule } from '@angular/material/menu';
+import { ServerPaginationComponent } from '../../../../shared/components/server-pagination/server-pagination.component';
 
 @Component({
   selector: 'app-project-update',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, MatFormFieldModule, MatRadioModule,
-    MatSelectModule, MatIconModule, MatInputModule, MatButtonModule, MatPaginatorModule, HasRoleDirective
+    CommonModule, ReactiveFormsModule, MatRadioModule, MatIconModule,
+    MatButtonModule, MatTabsModule, MatMenuModule, ServerPaginationComponent, HasRoleDirective
   ],
   templateUrl: './project-update.component.html',
   styleUrl: './project-update.component.scss'
 })
 export class ProjectUpdateComponent implements OnInit {
   @Input() modo: 'crear' | 'editar' = 'crear';
+  activeTab = signal(0);
   formFamilyCore: FormGroup = new FormGroup({});
   categorias = signal<ICategorias[]>([]);
   selectedCategoryId = signal<number | null>(null);
@@ -47,6 +47,7 @@ export class ProjectUpdateComponent implements OnInit {
   productFilter = signal('');
   productPage = signal(0);
   productPageSize = signal(5);
+  readonly productPageSizes = [5, 10, 25];
   filteredProducts = computed(() => {
     const filter = this.normalizeSearchText(this.productFilter());
     return (this.selectedCategory()?.productos ?? []).filter(product =>
@@ -58,6 +59,7 @@ export class ProjectUpdateComponent implements OnInit {
     this.productPage() * this.productPageSize(),
     (this.productPage() + 1) * this.productPageSize()
   ));
+  productTotalPages = computed(() => Math.max(1, Math.ceil(this.filteredProducts().length / this.productPageSize())));
   totalProductos = computed(() => this.categorias().reduce((total, categoria) =>
     total + (categoria.productos?.length ?? 0), 0
   ));
@@ -261,9 +263,13 @@ export class ProjectUpdateComponent implements OnInit {
     this.productPage.set(0);
   }
 
-  changeProductPage(event: PageEvent): void {
-    this.productPage.set(event.pageIndex);
-    this.productPageSize.set(event.pageSize);
+  changeProductPage(pageIndex: number): void {
+    this.productPage.set(pageIndex);
+  }
+
+  changeProductPageSize(event: Event): void {
+    this.productPageSize.set(Number((event.target as HTMLSelectElement).value));
+    this.productPage.set(0);
   }
 
   private normalizeSearchText(value: string | number | null | undefined): string {

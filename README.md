@@ -78,7 +78,16 @@ las vinculaciones inactivas. No se requiere migracion de base de datos.
 
 ## Cargas de inventario desde un proyecto
 
-En **Actualizar Proyecto > Inventario del proyecto** hay dos accesos que
+La vista del proyecto separa **Datos del proyecto** e **Inventario** en pestanas.
+Cambiar de pestana conserva el formulario y sus cambios pendientes; Guardar
+solo guarda los datos generales. PDF y el inventario completo estan en
+**Mas acciones**. Las categorias y productos siguen guardandose desde sus ventanas,
+con tabla desplazable en movil y paginacion desde 5 filas.
+El formulario usa etiquetas externas y controles de altura uniforme, en dos
+columnas en escritorio y una en movil. El inventario agrupa el selector y las
+opciones de categoria, y el buscador junto a Agregar productos.
+
+En **Actualizar Proyecto > Inventario > Cargas Excel** hay dos accesos que
 reutilizan la vista previa, las correcciones y la confirmacion de cargas:
 
 - **Cargar categorias y productos**: plantilla con Categoria, Descripcion

@@ -1,43 +1,76 @@
-.project-editor { background: #f8fafc; }
-.project-heading { min-width: 0; }
-.project-eyebrow { display: block; margin-bottom: .35rem; color: #2563eb; font-size: .65rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+:host { display: block; min-width: 0; max-width: 100%; }
+.project-editor { min-width: 0; max-width: 100%; background: #f8fafc; }
+.project-page-header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; padding: .25rem .25rem 1rem; }
+.project-heading { flex: 1; min-width: 0; max-width: 100%; }
+.project-editor .project-page-title { margin: .5rem 0 0; color: #0f172a; font-size: 1.25rem; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.project-page-actions { display: flex; max-width: 100%; flex-shrink: 0; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.project-back { margin-left: -.5rem; }
+.project-status { padding: .25rem .65rem; border-radius: 999px; background: #ecfdf5; color: #047857; font-size: .75rem; font-weight: 600; }
+.project-status-inactive { background: #f1f5f9; color: #475569; }
+.project-pending { margin-top: .5rem; padding: .25rem 0; color: #92400e; font-size: .75rem; text-align: left; }
+.project-pending:hover { text-decoration: underline; }
+.project-pending:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.project-tabs { min-width: 0; max-width: 100%; }
+.project-panel { min-width: 0; margin-top: 1rem; }
 .project-form-help { margin: 0 0 1rem; color: #64748b; font-size: .75rem; line-height: 1.5; }
-.project-state { align-self: start; padding: .65rem .85rem; border: 1px solid #e2e8f0; border-radius: .65rem; background: #f8fafc; }
-.inventory-summary-icon { display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 36px; height: 36px; color: #7c3aed; background: #f5f3ff; border-radius: .65rem; }
-textarea { resize: vertical; }
-.mat-mdc-form-field { font-size: .9rem; }
-.mat-mdc-select { min-width: 100%; }
+.project-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem 1.25rem; }
+.project-form-grid > div { min-width: 0; }
+.project-field-wide { grid-column: 1 / -1; }
+.project-form-grid .label-base { margin-bottom: .4rem; font-size: .8125rem; font-weight: 600; }
+.project-form-grid input, .project-form-grid select { height: 44px; min-width: 0; }
+.project-form-grid textarea { display: block; min-height: 96px; resize: vertical; }
+.project-field-hint, .project-field-error { margin: .35rem 0 0; font-size: .75rem; line-height: 1.5; }
+.project-field-hint { color: #64748b; }
+.project-field-error { color: #b91c1c; }
+.project-form-grid [aria-invalid="true"] { border-color: #dc2626; }
+.project-state { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; padding-top: .75rem; border-top: 1px solid #e2e8f0; }
+.project-form-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+.project-form-footer p { flex: 1 1 200px; }
+.project-form-footer button { flex-shrink: 0; height: auto; min-height: 40px; padding: .6rem 1rem; white-space: normal; line-height: 1.4; }
 .project-inventory {
   --mdc-filled-button-container-shape: 8px;
   --mdc-outlined-button-container-shape: 8px;
   --mdc-text-button-container-shape: 8px;
 }
-.inventory-overview { display: flex; flex-wrap: wrap; align-items: start; gap: .5rem 1rem; margin: 1rem 0; color: #64748b; font-size: .75rem; }
-.inventory-overview > span { padding: .3rem .6rem; border-radius: .4rem; background: #f1f5f9; }
-.inventory-overview strong { color: #334155; }
-.inventory-help { flex: 1 1 220px; text-align: right; }
+.inventory-help { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid #e2e8f0; color: #64748b; font-size: .75rem; }
 .inventory-help summary { padding: .3rem 0; color: #2563eb; cursor: pointer; }
 .inventory-help p { margin: .5rem 0 0; text-align: left; line-height: 1.6; }
-.inventory-category-panel { padding: 1rem; border: 1px solid #ddd6fe; border-radius: .75rem; background: #fafaff; }
-.inventory-category-selection { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
-.inventory-category-selection > div { flex: 1 1 280px; }
-.inventory-category-details { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; margin-top: .75rem; padding-top: .5rem; border-top: 1px solid #ede9fe; }
-.inventory-category-details > p { flex: 1 1 220px; }
-.inventory-category-actions { display: flex; flex-wrap: wrap; gap: .25rem; }
-.inventory-products-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin: 1.25rem 0 .85rem; }
-.project-product-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-bottom: .75rem; }
-.project-product-search { flex: 1 1 280px; min-width: 0; }
-.project-product-control { display: flex; align-items: center; gap: .5rem; min-height: 42px; padding: 0 .65rem; border: 1px solid #cbd5e1; border-radius: .65rem; background: white; }
+.inventory-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+.inventory-category-panel { margin-top: 1rem; padding: 1rem 0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+.inventory-category-selection { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; gap: .5rem .75rem; }
+.inventory-category-selection .input-base { height: 44px; min-width: 0; text-overflow: ellipsis; }
+.inventory-category-selection > button { min-height: 44px; }
+.inventory-category-description { margin: .5rem 0 0; color: #64748b; font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; }
+.inventory-products-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; margin: 1rem 0 .65rem; }
+.project-product-toolbar { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; }
+.project-product-toolbar > button { min-height: 44px; flex-shrink: 0; }
+.project-product-search { flex: 1; min-width: 0; }
+.project-product-control { display: flex; align-items: center; gap: .5rem; min-height: 44px; padding: 0 .65rem; border: 1px solid #cbd5e1; border-radius: .5rem; background: white; }
 .project-product-control:focus-within { outline: 2px solid #2563eb; outline-offset: 1px; }
 .project-product-control > mat-icon { flex-shrink: 0; color: #64748b; }
 .project-product-control input { flex: 1; min-width: 0; padding: .6rem 0; border: 0; outline: 0; background: transparent; font-size: .85rem; }
 .project-product-control button { display: flex; flex-shrink: 0; padding: .25rem; border-radius: 50%; color: #64748b; }
 .project-product-table td { padding-top: .55rem; padding-bottom: .55rem; }
+.project-product-table table { min-width: 640px; }
+.project-product-table td:nth-child(3), .project-product-table td:last-child { white-space: nowrap; }
+.project-product-table .table-scroll:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+.project-table-hint { display: none; }
 .inventory-stock { display: inline-flex; padding: .2rem .55rem; border-radius: .4rem; background: #ecfdf5; color: #047857; font-size: .75rem; font-weight: 600; white-space: nowrap; }
 .inventory-stock-empty { color: #b91c1c; background: #fef2f2; }
 .inventory-stock-low { color: #92400e; background: #fffbeb; }
-@media (max-width: 600px) {
-  .inventory-category-panel { padding: .75rem; }
-  .inventory-help { text-align: left; }
-  .inventory-products-heading > button, .inventory-category-selection > button { width: 100%; }
+@media (min-width: 640px) {
+  .project-editor .project-page-title { font-size: 1.5rem; }
+}
+@media (max-width: 639px) {
+  .project-page-header { flex-direction: column; }
+  .project-page-actions { width: 100%; justify-content: space-between; }
+  .project-form-grid { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .project-form-footer button { width: 100%; }
+  .inventory-header > button { width: 100%; }
+  .inventory-category-selection { grid-template-columns: minmax(0, 1fr) auto; }
+  .inventory-category-selection > div:first-child { grid-column: 1 / -1; }
+  .inventory-category-selection > button { width: 100%; }
+  .project-product-toolbar { flex-direction: column; align-items: stretch; gap: .5rem; }
+  .project-table-hint { display: flex; align-items: center; gap: .35rem; margin: 0 0 .5rem; color: #64748b; font-size: .7rem; }
+  .project-table-hint mat-icon { width: 16px; height: 16px; font-size: 16px; }
 }
